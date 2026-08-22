@@ -1,3 +1,17 @@
+# v3.4.2 — CI foundation
+
+GitHub Actions now validates every push to `main`, `feature/**`, `fix/**` and every pull request to `main`. The pipeline compiles Python sources, runs pytest, performs a lightweight secret scan across Git history, and verifies that the Docker image builds. A `.dockerignore` keeps `.env`, `.venv`, Git metadata and runtime data out of the Docker build context.
+
+Local development checks:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m compileall -q app tests
+python -m pytest -q
+./scripts/secret-scan.sh
+docker build -t personal-ai-job-agent:local .
+```
+
 # v3.4.1 — Candidate Fact types
 
 Candidate Facts now distinguish `commercial`, `lab`, `learning`, and `unknown`. Existing commercial flags are preserved; legacy non-commercial facts are intentionally left `unknown` until the user classifies them. Search/scoring behavior is unchanged.
