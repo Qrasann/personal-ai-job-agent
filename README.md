@@ -1,4 +1,12 @@
-# Personal AI Job Agent v3.3.2
+
+## v3.3.3 scoring fixes
+
+- HH `3–6 лет` is treated as a stretch band, not as an explicit 5+ years requirement.
+- Stretch roles can cross the default notification threshold; senior/lead and explicit 5+ requirements remain capped.
+- `/jobs` hides stale rows below the current `notify_min_score`.
+- RemoteOK discovery ignores generic words like `engineer` and requires meaningful role terms in title/tags.
+
+# Personal AI Job Agent v3.3.3
 
 Персональный AI-агент для поиска выбранных вакансий из России: российский рынок + international remote + relocation, с Telegram как главным интерфейсом.
 
@@ -133,3 +141,8 @@ HH_WEB_USER_AGENT=Mozilla/5.0 (X11; Linux x86_64; rv:154.0) Gecko/20100101 Firef
 ## v3.3.2 hotfix
 
 HH web fallback no longer treats a harmless `captcha` string embedded in normal HH JavaScript as an active CAPTCHA page. A real challenge is detected from the final captcha URL or explicit verification text when normal vacancy-serp markers are absent.
+
+
+## Проверка v3.3.3
+
+`pytest`: **27 passed**. `compileall`: OK.

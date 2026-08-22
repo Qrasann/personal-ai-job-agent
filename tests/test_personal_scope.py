@@ -82,7 +82,7 @@ def test_russian_senior_title_is_below_notification_lane():
     assert result.total_score <= 54
 
 
-def test_three_plus_years_is_stretch_not_normal_match():
+def test_three_plus_years_is_stretch_but_can_be_notified():
     job = Job(
         fingerprint="stretch",
         title="DevOps Engineer",
@@ -91,5 +91,32 @@ def test_three_plus_years_is_stretch_not_normal_match():
         country="RU",
     )
     result = score_job(job, _search(), _facts(), [])
-    assert result.total_score <= 64
+    assert 65 <= result.total_score <= 72
     assert "3–4" in result.reason
+
+
+def test_hh_three_to_six_band_is_stretch_not_five_plus():
+    job = Job(
+        fingerprint="hh-3-6",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker. Опыт работы 3–6 лет.",
+        country="RU",
+    )
+    result = score_job(job, _search(), _facts(), [])
+    assert 65 <= result.total_score <= 72
+    assert "3–4" in result.reason
+    assert "5+" not in result.reason
+
+
+def test_explicit_five_plus_stays_below_notification_lane():
+    job = Job(
+        fingerprint="five-plus",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker. Опыт от 5 лет.",
+        country="RU",
+    )
+    result = score_job(job, _search(), _facts(), [])
+    assert result.total_score <= 58
+    assert "5+" in result.reason

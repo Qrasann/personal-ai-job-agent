@@ -177,8 +177,14 @@ def _display_key(title: str, company: str) -> tuple[str, str]:
     return norm(title), norm(company)
 
 
-async def latest_matches(user_id: int, limit: int = 10, *, include_filtered: bool = False) -> list[tuple[JobMatch, Job]]:
-    """Latest useful matches, suppressing duplicate employer/title reposts in UI."""
+async def latest_matches(
+    user_id: int,
+    limit: int = 10,
+    *,
+    include_filtered: bool = False,
+    min_score: int | None = None,
+) -> list[tuple[JobMatch, Job]]:
+    """Latest useful matches, suppressing stale low-score rows and reposts in UI."""
     async with SessionLocal() as session:
         stmt = (
             select(JobMatch, Job)
@@ -189,6 +195,8 @@ async def latest_matches(user_id: int, limit: int = 10, *, include_filtered: boo
         )
         if not include_filtered:
             stmt = stmt.where(JobMatch.status.notin_(["filtered", "duplicate"]))
+        if min_score is not None:
+            stmt = stmt.where(JobMatch.total_score >= int(min_score))
         rows = list((await session.execute(stmt)).all())
 
     out: list[tuple[JobMatch, Job]] = []

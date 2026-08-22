@@ -411,7 +411,9 @@ async def jobs(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
-    rows = await repo.latest_matches(user.id, 10)
+    _, search = await _first_search(user.id)
+    threshold = int(((search.settings or {}) if search else {}).get("notify_min_score", 65))
+    rows = await repo.latest_matches(user.id, 10, min_score=threshold)
     if not rows:
         await message.answer("Пока совпадений нет. Запусти /scan.")
         return

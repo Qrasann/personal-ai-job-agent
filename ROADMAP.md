@@ -1,6 +1,12 @@
 # Roadmap
 
-## v3.3.2 — сейчас
+## v3.3.3 — сейчас
+
+## v3.3.3 scoring hotfix
+- Исправить HH band `3–6 лет`: это stretch, а не 5+ лет.
+- Stretch вакансии снова могут попасть в уведомления при пороге 65.
+- `/jobs` скрывает старые low-score строки.
+- RemoteOK требует meaningful role term в title/tags.
 
 - [x] Telegram control plane
 - [x] Россия + remote + relocation modes

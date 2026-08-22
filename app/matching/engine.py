@@ -79,19 +79,22 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
         return "senior", "senior/lead уровень в названии"
 
     very_high_experience = (
-        r"(?:опыт|стаж)[^\n]{0,30}(?:от\s*)?(?:5|6|7|8|9|10)\+?\s*(?:лет|года)",
+        r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(?:5|6|7|8|9|10)\+?\s*(?:лет|года)",
         r"(?:5|6|7|8|9|10)\+\s*years?",
         r"(?:more than|at least)\s+(?:5|6|7|8|9|10)\s+years?",
-        r"(?:3|4)[–—-](?:6|7)\s*лет",
         r"более\s+(?:5|6)\s+лет",
     )
     if any(re.search(pattern, text) for pattern in very_high_experience):
         return "high_experience", "требование 5+ лет/высокого опыта"
 
     stretch_experience = (
-        r"(?:опыт|стаж)[^\n]{0,30}(?:от\s*)?(?:3|4)\+?\s*(?:лет|года)",
+        r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(?:3|4)\+?\s*(?:лет|года)",
         r"(?:3|4)\+\s*years?",
         r"(?:at least)\s+(?:3|4)\s+years?",
+        # HH commonly exposes the broad platform band "3–6 лет" on cards.
+        # Treat it as a stretch, not as an explicit 5+ requirement.
+        r"(?:опыт[^\n]{0,30})?3[–—-]6\s*лет",
+        r"3[–—-]6\s*years?",
     )
     if any(re.search(pattern, text) for pattern in stretch_experience):
         return "stretch", "требуется около 3–4 лет опыта"
@@ -159,7 +162,11 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     elif seniority == "high_experience":
         technical = min(technical, 52)
     elif seniority == "stretch":
-        technical = max(20, technical - 12)
+        # Stretch roles should still be visible to a strong Junior+/pre-Middle
+        # candidate. A small penalty is enough; the previous -12 together with
+        # a 64 cap made every 3–4 year role mathematically unable to cross the
+        # default 65 notification threshold.
+        technical = max(20, technical - 6)
 
     country = (job.country or "").upper()
     geography = 45
@@ -213,7 +220,12 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     elif seniority == "high_experience":
         total = min(total, int(settings.get("high_experience_score_cap", 58)))
     elif seniority == "stretch":
-        total = min(total, int(settings.get("stretch_score_cap", 64)))
+        stretch_cap = int(settings.get("stretch_score_cap", 72))
+        # v3.3.2 persisted 64 in existing profiles. Upgrade that legacy
+        # default in-place logically so users do not need to reset their DB.
+        if stretch_cap == 64:
+            stretch_cap = 72
+        total = min(total, stretch_cap)
 
     bits = [f"режим {track}", f"техника {technical}", f"география {geography}", f"зарплата {salary}", f"релокация {relocation}"]
     if query_hits:

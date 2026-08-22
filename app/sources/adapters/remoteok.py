@@ -20,14 +20,30 @@ class RemoteOKSource(JobSource):
             payload = response.json()
 
         queries = [q.casefold() for q in (context.queries or [])]
+        generic_role_tokens = {
+            "engineer", "administrator", "admin", "specialist", "developer",
+            "инженер", "администратор", "специалист", "разработчик",
+        }
+        meaningful_queries: list[list[str]] = []
+        for query in queries:
+            tokens = [t for t in query.replace("/", " ").split() if len(t) >= 3]
+            meaningful = [t for t in tokens if t not in generic_role_tokens]
+            meaningful_queries.append(meaningful or tokens)
         out: list[NormalizedJob] = []
         for row in payload:
             if not isinstance(row, dict) or not row.get("id"):
                 continue
             title = str(row.get("position") or "")
             tags = [str(x) for x in (row.get("tags") or [])]
-            hay = " ".join([title, " ".join(tags), str(row.get("description") or "")]).casefold()
-            if queries and not any(q in hay or any(token in hay for token in q.split()) for q in queries):
+            # Discovery should match the role, not a generic word such as
+            # "engineer" buried somewhere in a long description. This avoids
+            # unrelated RemoteOK rows such as housekeeping/data/software roles
+            # entering the DevOps feed.
+            role_hay = " ".join([title, " ".join(tags)]).casefold()
+            if meaningful_queries and not any(
+                tokens and all(token in role_hay for token in tokens)
+                for tokens in meaningful_queries
+            ):
                 continue
             out.append(
                 NormalizedJob(

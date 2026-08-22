@@ -1,4 +1,4 @@
-# Scope — Personal AI Job Agent v3.3.2
+# Scope — Personal AI Job Agent v3.3.3
 
 ## Цель сейчас
 
