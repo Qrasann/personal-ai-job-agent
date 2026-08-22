@@ -1,5 +1,49 @@
+# Secrets / local configuration
 .env
+.env.*
+!.env.example
+
+# Credentials / private keys
+secrets/
+credentials/
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# Runtime data
+storage/
+backups/
+logs/
+*.dump
+*.backup
+*.log
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 .venv/
+venv/
+
+# Packaging/build
+build/
+dist/
+*.egg-info/
+
+# Local Docker overrides
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+
+# OS/temp
+.DS_Store
+*.tmp
