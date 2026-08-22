@@ -118,3 +118,29 @@ def test_hh_falls_back_to_public_web_after_api_403():
 def test_hh_web_salary_range_parser():
     assert HHSource._salary("180 000 – 250 000 ₽ за месяц") == (180000, 250000, "RUR")
     assert HHSource._salary("до 250 000 ₽") == (None, 250000, "RUR")
+
+
+def test_normal_hh_html_can_contain_captcha_word_without_being_challenge():
+    # Regression fixture: normal HH pages can mention "captcha" inside JS.
+    html = '''
+    <html><body>
+      <script>window.config = {"captcha":"available"}</script>
+      <div data-qa="vacancy-serp__vacancy">
+        <a data-qa="serp-item__title" href="https://hh.ru/vacancy/1">DevOps Engineer</a>
+      </div>
+    </body></html>
+    '''
+    folded = html.casefold()
+    has_search_content = any(marker in folded for marker in (
+        'data-qa="vacancy-serp__vacancy"',
+        'data-qa="serp-item__title"',
+        'vacancy-serp',
+    ))
+    explicit_challenge = any(marker in folded for marker in (
+        "проверка, что вы не робот",
+        "подтвердите, что вы человек",
+        "подтвердите, что вы не робот",
+        "пройдите проверку, чтобы продолжить",
+    ))
+    assert has_search_content is True
+    assert explicit_challenge is False

@@ -118,3 +118,7 @@ HH_WEB_FALLBACK_ENABLED=true
 HH_WEB_MAX_PAGES=1
 HH_WEB_USER_AGENT=Mozilla/5.0 (X11; Linux x86_64; rv:154.0) Gecko/20100101 Firefox/154.0
 ```
+
+## v3.3.1 hotfix
+
+HH web fallback no longer treats a harmless `captcha` string embedded in normal HH JavaScript as an active CAPTCHA page. A real challenge is detected from the final captcha URL or explicit verification text when normal vacancy-serp markers are absent.

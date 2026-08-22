@@ -103,15 +103,31 @@ class HHClient:
             response = await client.get(f"{self.web_base_url}/search/vacancy", params=params, headers=headers)
         text_body = response.text
         folded = text_body.casefold()
-        captcha_markers = (
-            "captcha",
+        final_url = str(response.url).casefold()
+        if response.status_code >= 400:
+            raise HHError(f"HH web {response.status_code}")
+
+        # HH's normal search HTML may contain the literal word ``captcha`` in
+        # JavaScript/configuration even when no challenge is being shown.
+        # Treat the page as a challenge only when the final URL is a captcha
+        # route or explicit human-verification text is visible AND no normal
+        # vacancy-search markers are present.
+        normal_search_markers = (
+            'data-qa="vacancy-serp__vacancy"',
+            'data-qa="serp-item__title"',
+            "vacancy-serp",
+        )
+        has_search_content = any(marker in folded for marker in normal_search_markers)
+        challenge_markers = (
             "проверка, что вы не робот",
             "подтвердите, что вы человек",
             "подтвердите, что вы не робот",
+            "пройдите проверку, чтобы продолжить",
         )
-        if response.status_code >= 400:
-            raise HHError(f"HH web {response.status_code}")
-        if any(marker in folded for marker in captcha_markers):
+        challenge_url = "/captcha" in final_url or "captcha.hh" in final_url
+        explicit_challenge = any(marker in folded for marker in challenge_markers)
+
+        if challenge_url or (explicit_challenge and not has_search_content):
             raise HHCaptchaRequired(
                 "Обычная страница HH запросила CAPTCHA/проверку. "
                 "Агент остановил HH-поиск; открой сайт вручную."
