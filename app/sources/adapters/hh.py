@@ -142,7 +142,10 @@ class HHSource(JobSource):
                 for node in (req_node, resp_node)
                 if node and node.get_text(" ", strip=True)
             ]
-            description = " ".join(description_parts) or card_text[:2500]
+            # Keep the visible card text as well as the snippets. HH often places
+            # seniority/experience/work-format signals outside the requirement
+            # snippet, and the matcher needs those signals in fallback mode.
+            description = " ".join(description_parts + [card_text])[:3500]
             salary_text = salary_node.get_text(" ", strip=True) if salary_node else ""
             salary_from, salary_to, salary_currency = cls._salary(salary_text)
             city = address_node.get_text(" ", strip=True) if address_node else None
@@ -161,7 +164,7 @@ class HHSource(JobSource):
                 salary_from=salary_from,
                 salary_to=salary_to,
                 salary_currency=salary_currency,
-                raw={"transport": "web", "salary_text": salary_text},
+                raw={"transport": "web", "salary_text": salary_text, "card_text": card_text[:5000]},
             ))
         return out
 

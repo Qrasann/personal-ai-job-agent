@@ -25,6 +25,13 @@ search:
     - crypto casino
     - senior devops
     - lead devops
+  review_terms:
+    - blockchain
+    - crypto
+    - web3
+  senior_score_cap: 54
+  high_experience_score_cap: 58
+  stretch_score_cap: 64
   preferred_terms:
     - linux
     - docker

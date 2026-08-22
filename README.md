@@ -1,8 +1,19 @@
-# Personal AI Job Agent v3.2
+# Personal AI Job Agent v3.3.2
 
 Персональный AI-агент для поиска выбранных вакансий из России: российский рынок + international remote + relocation, с Telegram как главным интерфейсом.
 
-## Что изменилось в v3.2
+## v3.3.2 — очистка ленты перед подключением LLM
+
+- `/status` показывает реальную версию из файла `VERSION`;
+- `/scan` показывает, сколько вакансий дал каждый источник, сколько прошло фильтр и сколько уведомлений отправлено;
+- senior/lead/старший/ведущий вакансии в fallback-режиме ограничиваются по score и не попадают в обычную ленту;
+- требования 3–4 года считаются stretch, 5+ лет — высоким опытом;
+- crypto/blockchain/web3 — мягкий risk penalty для ручной проверки, а не выдуманный hard-ban;
+- HH web parser сохраняет весь текст карточки, чтобы видеть seniority/experience, которые HH размещает вне snippet;
+- одинаковые `title + company` больше не повторяются в `/jobs`, а повторные repost-уведомления подавляются.
+
+
+## Что изменилось в v3.3.2
 
 Главное изменение — базовая работа больше **не требует HH applicant OAuth / HH_ACCESS_TOKEN**.
 
@@ -58,7 +69,7 @@ HH_USER_AGENT=PersonalJobAgent/0.2 (your-real-email@example.com)
 /resume
 ```
 
-## HH workflow в v3.2
+## HH workflow в v3.3.2
 
 ```text
 HH vacancy search
@@ -105,7 +116,7 @@ Remote-фильтр отдельно штрафует вакансии врод�
 pytest -q
 ```
 
-При сборке v3.2: **18 passed**.
+При сборке v3.3.2: **18 passed**.
 
 ## v3.3: HH public-web fallback
 
@@ -119,6 +130,6 @@ HH_WEB_MAX_PAGES=1
 HH_WEB_USER_AGENT=Mozilla/5.0 (X11; Linux x86_64; rv:154.0) Gecko/20100101 Firefox/154.0
 ```
 
-## v3.3.1 hotfix
+## v3.3.2 hotfix
 
 HH web fallback no longer treats a harmless `captcha` string embedded in normal HH JavaScript as an active CAPTCHA page. A real challenge is detected from the final captcha URL or explicit verification text when normal vacancy-serp markers are absent.

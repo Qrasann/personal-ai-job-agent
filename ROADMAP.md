@@ -1,6 +1,6 @@
 # Roadmap
 
-## v3.2 — сейчас
+## v3.3.2 — сейчас
 
 - [x] Telegram control plane
 - [x] Россия + remote + relocation modes

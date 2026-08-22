@@ -54,3 +54,42 @@ def test_disabled_remote_mode_filters_remote_only_job():
     job = Job(fingerprint="remoteoff", title="DevOps Engineer", company="ACME", description="Linux Docker Remote worldwide", country="DE", work_mode="remote")
     result = score_job(job, _search({"local_ru": True, "remote_international": False, "relocation": False}), _facts(), [])
     assert result.total_score == 0
+
+
+def test_senior_devops_is_below_notification_lane():
+    job = Job(
+        fingerprint="senior",
+        title="Senior DevOps Engineer",
+        company="ACME",
+        description="Linux Docker Kubernetes. Remote.",
+        country="RU",
+        work_mode="remote",
+    )
+    result = score_job(job, _search(), _facts(), [])
+    assert result.total_score <= 54
+    assert "senior/lead" in result.reason
+
+
+def test_russian_senior_title_is_below_notification_lane():
+    job = Job(
+        fingerprint="senior-ru",
+        title="Старший DevOps-инженер",
+        company="ACME",
+        description="Linux Docker Kubernetes",
+        country="RU",
+    )
+    result = score_job(job, _search(), _facts(), [])
+    assert result.total_score <= 54
+
+
+def test_three_plus_years_is_stretch_not_normal_match():
+    job = Job(
+        fingerprint="stretch",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker. Опыт от 3 лет.",
+        country="RU",
+    )
+    result = score_job(job, _search(), _facts(), [])
+    assert result.total_score <= 64
+    assert "3–4" in result.reason

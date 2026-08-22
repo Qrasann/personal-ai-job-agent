@@ -13,6 +13,7 @@ from app.geo.countries import all_supported_countries, country_config, normalize
 from app.services import apply_match, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.sources.registry import build_source_plan
+from app.version import current_version
 
 router = Router()
 
@@ -96,12 +97,14 @@ async def status(message: Message) -> None:
     paused = await repo.get_state(user.id, "paused", "false") == "true"
     profile = await repo.active_profile(user.id)
     await message.answer(
-        f"🤖 <b>JOB AGENT v3.2</b>\n\n"
+        f"🤖 <b>JOB AGENT v{html.escape(current_version())}</b>\n\n"
         f"Статус: {'⏸ PAUSED' if paused else '🟢 ACTIVE'}\n"
         f"Профиль: {html.escape(profile.name if profile else '—')}\n"
         f"Основная роль: {html.escape(profile.target_role if profile else '—')}\n"
         f"Базовая страна: {html.escape(user.current_country or 'RU')}\n"
-        f"Совпадений: {st['matches']}\n"
+        f"Обработано вакансий: {st['matches']}\n"
+        f"Подходящих/уведомлённых: {st['notified']}\n"
+        f"Отфильтровано/дубликаты: {st['filtered']}\n"
         f"Откликов: {st['applications']}\n"
         f"LLM: {'ON' if settings.openai_api_key else 'fallback'}\n"
         f"HH поиск: PUBLIC/ANONYMOUS\n"
@@ -383,8 +386,24 @@ async def scan(message: Message, bot: Bot) -> None:
     if not user:
         return
     await message.answer("🔎 Запускаю поиск по активным collectors для твоего геопрофиля.")
-    await scan_for_user(bot, user.id)
-    await message.answer("✅ Проход поиска завершён.")
+    summary = await scan_for_user(bot, user.id)
+    source_bits = []
+    for source_id, info in (summary.get("sources") or {}).items():
+        if "error" in info:
+            source_bits.append(f"• {html.escape(source_id)}: ошибка")
+        else:
+            cache = " (кэш)" if info.get("cache") else ""
+            source_bits.append(f"• {html.escape(source_id)}: {int(info.get('found', 0))}{cache}")
+    details = "\n".join(source_bits) or "• активных источников нет"
+    await message.answer(
+        "✅ <b>Проход поиска завершён</b>\n\n"
+        + details
+        + f"\n\nОбработано: {int(summary.get('processed', 0))}"
+        + f"\nПрошли фильтр: {int(summary.get('qualified', 0))}"
+        + f"\nНовых уведомлений: {int(summary.get('notified', 0))}"
+        + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
+        parse_mode="HTML",
+    )
 
 
 @router.message(Command("jobs"))

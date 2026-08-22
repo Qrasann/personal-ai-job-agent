@@ -171,16 +171,60 @@ async def save_match(**kwargs) -> JobMatch:
         return item
 
 
-async def latest_matches(user_id: int, limit: int = 10) -> list[tuple[JobMatch, Job]]:
+def _display_key(title: str, company: str) -> tuple[str, str]:
+    def norm(value: str) -> str:
+        return " ".join((value or "").casefold().split())
+    return norm(title), norm(company)
+
+
+async def latest_matches(user_id: int, limit: int = 10, *, include_filtered: bool = False) -> list[tuple[JobMatch, Job]]:
+    """Latest useful matches, suppressing duplicate employer/title reposts in UI."""
     async with SessionLocal() as session:
-        rows = await session.execute(
+        stmt = (
             select(JobMatch, Job)
             .join(Job, Job.id == JobMatch.job_id)
             .where(JobMatch.user_id == user_id)
             .order_by(JobMatch.created_at.desc())
-            .limit(limit)
+            .limit(max(limit * 8, 40))
         )
-        return list(rows.all())
+        if not include_filtered:
+            stmt = stmt.where(JobMatch.status.notin_(["filtered", "duplicate"]))
+        rows = list((await session.execute(stmt)).all())
+
+    out: list[tuple[JobMatch, Job]] = []
+    seen: set[tuple[str, str]] = set()
+    for match, job in rows:
+        key = _display_key(job.title, job.company)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((match, job))
+        if len(out) >= limit:
+            break
+    return out
+
+
+async def has_notified_equivalent(user_id: int, job_id: int, title: str, company: str) -> bool:
+    """Avoid notifying the same title/company reposted under another source job id."""
+    title_key, company_key = _display_key(title, company)
+    if not title_key:
+        return False
+    async with SessionLocal() as session:
+        rows = await session.execute(
+            select(JobMatch.status, Job.title, Job.company)
+            .join(Job, Job.id == JobMatch.job_id)
+            .where(
+                JobMatch.user_id == user_id,
+                Job.id != job_id,
+                JobMatch.status.in_(["notified", "prepared", "applied"]),
+            )
+            .order_by(JobMatch.created_at.desc())
+            .limit(200)
+        )
+        for status, other_title, other_company in rows.all():
+            if _display_key(other_title, other_company) == (title_key, company_key):
+                return True
+    return False
 
 
 async def set_match_status(match_id: int, status: str) -> None:
@@ -231,8 +275,20 @@ async def get_state(user_id: int, key: str, default: str = "") -> str:
 async def stats(user_id: int) -> dict:
     async with SessionLocal() as session:
         matches = await session.scalar(select(func.count()).select_from(JobMatch).where(JobMatch.user_id == user_id)) or 0
+        notified = await session.scalar(
+            select(func.count()).select_from(JobMatch).where(
+                JobMatch.user_id == user_id,
+                JobMatch.status.in_(["notified", "prepared", "applied"]),
+            )
+        ) or 0
+        filtered = await session.scalar(
+            select(func.count()).select_from(JobMatch).where(
+                JobMatch.user_id == user_id,
+                JobMatch.status.in_(["filtered", "duplicate"]),
+            )
+        ) or 0
         apps = await session.scalar(select(func.count()).select_from(Application).where(Application.user_id == user_id)) or 0
-        return {"matches": matches, "applications": apps}
+        return {"matches": matches, "notified": notified, "filtered": filtered, "applications": apps}
 
 
 async def list_active_users() -> list[User]:

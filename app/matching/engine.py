@@ -54,6 +54,66 @@ def _enabled_tracks(settings: dict) -> set[str]:
     return enabled
 
 
+def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
+    """Return (level, reason) for obvious seniority signals.
+
+    This is intentionally conservative. Middle is allowed because the personal
+    profile may reasonably stretch to lower-middle roles. Senior/lead+ is not
+    auto-notified in fallback mode unless the user later changes the policy.
+    """
+    title = (job.title or "").casefold()
+    text = f"{job.title} {job.description}".casefold()
+
+    hard_patterns = (
+        r"\bsenior\b",
+        r"\blead\b",
+        r"\bprincipal\b",
+        r"\bstaff\b",
+        r"\bhead\b",
+        r"\barchitect\b",
+        r"\bстарш(?:ий|ая|ее)\b",
+        r"\bведущ(?:ий|ая|ее)\b",
+        r"\bруководител[ья]\b",
+    )
+    if any(re.search(pattern, title) for pattern in hard_patterns):
+        return "senior", "senior/lead уровень в названии"
+
+    very_high_experience = (
+        r"(?:опыт|стаж)[^\n]{0,30}(?:от\s*)?(?:5|6|7|8|9|10)\+?\s*(?:лет|года)",
+        r"(?:5|6|7|8|9|10)\+\s*years?",
+        r"(?:more than|at least)\s+(?:5|6|7|8|9|10)\s+years?",
+        r"(?:3|4)[–—-](?:6|7)\s*лет",
+        r"более\s+(?:5|6)\s+лет",
+    )
+    if any(re.search(pattern, text) for pattern in very_high_experience):
+        return "high_experience", "требование 5+ лет/высокого опыта"
+
+    stretch_experience = (
+        r"(?:опыт|стаж)[^\n]{0,30}(?:от\s*)?(?:3|4)\+?\s*(?:лет|года)",
+        r"(?:3|4)\+\s*years?",
+        r"(?:at least)\s+(?:3|4)\s+years?",
+    )
+    if any(re.search(pattern, text) for pattern in stretch_experience):
+        return "stretch", "требуется около 3–4 лет опыта"
+
+    return None, None
+
+
+def _risk_penalty(job: Job, settings: dict) -> tuple[int, str | None]:
+    """Soft penalty for domains the owner wants manually reviewed.
+
+    Hard bans remain in exclude_terms. This only keeps questionable crypto/web3
+    roles out of the automatic notification lane while still preserving them in
+    the DB for manual inspection.
+    """
+    hay = f"{job.title} {job.company}".casefold()
+    review_terms = _terms(settings, "review_terms") or ["blockchain", "crypto", "web3"]
+    hits = [term for term in review_terms if term and term in hay]
+    if not hits:
+        return 0, None
+    return 14, "нужна ручная проверка домена: " + ", ".join(sorted(set(hits))[:4])
+
+
 def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resumes: list[ResumeProfile]) -> MatchResult:
     settings = search.settings or {}
     hay = " ".join([job.title, job.company, job.description]).casefold()
@@ -78,15 +138,28 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
 
     title_hay = job.title.casefold()
     query_hits: list[str] = []
+    generic_role_tokens = {
+        "engineer", "administrator", "admin", "specialist", "developer",
+        "инженер", "администратор", "специалист", "разработчик",
+    }
     for query in _terms(settings, "queries"):
-        tokens = [x for x in re.findall(r"[a-zа-я0-9+#.-]+", query) if len(x) >= 3]
-        matched = sum(token in title_hay for token in tokens)
-        if tokens and matched >= max(1, len(tokens) - 1):
+        all_tokens = [x for x in re.findall(r"[a-zа-я0-9+#.-]+", query) if len(x) >= 3]
+        meaningful = [x for x in all_tokens if x not in generic_role_tokens]
+        tokens = meaningful or all_tokens
+        if tokens and all(token in title_hay for token in tokens):
             query_hits.append(query)
 
     technical = min(100, 40 + min(25, len(query_hits) * 20) + len(preferred_hits) * 6 + len(strong_hits) * 7)
     if settings.get("queries") and not query_hits:
         technical = max(20, technical - 18)
+
+    seniority, seniority_reason = _seniority_flags(job)
+    if seniority == "senior":
+        technical = min(technical, 48)
+    elif seniority == "high_experience":
+        technical = min(technical, 52)
+    elif seniority == "stretch":
+        technical = max(20, technical - 12)
 
     country = (job.country or "").upper()
     geography = 45
@@ -124,16 +197,33 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         relocation = 50
 
     total = round(technical * 0.48 + geography * 0.27 + salary * 0.12 + relocation * 0.13)
+
+    risk_penalty, risk_reason = _risk_penalty(job, settings)
+    total -= risk_penalty
+
     if signals.remote_eligibility == "no" and track == "remote":
         total = min(total, 45)
     if signals.relocation_blocked and country not in {"", "RU"} and track == "relocation":
         total = min(total, 40)
+
+    # In rule-only fallback mode, obvious senior roles must not slip above the
+    # normal notification threshold merely because geography/salary look good.
+    if seniority == "senior":
+        total = min(total, int(settings.get("senior_score_cap", 54)))
+    elif seniority == "high_experience":
+        total = min(total, int(settings.get("high_experience_score_cap", 58)))
+    elif seniority == "stretch":
+        total = min(total, int(settings.get("stretch_score_cap", 64)))
 
     bits = [f"режим {track}", f"техника {technical}", f"география {geography}", f"зарплата {salary}", f"релокация {relocation}"]
     if query_hits:
         bits.append("роль: " + ", ".join(query_hits[:3]))
     if preferred_hits:
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
+    if seniority_reason:
+        bits.append(seniority_reason)
+    if risk_reason:
+        bits.append(risk_reason)
     if signals.remote_reason:
         bits.append(signals.remote_reason)
     if signals.relocation_reason:

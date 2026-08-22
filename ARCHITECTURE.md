@@ -1,4 +1,4 @@
-# Architecture — Personal AI Job Agent v3.2
+# Architecture — Personal AI Job Agent v3.3.2
 
 ```text
 Sources

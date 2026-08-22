@@ -52,7 +52,8 @@ async def _user_context(user_id: int):
     return user, profile, searches
 
 
-async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id: int | None = None) -> None:
+async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id: int | None = None) -> dict:
+    counters = {"processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     job, _ = await repo.upsert_job(normalized)
     src = await repo.source_ref(job.id, normalized.source)
     users = await repo.list_active_users()
@@ -69,6 +70,7 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
         resumes = await repo.list_resumes(profile.id)
         searches = await repo.list_search_profiles(profile.id)
         for search in searches:
+            counters["processed"] += 1
             result = score_job(job, search, facts, resumes)
             match = await repo.save_match(
                 job_id=job.id,
@@ -84,8 +86,26 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 reason=result.reason,
             )
             threshold = int((search.settings or {}).get("notify_min_score", 60))
-            if result.total_score < threshold or match.status != "new":
+            if result.total_score < threshold:
+                counters["filtered"] += 1
+                if match.status not in {"applied", "prepared", "skipped"}:
+                    await repo.set_match_status(match.id, "filtered")
                 continue
+
+            counters["qualified"] += 1
+            # A previously filtered vacancy can become eligible after the
+            # profile/scoring rules change. Re-open it for notification.
+            if match.status == "filtered":
+                await repo.set_match_status(match.id, "new")
+                match.status = "new"
+            if match.status != "new":
+                continue
+
+            if await repo.has_notified_equivalent(user.id, job.id, job.title, job.company):
+                counters["duplicate"] += 1
+                await repo.set_match_status(match.id, "duplicate")
+                continue
+
             salary = "не указана"
             if job.salary_from or job.salary_to:
                 salary = f"{job.salary_from or '—'}–{job.salary_to or '—'} {job.salary_currency or ''}"
@@ -107,15 +127,18 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 reply_markup=job_keyboard(match.id, src.url if src else "", can_apply=source_capabilities(normalized.source).apply),
             )
             await repo.set_match_status(match.id, "notified")
+            counters["notified"] += 1
+    return counters
 
 
-async def scan_for_user(bot: Bot, user_id: int) -> None:
+async def scan_for_user(bot: Bot, user_id: int) -> dict:
+    summary = {"sources": {}, "processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     ctx = await _user_context(user_id)
     if not ctx:
-        return
+        return summary
     user, profile, searches = ctx
     if await repo.get_state(user.id, "paused", "false") == "true":
-        return
+        return summary
     search = searches[0]
     settings_map = search.settings or {}
     queries = settings_map.get("queries") or [profile.target_role]
@@ -144,16 +167,22 @@ async def scan_for_user(bot: Bot, user_id: int) -> None:
         try:
             cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
             cached = _DISCOVERY_CACHE.get(cache_key)
-            if cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id):
+            cache_hit = bool(cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
+            if cache_hit:
                 jobs = cached[1]
             else:
                 jobs = await adapter.discover(context)
                 _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
+            summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit}
             for job in jobs:
-                await ingest_and_match(bot, job, only_user_id=user.id)
+                counters = await ingest_and_match(bot, job, only_user_id=user.id)
+                for key in ("processed", "qualified", "notified", "filtered", "duplicate"):
+                    summary[key] += counters.get(key, 0)
         except Exception as exc:
             log.exception("source %s failed", adapter.source_id)
+            summary["sources"][adapter.source_id] = {"error": str(exc)}
             await notify_chat(bot, user.telegram_chat_id, f"⚠️ Источник {adapter.name}: {html.escape(str(exc))}")
+    return summary
 
 
 async def scan_all(bot: Bot) -> None:

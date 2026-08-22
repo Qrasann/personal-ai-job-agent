@@ -144,3 +144,18 @@ def test_normal_hh_html_can_contain_captcha_word_without_being_challenge():
     ))
     assert has_search_content is True
     assert explicit_challenge is False
+
+
+def test_hh_web_parser_keeps_card_text_for_seniority_signals():
+    html = '''
+    <div data-qa="vacancy-serp__vacancy">
+      <a data-qa="serp-item__title" href="https://hh.ru/vacancy/999">DevOps Engineer</a>
+      <a data-qa="vacancy-serp__vacancy-employer">Example</a>
+      <div data-qa="vacancy-serp__vacancy_snippet_requirement">Linux Docker</div>
+      <div>Опыт от 3 лет</div>
+    </div>
+    '''
+    jobs = HHSource.parse_web_html(html)
+    assert len(jobs) == 1
+    assert "Опыт от 3 лет" in jobs[0].description
+    assert "Опыт от 3 лет" in jobs[0].raw["card_text"]
