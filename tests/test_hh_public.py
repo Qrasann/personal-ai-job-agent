@@ -63,3 +63,58 @@ def test_hh_public_discovery_is_single_request_without_details():
     assert len(jobs) == 1
     assert jobs[0].source_job_id == "123"
     assert jobs[0].country == "RU"
+
+
+class FakeHH403ThenWeb:
+    def __init__(self):
+        self.api_calls = 0
+        self.web_calls = 0
+
+    async def search(self, text, page=0, per_page=20, area=None):
+        from app.providers.hh import HHAPIForbidden
+        self.api_calls += 1
+        raise HHAPIForbidden("403")
+
+    async def search_web(self, text, page=0, area=None):
+        self.web_calls += 1
+        return '''
+        <html><body>
+          <div data-qa="vacancy-serp__vacancy">
+            <a data-qa="serp-item__title" href="https://hh.ru/vacancy/777?from=serp">
+              <span data-qa="serp-item__title-text">Junior DevOps Engineer</span>
+            </a>
+            <a data-qa="vacancy-serp__vacancy-employer" href="/employer/1">Example Cloud</a>
+            <span data-qa="vacancy-serp__vacancy-compensation">от 180 000 ₽ за месяц, на руки</span>
+            <div data-qa="vacancy-serp__vacancy-address">Москва</div>
+            <div data-qa="vacancy-serp__vacancy_snippet_requirement">Linux Docker GitLab CI</div>
+            <div>Можно удалённо</div>
+          </div>
+        </body></html>
+        '''
+
+
+def test_hh_falls_back_to_public_web_after_api_403():
+    fake = FakeHH403ThenWeb()
+    source = HHSource(fake)
+    ctx = SourceContext(
+        user_id=1,
+        current_country="RU",
+        target_countries=[],
+        queries=["DevOps Engineer"],
+    )
+    jobs = asyncio.run(source.discover(ctx))
+    assert fake.api_calls == 1
+    assert fake.web_calls == 1
+    assert len(jobs) == 1
+    assert jobs[0].source_job_id == "777"
+    assert jobs[0].title == "Junior DevOps Engineer"
+    assert jobs[0].company == "Example Cloud"
+    assert jobs[0].salary_from == 180000
+    assert jobs[0].salary_currency == "RUR"
+    assert jobs[0].work_mode == "Удалённо"
+    assert jobs[0].raw["transport"] == "web"
+
+
+def test_hh_web_salary_range_parser():
+    assert HHSource._salary("180 000 – 250 000 ₽ за месяц") == (180000, 250000, "RUR")
+    assert HHSource._salary("до 250 000 ₽") == (None, 250000, "RUR")

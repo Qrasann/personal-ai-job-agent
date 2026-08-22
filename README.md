@@ -106,3 +106,15 @@ pytest -q
 ```
 
 При сборке v3.2: **18 passed**.
+
+## v3.3: HH public-web fallback
+
+If anonymous `api.hh.ru/vacancies` returns HTTP 403, the personal build can fall back to the ordinary public HH search page (`hh.ru/search/vacancy`) and parse the server-rendered vacancy cards. This fallback is discovery-only, rate-limited by the existing HH cache, and never attempts to solve or bypass CAPTCHA. If the web page itself requests verification, HH discovery stops and the bot reports the problem.
+
+Environment controls:
+
+```env
+HH_WEB_FALLBACK_ENABLED=true
+HH_WEB_MAX_PAGES=1
+HH_WEB_USER_AGENT=Mozilla/5.0 (X11; Linux x86_64; rv:154.0) Gecko/20100101 Firefox/154.0
+```

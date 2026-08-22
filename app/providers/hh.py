@@ -7,6 +7,10 @@ class HHError(RuntimeError):
     pass
 
 
+class HHAPIForbidden(HHError):
+    pass
+
+
 class HHCaptchaRequired(HHError):
     pass
 
@@ -17,6 +21,7 @@ class HHPrivateAPIUnavailable(HHError):
 
 class HHClient:
     base_url = "https://api.hh.ru"
+    web_base_url = "https://hh.ru"
 
     def __init__(self) -> None:
         self.headers = {
@@ -52,9 +57,11 @@ class HHClient:
                 body_text = str(body).casefold()
             if "captcha" in body_text:
                 raise HHCaptchaRequired(
-                    "HH запросил CAPTCHA для анонимного API-доступа. "
-                    "Агент не обходит CAPTCHA; открой HH вручную, а остальные источники продолжат работать."
+                    "HH запросил CAPTCHA для API. Агент её не обходит; "
+                    "можно продолжить только через обычную публичную страницу HH, если она доступна без проверки."
                 )
+            if response.status_code == 403:
+                raise HHAPIForbidden(f"HH API 403: {body}")
             raise HHError(f"HH {response.status_code}: {body}")
         return response
 
@@ -71,6 +78,45 @@ class HHClient:
             params["area"] = area
         response = await self._request("GET", "/vacancies", params=params)
         return response.json()
+
+    async def search_web(self, text: str, page: int = 0, area: str | None = None) -> str:
+        """Read the ordinary public HH search page.
+
+        This is a low-rate discovery fallback only. It never tries to solve or
+        bypass CAPTCHA. If HH returns a verification page, discovery stops.
+        """
+        params = {
+            "text": text,
+            "search_field": "name",
+            "order_by": "publication_time",
+            "period": settings.hh_search_period_days,
+            "page": page,
+        }
+        if area:
+            params["area"] = area
+        headers = {
+            "User-Agent": settings.hh_web_user_agent,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.7",
+        }
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+            response = await client.get(f"{self.web_base_url}/search/vacancy", params=params, headers=headers)
+        text_body = response.text
+        folded = text_body.casefold()
+        captcha_markers = (
+            "captcha",
+            "проверка, что вы не робот",
+            "подтвердите, что вы человек",
+            "подтвердите, что вы не робот",
+        )
+        if response.status_code >= 400:
+            raise HHError(f"HH web {response.status_code}")
+        if any(marker in folded for marker in captcha_markers):
+            raise HHCaptchaRequired(
+                "Обычная страница HH запросила CAPTCHA/проверку. "
+                "Агент остановил HH-поиск; открой сайт вручную."
+            )
+        return text_body
 
     async def vacancy(self, vacancy_id: str) -> dict:
         response = await self._request("GET", f"/vacancies/{vacancy_id}")
