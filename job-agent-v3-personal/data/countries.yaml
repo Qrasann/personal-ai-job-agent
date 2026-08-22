@@ -1,0 +1,54 @@
+countries:
+  GE:
+    name: Georgia
+    aliases: [Georgia, Грузия, საქართველო]
+    languages: [ka, en, ru]
+    currencies: [GEL, USD]
+    local_sources:
+      - {id: jobs_ge, name: JOBS.GE, url: "https://jobs.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true}
+      - {id: hr_ge, name: HR.ge, url: "https://www.hr.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true}
+    query_languages: [en, ru, ka]
+
+  MD:
+    name: Moldova
+    aliases: [Moldova, Молдова, Republic of Moldova]
+    languages: [ro, ru, en]
+    currencies: [MDL, EUR, USD]
+    local_sources:
+      - {id: rabota_md, name: Rabota.md, url: "https://www.rabota.md/ru/", transport: public_web, capability: discovery, enabled_by_default: true}
+      - {id: delucru_md, name: Delucru.md, url: "https://www.delucru.md/", transport: public_web, capability: discovery, enabled_by_default: true}
+    query_languages: [ru, ro, en]
+
+  RU:
+    name: Russia
+    aliases: [Russia, Россия]
+    languages: [ru, en]
+    currencies: [RUB]
+    local_sources:
+      - {id: hh, name: HeadHunter, url: "https://hh.ru/", transport: api, capability: full, enabled_by_default: true}
+    query_languages: [ru, en]
+
+  ES:
+    name: Spain
+    aliases: [Spain, España, Испания]
+    languages: [es, en]
+    currencies: [EUR]
+    local_sources:
+      - {id: infojobs_es, name: InfoJobs, url: "https://www.infojobs.net/", transport: public_web, capability: discovery, enabled_by_default: true}
+      - {id: tecnoempleo_es, name: Tecnoempleo, url: "https://www.tecnoempleo.com/", transport: public_web, capability: discovery, enabled_by_default: true}
+    query_languages: [en, es]
+
+  PT:
+    name: Portugal
+    aliases: [Portugal, Португалия]
+    languages: [pt, en]
+    currencies: [EUR]
+    local_sources:
+      - {id: itjobs_pt, name: ITJobs.pt, url: "https://www.itjobs.pt/", transport: public_web, capability: discovery, enabled_by_default: true}
+    query_languages: [en, pt]
+
+international_sources:
+  - {id: remoteok, name: Remote OK, scope: remote, transport: api, capability: discovery}
+  - {id: lever, name: Lever company career pages, scope: global, transport: public_api, capability: discovery}
+  - {id: greenhouse, name: Greenhouse company career pages, scope: global, transport: public_api, capability: discovery}
+  - {id: telegram, name: Telegram vacancy channels, scope: configured_channels, transport: bot_api, capability: discovery}

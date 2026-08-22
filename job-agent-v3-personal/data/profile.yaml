@@ -1,0 +1,63 @@
+geography:
+  current_country: RU
+  target_countries: []
+  remote_worldwide: true
+  remote_regions: [EMEA]
+  relocation_enabled: true
+  relocation_countries: []
+
+search:
+  queries:
+    - DevOps Engineer
+    - Infrastructure Engineer
+    - Linux Administrator
+  notify_min_score: 65
+  modes:
+    local_ru: true
+    remote_international: true
+    relocation: true
+  minimum_salary_net_rub: 100000
+  exclude_terms:
+    - betting
+    - gambling
+    - букмекер
+    - казино
+    - crypto casino
+    - senior devops
+    - lead devops
+  preferred_terms:
+    - linux
+    - docker
+    - docker compose
+    - nginx
+    - git
+    - bash
+    - python
+    - prometheus
+    - grafana
+    - ansible
+    - terraform
+    - kubernetes
+  strong_terms:
+    - linux
+    - docker
+    - nginx
+    - bash
+    - git
+
+candidate:
+  target_roles:
+    - DevOps Engineer
+    - Infrastructure Engineer
+    - Linux Administrator
+  english: B2
+  hh_resume_id: null
+  facts:
+    - More than two years of system administration experience with Windows and Linux.
+    - Practical Linux troubleshooting with systemd, journalctl, networking utilities, permissions and logs.
+    - Practical Docker and Docker Compose experience in labs and personal projects.
+    - Configured Nginx reverse proxy, volumes, internal container networks and health checks.
+    - Bash scripting experience and basic Python.
+    - Active Directory and VPN administration experience.
+    - Prometheus and Grafana are being developed through study and lab practice.
+    - Kubernetes, Terraform and Ansible are developing skills; do not claim production experience unless explicitly added later.
