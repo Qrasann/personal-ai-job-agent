@@ -17,6 +17,7 @@ from app.database.models import (
     User,
 )
 from app.domain.jobs import NormalizedJob
+from app.candidates.fact_types import normalize_experience_type
 
 
 async def get_user_by_chat(chat_id: int | str) -> User | None:
@@ -59,9 +60,29 @@ async def list_profiles(user_id: int) -> list[CandidateProfile]:
         return list(rows)
 
 
-async def add_fact(profile_id: int, value: str, *, category: str = "experience", key: str = "", commercial: bool = False, evidence: str = "") -> CandidateFact:
+async def add_fact(
+    profile_id: int,
+    value: str,
+    *,
+    category: str = "experience",
+    key: str = "",
+    commercial: bool = False,
+    experience_type: str = "unknown",
+    evidence: str = "",
+) -> CandidateFact:
+    normalized_type = normalize_experience_type(experience_type) or "unknown"
+    if commercial:
+        normalized_type = "commercial"
     async with SessionLocal() as session:
-        item = CandidateFact(profile_id=profile_id, category=category, key=key, value=value, commercial=commercial, evidence=evidence)
+        item = CandidateFact(
+            profile_id=profile_id,
+            category=category,
+            key=key,
+            value=value,
+            experience_type=normalized_type,
+            commercial=normalized_type == "commercial",
+            evidence=evidence,
+        )
         session.add(item)
         await session.commit()
         await session.refresh(item)
@@ -320,14 +341,29 @@ async def get_resume(resume_id: int) -> ResumeProfile | None:
         return await session.get(ResumeProfile, resume_id)
 
 
-async def set_fact_commercial(profile_id: int, fact_id: int, commercial: bool) -> bool:
+async def set_fact_experience_type(profile_id: int, fact_id: int, experience_type: str) -> bool:
+    normalized_type = normalize_experience_type(experience_type)
+    if not normalized_type:
+        return False
     async with SessionLocal() as session:
         item = await session.get(CandidateFact, fact_id)
-        if not item or item.profile_id != profile_id:
+        if not item or item.profile_id != profile_id or item.deleted_at is not None:
             return False
-        item.commercial = commercial
+        item.experience_type = normalized_type
+        # Keep the legacy boolean in sync until all downstream consumers use experience_type.
+        item.commercial = normalized_type == "commercial"
         await session.commit()
         return True
+
+
+async def set_fact_commercial(profile_id: int, fact_id: int, commercial: bool) -> bool:
+    # Backward-compatible command/API used by v3.3.x. Non-commercial is intentionally
+    # mapped to unknown because the old boolean cannot distinguish lab from learning.
+    return await set_fact_experience_type(
+        profile_id,
+        fact_id,
+        "commercial" if commercial else "unknown",
+    )
 
 
 async def bind_resume_external(profile_id: int, resume_id: int, source: str, external_id: str) -> bool:

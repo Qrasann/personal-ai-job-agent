@@ -61,6 +61,7 @@ class CandidateFact(Base):
     key: Mapped[str] = mapped_column(String(128), default="")
     value: Mapped[str] = mapped_column(Text)
     level: Mapped[str] = mapped_column(String(32), default="known")
+    experience_type: Mapped[str] = mapped_column(String(32), default="unknown")
     commercial: Mapped[bool] = mapped_column(Boolean, default=False)
     evidence: Mapped[str] = mapped_column(Text, default="")
     active: Mapped[bool] = mapped_column(Boolean, default=True)

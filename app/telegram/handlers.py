@@ -9,6 +9,7 @@ from aiogram.types import CallbackQuery, Message
 from app.candidates.bootstrap import bootstrap_user
 from app.config import settings
 from app.database import repository as repo
+from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.services import apply_match, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
@@ -320,7 +321,10 @@ async def facts(message: Message) -> None:
     if not rows:
         await message.answer("Фактов пока нет.")
         return
-    text = "🧠 <b>Candidate Facts</b>\n\n" + "\n".join(f"{f.id}. {html.escape(f.value[:300])} {'[commercial]' if f.commercial else ''}" for f in rows[:30])
+    text = "🧠 <b>Candidate Facts</b>\n\n" + "\n".join(
+        f"{f.id}. {html.escape(f.value[:300])} {experience_type_label(getattr(f, 'experience_type', None))}"
+        for f in rows[:30]
+    )
     await message.answer(text[:4096], parse_mode="HTML")
 
 
@@ -330,27 +334,69 @@ async def fact(message: Message) -> None:
     if not user:
         return
     text = (message.text or "").strip()
-    prefix = "/fact add "
     lower = text.casefold()
+    profile = await repo.active_profile(user.id)
+    if not profile:
+        await message.answer("❌ Активный профиль не найден.")
+        return
+
+    if lower.startswith("/fact type "):
+        parts = text.split()
+        if len(parts) != 4 or not parts[2].isdigit():
+            await message.answer(
+                "Использование: /fact type <id> commercial|lab|learning|unknown"
+            )
+            return
+        normalized_type = normalize_experience_type(parts[3])
+        if not normalized_type:
+            allowed = "|".join(ALLOWED_EXPERIENCE_TYPES)
+            await message.answer(f"❌ Неизвестный тип. Допустимо: {allowed}")
+            return
+        ok = await repo.set_fact_experience_type(profile.id, int(parts[2]), normalized_type)
+        await message.answer(
+            f"✅ Факт #{parts[2]} теперь {experience_type_label(normalized_type)}."
+            if ok
+            else "❌ Такой факт не найден."
+        )
+        return
+
     if lower.startswith("/fact commercial ") or lower.startswith("/fact noncommercial "):
         parts = text.split()
         if len(parts) != 3 or not parts[2].isdigit():
             await message.answer("Использование: /fact commercial <id> или /fact noncommercial <id>")
             return
-        profile = await repo.active_profile(user.id)
         is_commercial = parts[1].casefold() == "commercial"
         ok = await repo.set_fact_commercial(profile.id, int(parts[2]), is_commercial)
-        await message.answer("✅ Тип опыта обновлён." if ok else "❌ Такой факт не найден.")
+        if not ok:
+            await message.answer("❌ Такой факт не найден.")
+            return
+        if is_commercial:
+            await message.answer(f"✅ Факт #{parts[2]} теперь [commercial].")
+        else:
+            await message.answer(
+                f"✅ Факт #{parts[2]} теперь [unknown]. Уточни при необходимости: "
+                f"/fact type {parts[2]} lab или /fact type {parts[2]} learning"
+            )
         return
+
+    prefix = "/fact add "
     if not lower.startswith(prefix):
-        await message.answer("Использование: /fact add <факт>; /fact commercial <id>; /fact noncommercial <id>.")
+        await message.answer(
+            "Использование:\n"
+            "/fact add <факт>\n"
+            "/fact type <id> commercial|lab|learning|unknown\n"
+            "/fact commercial <id> — совместимость со старыми версиями\n"
+            "/fact noncommercial <id> — сбрасывает тип в unknown"
+        )
         return
     value = text[len(prefix):].strip()
     if not value:
         return
-    profile = await repo.active_profile(user.id)
-    item = await repo.add_fact(profile.id, value, commercial=False)
-    await message.answer(f"✅ Добавлен факт #{item.id}. Он помечен как non-commercial, пока ты явно не изменишь это позже.")
+    item = await repo.add_fact(profile.id, value, experience_type="unknown")
+    await message.answer(
+        f"✅ Добавлен факт #{item.id} [unknown]. "
+        f"Укажи тип: /fact type {item.id} commercial|lab|learning"
+    )
 
 
 @router.message(Command("resumeadd"))
