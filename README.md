@@ -1,3 +1,16 @@
+# v3.4.1 — Candidate Fact types
+
+Candidate Facts now distinguish `commercial`, `lab`, `learning`, and `unknown`. Existing commercial flags are preserved; legacy non-commercial facts are intentionally left `unknown` until the user classifies them. Search/scoring behavior is unchanged.
+
+```text
+/facts
+/fact add <text>
+/fact type <id> commercial
+/fact type <id> lab
+/fact type <id> learning
+/fact type <id> unknown
+```
+
 # v3.4.0 — Storage foundation
 
 This is a deliberately small release on top of v3.3.3. It adds safe in-place database schema versioning, persistent file storage for future resume imports, soft-delete metadata fields (not yet exposed in the UI), and `/version`. Search/scoring behavior is intentionally unchanged.

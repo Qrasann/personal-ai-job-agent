@@ -7,7 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 1
+CURRENT_SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -35,6 +35,14 @@ MIGRATIONS: tuple[Migration, ...] = (
             "ALTER TABLE search_profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP",
             "ALTER TABLE search_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP",
             "ALTER TABLE search_profiles ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITHOUT TIME ZONE NULL",
+        ),
+    ),
+    Migration(
+        version=2,
+        name="candidate_fact_experience_type",
+        statements=(
+            "ALTER TABLE candidate_facts ADD COLUMN IF NOT EXISTS experience_type VARCHAR(32) NOT NULL DEFAULT 'unknown'",
+            "UPDATE candidate_facts SET experience_type = 'commercial' WHERE commercial IS TRUE AND experience_type = 'unknown'",
         ),
     ),
 )
