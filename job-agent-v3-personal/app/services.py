@@ -27,6 +27,14 @@ _DISCOVERY_CACHE: dict[tuple[str, tuple[str, ...]], tuple[float, list[Normalized
 CACHE_TTL_SECONDS = 600
 
 
+def _cache_ttl(source_id: str) -> int:
+    # Anonymous HH access is intentionally conservative: one lightweight search
+    # can be cached for an hour, while other feeds remain fresher.
+    if source_id == "hh" and not hh_client.private_api_available:
+        return max(60, settings.hh_public_cache_minutes * 60)
+    return CACHE_TTL_SECONDS
+
+
 async def notify_chat(bot: Bot, chat_id: str | int, text: str, **kwargs) -> None:
     await bot.send_message(int(chat_id), text[:4096], **kwargs)
 
@@ -136,7 +144,7 @@ async def scan_for_user(bot: Bot, user_id: int) -> None:
         try:
             cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
             cached = _DISCOVERY_CACHE.get(cache_key)
-            if cached and time.monotonic() - cached[0] < CACHE_TTL_SECONDS:
+            if cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id):
                 jobs = cached[1]
             else:
                 jobs = await adapter.discover(context)
@@ -153,6 +161,32 @@ async def scan_all(bot: Bot) -> None:
         await scan_for_user(bot, user.id)
 
 
+async def prepare_match(match_id: int, user_id: int) -> dict:
+    match = await repo.get_match(match_id)
+    if not match or match.user_id != user_id:
+        raise RuntimeError("Match не найден")
+    job = await repo.get_job(match.job_id)
+    if not job:
+        raise RuntimeError("Вакансия не найдена")
+    facts = await repo.list_facts(match.profile_id)
+    resumes = await repo.list_resumes(match.profile_id)
+    chosen = next((r for r in resumes if r.id == match.resume_id), None)
+    cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
+    refs = []
+    for source_id in ("hh", "remoteok", "telegram"):
+        ref = await repo.source_ref(job.id, source_id)
+        if ref:
+            refs.append(ref)
+    source_ref = refs[0] if refs else await repo.source_ref(job.id)
+    return {
+        "job": job,
+        "resume": chosen,
+        "cover_letter": cover,
+        "url": source_ref.url if source_ref else "",
+        "source": source_ref.source_id if source_ref else "",
+    }
+
+
 async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
     match = await repo.get_match(match_id)
     if not match or match.user_id != user_id:
@@ -163,8 +197,8 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
     ref = await repo.source_ref(job.id, "hh")
     if not ref:
         raise RuntimeError("Для этой вакансии нет HH-источника с поддержкой автоотклика")
-    if not settings.hh_access_token:
-        raise RuntimeError("Не задан HH_ACCESS_TOKEN")
+    if not hh_client.private_api_available:
+        raise RuntimeError("HH private applicant API отключён; используй «Подготовить отклик» и открой вакансию на HH.")
 
     facts = await repo.list_facts(match.profile_id)
     resumes = await repo.list_resumes(match.profile_id)
@@ -191,7 +225,7 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
 async def scan_hh_chats(bot: Bot) -> None:
     # Current v3 MVP uses the owner's HH OAuth token. Per-user OAuth is represented
     # by SourceAccount and is the next connector layer; we never store raw tokens in Candidate Facts.
-    if not settings.hh_access_token:
+    if not hh_client.private_api_available:
         return
     owner_chat = settings.telegram_admin_chat_id.strip()
     if not owner_chat:

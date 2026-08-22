@@ -10,7 +10,7 @@ from app.candidates.bootstrap import bootstrap_user
 from app.config import settings
 from app.database import repository as repo
 from app.geo.countries import all_supported_countries, country_config, normalize_country
-from app.services import apply_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
+from app.services import apply_match, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.sources.registry import build_source_plan
 
@@ -96,7 +96,7 @@ async def status(message: Message) -> None:
     paused = await repo.get_state(user.id, "paused", "false") == "true"
     profile = await repo.active_profile(user.id)
     await message.answer(
-        f"🤖 <b>JOB AGENT v3</b>\n\n"
+        f"🤖 <b>JOB AGENT v3.2</b>\n\n"
         f"Статус: {'⏸ PAUSED' if paused else '🟢 ACTIVE'}\n"
         f"Профиль: {html.escape(profile.name if profile else '—')}\n"
         f"Основная роль: {html.escape(profile.target_role if profile else '—')}\n"
@@ -104,6 +104,8 @@ async def status(message: Message) -> None:
         f"Совпадений: {st['matches']}\n"
         f"Откликов: {st['applications']}\n"
         f"LLM: {'ON' if settings.openai_api_key else 'fallback'}\n"
+        f"HH поиск: PUBLIC/ANONYMOUS\n"
+        f"HH private actions: {'ON' if hh_client.private_api_available else 'OFF'}\n"
         f"Auto apply: {'ON' if settings.auto_apply else 'OFF'}",
         parse_mode="HTML",
     )
@@ -405,8 +407,15 @@ async def chats(message: Message, bot: Bot) -> None:
     user = await _require_user(message)
     if not user:
         return
+    if not hh_client.private_api_available:
+        await message.answer(
+            "ℹ️ HH-поиск работает без applicant OAuth. Приватная переписка/автоответы HH сейчас отключены: "
+            "для новых приложений соискательский API не считаем доступным. Чаты HH пока открывай вручную; "
+            "Telegram-рекрутеров и другие доступные каналы будем подключать отдельно."
+        )
+        return
     if str(message.chat.id) != settings.telegram_admin_chat_id.strip():
-        await message.answer("ℹ️ В MVP HH OAuth привязан к owner-профилю. Multi-user SourceAccount уже есть в схеме, OAuth per-user подключается следующим адаптером.")
+        await message.answer("ℹ️ Приватный HH-коннектор привязан только к owner-профилю.")
         return
     await scan_hh_chats(bot)
     await message.answer("✅ HH-чаты проверены.")
@@ -425,6 +434,32 @@ async def skip_callback(callback: CallbackQuery) -> None:
     await repo.set_match_status(match_id, "skipped")
     await callback.answer("Пропущено")
     await callback.message.edit_reply_markup(reply_markup=None)
+
+
+@router.callback_query(F.data.startswith("prepare:"))
+async def prepare_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    match_id = int(callback.data.split(":", 1)[1])
+    await callback.answer("Готовлю…")
+    try:
+        result = await prepare_match(match_id, user.id)
+        job = result["job"]
+        resume = result.get("resume")
+        cover = result.get("cover_letter") or ""
+        url = result.get("url") or ""
+        text = (
+            f"📝 <b>Отклик подготовлен</b>\n\n"
+            f"<b>{html.escape(job.title)}</b> — {html.escape(job.company)}\n"
+            f"Резюме: <b>{html.escape(resume.name if resume else 'не выбрано')}</b>\n\n"
+            f"<b>Сопроводительное:</b>\n{html.escape(cover)}"
+        )
+        if url:
+            text += f"\n\n<a href=\"{html.escape(url, quote=True)}\">Открыть вакансию и отправить вручную</a>"
+        await callback.message.answer(text[:4096], parse_mode="HTML", disable_web_page_preview=True)
+    except Exception as exc:
+        await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
 
 
 @router.callback_query(F.data.startswith("apply:"))

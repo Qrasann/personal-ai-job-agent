@@ -27,7 +27,8 @@ async def main() -> None:
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(scan_all, "interval", minutes=settings.search_interval_minutes, args=[bot], max_instances=1, coalesce=True, next_run_time=datetime.now())
-    scheduler.add_job(scan_hh_chats, "interval", minutes=settings.hh_chat_interval_minutes, args=[bot], max_instances=1, coalesce=True)
+    if settings.hh_private_api_enabled and settings.hh_access_token:
+        scheduler.add_job(scan_hh_chats, "interval", minutes=settings.hh_chat_interval_minutes, args=[bot], max_instances=1, coalesce=True)
     scheduler.start()
     try:
         await dp.start_polling(bot)

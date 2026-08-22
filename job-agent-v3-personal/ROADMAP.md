@@ -1,48 +1,38 @@
-# Personal Job Agent roadmap
+# Roadmap
 
-## P0 — make the personal loop reliable
+## v3.2 — сейчас
 
 - [x] Telegram control plane
+- [x] Россия + remote + relocation modes
 - [x] Candidate Facts
-- [x] multiple CV variants
-- [x] HeadHunter discovery
-- [x] Russia-scoped HH search
-- [x] HeadHunter apply connector
-- [x] HeadHunter chat connector
-- [x] forwarded Telegram vacancy ingestion
-- [x] selectable target role(s)
-- [x] Russia / remote / relocation switches
-- [x] remote-country restriction heuristics
-- [x] relocation / visa-support heuristics
-- [ ] run full Docker integration test on the target Arch Linux machine
-- [ ] complete HH OAuth setup and first real authorized scan
-- [ ] test one manual HH application end-to-end
-- [ ] test inbound HH recruiter message -> Telegram draft -> send
+- [x] несколько CV
+- [x] HH discovery без обязательного applicant OAuth
+- [x] один HH search request вместо N+1 detail requests
+- [x] обработка CAPTCHA как ограничения, без обхода
+- [x] «Подготовить отклик» + CV + cover letter + ссылка
+- [x] RemoteOK
+- [x] Telegram forwarded/channel ingestion
+- [x] scoring / deduplication
 
-## P1 — improve sources
+## v3.3 — ближайшее
 
-- [ ] configured Telegram channel registry and per-channel enable/disable
-- [ ] Lever company career-page adapter
-- [ ] Greenhouse company career-page adapter
-- [ ] additional permitted international remote source(s)
-- [ ] relocation-focused company/ATS discovery
+- [ ] улучшить HH scoring по данным search result без private detail API
+- [ ] добавить выбранные российские источники помимо HH
+- [ ] добавить curated Telegram channel collector
+- [ ] international ATS: Lever/Greenhouse
+- [ ] relocation parser: visa/work permit/allowed countries
+- [ ] удобное редактирование search filters через Telegram buttons
 
-## P2 — improve intelligence
+## v3.4
 
-- [ ] structured LLM vacancy extraction when deterministic parsing is uncertain
-- [ ] work-authorization classifier with evidence snippets
-- [ ] improve automatic RU vs EN CV selection
-- [ ] cover-letter review buttons in Telegram
-- [ ] recruiter conversation memory per application
-- [ ] structured multiple-choice recruiter-bot actions where a provider exposes them
-
-## P3 — autonomy after review
-
-- [ ] safe allow-list for auto-apply
-- [ ] safe allow-list for automatic recruiter answers
-- [ ] daily digest and funnel statistics
-- [ ] stale application follow-up reminders
+- [ ] browser-assisted apply: только пользовательская сессия и подтверждённые действия
+- [ ] остановка при CAPTCHA/anti-bot вместо обхода
+- [ ] отслеживание статусов откликов там, где источник это позволяет
+- [ ] recruiter/recruiter-AI conversation adapters для доступных каналов
 
 ## Later
 
-Multi-user/SaaS, freelance marketplaces and country-local aggregators outside Russia remain extension points, but are intentionally deferred until the personal agent works reliably.
+- [ ] multi-user productization
+- [ ] country-aware local markets
+- [ ] freelance mode
+- [ ] web dashboard

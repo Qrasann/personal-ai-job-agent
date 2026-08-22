@@ -25,7 +25,7 @@ countries:
     languages: [ru, en]
     currencies: [RUB]
     local_sources:
-      - {id: hh, name: HeadHunter, url: "https://hh.ru/", transport: api, capability: full, enabled_by_default: true}
+      - {id: hh, name: HeadHunter, url: "https://hh.ru/", transport: public_api, capability: discovery, enabled_by_default: true}
     query_languages: [ru, en]
 
   ES:

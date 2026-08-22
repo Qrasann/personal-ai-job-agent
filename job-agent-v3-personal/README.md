@@ -1,132 +1,108 @@
-# Personal AI Job Agent v3.1
+# Personal AI Job Agent v3.2
 
-Personal job-search agent with Telegram as the main interface. The first production target is one user searching **from Russia** in three parallel tracks:
+Персональный AI-агент для поиска выбранных вакансий из России: российский рынок + international remote + relocation, с Telegram как главным интерфейсом.
 
-- 🇷🇺 Russian vacancies;
-- 🌍 international remote;
-- ✈️ relocation / visa-sponsorship opportunities.
+## Что изменилось в v3.2
 
-The role is configurable from Telegram, so the same agent can search DevOps today and another selected position later without rewriting code.
+Главное изменение — базовая работа больше **не требует HH applicant OAuth / HH_ACCESS_TOKEN**.
 
-## Core pipeline
+HeadHunter в этой сборке работает как discovery-source:
 
-```text
-HH Russia / remote sources / Telegram posts / future ATS adapters
-                         ↓
-                    NormalizedJob
-                         ↓
-              dedupe + eligibility signals
-                         ↓
-              Candidate Facts + matcher
-                         ↓
-                 best CV selection
-                         ↓
-                     Telegram
-                         ↓
-              apply / open source / skip
-                         ↓
-               recruiter conversation
-                 human OR recruiter AI
-```
+- один лёгкий запрос поиска вместо запроса деталей каждой вакансии;
+- `area=113` для поиска по России;
+- несколько выбранных ролей объединяются в один поисковый запрос;
+- результаты нормализуются, дедуплицируются и проходят scoring;
+- в Telegram есть кнопка **«Подготовить отклик»** и ссылка на вакансию;
+- приватные HH-действия (автоотклик/чаты) по умолчанию отключены.
 
-## Telegram commands
+Важно: текущая документация HH предупреждает, что анонимный vacancy search может потребовать CAPTCHA. Агент CAPTCHA не обходит. При таком ответе HH источник сообщает об ограничении, а остальные источники продолжают работать.
 
-```text
-/start
-/status
-/settings
-
-/role DevOps Engineer
-/roleadd Infrastructure Engineer
-/roles
-
-/mode
-/mode local on|off
-/mode remote on|off
-/mode relocation on|off
-
-/scan
-/jobs
-/sources
-
-/facts
-/fact add <text>
-/fact commercial <id>
-/fact noncommercial <id>
-
-/resumes
-/resumeadd name|language|role
-/resumebindhh <resume_id> <hh_resume_id>
-
-/chats
-/pause
-/resume
-```
-
-A forwarded Telegram vacancy is parsed and sent through the same matcher. Posts from channels where the bot receives `channel_post` updates are also ingested.
-
-## Default search modes
-
-```yaml
-modes:
-  local_ru: true
-  remote_international: true
-  relocation: true
-```
-
-The international scorer treats `Remote worldwide` as strong evidence, region-only remote such as EMEA as uncertain, and explicit US/EU-only/work-authorization restrictions as a major negative. Relocation and visa-support wording is analyzed separately.
-
-## Candidate Facts
-
-Candidate Facts are the source of truth. CVs and recruiter replies may only use facts stored there. A fact marked `commercial=false` must never be presented as commercial/production experience.
-
-Recommended initial CV set:
-
-- DevOps RU — HH/Russia;
-- DevOps EN — remote/relocation;
-- Linux/Infrastructure RU;
-- later: Infrastructure EN.
-
-## Recruiter and recruiter-AI conversations
-
-HH inbound chat messages go through one response pipeline regardless of whether the sender is a human recruiter or an automated recruiter. The LLM generates a factual draft and confidence score. Sensitive or uncertain decisions require Telegram confirmation.
-
-Default safety:
-
-```env
-AUTO_APPLY=false
-AUTO_REPLY=false
-```
-
-Keep both disabled until several manual end-to-end runs have been reviewed.
-
-## First launch
+## Быстрый запуск
 
 ```bash
 cp .env.example .env
 nano .env
 docker compose up -d --build
-docker compose logs -f app
 ```
 
-Fill at least:
+Минимально в `.env` нужны:
 
 ```env
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_ADMIN_CHAT_ID=
-HH_ACCESS_TOKEN=
-HH_RESUME_ID=
-HH_USER_AGENT=PersonalJobAgent/0.1 (your-email@example.com)
-OPENAI_API_KEY=
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_ADMIN_CHAT_ID=...
+HH_USER_AGENT=PersonalJobAgent/0.2 (your-real-email@example.com)
 ```
 
-Then in Telegram:
+`HH_ACCESS_TOKEN` для обычного запуска **не нужен**.
+
+## Основные Telegram-команды
 
 ```text
 /start
+/status
 /settings
 /role DevOps Engineer
+/roleadd Linux Administrator
+/roles
+/mode
+/mode local on
+/mode remote on
+/mode relocation on
 /scan
+/jobs
+/sources
+/facts
+/resumes
+/chats
+/pause
+/resume
 ```
 
-See `SCOPE.md` and `ROADMAP.md`.
+## HH workflow в v3.2
+
+```text
+HH vacancy search
+      ↓
+NormalizedJob
+      ↓
+score + dedupe
+      ↓
+Telegram card
+      ↓
+[Подготовить отклик]
+      ↓
+выбранное CV + сопроводительное
+      ↓
+[Открыть вакансию]
+      ↓
+ручная отправка на HH
+```
+
+Приватный HH applicant-коннектор оставлен в коде только как legacy/optional слой. Чтобы он вообще активировался, одновременно нужны:
+
+```env
+HH_PRIVATE_API_ENABLED=true
+HH_ACCESS_TOKEN=...
+```
+
+Для новых установок это не предполагается и включать его не нужно.
+
+## Международный поиск
+
+В ядре остаются три независимых направления:
+
+- `local_ru` — Россия;
+- `remote_international` — зарубежный remote;
+- `relocation` — вакансии с relocation/visa/work permit signals.
+
+Remote-фильтр отдельно штрафует вакансии вроде `US only`, `EU only`, `must be authorized to work`, а `Remote Worldwide` получает высокий geography score.
+
+## Проверка
+
+В сборке есть unit-тесты:
+
+```bash
+pytest -q
+```
+
+При сборке v3.2: **18 passed**.

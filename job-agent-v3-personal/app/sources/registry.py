@@ -43,7 +43,7 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
 
 def source_capabilities(source_id: str) -> SourceCapabilities:
     if source_id == "hh":
-        return SourceCapabilities(True, True, True, True)
+        return SourceCapabilities(True, False, False, False)
     if source_id in {"remoteok", "telegram"}:
         return SourceCapabilities(True, True, False, False)
     return SourceCapabilities(True, False, False, False)
