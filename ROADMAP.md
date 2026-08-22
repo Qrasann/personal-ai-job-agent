@@ -42,3 +42,9 @@
 - [ ] country-aware local markets
 - [ ] freelance mode
 - [ ] web dashboard
+
+## Small-release track after v3.4.0
+- v3.4.1: Candidate Fact experience types (commercial / lab / learning) + edit/delete-safe commands.
+- v3.4.2: persisted RU/EN UI language and localized command aliases.
+- v3.4.3: /help, /commands and /test diagnostics.
+- v3.5.x: onboarding and resume import in small increments.

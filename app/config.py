@@ -40,6 +40,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://jobagent:jobagent@postgres:5432/jobagent_v3"
     profile_path: Path = Path("data/profile.yaml")
+    storage_path: Path = Path("/app/storage")
 
 
 settings = Settings()

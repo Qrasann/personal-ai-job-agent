@@ -1,3 +1,7 @@
+# v3.4.0 — Storage foundation
+
+This is a deliberately small release on top of v3.3.3. It adds safe in-place database schema versioning, persistent file storage for future resume imports, soft-delete metadata fields (not yet exposed in the UI), and `/version`. Search/scoring behavior is intentionally unchanged.
+
 
 ## v3.3.3 scoring fixes
 

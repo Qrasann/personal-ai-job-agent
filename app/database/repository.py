@@ -21,7 +21,7 @@ from app.domain.jobs import NormalizedJob
 
 async def get_user_by_chat(chat_id: int | str) -> User | None:
     async with SessionLocal() as session:
-        return await session.scalar(select(User).where(User.telegram_chat_id == str(chat_id)))
+        return await session.scalar(select(User).where(User.telegram_chat_id == str(chat_id), User.deleted_at.is_(None)))
 
 
 async def create_user(chat_id: int | str, display_name: str = "") -> User:
@@ -35,7 +35,7 @@ async def create_user(chat_id: int | str, display_name: str = "") -> User:
 
 async def ensure_default_profile(user_id: int, *, profile_name: str = "Main", target_role: str = "DevOps Engineer") -> CandidateProfile:
     async with SessionLocal() as session:
-        existing = await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True)))
+        existing = await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True), CandidateProfile.deleted_at.is_(None)))
         if existing:
             return existing
         profile = CandidateProfile(user_id=user_id, name=profile_name, target_role=target_role, english_level="B2")
@@ -50,12 +50,12 @@ async def ensure_default_profile(user_id: int, *, profile_name: str = "Main", ta
 
 async def active_profile(user_id: int) -> CandidateProfile | None:
     async with SessionLocal() as session:
-        return await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True)).order_by(CandidateProfile.id))
+        return await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True), CandidateProfile.deleted_at.is_(None)).order_by(CandidateProfile.id))
 
 
 async def list_profiles(user_id: int) -> list[CandidateProfile]:
     async with SessionLocal() as session:
-        rows = await session.scalars(select(CandidateProfile).where(CandidateProfile.user_id == user_id).order_by(CandidateProfile.id))
+        rows = await session.scalars(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.deleted_at.is_(None)).order_by(CandidateProfile.id))
         return list(rows)
 
 
@@ -70,7 +70,7 @@ async def add_fact(profile_id: int, value: str, *, category: str = "experience",
 
 async def list_facts(profile_id: int) -> list[CandidateFact]:
     async with SessionLocal() as session:
-        rows = await session.scalars(select(CandidateFact).where(CandidateFact.profile_id == profile_id, CandidateFact.active.is_(True)).order_by(CandidateFact.id))
+        rows = await session.scalars(select(CandidateFact).where(CandidateFact.profile_id == profile_id, CandidateFact.active.is_(True), CandidateFact.deleted_at.is_(None)).order_by(CandidateFact.id))
         return list(rows)
 
 
@@ -85,13 +85,13 @@ async def add_resume(profile_id: int, name: str, language: str, role: str, conte
 
 async def list_resumes(profile_id: int) -> list[ResumeProfile]:
     async with SessionLocal() as session:
-        rows = await session.scalars(select(ResumeProfile).where(ResumeProfile.profile_id == profile_id, ResumeProfile.active.is_(True)).order_by(ResumeProfile.id))
+        rows = await session.scalars(select(ResumeProfile).where(ResumeProfile.profile_id == profile_id, ResumeProfile.active.is_(True), ResumeProfile.deleted_at.is_(None)).order_by(ResumeProfile.id))
         return list(rows)
 
 
 async def list_search_profiles(profile_id: int) -> list[SearchProfile]:
     async with SessionLocal() as session:
-        rows = await session.scalars(select(SearchProfile).where(SearchProfile.profile_id == profile_id, SearchProfile.enabled.is_(True)))
+        rows = await session.scalars(select(SearchProfile).where(SearchProfile.profile_id == profile_id, SearchProfile.enabled.is_(True), SearchProfile.deleted_at.is_(None)))
         return list(rows)
 
 
@@ -301,7 +301,7 @@ async def stats(user_id: int) -> dict:
 
 async def list_active_users() -> list[User]:
     async with SessionLocal() as session:
-        rows = await session.scalars(select(User).where(User.is_active.is_(True)).order_by(User.id))
+        rows = await session.scalars(select(User).where(User.is_active.is_(True), User.deleted_at.is_(None)).order_by(User.id))
         return list(rows)
 
 

@@ -20,6 +20,7 @@ services:
       - .env
     volumes:
       - ./data:/app/data:ro
+      - jobagent_v3_files:/app/storage
     depends_on:
       postgres:
         condition: service_healthy
@@ -27,3 +28,4 @@ services:
 
 volumes:
   jobagent_v3_pg:
+  jobagent_v3_files:

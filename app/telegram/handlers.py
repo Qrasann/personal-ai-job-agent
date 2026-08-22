@@ -9,6 +9,7 @@ from aiogram.types import CallbackQuery, Message
 from app.candidates.bootstrap import bootstrap_user
 from app.config import settings
 from app.database import repository as repo
+from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.services import apply_match, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
@@ -86,6 +87,21 @@ async def register(message: Message) -> None:
         return
     user, _ = await bootstrap_user(message.chat.id, message.from_user.full_name if message.from_user else "")
     await message.answer(f"✅ Профиль создан. User ID: {user.id}. Теперь выполни /country и /targets.")
+
+
+@router.message(Command("version"))
+async def version(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    schema = await current_schema_version()
+    expected = expected_schema_version()
+    await message.answer(
+        f"🤖 <b>Job Agent v{html.escape(current_version())}</b>\n"
+        f"DB schema: <b>{schema}</b> / {expected}\n"
+        f"Migration: {'✅ OK' if schema == expected else '⚠️ CHECK'}",
+        parse_mode="HTML",
+    )
 
 
 @router.message(Command("status"))
