@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.4.2
+
+Small CI foundation release.
+
+- Added GitHub Actions checks for Python compilation, pytest and Docker image build.
+- Added `.dockerignore` so local virtual environments, Git metadata, secrets and runtime data are not sent in the Docker build context.
+- Added a lightweight Git-history secret scan for obvious private keys and common token formats.
+- Added `requirements-dev.txt` so local and CI test dependencies are reproducible without installing pytest globally.
+- CI uses Python 3.12 to match the application Docker image.
+- No runtime search, scoring, database schema, Telegram or AI behavior changed.
+
 ## 3.4.1
 
 Small Candidate Facts typing release.
