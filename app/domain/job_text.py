@@ -88,7 +88,13 @@ def format_salary(
     parsed_currency = None
     if fallback_text:
         parsed_low, parsed_high, parsed_currency = parse_salary_text(fallback_text)
-    if parsed_currency and (parsed_low or parsed_high):
+    structured_count = int(bool(low)) + int(bool(high))
+    parsed_count = int(bool(parsed_low)) + int(bool(parsed_high))
+
+    # Prefer the candidate with more salary bounds. This matters for HH where
+    # a vacancy page can expose only "up to 300k" while the search card still
+    # contains the full 175k-300k range. Structured values win ties.
+    if parsed_currency and parsed_count and (parsed_count > structured_count or not curr):
         low, high, curr = parsed_low, parsed_high, parsed_currency
     elif not curr:
         low = high = None

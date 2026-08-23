@@ -145,12 +145,13 @@ def test_job_details_separates_source_data_from_agent_score():
         "match": match,
         "source": "hh",
         "url": "https://hh.ru/vacancy/25",
-        "fallback_salary_text": "до 300 000 ₽",
+        "fallback_salary_text": "DevOps Engineer 175 000–300 000 ₽ за месяц",
         "details": {
             "description": "Обязанности\nCI/CD\nТребования\nLinux Docker",
             "experience": "Опыт 3-6 лет",
             "salary_to": 300000,
             "salary_currency": "RUR",
+            "salary_text": "до 300 000 ₽",
             "city": "Москва",
             "work_mode": "Удалённо",
             "published_at": "2026-08-23T10:38:00+03:00",
@@ -161,6 +162,7 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "Описание вакансии" in text
     assert "CI/CD" in text
     assert "Оценка Job Agent" in text
+    assert "💰 175 000–300 000 ₽" in text
     assert "Technical: 54/100" in text
     assert "23.08.2026 10:38" in text
     assert "Открыть оригинал вакансии" in text

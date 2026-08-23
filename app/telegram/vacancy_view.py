@@ -29,11 +29,24 @@ def _work_mode(job, details: dict) -> str:
 
 
 def _salary(job, details: dict, fallback_salary_text: str = "") -> str:
+    # The search-card text can contain a fuller salary range than the vacancy
+    # page itself, so let format_salary compare both sources. Put the saved
+    # search-card text first because salary_fragment returns the first credible
+    # currency-bearing amount.
+    salary_text = " ".join(
+        part
+        for part in (
+            str(fallback_salary_text or ""),
+            str(details.get("salary_text") or ""),
+            str(job.description or ""),
+        )
+        if part
+    )
     return format_salary(
         details.get("salary_from") if details.get("salary_from") is not None else job.salary_from,
         details.get("salary_to") if details.get("salary_to") is not None else job.salary_to,
         details.get("salary_currency") or job.salary_currency,
-        fallback_text=str(details.get("salary_text") or fallback_salary_text or job.description or ""),
+        fallback_text=salary_text,
     )
 
 
