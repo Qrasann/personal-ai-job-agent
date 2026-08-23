@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}")"
+ROOT="$(dirname -- "$SCRIPT_PATH")"
+PROJECT_NAME="${JOB_AGENT_COMPOSE_PROJECT:-job-agent-v3-personal}"
+
+cd "$ROOT"
+
+compose() {
+    docker compose -p "$PROJECT_NAME" "$@"
+}
+
+case "${1:-}" in
+    start)
+        echo "Starting Personal AI Job Agent..."
+        compose up -d
+        echo
+        compose ps
+        ;;
+
+    stop)
+        echo "Stopping Personal AI Job Agent..."
+        compose stop
+        echo
+        compose ps -a
+        ;;
+
+    restart)
+        echo "Restarting Personal AI Job Agent..."
+        compose stop
+        compose up -d
+        echo
+        compose ps
+        ;;
+
+    rebuild)
+        echo "Rebuilding Personal AI Job Agent..."
+        compose up -d --build
+        echo
+        compose ps
+        ;;
+
+    status)
+        SOURCE_VERSION="$(tr -d '\n' < VERSION)"
+
+        echo "Personal AI Job Agent"
+        echo
+        echo "Source version:  ${SOURCE_VERSION}"
+
+        APP_CONTAINER="$(compose ps -q app 2>/dev/null || true)"
+
+        if [[ -n "$APP_CONTAINER" ]] && [[ "$(docker inspect -f '{{.State.Running}}' "$APP_CONTAINER" 2>/dev/null || true)" == "true" ]]; then
+            RUNTIME_VERSION="$(docker exec "$APP_CONTAINER" sh -c 'cat /app/VERSION 2>/dev/null' 2>/dev/null || true)"
+
+            if [[ -n "$RUNTIME_VERSION" ]]; then
+                echo "Runtime version: ${RUNTIME_VERSION}"
+            else
+                echo "Runtime version: unknown"
+            fi
+        else
+            echo "Runtime version: stopped"
+        fi
+
+        echo
+        compose ps -a
+        ;;
+
+    logs)
+        compose logs -f --tail="${JOB_AGENT_LOG_TAIL:-100}" app
+        ;;
+
+    *)
+        cat <<USAGE
+Usage:
+  job-agent start
+  job-agent stop
+  job-agent restart
+  job-agent rebuild
+  job-agent status
+  job-agent logs
+USAGE
+        exit 2
+        ;;
+esac
