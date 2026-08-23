@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.4.4
+
+Vacancy-details Telegram UX release.
+
+- Added `/job <id>` with source vacancy details, location, work mode, experience, salary, link and Job Agent score breakdown.
+- Added a `📋 Подробнее` button to new vacancy notifications.
+- `/jobs` now shows job IDs and useful vacancy metadata instead of only title/company/status.
+- HH public-web fallback can fetch one vacancy page on demand when the user opens details; regular `/scan` remains lightweight and does not fan out into per-vacancy detail requests.
+- HH detail parsing uses public JSON-LD/DOM data and never attempts to bypass CAPTCHA.
+- Fixed HH web salary extraction when the compensation selector contains payment-frequency text instead of the salary amount.
+- Remote/source HTML is cleaned for Telegram display and common UTF-8/Latin-1 mojibake is repaired when safe.
+- No database schema, scoring thresholds, auto-apply or private HH behavior changed.
+
 ## 3.4.3
 
 Small manual runtime-control release.

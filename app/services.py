@@ -11,9 +11,10 @@ from app.agents.llm import make_cover_letter, recruiter_reply
 from app.config import settings
 from app.database import repository as repo
 from app.domain.jobs import NormalizedJob
+from app.domain.job_text import clean_html_text, format_salary
 from app.geo.countries import normalize_country
 from app.matching.engine import score_job
-from app.providers.hh import HHClient
+from app.providers.hh import HHClient, HHError
 from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
@@ -106,9 +107,12 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 await repo.set_match_status(match.id, "duplicate")
                 continue
 
-            salary = "не указана"
-            if job.salary_from or job.salary_to:
-                salary = f"{job.salary_from or '—'}–{job.salary_to or '—'} {job.salary_currency or ''}"
+            salary = format_salary(
+                job.salary_from,
+                job.salary_to,
+                job.salary_currency,
+                fallback_text=job.description,
+            )
             text = (
                 f"🔥 <b>{html.escape(job.title)}</b>\n"
                 f"{html.escape(job.company)}\n\n"
@@ -124,7 +128,12 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 user.telegram_chat_id,
                 text,
                 parse_mode="HTML",
-                reply_markup=job_keyboard(match.id, src.url if src else "", can_apply=source_capabilities(normalized.source).apply),
+                reply_markup=job_keyboard(
+                    match.id,
+                    src.url if src else "",
+                    can_apply=source_capabilities(normalized.source).apply,
+                    job_id=job.id,
+                ),
             )
             await repo.set_match_status(match.id, "notified")
             counters["notified"] += 1
@@ -188,6 +197,48 @@ async def scan_for_user(bot: Bot, user_id: int) -> dict:
 async def scan_all(bot: Bot) -> None:
     for user in await repo.list_active_users():
         await scan_for_user(bot, user.id)
+
+
+async def get_vacancy_details(user_id: int, job_id: int) -> dict:
+    match = await repo.get_match_for_user_job(user_id, job_id)
+    if not match:
+        raise RuntimeError("Вакансия не найдена среди твоих совпадений")
+    job = await repo.get_job(job_id)
+    if not job:
+        raise RuntimeError("Вакансия не найдена")
+
+    ref = None
+    for source_id in ("hh", "remoteok", "telegram", "jobs_ge", "hr_ge"):
+        ref = await repo.source_ref(job.id, source_id)
+        if ref:
+            break
+    if not ref:
+        ref = await repo.source_ref(job.id)
+
+    details: dict = {}
+    warning = ""
+    if ref and ref.source_id == "hh":
+        try:
+            vacancy_html = await hh_client.vacancy_web(ref.source_job_id)
+            details = HHSource.parse_vacancy_web_html(vacancy_html)
+        except HHError as exc:
+            warning = str(exc)
+
+    if not details.get("description"):
+        details["description"] = clean_html_text(job.description)
+
+    raw = (ref.raw or {}) if ref else {}
+    fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or job.description or "")
+
+    return {
+        "job": job,
+        "match": match,
+        "source": ref.source_id if ref else "",
+        "url": ref.url if ref else "",
+        "details": details,
+        "fallback_salary_text": fallback_salary_text,
+        "warning": warning,
+    }
 
 
 async def prepare_match(match_id: int, user_id: int) -> dict:
