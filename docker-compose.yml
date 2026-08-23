@@ -25,6 +25,7 @@ services:
       postgres:
         condition: service_healthy
     restart: "no"
+    stop_grace_period: 30s
 
 volumes:
   jobagent_v3_pg:

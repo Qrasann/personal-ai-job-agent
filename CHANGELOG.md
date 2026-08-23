@@ -1,15 +1,17 @@
-## v3.4.3
-
-### Added
-- Manual `job-agent` runtime control CLI.
-- Commands for start, stop, restart, rebuild, status and logs.
-- Runtime/source version visibility in the status command.
-
-### Changed
-- Docker Compose services no longer use `restart: unless-stopped`.
-- Job Agent and PostgreSQL no longer automatically start when Docker starts.
-
 # Changelog
+
+## 3.4.3
+
+Small manual runtime-control release.
+
+- Added the `job-agent` command-line control utility.
+- Added `start`, `stop`, `restart`, `rebuild`, `status`, `logs` and `update`.
+- `job-agent logs` now shows recent logs and exits; `job-agent logs -f` follows them.
+- Source and running-container versions are displayed separately.
+- Job Agent and PostgreSQL no longer automatically start when Docker starts.
+- Added a longer graceful shutdown timeout for the application.
+- `job-agent update` refuses to run outside `main` or with an unclean working tree.
+- Updating a stopped Job Agent keeps it stopped.
 
 ## 3.4.2
 
