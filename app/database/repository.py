@@ -336,6 +336,15 @@ async def get_match(match_id: int) -> JobMatch | None:
         return await session.get(JobMatch, match_id)
 
 
+async def get_match_for_user_job(user_id: int, job_id: int) -> JobMatch | None:
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(JobMatch)
+            .where(JobMatch.user_id == user_id, JobMatch.job_id == job_id)
+            .order_by(JobMatch.created_at.desc())
+        )
+
+
 async def get_resume(resume_id: int) -> ResumeProfile | None:
     async with SessionLocal() as session:
         return await session.get(ResumeProfile, resume_id)

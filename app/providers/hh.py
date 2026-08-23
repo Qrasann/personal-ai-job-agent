@@ -134,6 +134,46 @@ class HHClient:
             )
         return text_body
 
+    async def vacancy_web(self, vacancy_id: str) -> str:
+        """Read one ordinary public HH vacancy page without applicant auth."""
+        headers = {
+            "User-Agent": settings.hh_web_user_agent,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.7",
+        }
+        url = f"{self.web_base_url}/vacancy/{vacancy_id}"
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+            response = await client.get(url, headers=headers)
+        if response.status_code >= 400:
+            raise HHError(f"HH vacancy web {response.status_code}")
+
+        text_body = response.text
+        folded = text_body.casefold()
+        final_url = str(response.url).casefold()
+        normal_markers = (
+            'data-qa="vacancy-description"',
+            'data-qa="vacancy-title"',
+            '"@type": "jobposting"',
+            '"@type":"jobposting"',
+        )
+        has_vacancy_content = any(marker in folded for marker in normal_markers)
+        challenge_markers = (
+            "проверка, что вы не робот",
+            "подтвердите, что вы человек",
+            "подтвердите, что вы не робот",
+            "пройдите проверку, чтобы продолжить",
+        )
+        challenge_url = "/captcha" in final_url or "captcha.hh" in final_url
+        explicit_challenge = any(marker in folded for marker in challenge_markers)
+        if challenge_url or (explicit_challenge and not has_vacancy_content):
+            raise HHCaptchaRequired(
+                "Страница вакансии HH запросила CAPTCHA/проверку. "
+                "Агент её не обходит; используй сохранённую карточку и ссылку на HH."
+            )
+        if not has_vacancy_content:
+            raise HHError("HH vacancy page did not contain recognizable vacancy details")
+        return text_body
+
     async def vacancy(self, vacancy_id: str) -> dict:
         response = await self._request("GET", f"/vacancies/{vacancy_id}")
         return response.json()

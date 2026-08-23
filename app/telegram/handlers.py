@@ -12,8 +12,9 @@ from app.database import repository as repo
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
-from app.services import apply_match, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
+from app.services import apply_match, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
+from app.telegram.vacancy_view import render_job_details, render_jobs_list
 from app.sources.registry import build_source_plan
 from app.version import current_version
 
@@ -63,6 +64,7 @@ async def start(message: Message) -> None:
         "/settings — текущие настройки\n"
         "/scan — поиск сейчас\n"
         "/jobs — последние совпадения\n"
+        "/job <id> — подробности вакансии\n"
         "/sources — источники\n"
         "/facts — факты кандидата\n"
         "/resumes — варианты резюме\n"
@@ -479,10 +481,27 @@ async def jobs(message: Message) -> None:
     if not rows:
         await message.answer("Пока совпадений нет. Запусти /scan.")
         return
-    lines = ["🔥 <b>Последние совпадения</b>"]
-    for match, job in rows:
-        lines.append(f"{match.total_score}/100 — {html.escape(job.title)} — {html.escape(job.company)} — {match.status}")
-    await message.answer("\n".join(lines), parse_mode="HTML")
+    await message.answer(render_jobs_list(rows), parse_mode="HTML")
+
+
+@router.message(Command("job"))
+async def job_details(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) != 2 or not parts[1].strip().isdigit():
+        await message.answer("Использование: /job <id>, например /job 25")
+        return
+    try:
+        payload = await get_vacancy_details(user.id, int(parts[1].strip()))
+        await message.answer(
+            render_job_details(payload),
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    except Exception as exc:
+        await message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
 
 
 @router.message(Command("chats"))
@@ -502,6 +521,27 @@ async def chats(message: Message, bot: Bot) -> None:
         return
     await scan_hh_chats(bot)
     await message.answer("✅ HH-чаты проверены.")
+
+
+@router.callback_query(F.data.startswith("details:"))
+async def details_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID вакансии", show_alert=True)
+        return
+    await callback.answer("Загружаю подробности…")
+    try:
+        payload = await get_vacancy_details(user.id, int(raw_id))
+        await callback.message.answer(
+            render_job_details(payload),
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    except Exception as exc:
+        await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
 
 
 @router.callback_query(F.data.startswith("skip:"))

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
 from urllib.parse import urljoin
@@ -8,6 +9,7 @@ from bs4 import BeautifulSoup, Tag
 
 from app.config import settings
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.job_text import clean_html_text, parse_salary_text, salary_fragment
 from app.providers.hh import HHAPIForbidden, HHCaptchaRequired, HHClient
 from app.sources.base import JobSource, SourceContext
 
@@ -18,7 +20,7 @@ log = logging.getLogger(__name__)
 class HHSource(JobSource):
     source_id = "hh"
     name = "HeadHunter"
-    capabilities = SourceCapabilities(discovery=True, details=False, apply=False, messages=False)
+    capabilities = SourceCapabilities(discovery=True, details=True, apply=False, messages=False)
 
     def __init__(self, client: HHClient | None = None) -> None:
         self.client = client or HHClient()
@@ -38,27 +40,7 @@ class HHSource(JobSource):
 
     @staticmethod
     def _salary(text: str) -> tuple[int | None, int | None, str | None]:
-        if not text:
-            return None, None, None
-        compact = text.replace("\u202f", " ").replace("\xa0", " ")
-        nums = [int(x.replace(" ", "")) for x in re.findall(r"\d[\d ]{2,}", compact)]
-        currency = None
-        if "₽" in compact or "руб" in compact.casefold():
-            currency = "RUR"
-        elif "$" in compact or "USD" in compact.upper():
-            currency = "USD"
-        elif "€" in compact or "EUR" in compact.upper():
-            currency = "EUR"
-        elif "₾" in compact or "GEL" in compact.upper():
-            currency = "GEL"
-        if not nums:
-            return None, None, currency
-        folded = compact.casefold().strip()
-        if len(nums) >= 2:
-            return nums[0], nums[1], currency
-        if folded.startswith("до "):
-            return None, nums[0], currency
-        return nums[0], None, currency
+        return parse_salary_text(text)
 
     @staticmethod
     def _first(card: Tag, selectors: tuple[str, ...]) -> Tag | None:
@@ -147,6 +129,12 @@ class HHSource(JobSource):
             # snippet, and the matcher needs those signals in fallback mode.
             description = " ".join(description_parts + [card_text])[:3500]
             salary_text = salary_node.get_text(" ", strip=True) if salary_node else ""
+            # Current HH layouts sometimes expose a payment-frequency node under
+            # compensation selectors instead of the actual salary. Prefer the
+            # amount/currency fragment visible in the full card when present.
+            card_salary = salary_fragment(card_text)
+            if card_salary:
+                salary_text = card_salary
             salary_from, salary_to, salary_currency = cls._salary(salary_text)
             city = address_node.get_text(" ", strip=True) if address_node else None
             work_mode = "Удалённо" if "можно удалённо" in card_text.casefold() or "удаленно" in card_text.casefold() or "удалённо" in card_text.casefold() else None
@@ -167,6 +155,121 @@ class HHSource(JobSource):
                 raw={"transport": "web", "salary_text": salary_text, "card_text": card_text[:5000]},
             ))
         return out
+
+
+    @classmethod
+    def parse_vacancy_web_html(cls, html: str) -> dict:
+        """Parse an ordinary public HH vacancy page into display details."""
+        soup = BeautifulSoup(html, "html.parser")
+
+        posting: dict = {}
+        for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+            raw = script.string or script.get_text()
+            try:
+                payload = json.loads(raw)
+            except Exception:
+                continue
+            candidates = payload if isinstance(payload, list) else [payload]
+            for candidate in candidates:
+                if not isinstance(candidate, dict):
+                    continue
+                if candidate.get("@type") == "JobPosting":
+                    posting = candidate
+                    break
+                for item in candidate.get("@graph", []) if isinstance(candidate.get("@graph"), list) else []:
+                    if isinstance(item, dict) and item.get("@type") == "JobPosting":
+                        posting = item
+                        break
+                if posting:
+                    break
+            if posting:
+                break
+
+        def qa_text(*selectors: str) -> str:
+            for selector in selectors:
+                node = soup.select_one(selector)
+                if node:
+                    value = node.get_text(" ", strip=True)
+                    if value:
+                        return value
+            return ""
+
+        description_html = str(posting.get("description") or "")
+        if not description_html:
+            node = soup.select_one('[data-qa="vacancy-description"]')
+            if node:
+                description_html = node.decode_contents()
+        description = clean_html_text(description_html)
+
+        organization = posting.get("hiringOrganization") or {}
+        if not isinstance(organization, dict):
+            organization = {}
+        job_location = posting.get("jobLocation") or {}
+        if not isinstance(job_location, dict):
+            job_location = {}
+        address = job_location.get("address") or {}
+        if not isinstance(address, dict):
+            address = {}
+        applicant_location = posting.get("applicantLocationRequirements") or {}
+        if isinstance(applicant_location, list):
+            applicant_location_name = ", ".join(
+                str(item.get("name") or "") for item in applicant_location if isinstance(item, dict) and item.get("name")
+            )
+        elif isinstance(applicant_location, dict):
+            applicant_location_name = str(applicant_location.get("name") or "")
+        else:
+            applicant_location_name = ""
+
+        salary_text = qa_text('[data-qa="vacancy-salary"]')
+        salary_from, salary_to, salary_currency = cls._salary(salary_text)
+
+        # HH exposes a schema.org JobPosting. Prefer structured baseSalary when
+        # present: the rendered salary node can sometimes show only one bound
+        # even though JSON-LD contains the full range.
+        base_salary = posting.get("baseSalary") or {}
+        if isinstance(base_salary, dict):
+            structured_currency = str(base_salary.get("currency") or "") or None
+            structured_value = base_salary.get("value")
+            structured_from = structured_to = None
+            if isinstance(structured_value, dict):
+                structured_from = structured_value.get("minValue")
+                structured_to = structured_value.get("maxValue")
+                if structured_from is None and structured_to is None:
+                    exact = structured_value.get("value")
+                    structured_from = exact
+            elif structured_value is not None:
+                structured_from = structured_value
+
+            def as_int(value):
+                try:
+                    return int(float(value)) if value is not None else None
+                except (TypeError, ValueError):
+                    return None
+
+            structured_from = as_int(structured_from)
+            structured_to = as_int(structured_to)
+            if structured_from or structured_to:
+                salary_from = structured_from
+                salary_to = structured_to
+                salary_currency = structured_currency or salary_currency
+
+        experience = qa_text('[data-qa="vacancy-experience"]', '[data-qa="work-experience-text"]')
+        work_mode = qa_text('[data-qa="work-formats-text"]', '[data-qa="work-schedule-by-days-text"]')
+
+        return {
+            "title": str(posting.get("title") or qa_text('[data-qa="vacancy-title"]')),
+            "company": str(organization.get("name") or qa_text('[data-qa="vacancy-company-name"]')),
+            "description": description,
+            "experience": experience,
+            "salary_text": salary_text,
+            "salary_from": salary_from,
+            "salary_to": salary_to,
+            "salary_currency": salary_currency,
+            "city": str(address.get("addressLocality") or qa_text('[data-qa="vacancy-view-raw-address"]')),
+            "work_mode": work_mode,
+            "published_at": str(posting.get("datePosted") or ""),
+            "applicant_location": applicant_location_name,
+        }
 
     def _from_api(self, payload: dict, *, is_ru: bool) -> list[NormalizedJob]:
         out: list[NormalizedJob] = []

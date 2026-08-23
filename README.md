@@ -1,3 +1,12 @@
+# v3.4.4 — Vacancy details
+
+Telegram now keeps `/jobs` compact but makes each match inspectable with `/job <id>` or the **📋 Подробнее** button. HH details are fetched only when requested from the ordinary public vacancy page; scheduled discovery still uses the lightweight search page and never attempts to bypass CAPTCHA. Source vacancy text and Job Agent scoring are shown as separate sections.
+
+```text
+/jobs
+/job 25
+```
+
 # v3.4.2 — CI foundation
 
 GitHub Actions now validates every push to `main`, `feature/**`, `fix/**` and every pull request to `main`. The pipeline compiles Python sources, runs pytest, performs a lightweight secret scan across Git history, and verifies that the Docker image builds. A `.dockerignore` keeps `.env`, `.venv`, Git metadata and runtime data out of the Docker build context.
@@ -100,6 +109,7 @@ HH_USER_AGENT=PersonalJobAgent/0.2 (your-real-email@example.com)
 /mode relocation on
 /scan
 /jobs
+/job <id>
 /sources
 /facts
 /resumes
