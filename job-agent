@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}")"
+ROOT="$(dirname -- "$SCRIPT_PATH")"
+
+PROJECT_NAME="${JOB_AGENT_COMPOSE_PROJECT:-job-agent-v3-personal}"
+STOP_TIMEOUT="${JOB_AGENT_STOP_TIMEOUT:-30}"
+LOG_TAIL="${JOB_AGENT_LOG_TAIL:-100}"
+
+cd "$ROOT"
+
+compose() {
+    docker compose -p "$PROJECT_NAME" "$@"
+}
+
+app_is_running() {
+    local container
+
+    container="$(compose ps -q app 2>/dev/null || true)"
+
+    [[ -n "$container" ]] || return 1
+
+    [[ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null || true)" == "true" ]]
+}
+
+case "${1:-}" in
+    start)
+        echo "Starting Personal AI Job Agent..."
+        compose up -d
+        echo
+        compose ps
+        ;;
+
+    stop)
+        echo "Stopping Personal AI Job Agent..."
+        compose stop -t "$STOP_TIMEOUT"
+        echo
+        compose ps -a
+        ;;
+
+    restart)
+        echo "Restarting Personal AI Job Agent..."
+        compose stop -t "$STOP_TIMEOUT"
+        compose up -d
+        echo
+        compose ps
+        ;;
+
+    rebuild)
+        echo "Rebuilding Personal AI Job Agent..."
+        compose up -d --build
+        echo
+        compose ps
+        ;;
+
+    status)
+        SOURCE_VERSION="$(tr -d '\n' < VERSION)"
+
+        echo "Personal AI Job Agent"
+        echo
+        echo "Source version:  ${SOURCE_VERSION}"
+
+        APP_CONTAINER="$(compose ps -q app 2>/dev/null || true)"
+
+        if [[ -n "$APP_CONTAINER" ]] &&
+           [[ "$(docker inspect -f '{{.State.Running}}' "$APP_CONTAINER" 2>/dev/null || true)" == "true" ]]; then
+
+            RUNTIME_VERSION="$(
+                docker exec "$APP_CONTAINER" \
+                    sh -c 'cat /app/VERSION 2>/dev/null' \
+                    2>/dev/null || true
+            )"
+
+            if [[ -n "$RUNTIME_VERSION" ]]; then
+                echo "Runtime version: ${RUNTIME_VERSION}"
+            else
+                echo "Runtime version: unknown"
+            fi
+        else
+            echo "Runtime version: stopped"
+        fi
+
+        echo
+        compose ps -a
+        ;;
+
+    logs)
+        if [[ "${2:-}" == "-f" || "${2:-}" == "--follow" ]]; then
+            compose logs -f --tail="$LOG_TAIL" app
+        else
+            compose logs --tail="$LOG_TAIL" app
+        fi
+        ;;
+
+    update)
+        CURRENT_BRANCH="$(git branch --show-current)"
+
+        if [[ "$CURRENT_BRANCH" != "main" ]]; then
+            echo "Update refused: current Git branch is '$CURRENT_BRANCH'." >&2
+            echo "Switch to main before updating." >&2
+            exit 1
+        fi
+
+        if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Update refused: working tree contains local changes." >&2
+            echo "Commit or stash them first." >&2
+            exit 1
+        fi
+
+        WAS_RUNNING=false
+
+        if app_is_running; then
+            WAS_RUNNING=true
+        fi
+
+        echo "Updating Personal AI Job Agent..."
+
+        git fetch --prune origin
+        git pull --ff-only origin main
+
+        if [[ "$WAS_RUNNING" == "true" ]]; then
+            echo "Rebuilding and restarting running application..."
+            compose up -d --build
+            compose ps
+        else
+            echo "Building updated application image..."
+            compose build app
+            echo
+            echo "Update complete. Job Agent remains stopped."
+        fi
+        ;;
+
+    help|-h|--help|"")
+        cat <<'USAGE'
+Usage:
+  job-agent start
+  job-agent stop
+  job-agent restart
+  job-agent rebuild
+  job-agent status
+  job-agent logs
+  job-agent logs -f
+  job-agent update
+USAGE
+        ;;
+
+    *)
+        echo "Unknown command: $1" >&2
+        echo
+        "$0" help
+        exit 2
+        ;;
+esac

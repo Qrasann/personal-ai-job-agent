@@ -12,7 +12,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-    restart: unless-stopped
+    restart: "no"
 
   app:
     build: .
@@ -24,7 +24,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: unless-stopped
+    restart: "no"
+    stop_grace_period: 30s
 
 volumes:
   jobagent_v3_pg:
