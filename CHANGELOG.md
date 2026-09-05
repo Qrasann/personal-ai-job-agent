@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.4.7
+
+Technical Score v2, full vacancy details and scan-progress release.
+
+- Added structured Technical Score v2 for required and preferred requirements.
+- Candidate Facts experience types now affect technical scoring.
+- Legacy Technical scoring remains the fallback when no required requirements are recognized.
+- HeadHunter full vacancy details are selectively fetched and cached.
+- Full-detail rescoring preserves existing match workflow status.
+- Added more vacancy section-heading classifications.
+- Improved source error diagnostics.
+- /scan now shows source and analysis progress.
+- /scan now includes a live spinner and elapsed-time heartbeat.
+- Geography, salary, relocation, caps and notification thresholds remain unchanged.
+- No database migration is required.
+
+
 ## 3.4.6
 
 Telegram UX, requirement-classification and startup-resilience release.

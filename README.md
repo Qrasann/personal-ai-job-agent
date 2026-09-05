@@ -1,3 +1,13 @@
+# v3.4.7 — Technical Score v2 and live scan progress
+
+Technical scoring now uses structured required and preferred vacancy requirements together with Candidate Facts. HeadHunter vacancies can be selectively enriched with full public vacancy details and cached for reuse.
+
+Legacy Technical scoring remains the fallback when required technical requirements cannot be recognized. Geography, salary, relocation and existing score caps remain unchanged.
+
+Telegram `/scan` now shows live source progress, vacancy-analysis progress, a spinner and elapsed time.
+
+No database migration is required.
+
 # v3.4.6 — Telegram UX and requirement classification
 
 Telegram supports multiple commands in one message, one command per line:
