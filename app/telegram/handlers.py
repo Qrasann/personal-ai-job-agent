@@ -18,6 +18,11 @@ from app.telegram.vacancy_view import render_fact_comparison, render_job_details
 from app.telegram.ui import vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.version import current_version
+from app.telegram.multicommand import (
+    MultiCommandError,
+    MultiCommandFilter,
+    parse_multi_commands,
+)
 
 router = Router()
 
@@ -41,6 +46,30 @@ async def _first_search(user_id: int):
     searches = await repo.list_search_profiles(profile.id)
     return profile, searches[0] if searches else None
 
+@router.message(MultiCommandFilter())
+async def multi_command(message: Message, bot: Bot) -> None:
+    try:
+        commands = parse_multi_commands(message.text)
+    except MultiCommandError as exc:
+        await message.answer(
+            f"❌ {html.escape(str(exc))}",
+            parse_mode="HTML",
+        )
+        return
+
+    if not commands:
+        return
+
+    for command_text in commands:
+        child_message = message.model_copy(
+            update={"text": command_text}
+        )
+
+        await router.propagate_event(
+            "message",
+            child_message,
+            bot=bot,
+        )
 
 @router.message(CommandStart())
 async def start(message: Message) -> None:
