@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import html
+import time
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
@@ -487,8 +489,35 @@ async def scan(message: Message, bot: Bot) -> None:
         "⏳ Ищу вакансии по активным источникам…"
     )
 
+    stage = "Ищу вакансии по активным источникам…"
+    started = time.monotonic()
+
+    async def update_progress(text: str) -> None:
+        nonlocal stage
+        stage = text[1:].strip() if text.startswith("⏳") else text
+
+    async def heartbeat() -> None:
+        frames = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+        index = 0
+        while True:
+            elapsed = int(time.monotonic() - started)
+            try:
+                await progress.edit_text(f"{frames[index % len(frames)]} {stage}\n⏱ Прошло: {elapsed} сек.")
+            except Exception:
+                pass
+            index += 1
+            await asyncio.sleep(2)
+
+    heartbeat_task = asyncio.create_task(heartbeat())
+
     try:
-        summary = await scan_for_user(bot, user.id)
+        summary = await scan_for_user(bot, user.id, progress_callback=update_progress)
+        heartbeat_task.cancel()
+        try:
+            await heartbeat_task
+        except asyncio.CancelledError:
+            pass
+
         source_bits = []
 
         for source_id, info in (summary.get("sources") or {}).items():
@@ -518,6 +547,11 @@ async def scan(message: Message, bot: Bot) -> None:
             parse_mode="HTML",
         )
     except Exception as exc:
+        heartbeat_task.cancel()
+        try:
+            await heartbeat_task
+        except asyncio.CancelledError:
+            pass
         await progress.edit_text(
             f"⚠ {html.escape(str(exc))}",
             parse_mode="HTML",

@@ -168,8 +168,16 @@ def _error_text(exc: Exception) -> str:
     return message or type(exc).__name__
 
 
-async def scan_for_user(bot: Bot, user_id: int) -> dict:
+async def scan_for_user(bot: Bot, user_id: int, progress_callback=None) -> dict:
     summary = {"sources": {}, "processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+    async def emit_progress(text: str) -> None:
+        if not progress_callback:
+            return
+        try:
+            await progress_callback(text)
+        except Exception:
+            log.warning("scan progress update failed", exc_info=True)
+
     ctx = await _user_context(user_id)
     if not ctx:
         return summary
@@ -201,6 +209,7 @@ async def scan_for_user(bot: Bot, user_id: int) -> dict:
         adapters.append(HRGESource())
 
     for adapter in adapters:
+        await emit_progress(f"⏳ {adapter.name}: поиск…")
         try:
             cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
             cached = _DISCOVERY_CACHE.get(cache_key)
@@ -211,10 +220,14 @@ async def scan_for_user(bot: Bot, user_id: int) -> dict:
                 jobs = await adapter.discover(context)
                 _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
             summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit}
-            for job in jobs:
+            cache_label = " (кэш)" if cache_hit else ""
+            await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label}")
+            for index, job in enumerate(jobs, start=1):
                 counters = await ingest_and_match(bot, job, only_user_id=user.id)
                 for key in ("processed", "qualified", "notified", "filtered", "duplicate"):
                     summary[key] += counters.get(key, 0)
+                if index % 5 == 0 or index == len(jobs):
+                    await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
         except Exception as exc:
             log.exception("source %s failed", adapter.source_id)
             error = _error_text(exc)

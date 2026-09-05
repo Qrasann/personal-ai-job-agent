@@ -181,8 +181,12 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     async def fake_require_user(message):
         return SimpleNamespace(id=7)
 
-    async def fake_scan(bot, user_id):
+    async def fake_scan(bot, user_id, progress_callback=None):
         assert user_id == 7
+        assert progress_callback is not None
+        await progress_callback("⏳ HH: поиск…")
+        await progress_callback("⏳ HH: найдено 2 · анализ 2/2")
+        await asyncio.sleep(0)
         return {
             "sources": {
                 "hh": {
@@ -218,5 +222,7 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     assert [x[0] for x in message.answers] == [
         "⏳ Ищу вакансии по активным источникам…"
     ]
-    assert len(message.progress.edits) == 1
-    assert "Проход поиска завершён" in message.progress.edits[0][0]
+    assert len(message.progress.edits) == 2
+    assert "HH: найдено 2 · анализ 2/2" in message.progress.edits[0][0]
+    assert "⏱ Прошло:" in message.progress.edits[0][0]
+    assert "Проход поиска завершён" in message.progress.edits[-1][0]
