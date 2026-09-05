@@ -1,3 +1,23 @@
+# v3.4.6 — Telegram UX and requirement classification
+
+Telegram supports multiple commands in one message, one command per line:
+
+```text
+/version
+/facts
+/compare 24
+```
+
+Commands execute sequentially, so state-changing commands finish before the next command runs.
+
+Vacancy comparison now separates technical signals into required, preferred and other/unknown groups.
+Candidate experience remains independently classified as commercial, lab, learning, unknown or missing.
+
+Temporary Telegram API network failures during startup are retried with capped backoff.
+Manual Docker runtime control remains unchanged.
+
+The existing Technical score and notification threshold are unchanged in this release.
+
 # v3.4.5 — Candidate Facts vacancy comparison
 
 Vacancies can now be compared with Candidate Facts using `/compare <id>` or the **🧩 Сравнить с профилем** button.

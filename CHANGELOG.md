@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.4.6
+
+Telegram UX, requirement-classification and startup-resilience release.
+
+- Added support for multiple Telegram commands in one message, one command per line.
+- Multi-command batches execute sequentially.
+- Empty lines are ignored; mixed command/plain-text batches are rejected.
+- Multi-command batches are limited to 10 commands.
+- Vacancy comparison now separates required, preferred and other technical signals.
+- Candidate experience remains commercial, lab, learning, unknown or missing.
+- Technologies mentioned only in responsibilities are not promoted to mandatory requirements.
+- Added separate coverage counts for required, preferred and other signals.
+- Added Telegram startup retry with capped exponential backoff for temporary network failures.
+- Authentication/configuration errors still fail fast.
+- Docker Compose remains manual-start with restart: "no".
+- Existing scoring and notification thresholds are unchanged.
+- No database migration is required.
+
+
 ## 3.4.5
 
 Candidate Facts vacancy-comparison release.
