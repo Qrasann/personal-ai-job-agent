@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
+from app.matching.technical_score import score_technical_v2
 
 
 @dataclass(slots=True)
@@ -117,7 +118,7 @@ def _risk_penalty(job: Job, settings: dict) -> tuple[int, str | None]:
     return 14, "нужна ручная проверка домена: " + ", ".join(sorted(set(hits))[:4])
 
 
-def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resumes: list[ResumeProfile]) -> MatchResult:
+def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resumes: list[ResumeProfile], *, technical_text: str | None = None) -> MatchResult:
     settings = search.settings or {}
     hay = " ".join([job.title, job.company, job.description]).casefold()
     chosen_resume = choose_resume(job, resumes)
@@ -155,6 +156,10 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     technical = min(100, 40 + min(25, len(query_hits) * 20) + len(preferred_hits) * 6 + len(strong_hits) * 7)
     if settings.get("queries") and not query_hits:
         technical = max(20, technical - 18)
+
+    structured_technical = score_technical_v2(technical_text if technical_text is not None else (job.description or ""), facts)
+    if structured_technical is not None:
+        technical = structured_technical
 
     seniority, seniority_reason = _seniority_flags(job)
     if seniority == "senior":
