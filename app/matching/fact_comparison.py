@@ -93,6 +93,7 @@ _EXPERIENCE_PRIORITY: dict[str, int] = {
 class RequirementMatch:
     skill: str
     status: str
+    importance: str = "unknown"
     fact_ids: tuple[int, ...] = ()
 
 
@@ -114,6 +115,23 @@ class FactComparison:
             for item in self.requirements
             if item.status == status
         ]
+
+    def items_for_importance(self, importance: str) -> list[RequirementMatch]:
+        return [
+            item
+            for item in self.requirements
+            if item.importance == importance
+        ]
+
+    def total_for_importance(self, importance: str) -> int:
+        return len(self.items_for_importance(importance))
+
+    def present_for_importance(self, importance: str) -> int:
+        return sum(
+            1
+            for item in self.items_for_importance(importance)
+            if item.status != "missing"
+        )
 
 
 def _normalize_text(value: str) -> str:
@@ -140,6 +158,144 @@ def _contains_alias(text: str, alias: str) -> bool:
 
 def _matches_skill(text: str, spec: SkillSpec) -> bool:
     return any(_contains_alias(text, alias) for alias in spec.aliases)
+
+
+_REQUIRED_HEADINGS = (
+    "требования к кандидатам",
+    "обязательные требования",
+    "требования",
+    "что мы ожидаем",
+    "мы ожидаем",
+    "необходимо",
+    "requirements",
+    "must have",
+    "must-have",
+    "required",
+    "what we expect",
+)
+
+_PREFERRED_HEADINGS = (
+    "приветствуется",
+    "будет плюсом",
+    "будет преимуществом",
+    "желательно",
+    "желательные требования",
+    "nice to have",
+    "nice-to-have",
+    "preferred",
+    "preferred qualifications",
+    "bonus",
+    "would be a plus",
+)
+
+_NEUTRAL_HEADINGS = (
+    "обязанности",
+    "чем вам предстоит заниматься",
+    "чем предстоит заниматься",
+    "задачи",
+    "что предстоит делать",
+    "responsibilities",
+    "duties",
+    "what you will do",
+    "what you'll do",
+    "о компании",
+    "about us",
+    "about company",
+    "что мы предлагаем",
+    "мы предлагаем",
+    "условия",
+    "what we offer",
+    "benefits",
+)
+
+
+def _match_section_heading(
+    line: str,
+    headings: tuple[str, ...],
+) -> tuple[bool, str]:
+    for heading in sorted(headings, key=len, reverse=True):
+        match = re.match(
+            rf"^\s*{re.escape(heading)}\s*(?:[:.\-–—]\s*(.*))?\s*$",
+            line,
+            flags=re.IGNORECASE,
+        )
+        if match:
+            return True, (match.group(1) or "").strip()
+
+    return False, ""
+
+
+def _split_requirement_sections(text: str) -> dict[str, str]:
+    buckets: dict[str, list[str]] = {
+        "required": [],
+        "preferred": [],
+        "unknown": [],
+    }
+
+    current = "unknown"
+
+    for raw_line in (text or "").splitlines():
+        line = raw_line.strip()
+
+        if not line:
+            continue
+
+        matched, remainder = _match_section_heading(
+            line,
+            _REQUIRED_HEADINGS,
+        )
+        if matched:
+            current = "required"
+            if remainder:
+                buckets[current].append(remainder)
+            continue
+
+        matched, remainder = _match_section_heading(
+            line,
+            _PREFERRED_HEADINGS,
+        )
+        if matched:
+            current = "preferred"
+            if remainder:
+                buckets[current].append(remainder)
+            continue
+
+        matched, remainder = _match_section_heading(
+            line,
+            _NEUTRAL_HEADINGS,
+        )
+        if matched:
+            current = "unknown"
+            if remainder:
+                buckets[current].append(remainder)
+            continue
+
+        buckets[current].append(line)
+
+    return {
+        key: "\n".join(lines)
+        for key, lines in buckets.items()
+    }
+
+
+def extract_requirement_importance(text: str) -> dict[str, str]:
+    """Classify explicit technology mentions by vacancy section.
+
+    Priority:
+        required > preferred > unknown
+    """
+    sections = _split_requirement_sections(text)
+    result: dict[str, str] = {}
+
+    for spec in SKILLS:
+        if _matches_skill(sections["required"], spec):
+            result[spec.name] = "required"
+        elif _matches_skill(sections["preferred"], spec):
+            result[spec.name] = "preferred"
+        elif _matches_skill(text, spec):
+            result[spec.name] = "unknown"
+
+    return result
 
 
 def extract_technical_requirements(text: str) -> list[str]:
@@ -169,6 +325,8 @@ def compare_facts(
     Missing means no active Candidate Fact mentions that skill at all.
     No type is upgraded or inferred from wording.
     """
+    importance_by_skill = extract_requirement_importance(vacancy_text)
+
     active_facts = [
         fact
         for fact in facts
@@ -179,8 +337,10 @@ def compare_facts(
     requirements: list[RequirementMatch] = []
 
     for spec in SKILLS:
-        if not _matches_skill(vacancy_text, spec):
+        if spec.name not in importance_by_skill:
             continue
+
+        importance = importance_by_skill[spec.name]
 
         matched_facts = [
             fact
@@ -193,6 +353,7 @@ def compare_facts(
                 RequirementMatch(
                     skill=spec.name,
                     status="missing",
+                    importance=importance,
                 )
             )
             continue
@@ -230,6 +391,7 @@ def compare_facts(
             RequirementMatch(
                 skill=spec.name,
                 status=best_type,
+                importance=importance,
                 fact_ids=fact_ids,
             )
         )
