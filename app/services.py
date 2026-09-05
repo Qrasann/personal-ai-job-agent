@@ -54,6 +54,11 @@ async def _user_context(user_id: int):
     return user, profile, searches
 
 
+def _can_reach_threshold_with_technical(result, threshold: int) -> bool:
+    possible_gain = ((100 - result.technical_score) * 48 + 99) // 100
+    return result.total_score + possible_gain >= threshold
+
+
 async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id: int | None = None) -> dict:
     counters = {"processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     job, _ = await repo.upsert_job(normalized)
@@ -74,6 +79,24 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
         for search in searches:
             counters["processed"] += 1
             result = score_job(job, search, facts, resumes)
+            threshold = int((search.settings or {}).get("notify_min_score", 60))
+
+            if normalized.source == "hh":
+                if _can_reach_threshold_with_technical(result, threshold):
+                    try:
+                        details = await get_cached_hh_details(job.id)
+                    except HHError:
+                        details = {}
+                    technical_text = str(details.get("description") or "")
+                    if technical_text:
+                        result = score_job(
+                            job,
+                            search,
+                            facts,
+                            resumes,
+                            technical_text=technical_text,
+                        )
+
             match = await repo.save_match(
                 job_id=job.id,
                 user_id=user.id,
@@ -87,7 +110,6 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 total_score=result.total_score,
                 reason=result.reason,
             )
-            threshold = int((search.settings or {}).get("notify_min_score", 60))
             if result.total_score < threshold:
                 counters["filtered"] += 1
                 if match.status not in {"applied", "prepared", "skipped"}:
@@ -141,8 +163,21 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
     return counters
 
 
-async def scan_for_user(bot: Bot, user_id: int) -> dict:
+def _error_text(exc: Exception) -> str:
+    message = str(exc).strip()
+    return message or type(exc).__name__
+
+
+async def scan_for_user(bot: Bot, user_id: int, progress_callback=None) -> dict:
     summary = {"sources": {}, "processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+    async def emit_progress(text: str) -> None:
+        if not progress_callback:
+            return
+        try:
+            await progress_callback(text)
+        except Exception:
+            log.warning("scan progress update failed", exc_info=True)
+
     ctx = await _user_context(user_id)
     if not ctx:
         return summary
@@ -174,6 +209,7 @@ async def scan_for_user(bot: Bot, user_id: int) -> dict:
         adapters.append(HRGESource())
 
     for adapter in adapters:
+        await emit_progress(f"⏳ {adapter.name}: поиск…")
         try:
             cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
             cached = _DISCOVERY_CACHE.get(cache_key)
@@ -184,13 +220,18 @@ async def scan_for_user(bot: Bot, user_id: int) -> dict:
                 jobs = await adapter.discover(context)
                 _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
             summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit}
-            for job in jobs:
+            cache_label = " (кэш)" if cache_hit else ""
+            await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label}")
+            for index, job in enumerate(jobs, start=1):
                 counters = await ingest_and_match(bot, job, only_user_id=user.id)
                 for key in ("processed", "qualified", "notified", "filtered", "duplicate"):
                     summary[key] += counters.get(key, 0)
+                if index % 5 == 0 or index == len(jobs):
+                    await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
         except Exception as exc:
             log.exception("source %s failed", adapter.source_id)
-            summary["sources"][adapter.source_id] = {"error": str(exc)}
+            error = _error_text(exc)
+            summary["sources"][adapter.source_id] = {"error": error}
             await notify_chat(bot, user.telegram_chat_id, f"⚠️ Источник {adapter.name}: {html.escape(str(exc))}")
     return summary
 
@@ -198,6 +239,62 @@ async def scan_for_user(bot: Bot, user_id: int) -> dict:
 async def scan_all(bot: Bot) -> None:
     for user in await repo.list_active_users():
         await scan_for_user(bot, user.id)
+
+
+async def refresh_match_score(match, job, *, technical_text: str = ""):
+    facts = await repo.list_facts(match.profile_id)
+    resumes = await repo.list_resumes(match.profile_id)
+    searches = await repo.list_search_profiles(match.profile_id)
+
+    search = next(
+        (item for item in searches if item.id == match.search_profile_id),
+        None,
+    )
+    if not search:
+        return match
+
+    result = score_job(
+        job,
+        search,
+        facts,
+        resumes,
+        technical_text=technical_text or None,
+    )
+
+    return await repo.save_match(
+        job_id=job.id,
+        user_id=match.user_id,
+        profile_id=match.profile_id,
+        search_profile_id=match.search_profile_id,
+        resume_id=result.resume_id,
+        technical_score=result.technical_score,
+        geography_score=result.geography_score,
+        salary_score=result.salary_score,
+        relocation_score=result.relocation_score,
+        total_score=result.total_score,
+        reason=result.reason,
+    )
+
+
+async def get_cached_hh_details(job_id: int) -> dict:
+    ref = await repo.source_ref(job_id, "hh")
+    if not ref:
+        return {}
+
+    raw = dict(ref.raw or {})
+    cached = raw.get("details_cache_v1")
+    if isinstance(cached, dict):
+        return dict(cached)
+
+    vacancy_html = await hh_client.vacancy_web(ref.source_job_id)
+    details = HHSource.parse_vacancy_web_html(vacancy_html)
+    if not isinstance(details, dict):
+        details = {}
+
+    raw["details_cache_v1"] = dict(details)
+    await repo.update_source_ref_raw(ref.id, raw)
+
+    return dict(details)
 
 
 async def get_vacancy_details(user_id: int, job_id: int) -> dict:
@@ -220,13 +317,21 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
     warning = ""
     if ref and ref.source_id == "hh":
         try:
-            vacancy_html = await hh_client.vacancy_web(ref.source_job_id)
-            details = HHSource.parse_vacancy_web_html(vacancy_html)
+            details = await get_cached_hh_details(job.id)
         except HHError as exc:
             warning = str(exc)
 
     if not details.get("description"):
         details["description"] = clean_html_text(job.description)
+
+    technical_text = clean_html_text(
+        str(details.get("description") or job.description or "")
+    )
+    match = await refresh_match_score(
+        match,
+        job,
+        technical_text=technical_text,
+    )
 
     raw = (ref.raw or {}) if ref else {}
     fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or job.description or "")

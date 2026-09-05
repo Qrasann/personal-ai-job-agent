@@ -177,6 +177,15 @@ async def source_ref(job_id: int, source_id: str | None = None) -> JobSourceRef 
         return await session.scalar(stmt.order_by(JobSourceRef.id))
 
 
+async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
+    async with SessionLocal() as session:
+        item = await session.get(JobSourceRef, ref_id)
+        if not item:
+            return
+        item.raw = dict(raw or {})
+        await session.commit()
+
+
 async def save_match(**kwargs) -> JobMatch:
     async with SessionLocal() as session:
         existing = await session.scalar(select(JobMatch).where(JobMatch.job_id == kwargs["job_id"], JobMatch.profile_id == kwargs["profile_id"], JobMatch.search_profile_id == kwargs["search_profile_id"]))
