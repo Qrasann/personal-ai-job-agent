@@ -139,3 +139,57 @@ def render_job_details(payload: dict) -> str:
         lines.extend(["", f'<a href="{html.escape(url, quote=True)}">🔗 Открыть оригинал вакансии</a>'])
 
     return "\n".join(lines)
+
+
+def render_fact_comparison(payload: dict) -> str:
+    job = payload["job"]
+    comparison = payload["comparison"]
+
+    title = _clip(repair_mojibake(str(job.title or "")), 120)
+
+    groups = (
+        ("commercial", "✅ <b>Коммерческий опыт</b>"),
+        ("lab", "🧪 <b>Lab / personal projects</b>"),
+        ("learning", "📚 <b>Изучается</b>"),
+        ("unknown", "❔ <b>Тип опыта не указан</b>"),
+        ("missing", "❌ <b>Не подтверждено Candidate Facts</b>"),
+    )
+
+    lines = [
+        f"🧩 <b>Сравнение с профилем</b>",
+        f"#{job.id} · {html.escape(title)}",
+        "",
+    ]
+
+    if comparison.total == 0:
+        lines.extend([
+            "Технические требования из поддерживаемого словаря не найдены.",
+            "",
+            "Это не означает, что требований в вакансии нет — "
+            "детерминированный анализатор пока не распознал их.",
+        ])
+        return "\n".join(lines)
+
+    lines.append(
+        f"📌 Найдено в Candidate Facts: "
+        f"<b>{comparison.present}/{comparison.total}</b>"
+    )
+
+    for status, heading in groups:
+        skills = comparison.skills_for(status)
+        if not skills:
+            continue
+
+        lines.extend(["", heading])
+        lines.extend(
+            f"• {html.escape(skill)}"
+            for skill in skills
+        )
+
+    lines.extend([
+        "",
+        "ℹ️ <i>Тип опыта берётся только из Candidate Facts. "
+        "Lab/learning не считаются коммерческим опытом.</i>",
+    ])
+
+    return "\n".join(lines)

@@ -14,6 +14,7 @@ from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
 from app.geo.countries import normalize_country
 from app.matching.engine import score_job
+from app.matching.fact_comparison import compare_facts
 from app.providers.hh import HHClient, HHError
 from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
@@ -238,6 +239,28 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
         "details": details,
         "fallback_salary_text": fallback_salary_text,
         "warning": warning,
+    }
+
+
+async def get_vacancy_comparison(user_id: int, job_id: int) -> dict:
+    payload = await get_vacancy_details(user_id, job_id)
+
+    match = payload["match"]
+    job = payload["job"]
+    details = payload.get("details") or {}
+
+    facts = await repo.list_facts(match.profile_id)
+
+    vacancy_text = clean_html_text(
+        str(details.get("description") or job.description or "")
+    )
+
+    comparison = compare_facts(vacancy_text, facts)
+
+    return {
+        **payload,
+        "comparison": comparison,
+        "facts": facts,
     }
 
 

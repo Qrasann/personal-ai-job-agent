@@ -34,3 +34,16 @@ def recruiter_keyboard(chat_id: str, message_id: str) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="📝 Ответить самому", callback_data=f"manual:{chat_id}:{message_id}"),
          InlineKeyboardButton(text="⏭ Игнорировать", callback_data=f"ignore:{chat_id}:{message_id}")],
     ])
+
+
+def vacancy_details_keyboard(job_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🧩 Сравнить с профилем",
+                    callback_data=f"compare:{job_id}",
+                )
+            ]
+        ]
+    )

@@ -164,3 +164,53 @@ def test_missing_does_not_invent_candidate_experience():
         "Helm",
         "ArgoCD",
     }
+
+
+def test_render_fact_comparison_separates_truth_levels():
+    from app.telegram.vacancy_view import render_fact_comparison
+
+    facts = [
+        fact(1, "Commercial Linux administration.", "commercial"),
+        fact(2, "Docker personal lab.", "lab"),
+        fact(3, "Kubernetes study.", "learning"),
+        fact(4, "Nginx configuration.", "unknown"),
+    ]
+
+    comparison = compare_facts(
+        "Linux Docker Kubernetes Nginx Terraform",
+        facts,
+    )
+
+    payload = {
+        "job": SimpleNamespace(
+            id=24,
+            title="DevOps Engineer",
+        ),
+        "comparison": comparison,
+    }
+
+    text = render_fact_comparison(payload)
+
+    assert "Сравнение с профилем" in text
+    assert "Коммерческий опыт" in text
+    assert "Lab / personal projects" in text
+    assert "Изучается" in text
+    assert "Тип опыта не указан" in text
+    assert "Не подтверждено Candidate Facts" in text
+    assert "Linux" in text
+    assert "Docker" in text
+    assert "Kubernetes" in text
+    assert "Nginx" in text
+    assert "Terraform" in text
+    assert "4/5" in text
+
+
+def test_vacancy_details_keyboard_has_compare_button():
+    from app.telegram.ui import vacancy_details_keyboard
+
+    keyboard = vacancy_details_keyboard(24)
+
+    button = keyboard.inline_keyboard[0][0]
+
+    assert button.text == "🧩 Сравнить с профилем"
+    assert button.callback_data == "compare:24"

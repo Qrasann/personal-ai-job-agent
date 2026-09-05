@@ -12,9 +12,10 @@ from app.database import repository as repo
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
-from app.services import apply_match, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
+from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
-from app.telegram.vacancy_view import render_job_details, render_jobs_list
+from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list
+from app.telegram.ui import vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.version import current_version
 
@@ -65,6 +66,7 @@ async def start(message: Message) -> None:
         "/scan — поиск сейчас\n"
         "/jobs — последние совпадения\n"
         "/job <id> — подробности вакансии\n"
+        "/compare <id> — сравнить вакансию с профилем\n"
         "/sources — источники\n"
         "/facts — факты кандидата\n"
         "/resumes — варианты резюме\n"
@@ -499,9 +501,39 @@ async def job_details(message: Message) -> None:
             render_job_details(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
+            reply_markup=vacancy_details_keyboard(payload["job"].id),
         )
     except Exception as exc:
         await message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
+
+
+@router.message(Command("compare"))
+async def compare_job(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) != 2 or not parts[1].strip().isdigit():
+        await message.answer(
+            "Использование: /compare <id>, например /compare 24"
+        )
+        return
+
+    try:
+        payload = await get_vacancy_comparison(
+            user.id,
+            int(parts[1].strip()),
+        )
+        await message.answer(
+            render_fact_comparison(payload),
+            parse_mode="HTML",
+        )
+    except Exception as exc:
+        await message.answer(
+            f"⚠ {html.escape(str(exc))}",
+            parse_mode="HTML",
+        )
 
 
 @router.message(Command("chats"))
@@ -539,9 +571,42 @@ async def details_callback(callback: CallbackQuery) -> None:
             render_job_details(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
+            reply_markup=vacancy_details_keyboard(payload["job"].id),
         )
     except Exception as exc:
         await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
+
+
+@router.callback_query(F.data.startswith("compare:"))
+async def compare_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer(
+            "Некорректный ID вакансии",
+            show_alert=True,
+        )
+        return
+
+    await callback.answer("Сравниваю с профилем…")
+
+    try:
+        payload = await get_vacancy_comparison(
+            user.id,
+            int(raw_id),
+        )
+        await callback.message.answer(
+            render_fact_comparison(payload),
+            parse_mode="HTML",
+        )
+    except Exception as exc:
+        await callback.message.answer(
+            f"⚠ {html.escape(str(exc))}",
+            parse_mode="HTML",
+        )
 
 
 @router.callback_query(F.data.startswith("skip:"))
