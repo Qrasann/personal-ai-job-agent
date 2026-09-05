@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from aiogram.enums import MessageEntityType
 from aiogram.filters import Filter
-from aiogram.types import Message
+from aiogram.types import Message, MessageEntity
 
 
 MAX_MULTI_COMMANDS = 10
@@ -41,6 +42,22 @@ def parse_multi_commands(text: str | None) -> list[str] | None:
         )
 
     return lines
+
+
+def build_child_message(message: Message, command_text: str) -> Message:
+    # Keep synthetic Telegram entities consistent with the replaced child text.
+    command_token = command_text.split(maxsplit=1)[0]
+    entity = MessageEntity(
+        type=MessageEntityType.BOT_COMMAND,
+        offset=0,
+        length=len(command_token),
+    )
+    return message.model_copy(
+        update={
+            "text": command_text,
+            "entities": [entity],
+        }
+    )
 
 
 class MultiCommandFilter(Filter):

@@ -21,6 +21,7 @@ from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
     MultiCommandFilter,
+    build_child_message,
     parse_multi_commands,
 )
 
@@ -61,8 +62,9 @@ async def multi_command(message: Message, bot: Bot) -> None:
         return
 
     for command_text in commands:
-        child_message = message.model_copy(
-            update={"text": command_text}
+        child_message = build_child_message(
+            message,
+            command_text,
         )
 
         await router.propagate_event(
@@ -480,26 +482,46 @@ async def scan(message: Message, bot: Bot) -> None:
     user = await _require_user(message)
     if not user:
         return
-    await message.answer("🔎 Запускаю поиск по активным collectors для твоего геопрофиля.")
-    summary = await scan_for_user(bot, user.id)
-    source_bits = []
-    for source_id, info in (summary.get("sources") or {}).items():
-        if "error" in info:
-            source_bits.append(f"• {html.escape(source_id)}: ошибка")
-        else:
-            cache = " (кэш)" if info.get("cache") else ""
-            source_bits.append(f"• {html.escape(source_id)}: {int(info.get('found', 0))}{cache}")
-    details = "\n".join(source_bits) or "• активных источников нет"
-    await message.answer(
-        "✅ <b>Проход поиска завершён</b>\n\n"
-        + details
-        + f"\n\nОбработано: {int(summary.get('processed', 0))}"
-        + f"\nПрошли фильтр: {int(summary.get('qualified', 0))}"
-        + f"\nНовых уведомлений: {int(summary.get('notified', 0))}"
-        + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
-        parse_mode="HTML",
+
+    progress = await message.answer(
+        "⏳ Ищу вакансии по активным источникам…"
     )
 
+    try:
+        summary = await scan_for_user(bot, user.id)
+        source_bits = []
+
+        for source_id, info in (summary.get("sources") or {}).items():
+            if "error" in info:
+                source_bits.append(
+                    f"• {html.escape(source_id)}: ошибка"
+                )
+            else:
+                cache = " (кэш)" if info.get("cache") else ""
+                source_bits.append(
+                    f"• {html.escape(source_id)}: "
+                    f"{int(info.get('found', 0))}{cache}"
+                )
+
+        details = (
+            "\n".join(source_bits)
+            or "• активных источников нет"
+        )
+
+        await progress.edit_text(
+            "✅ <b>Проход поиска завершён</b>\n\n"
+            + details
+            + f"\n\nОбработано: {int(summary.get('processed', 0))}"
+            + f"\nПрошли фильтр: {int(summary.get('qualified', 0))}"
+            + f"\nНовых уведомлений: {int(summary.get('notified', 0))}"
+            + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
+            parse_mode="HTML",
+        )
+    except Exception as exc:
+        await progress.edit_text(
+            f"⚠ {html.escape(str(exc))}",
+            parse_mode="HTML",
+        )
 
 @router.message(Command("jobs"))
 async def jobs(message: Message) -> None:
@@ -520,21 +542,36 @@ async def job_details(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
+
     parts = (message.text or "").split(maxsplit=1)
     if len(parts) != 2 or not parts[1].strip().isdigit():
-        await message.answer("Использование: /job <id>, например /job 25")
-        return
-    try:
-        payload = await get_vacancy_details(user.id, int(parts[1].strip()))
         await message.answer(
+            "Использование: /job <id>, например /job 25"
+        )
+        return
+
+    progress = await message.answer(
+        "⏳ Загружаю полное описание вакансии…"
+    )
+
+    try:
+        payload = await get_vacancy_details(
+            user.id,
+            int(parts[1].strip()),
+        )
+        await progress.edit_text(
             render_job_details(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
-            reply_markup=vacancy_details_keyboard(payload["job"].id),
+            reply_markup=vacancy_details_keyboard(
+                payload["job"].id
+            ),
         )
     except Exception as exc:
-        await message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
-
+        await progress.edit_text(
+            f"⚠ {html.escape(str(exc))}",
+            parse_mode="HTML",
+        )
 
 @router.message(Command("compare"))
 async def compare_job(message: Message) -> None:
@@ -549,21 +586,24 @@ async def compare_job(message: Message) -> None:
         )
         return
 
+    progress = await message.answer(
+        "⏳ Сравниваю требования вакансии с Candidate Facts…"
+    )
+
     try:
         payload = await get_vacancy_comparison(
             user.id,
             int(parts[1].strip()),
         )
-        await message.answer(
+        await progress.edit_text(
             render_fact_comparison(payload),
             parse_mode="HTML",
         )
     except Exception as exc:
-        await message.answer(
+        await progress.edit_text(
             f"⚠ {html.escape(str(exc))}",
             parse_mode="HTML",
         )
-
 
 @router.message(Command("chats"))
 async def chats(message: Message, bot: Bot) -> None:
