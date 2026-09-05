@@ -163,6 +163,11 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
     return counters
 
 
+def _error_text(exc: Exception) -> str:
+    message = str(exc).strip()
+    return message or type(exc).__name__
+
+
 async def scan_for_user(bot: Bot, user_id: int) -> dict:
     summary = {"sources": {}, "processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     ctx = await _user_context(user_id)
@@ -212,7 +217,8 @@ async def scan_for_user(bot: Bot, user_id: int) -> dict:
                     summary[key] += counters.get(key, 0)
         except Exception as exc:
             log.exception("source %s failed", adapter.source_id)
-            summary["sources"][adapter.source_id] = {"error": str(exc)}
+            error = _error_text(exc)
+            summary["sources"][adapter.source_id] = {"error": error}
             await notify_chat(bot, user.telegram_chat_id, f"⚠️ Источник {adapter.name}: {html.escape(str(exc))}")
     return summary
 
