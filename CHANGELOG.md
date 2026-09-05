@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.4.5
+
+Candidate Facts vacancy-comparison release.
+
+- Added deterministic vacancy ↔ Candidate Facts comparison.
+- Preserves `commercial`, `lab`, `learning`, `unknown`, and `missing` levels.
+- Added `/compare <id>`.
+- Added the `🧩 Сравнить с профилем` button.
+- Uses full vacancy details when available.
+- Missing skills are never invented as candidate experience.
+- Lab and learning skills are never promoted to commercial experience.
+- Existing search scoring and notification thresholds are unchanged.
+- Coverage currently means recognized technical signals, not required vs nice-to-have.
+- No database migration is required.
+
+
 ## 3.4.4
 
 Vacancy-details Telegram UX release.

@@ -1,3 +1,17 @@
+# v3.4.5 — Candidate Facts vacancy comparison
+
+Vacancies can now be compared with Candidate Facts using `/compare <id>` or the **🧩 Сравнить с профилем** button.
+
+Experience remains truth-aware: `commercial`, `lab`, `learning`, `unknown`, and `missing`. Lab and learning experience is never presented as commercial experience.
+
+```text
+/jobs
+/job 24
+/compare 24
+```
+
+Coverage currently represents recognized technical signals; required vs nice-to-have classification will be added separately.
+
 # v3.4.4 — Vacancy details
 
 Telegram now keeps `/jobs` compact but makes each match inspectable with `/job <id>` or the **📋 Подробнее** button. HH details are fetched only when requested from the ordinary public vacancy page; scheduled discovery still uses the lightweight search page and never attempts to bypass CAPTCHA. Source vacancy text and Job Agent scoring are shown as separate sections.
@@ -110,6 +124,7 @@ HH_USER_AGENT=PersonalJobAgent/0.2 (your-real-email@example.com)
 /scan
 /jobs
 /job <id>
+/compare <id>
 /sources
 /facts
 /resumes
