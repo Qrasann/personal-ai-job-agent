@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 from app.matching.fact_comparison import (
     compare_facts,
+    extract_requirement_importance,
     extract_technical_requirements,
 )
 
@@ -214,3 +215,72 @@ def test_vacancy_details_keyboard_has_compare_button():
 
     assert button.text == "🧩 Сравнить с профилем"
     assert button.callback_data == "compare:24"
+
+
+def test_requirement_importance_separates_sections():
+    text = """
+    Чем предстоит заниматься:
+    GitLab CI и Helm.
+
+    Требования:
+    Linux
+    Docker
+    Kubernetes
+    Terraform
+
+    Приветствуется:
+    Prometheus
+    Grafana
+    """
+
+    importance = extract_requirement_importance(text)
+
+    assert importance["Linux"] == "required"
+    assert importance["Docker"] == "required"
+    assert importance["Kubernetes"] == "required"
+    assert importance["Terraform"] == "required"
+    assert importance["Prometheus"] == "preferred"
+    assert importance["Grafana"] == "preferred"
+    assert importance["GitLab CI"] == "unknown"
+    assert importance["Helm"] == "unknown"
+
+
+def test_required_importance_wins_over_preferred():
+    text = """
+    Требования:
+    Terraform
+
+    Приветствуется:
+    Terraform
+    Grafana
+    """
+
+    importance = extract_requirement_importance(text)
+
+    assert importance["Terraform"] == "required"
+    assert importance["Grafana"] == "preferred"
+
+
+def test_unstructured_technology_mentions_remain_unknown():
+    importance = extract_requirement_importance(
+        "Linux Docker Kubernetes"
+    )
+
+    assert importance["Linux"] == "unknown"
+    assert importance["Docker"] == "unknown"
+    assert importance["Kubernetes"] == "unknown"
+
+
+def test_inline_requirement_headings_are_supported():
+    text = """
+    Requirements: Linux, Docker and Kubernetes
+    Nice to have: Grafana and Prometheus
+    """
+
+    importance = extract_requirement_importance(text)
+
+    assert importance["Linux"] == "required"
+    assert importance["Docker"] == "required"
+    assert importance["Kubernetes"] == "required"
+    assert importance["Grafana"] == "preferred"
+    assert importance["Prometheus"] == "preferred"

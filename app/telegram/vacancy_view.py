@@ -147,7 +147,7 @@ def render_fact_comparison(payload: dict) -> str:
 
     title = _clip(repair_mojibake(str(job.title or "")), 120)
 
-    groups = (
+    status_groups = (
         ("commercial", "✅ <b>Коммерческий опыт</b>"),
         ("lab", "🧪 <b>Lab / personal projects</b>"),
         ("learning", "📚 <b>Изучается</b>"),
@@ -155,8 +155,14 @@ def render_fact_comparison(payload: dict) -> str:
         ("missing", "❌ <b>Не подтверждено Candidate Facts</b>"),
     )
 
+    importance_groups = (
+        ("required", "🟥 <b>Обязательные требования</b>"),
+        ("preferred", "🟨 <b>Желательно / будет плюсом</b>"),
+        ("unknown", "⬜ <b>Прочие технические сигналы</b>"),
+    )
+
     lines = [
-        f"🧩 <b>Сравнение с профилем</b>",
+        "🧩 <b>Сравнение с профилем</b>",
         f"#{job.id} · {html.escape(title)}",
         "",
     ]
@@ -175,20 +181,40 @@ def render_fact_comparison(payload: dict) -> str:
         f"<b>{comparison.present}/{comparison.total}</b>"
     )
 
-    for status, heading in groups:
-        skills = comparison.skills_for(status)
-        if not skills:
+    for importance, importance_heading in importance_groups:
+        items = comparison.items_for_importance(importance)
+
+        if not items:
             continue
 
-        lines.extend(["", heading])
-        lines.extend(
-            f"• {html.escape(skill)}"
-            for skill in skills
-        )
+        present = comparison.present_for_importance(importance)
+        total = comparison.total_for_importance(importance)
+
+        lines.extend([
+            "",
+            f"{importance_heading}: <b>{present}/{total}</b>",
+        ])
+
+        for status, status_heading in status_groups:
+            skills = [
+                item.skill
+                for item in items
+                if item.status == status
+            ]
+
+            if not skills:
+                continue
+
+            lines.extend(["", status_heading])
+            lines.extend(
+                f"• {html.escape(skill)}"
+                for skill in skills
+            )
 
     lines.extend([
         "",
-        "ℹ️ <i>Тип опыта берётся только из Candidate Facts. "
+        "ℹ <i>Важность берётся из структуры вакансии. "
+        "Тип опыта берётся только из Candidate Facts. "
         "Lab/learning не считаются коммерческим опытом.</i>",
     ])
 
