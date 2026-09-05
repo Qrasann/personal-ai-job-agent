@@ -17,7 +17,7 @@ from app.geo.countries import all_supported_countries, country_config, normalize
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list
-from app.telegram.ui import vacancy_details_keyboard
+from app.telegram.ui import review_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.version import current_version
 from app.telegram.multicommand import (
@@ -557,6 +557,56 @@ async def scan(message: Message, bot: Bot) -> None:
             parse_mode="HTML",
         )
 
+def _pick_next_review(rows, current_match_id: int):
+    for index, (match, job) in enumerate(rows):
+        if match.id == current_match_id:
+            next_index = index + 1
+            return (next_index, rows[next_index]) if next_index < len(rows) else None
+    return (0, rows[0]) if rows else None
+
+
+def _render_review_card(match, job, position: int, total: int) -> str:
+    return (
+        "📥 <b>Разбор вакансий</b>\n\n"
+        f"<b>{html.escape(job.title or '')}</b>\n"
+        f"{html.escape(job.company or 'Компания не указана')}\n\n"
+        f"🎯 Match: <b>{match.total_score}/100</b>\n"
+        f"📌 {position} из {total} в текущей пачке"
+    )
+
+
+async def _advance_review(callback, user_id: int, current_match_id: int) -> None:
+    rows = await repo.review_matches(user_id, 10)
+    picked = _pick_next_review(rows, current_match_id)
+    if not picked:
+        await callback.message.edit_text("✅ Очередь разобрана — новых вакансий для review нет.")
+        return
+    index, (match, job) = picked
+    await callback.message.edit_text(
+        _render_review_card(match, job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=review_keyboard(match.id, job.id),
+    )
+
+
+@router.message(Command("review"))
+async def review(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    rows = await repo.review_matches(user.id, 10)
+    if not rows:
+        await message.answer("✅ Очередь разобрана — новых вакансий для review нет.")
+        return
+    match, job = rows[0]
+    text = _render_review_card(match, job, 1, len(rows))
+    await message.answer(
+        text,
+        parse_mode="HTML",
+        reply_markup=review_keyboard(match.id, job.id),
+    )
+
+
 @router.message(Command("jobs"))
 async def jobs(message: Message) -> None:
     user = await _require_user(message)
@@ -656,6 +706,69 @@ async def chats(message: Message, bot: Bot) -> None:
         return
     await scan_hh_chats(bot)
     await message.answer("✅ HH-чаты проверены.")
+
+
+@router.callback_query(F.data.startswith("review_next:"))
+async def review_next_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    rows = await repo.review_matches(user.id, 10)
+    picked = _pick_next_review(rows, match.id)
+    if not picked:
+        await callback.answer("Больше вакансий нет", show_alert=True)
+        return
+    index, (next_match, next_job) = picked
+    await callback.message.edit_text(
+        _render_review_card(next_match, next_job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=review_keyboard(next_match.id, next_job.id),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("review_skip:"))
+async def review_skip_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "skipped")
+    await callback.answer("❌ Пропущено")
+    await _advance_review(callback, user.id, match.id)
+
+
+@router.callback_query(F.data.startswith("review_save:"))
+async def review_save_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "saved")
+    await callback.answer("⭐ Сохранено")
+    await _advance_review(callback, user.id, match.id)
 
 
 @router.callback_query(F.data.startswith("details:"))
