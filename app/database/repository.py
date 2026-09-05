@@ -19,6 +19,8 @@ from app.database.models import (
 from app.domain.jobs import NormalizedJob
 from app.candidates.fact_types import normalize_experience_type
 
+REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
+
 
 async def get_user_by_chat(chat_id: int | str) -> User | None:
     async with SessionLocal() as session:
@@ -207,6 +209,37 @@ def _display_key(title: str, company: str) -> tuple[str, str]:
     return norm(title), norm(company)
 
 
+def _select_review_matches(rows, limit: int = 10):
+    out = []
+    seen = set()
+    for match, job in rows:
+        if match.status != "notified":
+            continue
+        key = _display_key(job.title, job.company)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((match, job))
+        if len(out) >= limit:
+            break
+    return out
+
+
+async def review_matches(user_id: int, limit: int = 10) -> list[tuple[JobMatch, Job]]:
+    if limit <= 0:
+        return []
+    async with SessionLocal() as session:
+        stmt = (
+            select(JobMatch, Job)
+            .join(Job, Job.id == JobMatch.job_id)
+            .where(JobMatch.user_id == user_id, JobMatch.status == "notified")
+            .order_by(JobMatch.total_score.desc(), JobMatch.created_at.desc())
+            .limit(max(limit * 8, 40))
+        )
+        rows = list((await session.execute(stmt)).all())
+    return _select_review_matches(rows, limit=limit)
+
+
 async def latest_matches(
     user_id: int,
     limit: int = 10,
@@ -254,7 +287,7 @@ async def has_notified_equivalent(user_id: int, job_id: int, title: str, company
             .where(
                 JobMatch.user_id == user_id,
                 Job.id != job_id,
-                JobMatch.status.in_(["notified", "prepared", "applied"]),
+                JobMatch.status.in_(REPOST_SUPPRESS_STATUSES),
             )
             .order_by(JobMatch.created_at.desc())
             .limit(200)

@@ -47,3 +47,30 @@ def vacancy_details_keyboard(job_id: int) -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+
+def review_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⭐ Сохранить",
+                    callback_data=f"review_save:{match_id}",
+                ),
+                InlineKeyboardButton(
+                    text="❌ Пропустить",
+                    callback_data=f"review_skip:{match_id}",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="📋 Подробнее",
+                    callback_data=f"details:{job_id}",
+                ),
+                InlineKeyboardButton(
+                    text="➡ Следующая",
+                    callback_data=f"review_next:{match_id}",
+                ),
+            ],
+        ]
+    )

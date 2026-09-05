@@ -56,6 +56,7 @@ def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
     score_calls = []
     details_calls = []
     statuses = []
+    match_status = {"value": "existing"}
 
     async def fake_upsert_job(value):
         return job, False
@@ -82,7 +83,7 @@ def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
         return [search]
 
     async def fake_save_match(**kwargs):
-        return SimpleNamespace(id=301, status="existing")
+        return SimpleNamespace(id=301, status=match_status["value"])
 
     async def fake_set_status(match_id, status):
         statuses.append((match_id, status))
@@ -156,6 +157,17 @@ def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
 
     assert details_calls == []
     assert score_calls == [None]
+
+    details_calls.clear()
+    score_calls.clear()
+    statuses.clear()
+    match_status["value"] = "saved"
+    monkeypatch.setattr(services, "_can_reach_threshold_with_technical", lambda result, threshold: True)
+
+    counters = asyncio.run(services.ingest_and_match(bot=object(), normalized=normalized, only_user_id=7))
+
+    assert counters["filtered"] == 1
+    assert statuses == []
 
 def test_technical_prefilter_fetches_when_score_can_reach_threshold():
     result = _result(80, 55)

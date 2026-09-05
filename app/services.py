@@ -112,7 +112,7 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
             )
             if result.total_score < threshold:
                 counters["filtered"] += 1
-                if match.status not in {"applied", "prepared", "skipped"}:
+                if match.status not in {"applied", "prepared", "skipped", "saved"}:
                     await repo.set_match_status(match.id, "filtered")
                 continue
 
