@@ -1,3 +1,34 @@
+# v3.4.9 — Quality foundation
+
+This release strengthens the test and database quality foundation without changing the user-facing vacancy workflow.
+
+- Added isolated PostgreSQL integration tests and CI PostgreSQL 16 service.
+- CI now enforces branch coverage of at least 55%.
+- Full suite baseline: 117 passed, total application coverage 58%.
+- Repository coverage increased to 65%; Candidate bootstrap is 100% covered.
+- Added mutation testing for Technical Score v2 and Candidate Facts comparison.
+- Mutation baseline: 249 mutants, 240 killed, 9 equivalent/redundant, 0 meaningful survivors.
+- Removed unused geo runtime code.
+- Replaced deprecated datetime.utcnow usage with UTC-compatible naive timestamps.
+- Simplified Candidate Fact comparison according to its CandidateFact contract.
+- Added developer testing documentation.
+
+No database schema migration is required.
+
+# v3.4.8 — Vacancy Review Queue
+
+Telegram gained a review queue for notified vacancies with save, skip, details and next actions.
+
+- Added /review for notified matches.
+- Added saved status and reused skipped status.
+- Saved and skipped vacancies suppress duplicate repost notifications.
+- Saving or skipping automatically advances the current review batch.
+- Review ordering prefers higher scores and newer vacancies.
+- Duplicate title/company rows are suppressed in the review queue.
+- Existing vacancy details remain available from the review flow.
+
+No database schema migration is required.
+
 # v3.4.7 — Technical Score v2 and live scan progress
 
 Technical scoring now uses structured required and preferred vacancy requirements together with Candidate Facts. HeadHunter vacancies can be selectively enriched with full public vacancy details and cached for reuse.
@@ -63,7 +94,9 @@ python -m compileall -q app tests
 python -m pytest -q
 ./scripts/secret-scan.sh
 docker build -t personal-ai-job-agent:local .
+
 ```
+Detailed testing, PostgreSQL integration, coverage and mutation-testing documentation: [`docs/developer/TESTING.md`](docs/developer/TESTING.md).
 
 # v3.4.1 — Candidate Fact types
 

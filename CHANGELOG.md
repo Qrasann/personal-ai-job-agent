@@ -1,5 +1,40 @@
 # Changelog
 
+## 3.4.9
+
+Quality-foundation release.
+
+- Added isolated PostgreSQL integration tests.
+- GitHub CI now starts PostgreSQL 16 for repository integration tests.
+- CI fails if the test database is missing instead of silently skipping integration tests.
+- Added branch coverage reporting and a 55% minimum CI gate.
+- Full suite baseline is 117 passing tests with 58% total application coverage.
+- Database repository coverage increased to 65%.
+- Candidate bootstrap coverage increased to 100%.
+- Added mutmut-based mutation testing for Technical Score v2 and Candidate Facts comparison.
+- Mutation baseline: 249 generated, 240 killed, 9 reviewed equivalent/redundant survivors, 0 meaningful survivors.
+- Added boundary tests for zero Technical Score, strongest fact IDs, separator normalization and non-persisted fact IDs.
+- Simplified CandidateFact attribute handling and removed redundant requirement-heading sorting.
+- Removed unused app/geo/runtime.py.
+- Replaced deprecated datetime.utcnow usage while preserving TIMESTAMP WITHOUT TIME ZONE semantics.
+- Added docs/developer/TESTING.md.
+- No database migration is required.
+
+## 3.4.8
+
+Vacancy Review Queue release.
+
+- Added /review for browsing notified vacancies.
+- Added saved match status and reused skipped status.
+- Added Save, Skip, Details and Next review actions.
+- Save and Skip automatically advance the current review batch.
+- Saved and skipped matches suppress future title/company repost notifications.
+- Review queue sorts by score/newness and suppresses duplicate title/company entries.
+- Saved matches are protected from later filtered-status downgrade.
+- Review position is presented as the current batch rather than the entire backlog.
+- No database migration is required.
+
+
 ## 3.4.7
 
 Technical Score v2, full vacancy details and scan-progress release.

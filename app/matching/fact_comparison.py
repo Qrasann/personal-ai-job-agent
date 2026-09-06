@@ -217,7 +217,7 @@ def _match_section_heading(
     line: str,
     headings: tuple[str, ...],
 ) -> tuple[bool, str]:
-    for heading in sorted(headings, key=len, reverse=True):
+    for heading in headings:
         match = re.match(
             rf"^\s*{re.escape(heading)}\s*(?:[:.\-–—]\s*(.*))?\s*$",
             line,
@@ -334,8 +334,8 @@ def compare_facts(
     active_facts = [
         fact
         for fact in facts
-        if getattr(fact, "active", True) is not False
-        and getattr(fact, "deleted_at", None) is None
+        if fact.active is not False
+        and fact.deleted_at is None
     ]
 
     requirements: list[RequirementMatch] = []
@@ -349,7 +349,7 @@ def compare_facts(
         matched_facts = [
             fact
             for fact in active_facts
-            if _matches_skill(str(getattr(fact, "value", "") or ""), spec)
+            if _matches_skill(str(fact.value or ""), spec)
         ]
 
         if not matched_facts:
@@ -367,7 +367,7 @@ def compare_facts(
         for fact in matched_facts:
             experience_type = (
                 normalize_experience_type(
-                    str(getattr(fact, "experience_type", "") or "")
+                    str(fact.experience_type or "")
                 )
                 or "unknown"
             )
@@ -375,7 +375,7 @@ def compare_facts(
                 (
                     _EXPERIENCE_PRIORITY[experience_type],
                     experience_type,
-                    int(getattr(fact, "id", 0) or 0),
+                    int(fact.id or 0),
                 )
             )
 
