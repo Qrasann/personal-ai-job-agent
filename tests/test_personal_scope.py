@@ -120,3 +120,62 @@ def test_explicit_five_plus_stays_below_notification_lane():
     result = score_job(job, _search(), _facts(), [])
     assert result.total_score <= 58
     assert "5+" in result.reason
+
+def test_russia_city_and_work_mode_policy():
+    search = _search()
+    search.settings["local_city"] = "Тверь"
+    search.settings["domestic_relocation"] = False
+
+    local = Job(
+        fingerprint="city-local",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker",
+        country="RU",
+        city="Тверь",
+        work_mode="Офис",
+    )
+    remote_other = Job(
+        fingerprint="city-remote-other",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker",
+        country="RU",
+        city="Москва",
+        work_mode="Удалённо",
+    )
+    onsite_other = Job(
+        fingerprint="city-onsite-other",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker",
+        country="RU",
+        city="Москва",
+        work_mode="Гибрид",
+    )
+    unknown = Job(
+        fingerprint="city-unknown",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker",
+        country="RU",
+    )
+
+    local_result = score_job(local, search, _facts(), [])
+    remote_result = score_job(remote_other, search, _facts(), [])
+    onsite_result = score_job(onsite_other, search, _facts(), [])
+    unknown_result = score_job(unknown, search, _facts(), [])
+
+    assert local_result.geography_score == 95
+    assert local_result.fit != "skip"
+    assert remote_result.geography_score == 95
+    assert remote_result.fit != "skip"
+    assert onsite_result.geography_score <= 30
+    assert onsite_result.fit == "skip"
+    assert 60 <= unknown_result.geography_score < 95
+    assert unknown_result.fit != "skip"
+
+    search.settings["domestic_relocation"] = True
+    relocation_result = score_job(onsite_other, search, _facts(), [])
+    assert 60 <= relocation_result.geography_score < 95
+    assert relocation_result.fit != "skip"

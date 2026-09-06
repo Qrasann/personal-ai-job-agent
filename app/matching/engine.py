@@ -118,6 +118,33 @@ def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...])
             best = kind
     return best
 
+def _normalize_city(value: str | None) -> str:
+    text = (value or "").casefold().replace("ё", "е").strip()
+    text = re.sub(r"^г\.?\s*", "", text)
+    text = re.split(r"[,;/|]", text, maxsplit=1)[0]
+    return re.sub(r"\s+", " ", text).strip()
+
+def _is_remote_job(job: Job) -> bool:
+    text = ((job.work_mode or "") + " " + (job.description or "")).casefold().replace("ё", "е")
+    return "remote" in text or "удален" in text
+
+def _local_ru_location(job: Job, settings: dict) -> tuple[int, str, str | None, bool]:
+    if _is_remote_job(job):
+        return 95, "russia_remote", None, False
+
+    local_city = _normalize_city(settings.get("local_city"))
+    if not local_city:
+        return 95, "russia", None, False
+
+    job_city = _normalize_city(job.city)
+    if not job_city:
+        return 75, "russia_unknown_city", "город вакансии не определён", False
+    if job_city == local_city:
+        return 95, "russia_local", None, False
+    if settings.get("domestic_relocation", False):
+        return 70, "russia_relocation", "другой город РФ; внутренняя релокация разрешена", False
+    return 25, "russia_other_city", f"другой город РФ: {job.city}", True
+
 def _management_requirement(job: Job, technical_text: str | None = None) -> str | None:
     text = (technical_text if technical_text is not None else (job.description or "")).casefold()
     preferred_markers = ("приветств", "желательно", "будет плюсом", "preferred", "nice to have")
@@ -278,6 +305,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     country = (job.country or "").upper()
     geography = 45
     track = "unknown"
+    geography_reason = None
     if "relocation" in viable:
         track = "relocation"
         geography = 85
@@ -285,8 +313,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         track = "remote"
         geography = {"yes": 100, "uncertain": 68, "unknown": 60, "no": 10}.get(signals.remote_eligibility, 55)
     if "local_ru" in viable:
-        track = "russia_remote" if "remote" in (job.work_mode or "").casefold() or "удален" in (job.work_mode or "").casefold() else "russia"
-        geography = max(geography, 95)
+        geography, track, geography_reason, domestic_city_blocked = _local_ru_location(job, settings)
+        if domestic_city_blocked:
+            fit = "skip"
     if country not in {"", "RU"} and not viable:
         geography = 25
 
@@ -349,6 +378,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     if production_gap:
         bits.append(f"production-требование {gap_skill} без commercial опыта ({gap_experience})")
 
+    if geography_reason:
+        bits.append(geography_reason)
     if risk_reason:
         bits.append(risk_reason)
     if signals.remote_reason:
