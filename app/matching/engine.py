@@ -56,6 +56,71 @@ def _enabled_tracks(settings: dict) -> set[str]:
     return enabled
 
 
+_YEAR_WORDS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+}
+
+
+def _candidate_commercial_years(facts: list[CandidateFact]) -> int | None:
+    best = None
+    word_pattern = "|".join(_YEAR_WORDS)
+    for fact in facts:
+        if fact.active is False or getattr(fact, "deleted_at", None) is not None:
+            continue
+        if (fact.experience_type or "unknown").casefold() != "commercial":
+            continue
+        text = (fact.value or "").casefold()
+        values = [
+            int(value)
+            for value in re.findall(r"\b(\d{1,2})\+?\s*(?:years?|yrs?|лет|года|год)\b", text)
+        ]
+        for word in re.findall(rf"\b(?:more than|over|at least)\s+({word_pattern})\s+years?\b", text):
+            values.append(_YEAR_WORDS[word])
+        if values:
+            current = max(values)
+            best = current if best is None else max(best, current)
+    return best
+
+def _required_experience_years(job: Job) -> int | None:
+    text = f"{job.title} {job.description}".casefold()
+    patterns = (
+        r"(?:опыт|стаж)[^0-9\n]{0,30}(\d+)\s*[–—-]\s*\d+\s*(?:лет|года|год)",
+        r"\b(\d+)\s*[–—-]\s*\d+\s*years?\b",
+        r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(\d+)\+?\s*(?:лет|года|год)",
+        r"(?:at least|minimum of)\s+(\d+)\s+years?",
+        r"\b(\d+)\+?\s+years?(?:\s+of)?\s+experience\b",
+    )
+    values = [
+        int(match.group(1))
+        for pattern in patterns
+        for match in re.finditer(pattern, text)
+    ]
+    return max(values) if values else None
+
+def _experience_fit(job: Job, facts: list[CandidateFact]) -> tuple[str | None, str | None]:
+    candidate = _candidate_commercial_years(facts)
+    required = _required_experience_years(job)
+    if candidate is None or required is None:
+        return None, None
+    gap = required - candidate
+    if gap <= 0:
+        fit = "good"
+    elif gap <= 2:
+        fit = "stretch"
+    else:
+        fit = "skip"
+    reason = f"опыт: commercial {candidate}+; требуется {required}+"
+    return fit, reason
+
 def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     """Return (level, reason) for obvious seniority signals.
 
@@ -280,6 +345,13 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
         fit = "skip"
+    experience_fit, experience_reason = _experience_fit(job, facts)
+    if experience_fit == "stretch" and fit == "good":
+        fit = "stretch"
+    elif experience_fit == "skip":
+        fit = "skip"
+        technical = min(technical, 52)
+
     management_gap = _management_requirement(job, technical_text)
     if management_gap:
         fit = "skip"
@@ -357,6 +429,12 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     if signals.relocation_blocked and country not in {"", "RU"} and track == "relocation":
         total = min(total, 40)
 
+    if experience_fit == "skip":
+        total = min(total, 58)
+    elif experience_fit == "stretch" and seniority is None:
+        total = min(total, 72)
+
+
     # In rule-only fallback mode, obvious senior roles must not slip above the
     # normal notification threshold merely because geography/salary look good.
 
@@ -379,6 +457,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
+    if experience_reason:
+        bits.append(experience_reason)
     if management_gap:
         bits.append(management_gap)
     if production_role_gap:
