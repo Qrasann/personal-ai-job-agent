@@ -209,7 +209,7 @@ def _display_key(title: str, company: str) -> tuple[str, str]:
     return norm(title), norm(company)
 
 
-def _select_review_matches(rows, limit: int = 10):
+def _select_review_matches(rows, limit: int | None = 10):
     out = []
     seen = set()
     for match, job in rows:
@@ -220,13 +220,28 @@ def _select_review_matches(rows, limit: int = 10):
             continue
         seen.add(key)
         out.append((match, job))
-        if len(out) >= limit:
+        if limit is not None and len(out) >= limit:
             break
     return out
 
 
-async def review_matches(user_id: int, limit: int = 10) -> list[tuple[JobMatch, Job]]:
-    if limit <= 0:
+def _select_saved_matches(rows, limit: int | None = 10):
+    out = []
+    seen = set()
+    for match, job in rows:
+        if match.status != "saved":
+            continue
+        key = _display_key(job.title, job.company)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((match, job))
+        if limit is not None and len(out) >= limit:
+            break
+    return out
+
+async def review_matches(user_id: int, limit: int | None = 10) -> list[tuple[JobMatch, Job]]:
+    if limit is not None and limit <= 0:
         return []
     async with SessionLocal() as session:
         stmt = (
@@ -234,10 +249,27 @@ async def review_matches(user_id: int, limit: int = 10) -> list[tuple[JobMatch, 
             .join(Job, Job.id == JobMatch.job_id)
             .where(JobMatch.user_id == user_id, JobMatch.status == "notified")
             .order_by(JobMatch.total_score.desc(), JobMatch.created_at.desc())
-            .limit(max(limit * 8, 40))
         )
+        if limit is not None:
+            stmt = stmt.limit(max(limit * 8, 40))
         rows = list((await session.execute(stmt)).all())
     return _select_review_matches(rows, limit=limit)
+
+
+async def saved_matches(user_id: int, limit: int | None = 10) -> list[tuple[JobMatch, Job]]:
+    if limit is not None and limit <= 0:
+        return []
+    async with SessionLocal() as session:
+        stmt = (
+            select(JobMatch, Job)
+            .join(Job, Job.id == JobMatch.job_id)
+            .where(JobMatch.user_id == user_id, JobMatch.status == "saved")
+            .order_by(JobMatch.total_score.desc(), JobMatch.created_at.desc())
+        )
+        if limit is not None:
+            stmt = stmt.limit(max(limit * 8, 40))
+        rows = list((await session.execute(stmt)).all())
+    return _select_saved_matches(rows, limit=limit)
 
 
 async def latest_matches(
