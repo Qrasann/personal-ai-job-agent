@@ -528,10 +528,10 @@ async def scan(message: Message, bot: Bot) -> None:
                     f"• {html.escape(source_id)}: ошибка"
                 )
             else:
-                cache = " (кэш)" if info.get("cache") else ""
+                freshness = "кэш" if info.get("cache") else "live"
                 source_bits.append(
                     f"• {html.escape(source_id)}: "
-                    f"{int(info.get('found', 0))}{cache}"
+                    f"{int(info.get('found', 0))} ({freshness})"
                 )
 
         details = (

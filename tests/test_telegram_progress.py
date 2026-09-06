@@ -227,3 +227,4 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     assert "HH: найдено 2 · анализ 2/2" in message.progress.edits[0][0]
     assert "⏱ Прошло:" in message.progress.edits[0][0]
     assert "Проход поиска завершён" in message.progress.edits[-1][0]
+    assert "hh: 2 (live)" in message.progress.edits[-1][0]
