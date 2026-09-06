@@ -17,7 +17,7 @@ from app.geo.countries import all_supported_countries, country_config, normalize
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
-from app.telegram.ui import review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
+from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.version import current_version
 from app.telegram.multicommand import (
@@ -759,7 +759,7 @@ async def jobs(message: Message) -> None:
     if not rows:
         await message.answer("Пока совпадений нет. Запусти /scan.")
         return
-    await message.answer(render_jobs_list(rows), parse_mode="HTML")
+    await message.answer(render_jobs_list(rows), parse_mode="HTML", reply_markup=jobs_keyboard(rows))
 
 
 @router.message(Command("job"))

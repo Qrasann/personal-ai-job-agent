@@ -28,6 +28,19 @@ def job_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+def jobs_keyboard(rows) -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton(
+            text=f"📋 #{job.id}",
+            callback_data=f"details:{job.id}",
+        )
+        for match, job in rows
+    ]
+    return InlineKeyboardMarkup(
+        inline_keyboard=[buttons[i:i + 2] for i in range(0, len(buttons), 2)]
+    )
+
+
 def recruiter_keyboard(chat_id: str, message_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ Отправить ответ", callback_data=f"sendreply:{chat_id}:{message_id}")],
