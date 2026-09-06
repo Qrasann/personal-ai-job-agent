@@ -279,6 +279,7 @@ async def search_settings(message: Message) -> None:
         "⚙️ <b>Настройки поиска</b>\n\n"
         f"Роли: {html.escape(', '.join(queries))}\n"
         f"Россия: {'ON' if modes.get('local_ru', True) else 'OFF'}\n"
+        f"Город: {html.escape(str(cfg.get('local_city') or 'не задан'))}\n"
         f"International remote: {'ON' if modes.get('remote_international', True) else 'OFF'}\n"
         f"Relocation: {'ON' if modes.get('relocation', True) else 'OFF'}\n"
         f"Мин. РФ зарплата: {minimum or 'не задана'} RUB net\n"
@@ -286,6 +287,33 @@ async def search_settings(message: Message) -> None:
     )
     await message.answer(text, parse_mode="HTML")
 
+
+
+@router.message(Command("city"))
+async def city(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    _, search = await _first_search(user.id)
+    if not search:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    current = dict(search.settings or {})
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) == 1:
+        await message.answer("🏙 Текущий город: " + str(current.get("local_city") or "не задан"))
+        return
+    value = parts[1].strip()
+    if value.casefold() == "clear":
+        current.pop("local_city", None)
+        search.settings = current
+        await repo.update_search_settings(search.id, current)
+        await message.answer("✅ Локальный город очищен.")
+        return
+    current["local_city"] = value
+    search.settings = current
+    await repo.update_search_settings(search.id, current)
+    await message.answer("✅ Локальный город: " + html.escape(value), parse_mode="HTML")
 
 @router.message(Command("country"))
 async def country(message: Message) -> None:
