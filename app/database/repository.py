@@ -225,6 +225,21 @@ def _select_review_matches(rows, limit: int | None = 10):
     return out
 
 
+def _select_stretch_matches(rows, limit: int | None = 10):
+    out = []
+    seen = set()
+    for match, job in rows:
+        if match.status != "stretch":
+            continue
+        key = _display_key(job.title, job.company)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((match, job))
+        if limit is not None and len(out) >= limit:
+            break
+    return out
+
 def _select_saved_matches(rows, limit: int | None = 10):
     out = []
     seen = set()
@@ -254,6 +269,22 @@ async def review_matches(user_id: int, limit: int | None = 10) -> list[tuple[Job
             stmt = stmt.limit(max(limit * 8, 40))
         rows = list((await session.execute(stmt)).all())
     return _select_review_matches(rows, limit=limit)
+
+
+async def stretch_matches(user_id: int, limit: int | None = 10) -> list[tuple[JobMatch, Job]]:
+    if limit is not None and limit <= 0:
+        return []
+    async with SessionLocal() as session:
+        stmt = (
+            select(JobMatch, Job)
+            .join(Job, Job.id == JobMatch.job_id)
+            .where(JobMatch.user_id == user_id, JobMatch.status == "stretch")
+            .order_by(JobMatch.total_score.desc(), JobMatch.created_at.desc())
+        )
+        if limit is not None:
+            stmt = stmt.limit(max(limit * 8, 40))
+        rows = list((await session.execute(stmt)).all())
+    return _select_stretch_matches(rows, limit=limit)
 
 
 async def saved_matches(user_id: int, limit: int | None = 10) -> list[tuple[JobMatch, Job]]:

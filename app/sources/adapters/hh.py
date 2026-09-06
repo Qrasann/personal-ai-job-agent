@@ -30,15 +30,6 @@ class HHSource(JobSource):
         return BeautifulSoup(value or "", "html.parser").get_text(" ", strip=True)
 
     @staticmethod
-    def _combined_query(queries: list[str]) -> str:
-        cleaned = [q.strip() for q in queries if q and q.strip()]
-        if not cleaned:
-            return ""
-        if len(cleaned) == 1:
-            return cleaned[0]
-        return " OR ".join(f'"{q}"' for q in cleaned[:8])
-
-    @staticmethod
     def _salary(text: str) -> tuple[int | None, int | None, str | None]:
         return parse_salary_text(text)
 
@@ -310,35 +301,65 @@ class HHSource(JobSource):
         return out
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
-        query = self._combined_query(list(context.queries or []))
-        if not query:
+        queries: list[str] = []
+        seen_queries: set[str] = set()
+        for raw in context.queries or []:
+            query = str(raw).strip()
+            key = query.casefold()
+            if not query or key in seen_queries:
+                continue
+            seen_queries.add(key)
+            queries.append(query)
+            if len(queries) >= 8:
+                break
+
+        if not queries:
             return []
+
         is_ru = (context.current_country or "").upper() == "RU"
         area = "113" if is_ru else None
-
-        try:
-            payload = await self.client.search(
-                query,
-                per_page=max(1, min(100, settings.hh_public_per_page)),
-                area=area,
-            )
-            return self._from_api(payload, is_ru=is_ru)
-        except HHAPIForbidden:
-            if not settings.hh_web_fallback_enabled:
-                raise
-            log.warning("HH API returned 403; using ordinary public HH web search fallback")
-
         out: list[NormalizedJob] = []
-        seen: set[str] = set()
-        pages = max(1, min(3, settings.hh_web_max_pages))
-        for page in range(pages):
-            html = await self.client.search_web(query, page=page, area=area)
-            jobs = self.parse_web_html(html, is_ru=is_ru)
-            if not jobs:
+        seen_jobs: set[str] = set()
+
+        for query in queries:
+            try:
+                payload = await self.client.search(
+                    query,
+                    per_page=max(1, min(100, settings.hh_public_per_page)),
+                    area=area,
+                )
+            except HHAPIForbidden:
+                if not settings.hh_web_fallback_enabled:
+                    raise
+                log.warning("HH API returned 403; using ordinary public HH web search fallback")
                 break
-            for job in jobs:
-                if job.source_job_id in seen:
+
+            for job in self._from_api(payload, is_ru=is_ru):
+                if job.source_job_id in seen_jobs:
                     continue
-                seen.add(job.source_job_id)
+                seen_jobs.add(job.source_job_id)
                 out.append(job)
+        else:
+            return out
+
+        pages = max(1, min(3, settings.hh_web_max_pages))
+        for query in queries:
+            previous_page_ids: set[str] | None = None
+            for page in range(pages):
+                html = await self.client.search_web(query, page=page, area=area)
+                jobs = self.parse_web_html(html, is_ru=is_ru)
+                if not jobs:
+                    break
+
+                page_ids = {job.source_job_id for job in jobs}
+                if previous_page_ids == page_ids:
+                    break
+                previous_page_ids = page_ids
+
+                for job in jobs:
+                    if job.source_job_id in seen_jobs:
+                        continue
+                    seen_jobs.add(job.source_job_id)
+                    out.append(job)
+
         return out

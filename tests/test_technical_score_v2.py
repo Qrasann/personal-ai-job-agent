@@ -223,3 +223,103 @@ Kubernetes
 def test_structured_required_and_preferred_can_score_exactly_zero():
     text = "Требования:\nLinux\nПриветствуется:\nDocker\n"
     assert score_technical_v2(text, []) == 0
+
+def test_score_job_classifies_good_stretch_and_skip():
+    facts = [
+        _fact("Linux", "commercial", fact_id=1),
+        _fact("Docker", "lab", fact_id=2),
+    ]
+    good = Job(fingerprint="fit-good", title="DevOps Engineer", company="ACME", description="Опыт 1–3 года. Linux Docker", country="RU")
+    stretch = Job(fingerprint="fit-stretch", title="DevOps Engineer", company="ACME", description="Опыт 3–6 лет. Linux Docker", country="RU")
+    senior = Job(fingerprint="fit-senior", title="Senior DevOps Engineer", company="ACME", description="Linux Docker", country="RU")
+    high_exp = Job(fingerprint="fit-5plus", title="DevOps Engineer", company="ACME", description="Опыт от 5 лет. Linux Docker", country="RU")
+
+    assert score_job(good, _search(), facts, []).fit == "good"
+    assert score_job(stretch, _search(), facts, []).fit == "stretch"
+    assert score_job(senior, _search(), facts, []).fit == "skip"
+    assert score_job(high_exp, _search(), facts, []).fit == "skip"
+
+def test_score_job_skips_hard_production_skill_gap_only():
+    learning = [_fact("Kubernetes", "learning", fact_id=1)]
+    commercial = [_fact("Kubernetes", "commercial", fact_id=2)]
+
+    hard = Job(
+        fingerprint="prod-gap-hard",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Требования: обязателен опыт Kubernetes в production.",
+        country="RU",
+    )
+    preferred = Job(
+        fingerprint="prod-gap-preferred",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Будет плюсом: опыт Kubernetes в production.",
+        country="RU",
+    )
+
+    assert score_job(hard, _search(), learning, []).fit == "skip"
+    assert score_job(hard, _search(), commercial, []).fit == "good"
+    assert score_job(preferred, _search(), learning, []).fit == "good"
+
+def test_score_job_skips_hard_three_year_production_role_requirement_only():
+    hard = Job(
+        fingerprint="prod-role-hard",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Требования: от 3 лет опыта DevOps в production.",
+        country="RU",
+    )
+    generic = Job(
+        fingerprint="prod-role-generic",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Опыт 3–6 лет. Linux Docker.",
+        country="RU",
+    )
+    preferred = Job(
+        fingerprint="prod-role-preferred",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Будет плюсом: 3+ года DevOps опыта в production.",
+        country="RU",
+    )
+
+    assert score_job(hard, _search(), [], []).fit == "skip"
+    assert score_job(generic, _search(), [], []).fit == "stretch"
+    assert score_job(preferred, _search(), [], []).fit != "skip"
+
+def test_score_job_skips_hard_management_requirement_only():
+    hard_ru = Job(
+        fingerprint="management-hard-ru",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Обязанности: руководство командой DevOps-инженеров и постановка задач.",
+        country="RU",
+    )
+    hard_en = Job(
+        fingerprint="management-hard-en",
+        title="SRE Engineer",
+        company="ACME",
+        description="Responsibilities: people management for a team of SRE engineers.",
+        country="RU",
+    )
+    mentor = Job(
+        fingerprint="management-mentor",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Обязанности: менторинг коллег, code review и помощь junior-инженерам.",
+        country="RU",
+    )
+    preferred = Job(
+        fingerprint="management-preferred",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Будет плюсом: опыт управления командой.",
+        country="RU",
+    )
+
+    assert score_job(hard_ru, _search(), [], []).fit == "skip"
+    assert score_job(hard_en, _search(), [], []).fit == "skip"
+    assert score_job(mentor, _search(), [], []).fit != "skip"
+    assert score_job(preferred, _search(), [], []).fit != "skip"

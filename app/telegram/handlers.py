@@ -16,8 +16,8 @@ from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
-from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list
-from app.telegram.ui import review_keyboard, saved_keyboard, vacancy_details_keyboard
+from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
+from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.version import current_version
 from app.telegram.multicommand import (
@@ -75,6 +75,39 @@ async def multi_command(message: Message, bot: Bot) -> None:
             bot=bot,
         )
 
+def _main_menu_text() -> str:
+    return (
+        "🤖 <b>Personal AI Job Agent</b>\n\n"
+        "🔎 <b>Поиск и очереди</b>\n"
+        "/scan — запустить поиск сейчас\n"
+        "/review — разобрать Good-вакансии\n"
+        "/stretch — разобрать Stretch-вакансии\n"
+        "/saved — сохранённые вакансии\n"
+        "/jobs — последние совпадения\n\n"
+        "⚙️ <b>Настройки поиска</b>\n"
+        "/roles — текущие роли\n"
+        "/role DevOps Engineer — выбрать основную роль\n"
+        "/roleadd Linux Administrator — добавить роль\n"
+        "/mode — направления поиска\n"
+        "/city Тверь — локальный город\n"
+        "/domestic_relocation on|off — переезд по РФ\n"
+        "/country — текущая страна\n"
+        "/targets — целевые страны\n"
+        "/settings — текущие настройки\n\n"
+        "🧠 <b>Профиль и вакансии</b>\n"
+        "/job 25 — подробности вакансии\n"
+        "/compare 25 — сравнить вакансию с профилем\n"
+        "/facts — факты кандидата\n"
+        "/resumes — варианты резюме\n"
+        "/sources — источники вакансий\n\n"
+        "🤖 <b>Агент</b>\n"
+        "/status — состояние агента\n"
+        "/chats — проверить HH-переписку\n"
+        "/pause /resume — остановить или возобновить поиск\n"
+        "/help — показать это меню\n\n"
+        "Перешли сюда пост с вакансией из Telegram — он попадёт в тот же pipeline."
+    )
+
 @router.message(CommandStart())
 async def start(message: Message) -> None:
     existing = await _user(message)
@@ -88,28 +121,15 @@ async def start(message: Message) -> None:
         )
         return
     await bootstrap_user(existing.telegram_chat_id, existing.display_name)
-    await message.answer(
-        "🤖 <b>Personal AI Job Agent</b>\n\n"
-        "Поиск: 🇷🇺 Россия + 🌍 international remote + ✈️ relocation.\n\n"
-        "/role DevOps Engineer — выбрать основную роль\n"
-        "/roleadd Linux Administrator — добавить роль\n"
-        "/roles — показать роли\n"
-        "/mode — включить/выключить направления поиска\n"
-        "/settings — текущие настройки\n"
-        "/scan — поиск сейчас\n"
-        "/review — разобрать новые вакансии\n"
-        "/saved — сохранённые вакансии\n"
-        "/jobs — последние совпадения\n"
-        "/job <id> — подробности вакансии\n"
-        "/compare <id> — сравнить вакансию с профилем\n"
-        "/sources — источники\n"
-        "/facts — факты кандидата\n"
-        "/resumes — варианты резюме\n"
-        "/chats — проверить HH-переписку\n"
-        "/pause /resume — остановить/запустить\n\n"
-        "Перешли сюда пост с вакансией из Telegram — он попадёт в тот же pipeline. Сообщения рекрутера обрабатываются одинаково, независимо от того, человек это или recruiter-AI.",
-        parse_mode="HTML",
-    )
+    await message.answer(_main_menu_text(), parse_mode="HTML")
+
+
+@router.message(Command("help"))
+async def help_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    await message.answer(_main_menu_text(), parse_mode="HTML")
 
 
 @router.message(Command("register"))
@@ -279,6 +299,8 @@ async def search_settings(message: Message) -> None:
         "⚙️ <b>Настройки поиска</b>\n\n"
         f"Роли: {html.escape(', '.join(queries))}\n"
         f"Россия: {'ON' if modes.get('local_ru', True) else 'OFF'}\n"
+        f"Город: {html.escape(str(cfg.get('local_city') or 'не задан'))}\n"
+        f"Переезд по РФ: {'ON' if cfg.get('domestic_relocation', False) else 'OFF'}\n"
         f"International remote: {'ON' if modes.get('remote_international', True) else 'OFF'}\n"
         f"Relocation: {'ON' if modes.get('relocation', True) else 'OFF'}\n"
         f"Мин. РФ зарплата: {minimum or 'не задана'} RUB net\n"
@@ -286,6 +308,59 @@ async def search_settings(message: Message) -> None:
     )
     await message.answer(text, parse_mode="HTML")
 
+
+
+@router.message(Command("city"))
+async def city(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    _, search = await _first_search(user.id)
+    if not search:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    current = dict(search.settings or {})
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) == 1:
+        await message.answer("🏙 Текущий город: " + str(current.get("local_city") or "не задан"))
+        return
+    value = parts[1].strip()
+    if value.casefold() == "clear":
+        current.pop("local_city", None)
+        search.settings = current
+        await repo.update_search_settings(search.id, current)
+        await message.answer("✅ Локальный город очищен.")
+        return
+    current["local_city"] = value
+    search.settings = current
+    await repo.update_search_settings(search.id, current)
+    await message.answer("✅ Локальный город: " + html.escape(value), parse_mode="HTML")
+
+
+@router.message(Command("domestic_relocation"))
+async def domestic_relocation(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    _, search = await _first_search(user.id)
+    if not search:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    current = dict(search.settings or {})
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) == 1:
+        state = "ON" if current.get("domestic_relocation", False) else "OFF"
+        await message.answer("🚆 Переезд по РФ: " + state)
+        return
+    value = parts[1].strip().casefold()
+    if value not in {"on", "off"}:
+        await message.answer("Использование: /domestic_relocation on|off")
+        return
+    current["domestic_relocation"] = value == "on"
+    search.settings = current
+    await repo.update_search_settings(search.id, current)
+    state = "ON" if current["domestic_relocation"] else "OFF"
+    await message.answer("✅ Переезд по РФ: " + state)
 
 @router.message(Command("country"))
 async def country(message: Message) -> None:
@@ -513,7 +588,7 @@ async def scan(message: Message, bot: Bot) -> None:
     heartbeat_task = asyncio.create_task(heartbeat())
 
     try:
-        summary = await scan_for_user(bot, user.id, progress_callback=update_progress)
+        summary = await scan_for_user(bot, user.id, progress_callback=update_progress, force_refresh=True)
         heartbeat_task.cancel()
         try:
             await heartbeat_task
@@ -528,10 +603,10 @@ async def scan(message: Message, bot: Bot) -> None:
                     f"• {html.escape(source_id)}: ошибка"
                 )
             else:
-                cache = " (кэш)" if info.get("cache") else ""
+                freshness = "кэш" if info.get("cache") else "live"
                 source_bits.append(
                     f"• {html.escape(source_id)}: "
-                    f"{int(info.get('found', 0))}{cache}"
+                    f"{int(info.get('found', 0))} ({freshness})"
                 )
 
         details = (
@@ -543,8 +618,10 @@ async def scan(message: Message, bot: Bot) -> None:
             "✅ <b>Проход поиска завершён</b>\n\n"
             + details
             + f"\n\nОбработано: {int(summary.get('processed', 0))}"
-            + f"\nПрошли фильтр: {int(summary.get('qualified', 0))}"
-            + f"\nНовых уведомлений: {int(summary.get('notified', 0))}"
+            + f"\n🟢 Good: {int(summary.get('qualified', 0))}"
+            + f"\n🟡 Stretch: {int(summary.get('stretch', 0))}"
+            + f"\n⚪ Отфильтровано: {int(summary.get('filtered', 0))}"
+            + f"\n📨 Новых уведомлений: {int(summary.get('notified', 0))}"
             + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
             parse_mode="HTML",
         )
@@ -567,25 +644,44 @@ def _pick_next_review(rows, current_match_id: int):
     return (0, rows[0]) if rows else None
 
 
+def _pick_previous_review(rows, current_match_id: int):
+    for index, (match, job) in enumerate(rows):
+        if match.id == current_match_id:
+            previous_index = index - 1
+            return (previous_index, rows[previous_index]) if previous_index >= 0 else None
+    return (len(rows) - 1, rows[-1]) if rows else None
+
+
 def _render_review_card(match, job, position: int, total: int) -> str:
-    return (
-        "📥 <b>Разбор вакансий</b>\n\n"
-        f"<b>{html.escape(job.title or '')}</b>\n"
-        f"{html.escape(job.company or 'Компания не указана')}\n\n"
-        f"🎯 Match: <b>{match.total_score}/100</b>\n"
-        f"📌 {position} из {total}"
+    return render_queue_card(
+        match, job, header="📥 Разбор вакансий", lane="🟢 Good", position=position, total=total
+    )
+
+
+def _render_stretch_card(match, job, position: int, total: int) -> str:
+    return render_queue_card(
+        match, job, header="🟡 Stretch-вакансии", lane="🟡 Stretch", position=position, total=total
     )
 
 
 def _render_saved_card(match, job, position: int, total: int) -> str:
-    return (
-        "⭐ <b>Сохранённые вакансии</b>\n\n"
-        f"<b>{html.escape(job.title or '')}</b>\n"
-        f"{html.escape(job.company or 'Компания не указана')}\n\n"
-        f"🎯 Match: <b>{match.total_score}/100</b>\n"
-        f"📌 {position} из {total}"
+    return render_queue_card(
+        match, job, header="⭐ Сохранённые вакансии", lane="⭐ Saved", position=position, total=total
     )
 
+
+async def _advance_stretch(callback, user_id: int, current_match_id: int) -> None:
+    rows = await repo.stretch_matches(user_id, None)
+    picked = _pick_next_review(rows, current_match_id)
+    if not picked:
+        await callback.message.edit_text("✅ Stretch-очередь разобрана — вакансий больше нет.")
+        return
+    index, (match, job) = picked
+    await callback.message.edit_text(
+        _render_stretch_card(match, job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=stretch_keyboard(match.id, job.id),
+    )
 
 async def _advance_review(callback, user_id: int, current_match_id: int) -> None:
     rows = await repo.review_matches(user_id, None)
@@ -619,6 +715,22 @@ async def review(message: Message) -> None:
     )
 
 
+
+@router.message(Command("stretch"))
+async def stretch(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    rows = await repo.stretch_matches(user.id, None)
+    if not rows:
+        await message.answer("🟡 Stretch-вакансий пока нет.")
+        return
+    match, job = rows[0]
+    await message.answer(
+        _render_stretch_card(match, job, 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=stretch_keyboard(match.id, job.id),
+    )
 @router.message(Command("saved"))
 async def saved(message: Message) -> None:
     user = await _require_user(message)
@@ -647,7 +759,7 @@ async def jobs(message: Message) -> None:
     if not rows:
         await message.answer("Пока совпадений нет. Запусти /scan.")
         return
-    await message.answer(render_jobs_list(rows), parse_mode="HTML")
+    await message.answer(render_jobs_list(rows), parse_mode="HTML", reply_markup=jobs_keyboard(rows))
 
 
 @router.message(Command("job"))
@@ -735,6 +847,118 @@ async def chats(message: Message, bot: Bot) -> None:
         return
     await scan_hh_chats(bot)
     await message.answer("✅ HH-чаты проверены.")
+
+
+async def _navigate_previous_queue(
+    callback, queue_loader, renderer, keyboard_factory, first_message: str
+) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    rows = await queue_loader(user.id, None)
+    picked = _pick_previous_review(rows, match.id)
+    if not picked:
+        await callback.answer(first_message, show_alert=True)
+        return
+    index, (previous_match, job) = picked
+    await callback.message.edit_text(
+        renderer(previous_match, job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=keyboard_factory(previous_match.id, job.id),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("review_prev:"))
+async def review_prev_callback(callback: CallbackQuery) -> None:
+    await _navigate_previous_queue(
+        callback, repo.review_matches, _render_review_card, review_keyboard, "Это первая вакансия"
+    )
+
+
+@router.callback_query(F.data.startswith("stretch_prev:"))
+async def stretch_prev_callback(callback: CallbackQuery) -> None:
+    await _navigate_previous_queue(
+        callback, repo.stretch_matches, _render_stretch_card, stretch_keyboard, "Это первая Stretch-вакансия"
+    )
+
+
+@router.callback_query(F.data.startswith("saved_prev:"))
+async def saved_prev_callback(callback: CallbackQuery) -> None:
+    await _navigate_previous_queue(
+        callback, repo.saved_matches, _render_saved_card, saved_keyboard, "Это первая сохранённая вакансия"
+    )
+
+
+@router.callback_query(F.data.startswith("stretch_next:"))
+async def stretch_next_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    rows = await repo.stretch_matches(user.id, None)
+    picked = _pick_next_review(rows, match.id)
+    if not picked:
+        await callback.answer("Больше Stretch-вакансий нет", show_alert=True)
+        return
+    index, (next_match, next_job) = picked
+    await callback.message.edit_text(
+        _render_stretch_card(next_match, next_job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=stretch_keyboard(next_match.id, next_job.id),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("stretch_skip:"))
+async def stretch_skip_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "skipped")
+    await callback.answer("❌ Пропущено")
+    await _advance_stretch(callback, user.id, match.id)
+
+
+@router.callback_query(F.data.startswith("stretch_save:"))
+async def stretch_save_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "saved")
+    await callback.answer("⭐ Сохранено")
+    await _advance_stretch(callback, user.id, match.id)
 
 
 @router.callback_query(F.data.startswith("saved_next:"))

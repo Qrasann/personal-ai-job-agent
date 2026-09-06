@@ -59,8 +59,16 @@ def _can_reach_threshold_with_technical(result, threshold: int) -> bool:
     return result.total_score + possible_gain >= threshold
 
 
+def _match_lane(result, threshold: int) -> str:
+    fit = getattr(result, "fit", "good")
+    if fit == "skip" or result.total_score < threshold:
+        return "filtered"
+    if fit == "stretch":
+        return "stretch"
+    return "qualified"
+
 async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id: int | None = None) -> dict:
-    counters = {"processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+    counters = {"processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     job, _ = await repo.upsert_job(normalized)
     src = await repo.source_ref(job.id, normalized.source)
     users = await repo.list_active_users()
@@ -110,16 +118,23 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 total_score=result.total_score,
                 reason=result.reason,
             )
-            if result.total_score < threshold:
+            lane = _match_lane(result, threshold)
+            if lane == "filtered":
                 counters["filtered"] += 1
                 if match.status not in {"applied", "prepared", "skipped", "saved"}:
                     await repo.set_match_status(match.id, "filtered")
                 continue
 
+            if lane == "stretch":
+                counters["stretch"] += 1
+                if match.status not in {"applied", "prepared", "skipped", "saved", "stretch"}:
+                    await repo.set_match_status(match.id, "stretch")
+                continue
+
             counters["qualified"] += 1
             # A previously filtered vacancy can become eligible after the
             # profile/scoring rules change. Re-open it for notification.
-            if match.status == "filtered":
+            if match.status in {"filtered", "stretch"}:
                 await repo.set_match_status(match.id, "new")
                 match.status = "new"
             if match.status != "new":
@@ -168,8 +183,8 @@ def _error_text(exc: Exception) -> str:
     return message or type(exc).__name__
 
 
-async def scan_for_user(bot: Bot, user_id: int, progress_callback=None) -> dict:
-    summary = {"sources": {}, "processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False) -> dict:
+    summary = {"sources": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     async def emit_progress(text: str) -> None:
         if not progress_callback:
             return
@@ -213,7 +228,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None) -> dict:
         try:
             cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
             cached = _DISCOVERY_CACHE.get(cache_key)
-            cache_hit = bool(cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
+            cache_hit = bool(not force_refresh and cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
             if cache_hit:
                 jobs = cached[1]
             else:
@@ -224,7 +239,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None) -> dict:
             await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label}")
             for index, job in enumerate(jobs, start=1):
                 counters = await ingest_and_match(bot, job, only_user_id=user.id)
-                for key in ("processed", "qualified", "notified", "filtered", "duplicate"):
+                for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
                     summary[key] += counters.get(key, 0)
                 if index % 5 == 0 or index == len(jobs):
                     await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")

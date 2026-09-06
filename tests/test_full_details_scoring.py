@@ -5,7 +5,7 @@ from app import services
 from app.domain.jobs import NormalizedJob
 
 
-def _result(technical, total):
+def _result(technical, total, fit="good"):
     return SimpleNamespace(
         resume_id=None,
         technical_score=technical,
@@ -15,6 +15,7 @@ def _result(technical, total):
         total_score=total,
         reason="test score",
         track="russia",
+        fit=fit,
     )
 
 
@@ -169,6 +170,28 @@ def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
     assert counters["filtered"] == 1
     assert statuses == []
 
+    match_status["value"] = "new"
+    statuses.clear()
+    notifications = []
+
+    async def fake_equivalent(*args):
+        return False
+
+    async def fake_notify(*args, **kwargs):
+        notifications.append(args)
+    monkeypatch.setattr(services.repo, "has_notified_equivalent", fake_equivalent)
+    monkeypatch.setattr(services, "notify_chat", fake_notify)
+    monkeypatch.setattr(services, "_can_reach_threshold_with_technical", lambda result, threshold: False)
+    monkeypatch.setattr(services, "score_job", lambda *args, **kwargs: _result(80, 70, "stretch"))
+
+    counters = asyncio.run(services.ingest_and_match(bot=object(), normalized=normalized, only_user_id=7))
+
+    assert counters["stretch"] == 1
+    assert counters["qualified"] == 0
+    assert counters["notified"] == 0
+    assert statuses == [(301, "stretch")]
+    assert notifications == []
+
 def test_technical_prefilter_fetches_when_score_can_reach_threshold():
     result = _result(80, 55)
     assert services._can_reach_threshold_with_technical(result, 65) is True
@@ -213,3 +236,9 @@ def test_refresh_match_score_updates_scores_without_status(monkeypatch):
     assert refreshed.technical_score == 43
     assert refreshed.total_score == 60
     assert "status" not in saved
+
+def test_match_lane_routes_good_stretch_and_skip():
+    assert services._match_lane(_result(80, 65, "good"), 65) == "qualified"
+    assert services._match_lane(_result(80, 65, "stretch"), 65) == "stretch"
+    assert services._match_lane(_result(80, 64, "stretch"), 65) == "filtered"
+    assert services._match_lane(_result(100, 100, "skip"), 65) == "filtered"

@@ -108,6 +108,13 @@ async def _repository_review_flow(monkeypatch):
         full_review = await repo.review_matches(user.id, None)
         assert [item[0].id for item in full_review] == [match.id]
 
+        await repo.set_match_status(match.id, "stretch")
+        assert await repo.review_matches(user.id, 10) == []
+        stretch = await repo.stretch_matches(user.id, None)
+        assert [item[0].id for item in stretch] == [match.id]
+        assert stretch[0][1].id == job.id
+
+
         await repo.set_match_status(match.id, "saved")
 
         assert await repo.review_matches(user.id, 10) == []

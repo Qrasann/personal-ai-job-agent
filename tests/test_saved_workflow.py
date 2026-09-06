@@ -130,7 +130,7 @@ def test_saved_next_callback_handles_last_item(monkeypatch):
     message.edit_text.assert_not_awaited()
 
 
-def test_saved_keyboard_has_details_and_next():
+def test_saved_keyboard_has_details_back_and_next():
     from app.telegram.ui import saved_keyboard
 
     keyboard = saved_keyboard(401, 31)
@@ -139,4 +139,4 @@ def test_saved_keyboard_has_details_and_next():
         for row in keyboard.inline_keyboard
         for button in row
     ]
-    assert callbacks == ["details:31", "saved_next:401"]
+    assert callbacks == ["details:31", "saved_prev:401", "saved_next:401"]

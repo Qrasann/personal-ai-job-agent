@@ -18,27 +18,66 @@ class MatchResult:
     reason: str
     resume_id: int | None = None
     track: str = "unknown"
+    fit: str = "good"
 
 
 def _terms(settings: dict, key: str) -> list[str]:
     return [str(x).casefold() for x in (settings.get(key) or [])]
 
 
+_RESUME_GENERIC_TOKENS = {
+    "engineer", "administrator", "specialist", "developer",
+    "инженер", "администратор", "специалист", "разработчик",
+    "experience", "work", "with", "from", "years",
+    "опыт", "работа", "года", "лет",
+}
+
+
+def _resume_content_overlap(job: Job, resume: ResumeProfile) -> int:
+    job_tokens = {
+        token
+        for token in re.findall(
+            r"[a-zа-яё0-9+#.-]+",
+            f"{job.title} {job.description}".casefold(),
+        )
+        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
+    }
+    resume_tokens = {
+        token
+        for token in re.findall(
+            r"[a-zа-яё0-9+#.-]+",
+            str(resume.content or "").casefold(),
+        )
+        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
+    }
+    return len(job_tokens & resume_tokens)
+
 def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
-    if not resumes:
+    available = [
+        resume
+        for resume in resumes
+        if resume.active is not False and getattr(resume, "deleted_at", None) is None
+    ]
+    if not available:
         return None
+
     hay = f"{job.title} {job.description}".casefold()
     ranked: list[tuple[int, int]] = []
-    for resume in resumes:
+    for resume in available:
         score = 0
-        for token in re.findall(r"[a-zа-я0-9+#.-]+", resume.role.casefold()):
+        for token in re.findall(r"[a-zа-яё0-9+#.-]+", resume.role.casefold()):
             if len(token) >= 3 and token in hay:
                 score += 5
+
+        score += min(10, _resume_content_overlap(job, resume))
+
         if (job.country or "").upper() not in {"", "RU"} and resume.language == "en":
             score += 5
         if (job.country or "").upper() == "RU" and resume.language == "ru":
             score += 3
+
         ranked.append((score, resume.id))
+
     ranked.sort(reverse=True)
     return ranked[0][1]
 
@@ -54,6 +93,71 @@ def _enabled_tracks(settings: dict) -> set[str]:
         enabled.add("relocation")
     return enabled
 
+
+_YEAR_WORDS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+}
+
+
+def _candidate_commercial_years(facts: list[CandidateFact]) -> int | None:
+    best = None
+    word_pattern = "|".join(_YEAR_WORDS)
+    for fact in facts:
+        if fact.active is False or getattr(fact, "deleted_at", None) is not None:
+            continue
+        if (fact.experience_type or "unknown").casefold() != "commercial":
+            continue
+        text = (fact.value or "").casefold()
+        values = [
+            int(value)
+            for value in re.findall(r"\b(\d{1,2})\+?\s*(?:years?|yrs?|лет|года|год)\b", text)
+        ]
+        for word in re.findall(rf"\b(?:more than|over|at least)\s+({word_pattern})\s+years?\b", text):
+            values.append(_YEAR_WORDS[word])
+        if values:
+            current = max(values)
+            best = current if best is None else max(best, current)
+    return best
+
+def _required_experience_years(job: Job) -> int | None:
+    text = f"{job.title} {job.description}".casefold()
+    patterns = (
+        r"(?:опыт|стаж)[^0-9\n]{0,30}(\d+)\s*[–—-]\s*\d+\s*(?:лет|года|год)",
+        r"\b(\d+)\s*[–—-]\s*\d+\s*years?\b",
+        r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(\d+)\+?\s*(?:лет|года|год)",
+        r"(?:at least|minimum of)\s+(\d+)\s+years?",
+        r"\b(\d+)\+?\s+years?(?:\s+of)?\s+experience\b",
+    )
+    values = [
+        int(match.group(1))
+        for pattern in patterns
+        for match in re.finditer(pattern, text)
+    ]
+    return max(values) if values else None
+
+def _experience_fit(job: Job, facts: list[CandidateFact]) -> tuple[str | None, str | None]:
+    candidate = _candidate_commercial_years(facts)
+    required = _required_experience_years(job)
+    if candidate is None or required is None:
+        return None, None
+    gap = required - candidate
+    if gap <= 0:
+        fit = "good"
+    elif gap <= 2:
+        fit = "stretch"
+    else:
+        fit = "skip"
+    reason = f"опыт: commercial {candidate}+; требуется {required}+"
+    return fit, reason
 
 def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     """Return (level, reason) for obvious seniority signals.
@@ -103,6 +207,118 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...]) -> str:
+    rank = {"missing": 0, "learning": 1, "unknown": 2, "lab": 3, "commercial": 4}
+    best = "missing"
+    for fact in facts:
+        if fact.active is False or getattr(fact, "deleted_at", None) is not None:
+            continue
+        value = (fact.value or "").casefold()
+        if not any(alias in value for alias in aliases):
+            continue
+        kind = (fact.experience_type or "unknown").casefold()
+        if rank.get(kind, 0) > rank.get(best, 0):
+            best = kind
+    return best
+
+def _normalize_salary_currency(value: str | None) -> str:
+    currency = (value or "").upper().strip()
+    return {"RUR": "RUB"}.get(currency, currency)
+
+
+def _normalize_city(value: str | None) -> str:
+    text = (value or "").casefold().replace("ё", "е").strip()
+    text = re.sub(r"^г\.?\s*", "", text)
+    text = re.split(r"[,;/|]", text, maxsplit=1)[0]
+    return re.sub(r"\s+", " ", text).strip()
+
+def _is_remote_job(job: Job) -> bool:
+    text = ((job.work_mode or "") + " " + (job.description or "")).casefold().replace("ё", "е")
+    return "remote" in text or "удален" in text
+
+def _local_ru_location(job: Job, settings: dict) -> tuple[int, str, str | None, bool]:
+    if _is_remote_job(job):
+        return 95, "russia_remote", None, False
+
+    local_city = _normalize_city(settings.get("local_city"))
+    if not local_city:
+        return 95, "russia", None, False
+
+    job_city = _normalize_city(job.city)
+    if not job_city:
+        return 75, "russia_unknown_city", "город вакансии не определён", False
+    if job_city == local_city:
+        return 95, "russia_local", None, False
+    if settings.get("domestic_relocation", False):
+        return 70, "russia_relocation", "другой город РФ; внутренняя релокация разрешена", False
+    return 25, "russia_other_city", f"другой город РФ: {job.city}", True
+
+def _management_requirement(job: Job, technical_text: str | None = None) -> str | None:
+    text = (technical_text if technical_text is not None else (job.description or "")).casefold()
+    preferred_markers = ("приветств", "желательно", "будет плюсом", "preferred", "nice to have")
+    hard_markers = (
+        "руководство командой",
+        "управление командой",
+        "управлять командой",
+        "управления командой",
+        "people management",
+        "team management",
+        "line management",
+        "manage a team",
+        "managing a team",
+    )
+    for chunk in re.split(r"[\n.;]+", text):
+        if any(marker in chunk for marker in preferred_markers):
+            continue
+        if any(marker in chunk for marker in hard_markers):
+            return "требуется управление командой"
+    return None
+
+def _production_role_experience_gap(job: Job, technical_text: str | None = None) -> str | None:
+    text = (technical_text if technical_text is not None else (job.description or "")).casefold()
+    production_markers = ("production", "продакш", "боев", "промышленн")
+    preferred_markers = ("приветств", "желательно", "будет плюсом", "preferred", "nice to have")
+    role_markers = ("devops", "sre", "site reliability", "platform engineer", "platform engineering")
+    years_patterns = (
+        r"(?:от\s*)?(?:3|4)\+?\s*(?:лет|года)",
+        r"(?:3|4)\+\s*years?",
+        r"(?:at least|minimum of)\s+(?:3|4)\s+years?",
+    )
+    for chunk in re.split(r"[\n.;]+", text):
+        if any(marker in chunk for marker in preferred_markers):
+            continue
+        if not any(marker in chunk for marker in production_markers):
+            continue
+        if not any(marker in chunk for marker in role_markers):
+            continue
+        if any(re.search(pattern, chunk) for pattern in years_patterns):
+            return "3+ года production DevOps/SRE опыта"
+    return None
+
+def _production_skill_gap(job: Job, facts: list[CandidateFact], technical_text: str | None = None) -> tuple[str, str] | None:
+    text = (technical_text if technical_text is not None else (job.description or "")).casefold()
+    skills = {
+        "kubernetes": ("kubernetes", "k8s"),
+        "terraform": ("terraform",),
+        "ansible": ("ansible",),
+    }
+    production_markers = ("production", "продакш", "боев", "промышленн")
+    requirement_markers = ("опыт", "experience", "required", "треб", "обязател")
+    preferred_markers = ("приветств", "желательно", "будет плюсом", "preferred", "nice to have")
+    for chunk in re.split(r"[\n.;]+", text):
+        if any(marker in chunk for marker in preferred_markers):
+            continue
+        if not any(marker in chunk for marker in production_markers):
+            continue
+        if not any(marker in chunk for marker in requirement_markers):
+            continue
+        for skill, aliases in skills.items():
+            if any(alias in chunk for alias in aliases):
+                experience = _best_skill_experience(facts, aliases)
+                if experience != "commercial":
+                    return skill, experience
+    return None
+
 def _risk_penalty(job: Job, settings: dict) -> tuple[int, str | None]:
     """Soft penalty for domains the owner wants manually reviewed.
 
@@ -126,13 +342,13 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     exclude = _terms(settings, "exclude_terms")
     hit_exclude = [x for x in exclude if x and x in hay]
     if hit_exclude:
-        return MatchResult(0, 0, 0, 0, 0, "Исключено по фильтру: " + ", ".join(hit_exclude), chosen_resume, "excluded")
+        return MatchResult(0, 0, 0, 0, 0, "Исключено по фильтру: " + ", ".join(hit_exclude), chosen_resume, "excluded", "skip")
 
     signals = analyze_job_signals(job)
     enabled = _enabled_tracks(settings)
     viable = signals.tracks & enabled
     if signals.tracks and not viable:
-        return MatchResult(0, 0, 0, 0, 0, "Режим этой вакансии выключен", chosen_resume, "disabled")
+        return MatchResult(0, 0, 0, 0, 0, "Режим этой вакансии выключен", chosen_resume, "disabled", "skip")
 
     preferred = _terms(settings, "preferred_terms")
     strong = _terms(settings, "strong_terms")
@@ -162,6 +378,34 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         technical = structured_technical
 
     seniority, seniority_reason = _seniority_flags(job)
+    fit = "good"
+    if seniority == "stretch":
+        fit = "stretch"
+    elif seniority in {"senior", "high_experience"}:
+        fit = "skip"
+    experience_fit, experience_reason = _experience_fit(job, facts)
+    if experience_fit == "stretch" and fit == "good":
+        fit = "stretch"
+    elif experience_fit == "skip":
+        fit = "skip"
+        technical = min(technical, 52)
+
+    management_gap = _management_requirement(job, technical_text)
+    if management_gap:
+        fit = "skip"
+        technical = min(technical, 48)
+
+    production_role_gap = _production_role_experience_gap(job, technical_text)
+    if production_role_gap:
+        fit = "skip"
+        technical = min(technical, 52)
+
+    production_gap = _production_skill_gap(job, facts, technical_text)
+    if production_gap:
+        gap_skill, gap_experience = production_gap
+        fit = "skip"
+        technical = min(technical, 52)
+
     if seniority == "senior":
         technical = min(technical, 48)
     elif seniority == "high_experience":
@@ -176,6 +420,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     country = (job.country or "").upper()
     geography = 45
     track = "unknown"
+    geography_reason = None
     if "relocation" in viable:
         track = "relocation"
         geography = 85
@@ -183,13 +428,17 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         track = "remote"
         geography = {"yes": 100, "uncertain": 68, "unknown": 60, "no": 10}.get(signals.remote_eligibility, 55)
     if "local_ru" in viable:
-        track = "russia_remote" if "remote" in (job.work_mode or "").casefold() or "удален" in (job.work_mode or "").casefold() else "russia"
-        geography = max(geography, 95)
+        geography, track, geography_reason, domestic_city_blocked = _local_ru_location(job, settings)
+        if domestic_city_blocked:
+            fit = "skip"
     if country not in {"", "RU"} and not viable:
         geography = 25
 
-    minimums = settings.get("minimum_salary") or {}
-    minimum = minimums.get(job.salary_currency or "")
+    minimums = {
+        _normalize_salary_currency(currency): value
+        for currency, value in (settings.get("minimum_salary") or {}).items()
+    }
+    minimum = minimums.get(_normalize_salary_currency(job.salary_currency))
     if minimum is None:
         salary = 58 if not (job.salary_from or job.salary_to) else 72
     else:
@@ -218,8 +467,15 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     if signals.relocation_blocked and country not in {"", "RU"} and track == "relocation":
         total = min(total, 40)
 
+    if experience_fit == "skip":
+        total = min(total, 58)
+    elif experience_fit == "stretch" and seniority is None:
+        total = min(total, 72)
+
+
     # In rule-only fallback mode, obvious senior roles must not slip above the
     # normal notification threshold merely because geography/salary look good.
+
     if seniority == "senior":
         total = min(total, int(settings.get("senior_score_cap", 54)))
     elif seniority == "high_experience":
@@ -239,10 +495,21 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
+    if experience_reason:
+        bits.append(experience_reason)
+    if management_gap:
+        bits.append(management_gap)
+    if production_role_gap:
+        bits.append(production_role_gap)
+    if production_gap:
+        bits.append(f"production-требование {gap_skill} без commercial опыта ({gap_experience})")
+
+    if geography_reason:
+        bits.append(geography_reason)
     if risk_reason:
         bits.append(risk_reason)
     if signals.remote_reason:
         bits.append(signals.remote_reason)
     if signals.relocation_reason:
         bits.append(signals.relocation_reason)
-    return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track)
+    return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track, fit)

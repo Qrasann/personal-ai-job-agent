@@ -371,3 +371,117 @@ def test_select_saved_matches_keeps_only_saved_and_deduplicates():
     ]
     result = repo._select_saved_matches(rows, limit=None)
     assert [match.id for match, job in result] == [2, 5]
+
+def test_select_stretch_matches_keeps_only_stretch_and_deduplicates():
+    from types import SimpleNamespace
+    rows = [
+        (SimpleNamespace(id=1, status="notified"), SimpleNamespace(title="DevOps", company="ACME")),
+        (SimpleNamespace(id=2, status="stretch"), SimpleNamespace(title="Linux Admin", company="Beta")),
+        (SimpleNamespace(id=3, status="stretch"), SimpleNamespace(title="Linux Admin", company="Beta")),
+        (SimpleNamespace(id=4, status="filtered"), SimpleNamespace(title="SRE", company="Gamma")),
+        (SimpleNamespace(id=5, status="stretch"), SimpleNamespace(title="Platform Engineer", company="Delta")),
+    ]
+    result = repo._select_stretch_matches(rows, limit=None)
+    assert [match.id for match, job in result] == [2, 5]
+
+def test_stretch_keyboard_contains_expected_actions():
+    from app.telegram.ui import stretch_keyboard
+    keyboard = stretch_keyboard(match_id=301, job_id=24)
+    buttons = [button for row in keyboard.inline_keyboard for button in row]
+    data = {button.callback_data for button in buttons if button.callback_data}
+    assert "stretch_save:301" in data
+    assert "stretch_skip:301" in data
+    assert "details:24" in data
+    assert "stretch_next:301" in data
+
+def test_stretch_command_shows_first_stretch_match(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from app.telegram import handlers
+
+    class Message:
+        def __init__(self): self.answers = []
+        async def answer(self, text, **kwargs): self.answers.append((text, kwargs))
+    match = SimpleNamespace(id=301, total_score=70)
+    job = SimpleNamespace(id=24, title="DevOps Engineer", company="Example")
+    async def fake_user(message): return SimpleNamespace(id=7)
+    async def fake_stretch(user_id, limit=10):
+        assert user_id == 7
+        assert limit is None
+        return [(match, job)]
+    monkeypatch.setattr(handlers, "_require_user", fake_user)
+    monkeypatch.setattr(handlers.repo, "stretch_matches", fake_stretch)
+    message = Message()
+    asyncio.run(handlers.stretch(message))
+    text, kwargs = message.answers[0]
+    assert "Stretch-вакансии" in text
+    assert "DevOps Engineer" in text
+    assert "70/100" in text
+    assert "1 из 1" in text
+    assert kwargs["reply_markup"] is not None
+
+def test_stretch_next_callback_edits_to_next_match(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from app.telegram import handlers
+    cur = SimpleNamespace(id=301, user_id=7, total_score=72)
+    nxt = SimpleNamespace(id=302, user_id=7, total_score=69)
+    job1 = SimpleNamespace(id=24, title="DevOps Engineer", company="ACME")
+    job2 = SimpleNamespace(id=25, title="Linux Engineer", company="Beta")
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data="stretch_next:301", message=message, answer=AsyncMock())
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "get_match", AsyncMock(return_value=cur))
+    monkeypatch.setattr(handlers.repo, "stretch_matches", AsyncMock(return_value=[(cur, job1), (nxt, job2)]))
+    asyncio.run(handlers.stretch_next_callback(callback))
+    handlers.repo.stretch_matches.assert_awaited_once_with(7, None)
+    text = message.edit_text.await_args.args[0]
+    assert "Stretch-вакансии" in text
+    assert "Linux Engineer" in text
+    assert "69/100" in text
+    assert "2 из 2" in text
+
+def test_stretch_save_callback_stays_in_stretch_queue(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from app.telegram import handlers
+    cur = SimpleNamespace(id=301, user_id=7)
+    nxt = SimpleNamespace(id=302, user_id=7, total_score=69)
+    job = SimpleNamespace(id=25, title="Linux Engineer", company="Beta")
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data="stretch_save:301", message=message, answer=AsyncMock())
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "get_match", AsyncMock(return_value=cur))
+    monkeypatch.setattr(handlers.repo, "set_match_status", AsyncMock())
+    monkeypatch.setattr(handlers.repo, "stretch_matches", AsyncMock(return_value=[(nxt, job)]))
+    asyncio.run(handlers.stretch_save_callback(callback))
+    handlers.repo.set_match_status.assert_awaited_once_with(301, "saved")
+    handlers.repo.stretch_matches.assert_awaited_once_with(7, None)
+    text = message.edit_text.await_args.args[0]
+    assert "Stretch-вакансии" in text
+    assert "Linux Engineer" in text
+    assert "1 из 1" in text
+
+def test_stretch_skip_callback_stays_in_stretch_queue(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from app.telegram import handlers
+    cur = SimpleNamespace(id=301, user_id=7)
+    nxt = SimpleNamespace(id=302, user_id=7, total_score=68)
+    job = SimpleNamespace(id=25, title="Platform Engineer", company="Beta")
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data="stretch_skip:301", message=message, answer=AsyncMock())
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "get_match", AsyncMock(return_value=cur))
+    monkeypatch.setattr(handlers.repo, "set_match_status", AsyncMock())
+    monkeypatch.setattr(handlers.repo, "stretch_matches", AsyncMock(return_value=[(nxt, job)]))
+    asyncio.run(handlers.stretch_skip_callback(callback))
+    handlers.repo.set_match_status.assert_awaited_once_with(301, "skipped")
+    handlers.repo.stretch_matches.assert_awaited_once_with(7, None)
+    text = message.edit_text.await_args.args[0]
+    assert "Stretch-вакансии" in text
+    assert "Platform Engineer" in text
+    assert "1 из 1" in text

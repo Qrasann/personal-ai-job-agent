@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     hh_public_per_page: int = 50
     hh_public_cache_minutes: int = 60
     hh_web_fallback_enabled: bool = True
-    hh_web_max_pages: int = 1
+    hh_web_max_pages: int = 3
     hh_web_user_agent: str = "Mozilla/5.0 (X11; Linux x86_64; rv:154.0) Gecko/20100101 Firefox/154.0"
 
     # Legacy/private applicant connector. Disabled by default. Keep this only for

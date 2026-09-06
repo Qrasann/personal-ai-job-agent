@@ -181,8 +181,9 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     async def fake_require_user(message):
         return SimpleNamespace(id=7)
 
-    async def fake_scan(bot, user_id, progress_callback=None):
+    async def fake_scan(bot, user_id, progress_callback=None, force_refresh=False):
         assert user_id == 7
+        assert force_refresh is True
         assert progress_callback is not None
         await progress_callback("⏳ HH: поиск…")
         await progress_callback("⏳ HH: найдено 2 · анализ 2/2")
@@ -196,6 +197,8 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
             },
             "processed": 2,
             "qualified": 1,
+            "stretch": 1,
+            "filtered": 0,
             "notified": 1,
             "duplicate": 0,
         }
@@ -226,3 +229,8 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     assert "HH: найдено 2 · анализ 2/2" in message.progress.edits[0][0]
     assert "⏱ Прошло:" in message.progress.edits[0][0]
     assert "Проход поиска завершён" in message.progress.edits[-1][0]
+    assert "hh: 2 (live)" in message.progress.edits[-1][0]
+    assert "🟢 Good: 1" in message.progress.edits[-1][0]
+    assert "🟡 Stretch: 1" in message.progress.edits[-1][0]
+    assert "⚪ Отфильтровано: 0" in message.progress.edits[-1][0]
+    assert "📨 Новых уведомлений: 1" in message.progress.edits[-1][0]
