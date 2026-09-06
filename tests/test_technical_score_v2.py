@@ -288,3 +288,38 @@ def test_score_job_skips_hard_three_year_production_role_requirement_only():
     assert score_job(hard, _search(), [], []).fit == "skip"
     assert score_job(generic, _search(), [], []).fit == "stretch"
     assert score_job(preferred, _search(), [], []).fit != "skip"
+
+def test_score_job_skips_hard_management_requirement_only():
+    hard_ru = Job(
+        fingerprint="management-hard-ru",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Обязанности: руководство командой DevOps-инженеров и постановка задач.",
+        country="RU",
+    )
+    hard_en = Job(
+        fingerprint="management-hard-en",
+        title="SRE Engineer",
+        company="ACME",
+        description="Responsibilities: people management for a team of SRE engineers.",
+        country="RU",
+    )
+    mentor = Job(
+        fingerprint="management-mentor",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Обязанности: менторинг коллег, code review и помощь junior-инженерам.",
+        country="RU",
+    )
+    preferred = Job(
+        fingerprint="management-preferred",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Будет плюсом: опыт управления командой.",
+        country="RU",
+    )
+
+    assert score_job(hard_ru, _search(), [], []).fit == "skip"
+    assert score_job(hard_en, _search(), [], []).fit == "skip"
+    assert score_job(mentor, _search(), [], []).fit != "skip"
+    assert score_job(preferred, _search(), [], []).fit != "skip"

@@ -118,6 +118,27 @@ def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...])
             best = kind
     return best
 
+def _management_requirement(job: Job, technical_text: str | None = None) -> str | None:
+    text = (technical_text if technical_text is not None else (job.description or "")).casefold()
+    preferred_markers = ("приветств", "желательно", "будет плюсом", "preferred", "nice to have")
+    hard_markers = (
+        "руководство командой",
+        "управление командой",
+        "управлять командой",
+        "управления командой",
+        "people management",
+        "team management",
+        "line management",
+        "manage a team",
+        "managing a team",
+    )
+    for chunk in re.split(r"[\n.;]+", text):
+        if any(marker in chunk for marker in preferred_markers):
+            continue
+        if any(marker in chunk for marker in hard_markers):
+            return "требуется управление командой"
+    return None
+
 def _production_role_experience_gap(job: Job, technical_text: str | None = None) -> str | None:
     text = (technical_text if technical_text is not None else (job.description or "")).casefold()
     production_markers = ("production", "продакш", "боев", "промышленн")
@@ -227,6 +248,11 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
         fit = "skip"
+    management_gap = _management_requirement(job, technical_text)
+    if management_gap:
+        fit = "skip"
+        technical = min(technical, 48)
+
     production_role_gap = _production_role_experience_gap(job, technical_text)
     if production_role_gap:
         fit = "skip"
@@ -316,6 +342,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
+    if management_gap:
+        bits.append(management_gap)
     if production_role_gap:
         bits.append(production_role_gap)
     if production_gap:
