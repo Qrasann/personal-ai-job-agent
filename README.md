@@ -1,3 +1,15 @@
+# v3.5.0 — Review & Saved workflow
+
+Telegram review workflow now operates on the complete vacancy backlog and saved vacancies have their own browsing flow.
+
+- `/review` shows the full notified backlog with real `N из M` position.
+- Save and skip automatically continue through the full review queue.
+- `/saved` shows saved vacancies ordered by match score and recency.
+- Saved cards support vacancy details and next navigation.
+- Equivalent title/company rows are deduplicated.
+- PostgreSQL integration tests verify backlogs larger than 10 vacancies.
+- No database migration is required.
+
 # v3.4.9 — Quality foundation
 
 This release strengthens the test and database quality foundation without changing the user-facing vacancy workflow.
