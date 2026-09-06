@@ -284,3 +284,35 @@ def test_inline_requirement_headings_are_supported():
     assert importance["Kubernetes"] == "required"
     assert importance["Grafana"] == "preferred"
     assert importance["Prometheus"] == "preferred"
+
+
+def test_common_separators_match_canonical_skills():
+    skills = extract_technical_requirements("GitLab_CI Docker_Compose Active_Directory")
+    assert "GitLab CI" in skills
+    assert "Docker Compose" in skills
+    assert "Active Directory" in skills
+
+
+def test_comparison_keeps_only_strongest_matching_fact_ids():
+    facts = [
+        fact(30, "Linux administration.", "commercial"),
+        fact(20, "Linux troubleshooting.", "unknown"),
+        fact(10, "Commercial Linux operations.", "commercial"),
+    ]
+
+    result = compare_facts("Requirements: Linux.", facts)
+    item = result.requirements[0]
+
+    assert item.status == "commercial"
+    assert item.fact_ids == (10, 30)
+
+
+def test_non_persisted_fact_id_is_not_reported():
+    result = compare_facts(
+        "Requirements: Linux.",
+        [fact(0, "Linux administration.", "commercial")],
+    )
+
+    item = result.requirements[0]
+    assert item.status == "commercial"
+    assert item.fact_ids == ()

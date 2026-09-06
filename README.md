@@ -63,7 +63,9 @@ python -m compileall -q app tests
 python -m pytest -q
 ./scripts/secret-scan.sh
 docker build -t personal-ai-job-agent:local .
+
 ```
+Detailed testing, PostgreSQL integration, coverage and mutation-testing documentation: [`docs/developer/TESTING.md`](docs/developer/TESTING.md).
 
 # v3.4.1 — Candidate Fact types
 

@@ -218,3 +218,8 @@ Kubernetes
     assert result.geography_score == 95
     assert result.salary_score == 100
     assert result.relocation_score == 50
+
+
+def test_structured_required_and_preferred_can_score_exactly_zero():
+    text = "Требования:\nLinux\nПриветствуется:\nDocker\n"
+    assert score_technical_v2(text, []) == 0

@@ -55,7 +55,7 @@ jobs:
         run: python -m compileall -q app tests
 
       - name: Run tests
-        run: python -m pytest -q
+        run: python -m pytest -q --cov=app --cov-branch --cov-fail-under=55
 
   secret-scan:
     name: Secret scan

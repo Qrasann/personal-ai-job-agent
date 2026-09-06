@@ -50,3 +50,4 @@ docker-compose.override.yml
 
 coverage.json
 htmlcov/
+mutants/
