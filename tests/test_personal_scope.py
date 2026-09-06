@@ -179,3 +179,32 @@ def test_russia_city_and_work_mode_policy():
     relocation_result = score_job(onsite_other, search, _facts(), [])
     assert 60 <= relocation_result.geography_score < 95
     assert relocation_result.fit != "skip"
+
+def test_rub_and_rur_share_salary_minimum():
+    search = _search()
+    search.settings["minimum_salary"] = {"RUB": 100000}
+
+    below = Job(
+        fingerprint="salary-rur-below",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker",
+        country="RU",
+        salary_to=80000,
+        salary_currency="RUR",
+    )
+    above = Job(
+        fingerprint="salary-rur-above",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Linux Docker",
+        country="RU",
+        salary_to=150000,
+        salary_currency="RUR",
+    )
+
+    below_result = score_job(below, search, _facts(), [])
+    above_result = score_job(above, search, _facts(), [])
+
+    assert below_result.salary_score == 80
+    assert above_result.salary_score == 100

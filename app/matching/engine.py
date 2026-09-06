@@ -118,6 +118,11 @@ def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...])
             best = kind
     return best
 
+def _normalize_salary_currency(value: str | None) -> str:
+    currency = (value or "").upper().strip()
+    return {"RUR": "RUB"}.get(currency, currency)
+
+
 def _normalize_city(value: str | None) -> str:
     text = (value or "").casefold().replace("ё", "е").strip()
     text = re.sub(r"^г\.?\s*", "", text)
@@ -319,8 +324,11 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     if country not in {"", "RU"} and not viable:
         geography = 25
 
-    minimums = settings.get("minimum_salary") or {}
-    minimum = minimums.get(job.salary_currency or "")
+    minimums = {
+        _normalize_salary_currency(currency): value
+        for currency, value in (settings.get("minimum_salary") or {}).items()
+    }
+    minimum = minimums.get(_normalize_salary_currency(job.salary_currency))
     if minimum is None:
         salary = 58 if not (job.salary_from or job.salary_to) else 72
     else:
