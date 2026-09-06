@@ -371,3 +371,15 @@ def test_select_saved_matches_keeps_only_saved_and_deduplicates():
     ]
     result = repo._select_saved_matches(rows, limit=None)
     assert [match.id for match, job in result] == [2, 5]
+
+def test_select_stretch_matches_keeps_only_stretch_and_deduplicates():
+    from types import SimpleNamespace
+    rows = [
+        (SimpleNamespace(id=1, status="notified"), SimpleNamespace(title="DevOps", company="ACME")),
+        (SimpleNamespace(id=2, status="stretch"), SimpleNamespace(title="Linux Admin", company="Beta")),
+        (SimpleNamespace(id=3, status="stretch"), SimpleNamespace(title="Linux Admin", company="Beta")),
+        (SimpleNamespace(id=4, status="filtered"), SimpleNamespace(title="SRE", company="Gamma")),
+        (SimpleNamespace(id=5, status="stretch"), SimpleNamespace(title="Platform Engineer", company="Delta")),
+    ]
+    result = repo._select_stretch_matches(rows, limit=None)
+    assert [match.id for match, job in result] == [2, 5]
