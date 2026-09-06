@@ -543,8 +543,10 @@ async def scan(message: Message, bot: Bot) -> None:
             "✅ <b>Проход поиска завершён</b>\n\n"
             + details
             + f"\n\nОбработано: {int(summary.get('processed', 0))}"
-            + f"\nПрошли фильтр: {int(summary.get('qualified', 0))}"
-            + f"\nНовых уведомлений: {int(summary.get('notified', 0))}"
+            + f"\n🟢 Good: {int(summary.get('qualified', 0))}"
+            + f"\n🟡 Stretch: {int(summary.get('stretch', 0))}"
+            + f"\n⚪ Отфильтровано: {int(summary.get('filtered', 0))}"
+            + f"\n📨 Новых уведомлений: {int(summary.get('notified', 0))}"
             + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
             parse_mode="HTML",
         )
