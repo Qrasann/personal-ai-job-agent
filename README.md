@@ -1,3 +1,17 @@
+# v3.5.1 — Search Quality & Telegram UX
+
+This release improves vacancy discovery, realistic candidate fit classification and Telegram vacancy browsing.
+
+- Manual `/scan` performs fresh discovery; HH search covers separate role queries and multiple pages.
+- Vacancies are routed into Good, Stretch and Skip lanes using seniority, experience and hard production requirements.
+- Candidate commercial experience and resume-content fit are now considered without inventing experience or inflating Match Score.
+- Local city, remote work and optional domestic relocation policies are configurable.
+- Review, Stretch and saved queues have richer cards and Back/Next navigation.
+- `/jobs` includes inline details buttons; `/start` and `/help` expose the shared command menu.
+- RUB/RUR salary aliases are normalized.
+- Full local baseline: 157 passed, 3 skipped.
+- No database schema migration is required.
+
 # v3.5.0 — Review & Saved workflow
 
 Telegram review workflow now operates on the complete vacancy backlog and saved vacancies have their own browsing flow.

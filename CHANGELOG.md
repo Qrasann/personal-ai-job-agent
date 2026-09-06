@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.5.1
+
+Search Quality & Telegram UX release.
+
+- Manual `/scan` now forces fresh discovery instead of reusing the discovery cache.
+- Expanded HeadHunter discovery across separate role queries and multiple result pages.
+- Added Good / Stretch / Skip vacancy fit lanes and Stretch review workflow.
+- Added hard filtering for seniority, production skill/role experience and management requirements.
+- Added Candidate Facts-based commercial experience fit.
+- Resume selection now considers active resume content while remaining score-neutral.
+- Added local city/work-mode policy and optional domestic relocation within Russia.
+- Normalized RUB/RUR aliases for salary-fit calculation.
+- Added richer review, Stretch and saved vacancy cards with Back/Next navigation.
+- `/jobs` now includes inline vacancy detail buttons.
+- `/start` and `/help` share the complete command menu.
+- Scan summaries expose discovery freshness and Good/Stretch lane counts.
+- Full local suite baseline is 157 passing tests with 3 skipped.
+- CI coverage gate remains 55%.
+- No database migration is required.
+
+
 ## 3.5.0
 
 Review and saved workflow release.
