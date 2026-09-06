@@ -1,6 +1,8 @@
 from __future__ import annotations
-
 from datetime import datetime
+
+from app.database.time_utils import utcnow_naive
+
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -14,7 +16,7 @@ class SchemaMigration(Base):
 
     version: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
-    applied_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    applied_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, nullable=False)
 
 
 class User(Base):
@@ -26,8 +28,8 @@ class User(Base):
     locale: Mapped[str] = mapped_column(String(16), default="ru")
     current_country: Mapped[str | None] = mapped_column(String(8), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     profiles: Mapped[list[CandidateProfile]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -42,8 +44,8 @@ class CandidateProfile(Base):
     target_role: Mapped[str] = mapped_column(String(256), default="")
     english_level: Mapped[str] = mapped_column(String(32), default="")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     user: Mapped[User] = relationship(back_populates="profiles")
@@ -65,8 +67,8 @@ class CandidateFact(Base):
     commercial: Mapped[bool] = mapped_column(Boolean, default=False)
     evidence: Mapped[str] = mapped_column(Text, default="")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     profile: Mapped[CandidateProfile] = relationship(back_populates="facts")
@@ -86,8 +88,8 @@ class ResumeProfile(Base):
     rules: Mapped[dict] = mapped_column(JSON, default=dict)
     storage_path: Mapped[str] = mapped_column(Text, default="")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     profile: Mapped[CandidateProfile] = relationship(back_populates="resumes")
@@ -102,8 +104,8 @@ class SearchProfile(Base):
     kind: Mapped[str] = mapped_column(String(32), default="employment")
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     settings: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     profile: Mapped[CandidateProfile] = relationship(back_populates="search_profiles")
@@ -140,7 +142,7 @@ class Job(Base):
     salary_currency: Mapped[str | None] = mapped_column(String(16), nullable=True)
     salary_period: Mapped[str | None] = mapped_column(String(32), nullable=True)
     published_at: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
 class JobSourceRef(Base):
@@ -153,7 +155,7 @@ class JobSourceRef(Base):
     source_job_id: Mapped[str] = mapped_column(String(256))
     url: Mapped[str] = mapped_column(Text, default="")
     raw: Mapped[dict] = mapped_column(JSON, default=dict)
-    first_seen_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
 class JobMatch(Base):
@@ -173,7 +175,7 @@ class JobMatch(Base):
     total_score: Mapped[int] = mapped_column(Integer, default=0)
     reason: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(32), default="new")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
 class Application(Base):
@@ -188,7 +190,7 @@ class Application(Base):
     resume_id: Mapped[int | None] = mapped_column(ForeignKey("resume_profiles.id", ondelete="SET NULL"), nullable=True)
     message: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(64), default="sent")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
 class SeenMessage(Base):
@@ -201,7 +203,7 @@ class SeenMessage(Base):
     message_id: Mapped[str] = mapped_column(String(256))
     conversation_id: Mapped[str] = mapped_column(String(256), default="")
     text: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
 class RuntimeState(Base):

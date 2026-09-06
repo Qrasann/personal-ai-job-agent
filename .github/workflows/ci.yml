@@ -17,6 +17,22 @@ jobs:
   test:
     name: Python checks
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: jobagent_test
+          POSTGRES_USER: jobagent_test
+          POSTGRES_PASSWORD: jobagent_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jobagent_test -d jobagent_test"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 15
+    env:
+      JOB_AGENT_TEST_DATABASE_URL: postgresql+asyncpg://jobagent_test:jobagent_test@127.0.0.1:5432/jobagent_test
     steps:
       - name: Checkout
         uses: actions/checkout@v4

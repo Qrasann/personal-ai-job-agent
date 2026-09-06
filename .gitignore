@@ -47,3 +47,6 @@ docker-compose.override.yml
 # OS/temp
 .DS_Store
 *.tmp
+
+coverage.json
+htmlcov/

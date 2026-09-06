@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+
+from app.database.time_utils import utcnow_naive
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -75,7 +76,7 @@ async def apply_migrations(conn: AsyncConnection) -> list[int]:
             {
                 "version": migration.version,
                 "name": migration.name,
-                "applied_at": datetime.utcnow(),
+                "applied_at": utcnow_naive(),
             },
         )
         applied.append(migration.version)

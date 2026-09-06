@@ -12,8 +12,8 @@ def _fact(skill: str, experience_type: str, *, fact_id: int = 1, active: bool = 
         active=active,
     )
     if deleted:
-        from datetime import datetime
-        fact.deleted_at = datetime.utcnow()
+        from app.database.time_utils import utcnow_naive
+        fact.deleted_at = utcnow_naive()
     return fact
 
 
