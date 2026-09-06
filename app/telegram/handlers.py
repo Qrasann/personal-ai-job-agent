@@ -513,7 +513,7 @@ async def scan(message: Message, bot: Bot) -> None:
     heartbeat_task = asyncio.create_task(heartbeat())
 
     try:
-        summary = await scan_for_user(bot, user.id, progress_callback=update_progress)
+        summary = await scan_for_user(bot, user.id, progress_callback=update_progress, force_refresh=True)
         heartbeat_task.cancel()
         try:
             await heartbeat_task

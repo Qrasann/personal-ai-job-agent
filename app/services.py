@@ -168,7 +168,7 @@ def _error_text(exc: Exception) -> str:
     return message or type(exc).__name__
 
 
-async def scan_for_user(bot: Bot, user_id: int, progress_callback=None) -> dict:
+async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False) -> dict:
     summary = {"sources": {}, "processed": 0, "qualified": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     async def emit_progress(text: str) -> None:
         if not progress_callback:
@@ -213,7 +213,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None) -> dict:
         try:
             cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
             cached = _DISCOVERY_CACHE.get(cache_key)
-            cache_hit = bool(cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
+            cache_hit = bool(not force_refresh and cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
             if cache_hit:
                 jobs = cached[1]
             else:
