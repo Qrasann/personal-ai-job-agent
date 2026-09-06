@@ -72,6 +72,7 @@ def test_review_command_shows_first_notified_match(monkeypatch):
 
     async def fake_review_matches(user_id, limit=10):
         assert user_id == 7
+        assert limit is None
         return [(match, job)]
 
     monkeypatch.setattr(handlers, "_require_user", fake_require_user)
@@ -268,6 +269,7 @@ def test_review_next_callback_edits_to_next_match(monkeypatch):
     monkeypatch.setattr(handlers.repo, "get_match", AsyncMock(return_value=cur))
     monkeypatch.setattr(handlers.repo, "review_matches", AsyncMock(return_value=[(cur, job1), (nxt, job2)]))
     asyncio.run(handlers.review_next_callback(callback))
+    handlers.repo.review_matches.assert_awaited_once_with(7, None)
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
     assert "82/100" in text
@@ -334,14 +336,38 @@ def test_advance_review_finishes_empty_queue(monkeypatch):
     callback = SimpleNamespace(message=message)
     monkeypatch.setattr(handlers.repo, "review_matches", AsyncMock(return_value=[]))
     asyncio.run(handlers._advance_review(callback, 7, 301))
+    handlers.repo.review_matches.assert_awaited_once_with(7, None)
     text = message.edit_text.await_args.args[0]
     assert "Очередь разобрана" in text
 
 
-def test_review_card_labels_current_batch():
+def test_review_card_labels_full_backlog():
     from types import SimpleNamespace
     from app.telegram.handlers import _render_review_card
     match = SimpleNamespace(total_score=80)
     job = SimpleNamespace(title="DevOps", company="ACME")
     text = _render_review_card(match, job, 2, 10)
-    assert "2 из 10 в текущей пачке" in text
+    assert "2 из 10" in text
+    assert "текущей пачке" not in text
+
+def test_select_review_matches_can_return_full_backlog():
+    from types import SimpleNamespace
+    rows = [
+        (SimpleNamespace(id=i, status="notified"), SimpleNamespace(title=f"Role {i}", company="ACME"))
+        for i in range(1, 13)
+    ]
+    result = repo._select_review_matches(rows, limit=None)
+    assert [match.id for match, job in result] == list(range(1, 13))
+
+
+def test_select_saved_matches_keeps_only_saved_and_deduplicates():
+    from types import SimpleNamespace
+    rows = [
+        (SimpleNamespace(id=1, status="notified"), SimpleNamespace(title="DevOps", company="ACME")),
+        (SimpleNamespace(id=2, status="saved"), SimpleNamespace(title="Linux Admin", company="Beta")),
+        (SimpleNamespace(id=3, status="saved"), SimpleNamespace(title="Linux Admin", company="Beta")),
+        (SimpleNamespace(id=4, status="skipped"), SimpleNamespace(title="SRE", company="Gamma")),
+        (SimpleNamespace(id=5, status="saved"), SimpleNamespace(title="Platform Engineer", company="Delta")),
+    ]
+    result = repo._select_saved_matches(rows, limit=None)
+    assert [match.id for match, job in result] == [2, 5]

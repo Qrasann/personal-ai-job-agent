@@ -105,10 +105,15 @@ async def _repository_review_flow(monkeypatch):
         assert len(review) == 1
         assert review[0][0].id == match.id
         assert review[0][1].id == job.id
+        full_review = await repo.review_matches(user.id, None)
+        assert [item[0].id for item in full_review] == [match.id]
 
         await repo.set_match_status(match.id, "saved")
 
         assert await repo.review_matches(user.id, 10) == []
+        saved = await repo.saved_matches(user.id, None)
+        assert [item[0].id for item in saved] == [match.id]
+        assert saved[0][1].id == job.id
 
         stored_match = await repo.get_match(match.id)
         assert stored_match is not None
@@ -227,6 +232,83 @@ async def _repository_repost_flow(monkeypatch):
         assert await repo.has_notified_equivalent(
             user.id, job2.id, "", repost.company
         ) is False
+    finally:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_review_and_saved_backlogs_exceed_ten_real_postgres(monkeypatch):
+    _require_test_database()
+    asyncio.run(_review_saved_backlog_flow(monkeypatch))
+
+
+async def _review_saved_backlog_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(
+        engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    try:
+        user = await repo.create_user("integration-3001", "Backlog User")
+        profile = await repo.ensure_default_profile(user.id)
+        search = (await repo.list_search_profiles(profile.id))[0]
+        resume = await repo.add_resume(
+            profile.id,
+            "Backlog Resume",
+            "en",
+            "DevOps Engineer",
+        )
+
+        match_ids = []
+        for index in range(12):
+            normalized = NormalizedJob(
+                source="integration-backlog",
+                source_job_id=f"job-{index}",
+                title=f"Role {index}",
+                company=f"Company {index}",
+                country="RU",
+            )
+            job, _ = await repo.upsert_job(normalized)
+            match = await repo.save_match(
+                job_id=job.id,
+                user_id=user.id,
+                profile_id=profile.id,
+                search_profile_id=search.id,
+                resume_id=resume.id,
+                technical_score=80,
+                geography_score=80,
+                salary_score=60,
+                relocation_score=50,
+                total_score=90 - index,
+                reason="backlog test",
+                status="notified",
+            )
+            match_ids.append(match.id)
+
+        limited_review = await repo.review_matches(user.id, 10)
+        full_review = await repo.review_matches(user.id, None)
+
+        assert len(limited_review) == 10
+        assert len(full_review) == 12
+        assert [item[0].id for item in full_review] == match_ids
+
+        for match_id in match_ids:
+            await repo.set_match_status(match_id, "saved")
+
+        assert await repo.review_matches(user.id, None) == []
+
+        full_saved = await repo.saved_matches(user.id, None)
+        assert len(full_saved) == 12
+        assert [item[0].id for item in full_saved] == match_ids
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)

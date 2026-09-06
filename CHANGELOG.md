@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.5.0
+
+Review and saved workflow release.
+
+- /review now operates on the full notified vacancy backlog instead of a 10-item batch.
+- Review cards show the real position in the full backlog.
+- Save, skip and next actions continue across the full review queue.
+- Added /saved for browsing saved vacancies.
+- Saved vacancies support details and next navigation.
+- Added saved empty-state and end-of-list handling.
+- Review and saved lists deduplicate equivalent title/company rows.
+- Added PostgreSQL integration coverage for review and saved backlogs larger than 10 items.
+- Full suite baseline is 125 passing tests.
+- CI coverage gate remains 55%; local v3.5.0 coverage baseline is 58.58%.
+- No database migration is required.
+
+
 ## 3.4.9
 
 Quality-foundation release.

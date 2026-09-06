@@ -74,3 +74,20 @@ def review_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
             ],
         ]
     )
+
+
+def saved_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📋 Подробнее",
+                    callback_data=f"details:{job_id}",
+                ),
+                InlineKeyboardButton(
+                    text="➡ Следующая",
+                    callback_data=f"saved_next:{match_id}",
+                ),
+            ]
+        ]
+    )
