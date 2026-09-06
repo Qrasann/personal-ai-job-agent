@@ -261,3 +261,30 @@ def test_score_job_skips_hard_production_skill_gap_only():
     assert score_job(hard, _search(), learning, []).fit == "skip"
     assert score_job(hard, _search(), commercial, []).fit == "good"
     assert score_job(preferred, _search(), learning, []).fit == "good"
+
+def test_score_job_skips_hard_three_year_production_role_requirement_only():
+    hard = Job(
+        fingerprint="prod-role-hard",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Требования: от 3 лет опыта DevOps в production.",
+        country="RU",
+    )
+    generic = Job(
+        fingerprint="prod-role-generic",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Опыт 3–6 лет. Linux Docker.",
+        country="RU",
+    )
+    preferred = Job(
+        fingerprint="prod-role-preferred",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Будет плюсом: 3+ года DevOps опыта в production.",
+        country="RU",
+    )
+
+    assert score_job(hard, _search(), [], []).fit == "skip"
+    assert score_job(generic, _search(), [], []).fit == "stretch"
+    assert score_job(preferred, _search(), [], []).fit != "skip"

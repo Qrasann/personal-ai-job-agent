@@ -118,6 +118,27 @@ def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...])
             best = kind
     return best
 
+def _production_role_experience_gap(job: Job, technical_text: str | None = None) -> str | None:
+    text = (technical_text if technical_text is not None else (job.description or "")).casefold()
+    production_markers = ("production", "продакш", "боев", "промышленн")
+    preferred_markers = ("приветств", "желательно", "будет плюсом", "preferred", "nice to have")
+    role_markers = ("devops", "sre", "site reliability", "platform engineer", "platform engineering")
+    years_patterns = (
+        r"(?:от\s*)?(?:3|4)\+?\s*(?:лет|года)",
+        r"(?:3|4)\+\s*years?",
+        r"(?:at least|minimum of)\s+(?:3|4)\s+years?",
+    )
+    for chunk in re.split(r"[\n.;]+", text):
+        if any(marker in chunk for marker in preferred_markers):
+            continue
+        if not any(marker in chunk for marker in production_markers):
+            continue
+        if not any(marker in chunk for marker in role_markers):
+            continue
+        if any(re.search(pattern, chunk) for pattern in years_patterns):
+            return "3+ года production DevOps/SRE опыта"
+    return None
+
 def _production_skill_gap(job: Job, facts: list[CandidateFact], technical_text: str | None = None) -> tuple[str, str] | None:
     text = (technical_text if technical_text is not None else (job.description or "")).casefold()
     skills = {
@@ -206,6 +227,11 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
         fit = "skip"
+    production_role_gap = _production_role_experience_gap(job, technical_text)
+    if production_role_gap:
+        fit = "skip"
+        technical = min(technical, 52)
+
     production_gap = _production_skill_gap(job, facts, technical_text)
     if production_gap:
         gap_skill, gap_experience = production_gap
@@ -290,6 +316,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
+    if production_role_gap:
+        bits.append(production_role_gap)
     if production_gap:
         bits.append(f"production-требование {gap_skill} без commercial опыта ({gap_experience})")
 
