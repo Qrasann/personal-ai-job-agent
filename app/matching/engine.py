@@ -104,6 +104,44 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...]) -> str:
+    rank = {"missing": 0, "learning": 1, "unknown": 2, "lab": 3, "commercial": 4}
+    best = "missing"
+    for fact in facts:
+        if fact.active is False or getattr(fact, "deleted_at", None) is not None:
+            continue
+        value = (fact.value or "").casefold()
+        if not any(alias in value for alias in aliases):
+            continue
+        kind = (fact.experience_type or "unknown").casefold()
+        if rank.get(kind, 0) > rank.get(best, 0):
+            best = kind
+    return best
+
+def _production_skill_gap(job: Job, facts: list[CandidateFact], technical_text: str | None = None) -> tuple[str, str] | None:
+    text = (technical_text if technical_text is not None else (job.description or "")).casefold()
+    skills = {
+        "kubernetes": ("kubernetes", "k8s"),
+        "terraform": ("terraform",),
+        "ansible": ("ansible",),
+    }
+    production_markers = ("production", "продакш", "боев", "промышленн")
+    requirement_markers = ("опыт", "experience", "required", "треб", "обязател")
+    preferred_markers = ("приветств", "желательно", "будет плюсом", "preferred", "nice to have")
+    for chunk in re.split(r"[\n.;]+", text):
+        if any(marker in chunk for marker in preferred_markers):
+            continue
+        if not any(marker in chunk for marker in production_markers):
+            continue
+        if not any(marker in chunk for marker in requirement_markers):
+            continue
+        for skill, aliases in skills.items():
+            if any(alias in chunk for alias in aliases):
+                experience = _best_skill_experience(facts, aliases)
+                if experience != "commercial":
+                    return skill, experience
+    return None
+
 def _risk_penalty(job: Job, settings: dict) -> tuple[int, str | None]:
     """Soft penalty for domains the owner wants manually reviewed.
 
@@ -168,6 +206,12 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
         fit = "skip"
+    production_gap = _production_skill_gap(job, facts, technical_text)
+    if production_gap:
+        gap_skill, gap_experience = production_gap
+        fit = "skip"
+        technical = min(technical, 52)
+
     if seniority == "senior":
         technical = min(technical, 48)
     elif seniority == "high_experience":
@@ -226,6 +270,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
 
     # In rule-only fallback mode, obvious senior roles must not slip above the
     # normal notification threshold merely because geography/salary look good.
+
     if seniority == "senior":
         total = min(total, int(settings.get("senior_score_cap", 54)))
     elif seniority == "high_experience":
@@ -245,6 +290,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
+    if production_gap:
+        bits.append(f"production-требование {gap_skill} без commercial опыта ({gap_experience})")
+
     if risk_reason:
         bits.append(risk_reason)
     if signals.remote_reason:

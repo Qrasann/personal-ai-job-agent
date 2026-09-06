@@ -238,3 +238,26 @@ def test_score_job_classifies_good_stretch_and_skip():
     assert score_job(stretch, _search(), facts, []).fit == "stretch"
     assert score_job(senior, _search(), facts, []).fit == "skip"
     assert score_job(high_exp, _search(), facts, []).fit == "skip"
+
+def test_score_job_skips_hard_production_skill_gap_only():
+    learning = [_fact("Kubernetes", "learning", fact_id=1)]
+    commercial = [_fact("Kubernetes", "commercial", fact_id=2)]
+
+    hard = Job(
+        fingerprint="prod-gap-hard",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Требования: обязателен опыт Kubernetes в production.",
+        country="RU",
+    )
+    preferred = Job(
+        fingerprint="prod-gap-preferred",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Будет плюсом: опыт Kubernetes в production.",
+        country="RU",
+    )
+
+    assert score_job(hard, _search(), learning, []).fit == "skip"
+    assert score_job(hard, _search(), commercial, []).fit == "good"
+    assert score_job(preferred, _search(), learning, []).fit == "good"
