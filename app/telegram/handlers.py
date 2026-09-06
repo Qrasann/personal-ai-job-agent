@@ -75,6 +75,39 @@ async def multi_command(message: Message, bot: Bot) -> None:
             bot=bot,
         )
 
+def _main_menu_text() -> str:
+    return (
+        "🤖 <b>Personal AI Job Agent</b>\n\n"
+        "🔎 <b>Поиск и очереди</b>\n"
+        "/scan — запустить поиск сейчас\n"
+        "/review — разобрать Good-вакансии\n"
+        "/stretch — разобрать Stretch-вакансии\n"
+        "/saved — сохранённые вакансии\n"
+        "/jobs — последние совпадения\n\n"
+        "⚙️ <b>Настройки поиска</b>\n"
+        "/roles — текущие роли\n"
+        "/role DevOps Engineer — выбрать основную роль\n"
+        "/roleadd Linux Administrator — добавить роль\n"
+        "/mode — направления поиска\n"
+        "/city Тверь — локальный город\n"
+        "/domestic_relocation on|off — переезд по РФ\n"
+        "/country — текущая страна\n"
+        "/targets — целевые страны\n"
+        "/settings — текущие настройки\n\n"
+        "🧠 <b>Профиль и вакансии</b>\n"
+        "/job 25 — подробности вакансии\n"
+        "/compare 25 — сравнить вакансию с профилем\n"
+        "/facts — факты кандидата\n"
+        "/resumes — варианты резюме\n"
+        "/sources — источники вакансий\n\n"
+        "🤖 <b>Агент</b>\n"
+        "/status — состояние агента\n"
+        "/chats — проверить HH-переписку\n"
+        "/pause /resume — остановить или возобновить поиск\n"
+        "/help — показать это меню\n\n"
+        "Перешли сюда пост с вакансией из Telegram — он попадёт в тот же pipeline."
+    )
+
 @router.message(CommandStart())
 async def start(message: Message) -> None:
     existing = await _user(message)
@@ -88,28 +121,15 @@ async def start(message: Message) -> None:
         )
         return
     await bootstrap_user(existing.telegram_chat_id, existing.display_name)
-    await message.answer(
-        "🤖 <b>Personal AI Job Agent</b>\n\n"
-        "Поиск: 🇷🇺 Россия + 🌍 international remote + ✈️ relocation.\n\n"
-        "/role DevOps Engineer — выбрать основную роль\n"
-        "/roleadd Linux Administrator — добавить роль\n"
-        "/roles — показать роли\n"
-        "/mode — включить/выключить направления поиска\n"
-        "/settings — текущие настройки\n"
-        "/scan — поиск сейчас\n"
-        "/review — разобрать новые вакансии\n"
-        "/saved — сохранённые вакансии\n"
-        "/jobs — последние совпадения\n"
-        "/job 25 — подробности вакансии\n"
-        "/compare 25 — сравнить вакансию с профилем\n"
-        "/sources — источники\n"
-        "/facts — факты кандидата\n"
-        "/resumes — варианты резюме\n"
-        "/chats — проверить HH-переписку\n"
-        "/pause /resume — остановить/запустить\n\n"
-        "Перешли сюда пост с вакансией из Telegram — он попадёт в тот же pipeline. Сообщения рекрутера обрабатываются одинаково, независимо от того, человек это или recruiter-AI.",
-        parse_mode="HTML",
-    )
+    await message.answer(_main_menu_text(), parse_mode="HTML")
+
+
+@router.message(Command("help"))
+async def help_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    await message.answer(_main_menu_text(), parse_mode="HTML")
 
 
 @router.message(Command("register"))
