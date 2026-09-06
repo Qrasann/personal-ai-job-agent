@@ -76,6 +76,33 @@ def review_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
     )
 
 
+def stretch_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⭐ Сохранить",
+                    callback_data=f"stretch_save:{match_id}",
+                ),
+                InlineKeyboardButton(
+                    text="❌ Пропустить",
+                    callback_data=f"stretch_skip:{match_id}",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="📋 Подробнее",
+                    callback_data=f"details:{job_id}",
+                ),
+                InlineKeyboardButton(
+                    text="➡ Следующая",
+                    callback_data=f"stretch_next:{match_id}",
+                ),
+            ],
+        ]
+    )
+
+
 def saved_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[

@@ -17,7 +17,7 @@ from app.geo.countries import all_supported_countries, country_config, normalize
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list
-from app.telegram.ui import review_keyboard, saved_keyboard, vacancy_details_keyboard
+from app.telegram.ui import review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.version import current_version
 from app.telegram.multicommand import (
@@ -579,6 +579,15 @@ def _render_review_card(match, job, position: int, total: int) -> str:
     )
 
 
+
+def _render_stretch_card(match, job, position: int, total: int) -> str:
+    return (
+        "🟡 <b>Stretch-вакансии</b>\n\n"
+        f"<b>{html.escape(job.title or '')}</b>\n"
+        f"{html.escape(job.company or 'Компания не указана')}\n\n"
+        f"🎯 Match: <b>{match.total_score}/100</b>\n"
+        f"📌 {position} из {total}"
+    )
 def _render_saved_card(match, job, position: int, total: int) -> str:
     return (
         "⭐ <b>Сохранённые вакансии</b>\n\n"
@@ -588,6 +597,19 @@ def _render_saved_card(match, job, position: int, total: int) -> str:
         f"📌 {position} из {total}"
     )
 
+
+async def _advance_stretch(callback, user_id: int, current_match_id: int) -> None:
+    rows = await repo.stretch_matches(user_id, None)
+    picked = _pick_next_review(rows, current_match_id)
+    if not picked:
+        await callback.message.edit_text("✅ Stretch-очередь разобрана — вакансий больше нет.")
+        return
+    index, (match, job) = picked
+    await callback.message.edit_text(
+        _render_stretch_card(match, job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=stretch_keyboard(match.id, job.id),
+    )
 
 async def _advance_review(callback, user_id: int, current_match_id: int) -> None:
     rows = await repo.review_matches(user_id, None)
@@ -621,6 +643,22 @@ async def review(message: Message) -> None:
     )
 
 
+
+@router.message(Command("stretch"))
+async def stretch(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    rows = await repo.stretch_matches(user.id, None)
+    if not rows:
+        await message.answer("🟡 Stretch-вакансий пока нет.")
+        return
+    match, job = rows[0]
+    await message.answer(
+        _render_stretch_card(match, job, 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=stretch_keyboard(match.id, job.id),
+    )
 @router.message(Command("saved"))
 async def saved(message: Message) -> None:
     user = await _require_user(message)
@@ -737,6 +775,69 @@ async def chats(message: Message, bot: Bot) -> None:
         return
     await scan_hh_chats(bot)
     await message.answer("✅ HH-чаты проверены.")
+
+
+@router.callback_query(F.data.startswith("stretch_next:"))
+async def stretch_next_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    rows = await repo.stretch_matches(user.id, None)
+    picked = _pick_next_review(rows, match.id)
+    if not picked:
+        await callback.answer("Больше Stretch-вакансий нет", show_alert=True)
+        return
+    index, (next_match, next_job) = picked
+    await callback.message.edit_text(
+        _render_stretch_card(next_match, next_job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=stretch_keyboard(next_match.id, next_job.id),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("stretch_skip:"))
+async def stretch_skip_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "skipped")
+    await callback.answer("❌ Пропущено")
+    await _advance_stretch(callback, user.id, match.id)
+
+
+@router.callback_query(F.data.startswith("stretch_save:"))
+async def stretch_save_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "saved")
+    await callback.answer("⭐ Сохранено")
+    await _advance_stretch(callback, user.id, match.id)
 
 
 @router.callback_query(F.data.startswith("saved_next:"))
