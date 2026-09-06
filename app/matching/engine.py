@@ -18,6 +18,7 @@ class MatchResult:
     reason: str
     resume_id: int | None = None
     track: str = "unknown"
+    fit: str = "good"
 
 
 def _terms(settings: dict, key: str) -> list[str]:
@@ -126,13 +127,13 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     exclude = _terms(settings, "exclude_terms")
     hit_exclude = [x for x in exclude if x and x in hay]
     if hit_exclude:
-        return MatchResult(0, 0, 0, 0, 0, "Исключено по фильтру: " + ", ".join(hit_exclude), chosen_resume, "excluded")
+        return MatchResult(0, 0, 0, 0, 0, "Исключено по фильтру: " + ", ".join(hit_exclude), chosen_resume, "excluded", "skip")
 
     signals = analyze_job_signals(job)
     enabled = _enabled_tracks(settings)
     viable = signals.tracks & enabled
     if signals.tracks and not viable:
-        return MatchResult(0, 0, 0, 0, 0, "Режим этой вакансии выключен", chosen_resume, "disabled")
+        return MatchResult(0, 0, 0, 0, 0, "Режим этой вакансии выключен", chosen_resume, "disabled", "skip")
 
     preferred = _terms(settings, "preferred_terms")
     strong = _terms(settings, "strong_terms")
@@ -162,6 +163,11 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         technical = structured_technical
 
     seniority, seniority_reason = _seniority_flags(job)
+    fit = "good"
+    if seniority == "stretch":
+        fit = "stretch"
+    elif seniority in {"senior", "high_experience"}:
+        fit = "skip"
     if seniority == "senior":
         technical = min(technical, 48)
     elif seniority == "high_experience":
@@ -245,4 +251,4 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append(signals.remote_reason)
     if signals.relocation_reason:
         bits.append(signals.relocation_reason)
-    return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track)
+    return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track, fit)

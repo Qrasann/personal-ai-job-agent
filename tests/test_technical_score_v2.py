@@ -223,3 +223,18 @@ Kubernetes
 def test_structured_required_and_preferred_can_score_exactly_zero():
     text = "Требования:\nLinux\nПриветствуется:\nDocker\n"
     assert score_technical_v2(text, []) == 0
+
+def test_score_job_classifies_good_stretch_and_skip():
+    facts = [
+        _fact("Linux", "commercial", fact_id=1),
+        _fact("Docker", "lab", fact_id=2),
+    ]
+    good = Job(fingerprint="fit-good", title="DevOps Engineer", company="ACME", description="Опыт 1–3 года. Linux Docker", country="RU")
+    stretch = Job(fingerprint="fit-stretch", title="DevOps Engineer", company="ACME", description="Опыт 3–6 лет. Linux Docker", country="RU")
+    senior = Job(fingerprint="fit-senior", title="Senior DevOps Engineer", company="ACME", description="Linux Docker", country="RU")
+    high_exp = Job(fingerprint="fit-5plus", title="DevOps Engineer", company="ACME", description="Опыт от 5 лет. Linux Docker", country="RU")
+
+    assert score_job(good, _search(), facts, []).fit == "good"
+    assert score_job(stretch, _search(), facts, []).fit == "stretch"
+    assert score_job(senior, _search(), facts, []).fit == "skip"
+    assert score_job(high_exp, _search(), facts, []).fit == "skip"
