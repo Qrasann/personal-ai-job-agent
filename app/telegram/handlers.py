@@ -644,6 +644,14 @@ def _pick_next_review(rows, current_match_id: int):
     return (0, rows[0]) if rows else None
 
 
+def _pick_previous_review(rows, current_match_id: int):
+    for index, (match, job) in enumerate(rows):
+        if match.id == current_match_id:
+            previous_index = index - 1
+            return (previous_index, rows[previous_index]) if previous_index >= 0 else None
+    return (len(rows) - 1, rows[-1]) if rows else None
+
+
 def _render_review_card(match, job, position: int, total: int) -> str:
     return (
         "📥 <b>Разбор вакансий</b>\n\n"
@@ -850,6 +858,55 @@ async def chats(message: Message, bot: Bot) -> None:
         return
     await scan_hh_chats(bot)
     await message.answer("✅ HH-чаты проверены.")
+
+
+async def _navigate_previous_queue(
+    callback, queue_loader, renderer, keyboard_factory, first_message: str
+) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    rows = await queue_loader(user.id, None)
+    picked = _pick_previous_review(rows, match.id)
+    if not picked:
+        await callback.answer(first_message, show_alert=True)
+        return
+    index, (previous_match, job) = picked
+    await callback.message.edit_text(
+        renderer(previous_match, job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=keyboard_factory(previous_match.id, job.id),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("review_prev:"))
+async def review_prev_callback(callback: CallbackQuery) -> None:
+    await _navigate_previous_queue(
+        callback, repo.review_matches, _render_review_card, review_keyboard, "Это первая вакансия"
+    )
+
+
+@router.callback_query(F.data.startswith("stretch_prev:"))
+async def stretch_prev_callback(callback: CallbackQuery) -> None:
+    await _navigate_previous_queue(
+        callback, repo.stretch_matches, _render_stretch_card, stretch_keyboard, "Это первая Stretch-вакансия"
+    )
+
+
+@router.callback_query(F.data.startswith("saved_prev:"))
+async def saved_prev_callback(callback: CallbackQuery) -> None:
+    await _navigate_previous_queue(
+        callback, repo.saved_matches, _render_saved_card, saved_keyboard, "Это первая сохранённая вакансия"
+    )
 
 
 @router.callback_query(F.data.startswith("stretch_next:"))
