@@ -25,21 +25,59 @@ def _terms(settings: dict, key: str) -> list[str]:
     return [str(x).casefold() for x in (settings.get(key) or [])]
 
 
+_RESUME_GENERIC_TOKENS = {
+    "engineer", "administrator", "specialist", "developer",
+    "инженер", "администратор", "специалист", "разработчик",
+    "experience", "work", "with", "from", "years",
+    "опыт", "работа", "года", "лет",
+}
+
+
+def _resume_content_overlap(job: Job, resume: ResumeProfile) -> int:
+    job_tokens = {
+        token
+        for token in re.findall(
+            r"[a-zа-яё0-9+#.-]+",
+            f"{job.title} {job.description}".casefold(),
+        )
+        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
+    }
+    resume_tokens = {
+        token
+        for token in re.findall(
+            r"[a-zа-яё0-9+#.-]+",
+            str(resume.content or "").casefold(),
+        )
+        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
+    }
+    return len(job_tokens & resume_tokens)
+
 def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
-    if not resumes:
+    available = [
+        resume
+        for resume in resumes
+        if resume.active is not False and getattr(resume, "deleted_at", None) is None
+    ]
+    if not available:
         return None
+
     hay = f"{job.title} {job.description}".casefold()
     ranked: list[tuple[int, int]] = []
-    for resume in resumes:
+    for resume in available:
         score = 0
-        for token in re.findall(r"[a-zа-я0-9+#.-]+", resume.role.casefold()):
+        for token in re.findall(r"[a-zа-яё0-9+#.-]+", resume.role.casefold()):
             if len(token) >= 3 and token in hay:
                 score += 5
+
+        score += min(10, _resume_content_overlap(job, resume))
+
         if (job.country or "").upper() not in {"", "RU"} and resume.language == "en":
             score += 5
         if (job.country or "").upper() == "RU" and resume.language == "ru":
             score += 3
+
         ranked.append((score, resume.id))
+
     ranked.sort(reverse=True)
     return ranked[0][1]
 
