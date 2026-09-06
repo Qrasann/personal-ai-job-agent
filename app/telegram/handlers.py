@@ -280,6 +280,7 @@ async def search_settings(message: Message) -> None:
         f"Роли: {html.escape(', '.join(queries))}\n"
         f"Россия: {'ON' if modes.get('local_ru', True) else 'OFF'}\n"
         f"Город: {html.escape(str(cfg.get('local_city') or 'не задан'))}\n"
+        f"Переезд по РФ: {'ON' if cfg.get('domestic_relocation', False) else 'OFF'}\n"
         f"International remote: {'ON' if modes.get('remote_international', True) else 'OFF'}\n"
         f"Relocation: {'ON' if modes.get('relocation', True) else 'OFF'}\n"
         f"Мин. РФ зарплата: {minimum or 'не задана'} RUB net\n"
@@ -314,6 +315,32 @@ async def city(message: Message) -> None:
     search.settings = current
     await repo.update_search_settings(search.id, current)
     await message.answer("✅ Локальный город: " + html.escape(value), parse_mode="HTML")
+
+
+@router.message(Command("domestic_relocation"))
+async def domestic_relocation(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    _, search = await _first_search(user.id)
+    if not search:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    current = dict(search.settings or {})
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) == 1:
+        state = "ON" if current.get("domestic_relocation", False) else "OFF"
+        await message.answer("🚆 Переезд по РФ: " + state)
+        return
+    value = parts[1].strip().casefold()
+    if value not in {"on", "off"}:
+        await message.answer("Использование: /domestic_relocation on|off")
+        return
+    current["domestic_relocation"] = value == "on"
+    search.settings = current
+    await repo.update_search_settings(search.id, current)
+    state = "ON" if current["domestic_relocation"] else "OFF"
+    await message.answer("✅ Переезд по РФ: " + state)
 
 @router.message(Command("country"))
 async def country(message: Message) -> None:
