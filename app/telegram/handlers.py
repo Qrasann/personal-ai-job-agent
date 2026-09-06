@@ -16,7 +16,7 @@ from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
-from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list
+from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
 from app.telegram.ui import review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.version import current_version
@@ -653,31 +653,20 @@ def _pick_previous_review(rows, current_match_id: int):
 
 
 def _render_review_card(match, job, position: int, total: int) -> str:
-    return (
-        "📥 <b>Разбор вакансий</b>\n\n"
-        f"<b>{html.escape(job.title or '')}</b>\n"
-        f"{html.escape(job.company or 'Компания не указана')}\n\n"
-        f"🎯 Match: <b>{match.total_score}/100</b>\n"
-        f"📌 {position} из {total}"
+    return render_queue_card(
+        match, job, header="📥 Разбор вакансий", lane="🟢 Good", position=position, total=total
     )
-
 
 
 def _render_stretch_card(match, job, position: int, total: int) -> str:
-    return (
-        "🟡 <b>Stretch-вакансии</b>\n\n"
-        f"<b>{html.escape(job.title or '')}</b>\n"
-        f"{html.escape(job.company or 'Компания не указана')}\n\n"
-        f"🎯 Match: <b>{match.total_score}/100</b>\n"
-        f"📌 {position} из {total}"
+    return render_queue_card(
+        match, job, header="🟡 Stretch-вакансии", lane="🟡 Stretch", position=position, total=total
     )
+
+
 def _render_saved_card(match, job, position: int, total: int) -> str:
-    return (
-        "⭐ <b>Сохранённые вакансии</b>\n\n"
-        f"<b>{html.escape(job.title or '')}</b>\n"
-        f"{html.escape(job.company or 'Компания не указана')}\n\n"
-        f"🎯 Match: <b>{match.total_score}/100</b>\n"
-        f"📌 {position} из {total}"
+    return render_queue_card(
+        match, job, header="⭐ Сохранённые вакансии", lane="⭐ Saved", position=position, total=total
     )
 
 

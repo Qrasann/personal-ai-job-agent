@@ -61,6 +61,64 @@ def _published(value: str) -> str:
     return parsed.strftime("%d.%m.%Y %H:%M")
 
 
+def render_queue_card(
+    match,
+    job,
+    *,
+    header: str,
+    lane: str,
+    position: int,
+    total: int,
+) -> str:
+    title = _clip(repair_mojibake(str(getattr(job, "title", "") or "")), 120)
+    company = _clip(repair_mojibake(str(getattr(job, "company", "") or "")), 100)
+    description = str(getattr(job, "description", "") or "")
+    salary = format_salary(
+        getattr(job, "salary_from", None),
+        getattr(job, "salary_to", None),
+        getattr(job, "salary_currency", None),
+        fallback_text=description,
+    )
+
+    location = repair_mojibake(
+        str(getattr(job, "city", None) or getattr(job, "country", None) or "не указана")
+    )
+    work_mode = repair_mojibake(str(getattr(job, "work_mode", None) or "не указан"))
+
+    lines = [
+        f"<b>{html.escape(header)}</b>",
+        f"<b>{html.escape(lane)}</b>",
+        "",
+        f"<b>{html.escape(title)}</b>",
+        html.escape(company or "Компания не указана"),
+        "",
+        f"💰 {html.escape(salary)}",
+        f"📍 {html.escape(location)}",
+        f"🏠 {html.escape(work_mode)}",
+        "",
+        f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>",
+    ]
+
+    components = []
+    for label, attr in (
+        ("Tech", "technical_score"),
+        ("Geo", "geography_score"),
+        ("Salary", "salary_score"),
+        ("Reloc", "relocation_score"),
+    ):
+        value = getattr(match, attr, None)
+        if value is not None:
+            components.append(f"{label} {value}")
+    if components:
+        lines.append("📊 " + " · ".join(components))
+
+    reason = _clip(repair_mojibake(str(getattr(match, "reason", "") or "")), 280)
+    if reason:
+        lines.append(f"💡 {html.escape(reason)}")
+
+    lines.append(f"📌 {position} из {total}")
+    return "\n".join(lines)
+
 def render_jobs_list(rows: list[tuple[object, object]]) -> str:
     lines = ["🔥 <b>Последние совпадения</b>", ""]
     for match, job in rows:
