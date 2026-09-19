@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 from app.database.db import SessionLocal
 from app.database.models import (
@@ -136,10 +137,16 @@ async def set_user_country(user_id: int, code: str | None) -> None:
 
 async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
     async with SessionLocal() as session:
-        source_ref = await session.scalar(select(JobSourceRef).where(JobSourceRef.source_id == job.source, JobSourceRef.source_job_id == job.source_job_id))
+        source_ref = await session.scalar(
+            select(JobSourceRef).where(
+                JobSourceRef.source_id == job.source,
+                JobSourceRef.source_job_id == job.source_job_id,
+            )
+        )
         if source_ref:
             existing = await session.get(Job, source_ref.job_id)
-            return existing, False
+            if existing:
+                return existing, False
 
         fingerprint = job.canonical_fingerprint()
         existing = await session.scalar(select(Job).where(Job.fingerprint == fingerprint))
@@ -163,11 +170,39 @@ async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
                 published_at=job.published_at,
             )
             session.add(existing)
-            await session.flush()
-            created = True
-        session.add(JobSourceRef(job_id=existing.id, source_id=job.source, source_job_id=job.source_job_id, url=job.url, raw=job.raw))
+            try:
+                async with session.begin_nested():
+                    await session.flush()
+                created = True
+            except IntegrityError:
+                existing = await session.scalar(select(Job).where(Job.fingerprint == fingerprint))
+                created = False
+
+        ref_existing = await session.scalar(
+            select(JobSourceRef).where(
+                JobSourceRef.source_id == job.source,
+                JobSourceRef.source_job_id == job.source_job_id,
+            )
+        )
+        if not ref_existing and existing:
+            session.add(
+                JobSourceRef(
+                    job_id=existing.id,
+                    source_id=job.source,
+                    source_job_id=job.source_job_id,
+                    url=job.url,
+                    raw=job.raw,
+                )
+            )
+            try:
+                async with session.begin_nested():
+                    await session.flush()
+            except IntegrityError:
+                pass
+
         await session.commit()
-        await session.refresh(existing)
+        if existing:
+            await session.refresh(existing)
         return existing, created
 
 
