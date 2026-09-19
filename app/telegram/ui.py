@@ -57,7 +57,13 @@ def vacancy_details_keyboard(job_id: int) -> InlineKeyboardMarkup:
                     text="🧩 Сравнить с профилем",
                     callback_data=f"compare:{job_id}",
                 )
-            ]
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🚫 В чёрный список",
+                    callback_data=f"blacklist_job:{job_id}",
+                )
+            ],
         ]
     )
 
@@ -97,6 +103,7 @@ def stretch_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
 def saved_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [InlineKeyboardButton(text="🗑 Убрать", callback_data=f"saved_remove:{match_id}")],
             [InlineKeyboardButton(text="📋 Подробнее", callback_data=f"details:{job_id}")],
             [
                 InlineKeyboardButton(text="⬅ Назад", callback_data=f"saved_prev:{match_id}"),

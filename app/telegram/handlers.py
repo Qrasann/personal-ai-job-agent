@@ -91,6 +91,7 @@ def _main_menu_text() -> str:
         "/mode — направления поиска\n"
         "/city Тверь — локальный город\n"
         "/domestic_relocation on|off — переезд по РФ\n"
+        "/blacklist — чёрный список (компании, стоп-слова)\n"
         "/country — текущая страна\n"
         "/targets — целевые страны\n"
         "/settings — текущие настройки\n\n"
@@ -361,6 +362,87 @@ async def domestic_relocation(message: Message) -> None:
     await repo.update_search_settings(search.id, current)
     state = "ON" if current["domestic_relocation"] else "OFF"
     await message.answer("✅ Переезд по РФ: " + state)
+
+@router.message(Command("blacklist"))
+async def blacklist_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile, search = await _first_search(user.id)
+    if not search:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    current = dict(search.settings or {})
+    terms = list(current.get("exclude_terms") or [])
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) == 1:
+        if not terms:
+            await message.answer(
+                "🚫 Чёрный список пуст.\n"
+                "Добавить: <code>/blacklist Компания</code>\n"
+                "Удалить: <code>/blacklist remove Компания</code>\n"
+                "Очистить: <code>/blacklist clear</code>",
+                parse_mode="HTML",
+            )
+            return
+        items = "\n".join(f"• {html.escape(t)}" for t in terms)
+        await message.answer(
+            f"🚫 <b>Чёрный список (exclude_terms):</b>\n{items}\n\n"
+            "Удалить: <code>/blacklist remove Компания</code>\n"
+            "Очистить: <code>/blacklist clear</code>",
+            parse_mode="HTML",
+        )
+        return
+
+    raw = parts[1].strip()
+    if raw.casefold() == "clear":
+        current["exclude_terms"] = []
+        search.settings = current
+        await repo.update_search_settings(search.id, current)
+        await message.answer("✅ Чёрный список очищен.")
+        return
+
+    subparts = raw.split(maxsplit=1)
+    if subparts[0].casefold() in {"remove", "rm", "del", "delete"}:
+        if len(subparts) == 1 or not subparts[1].strip():
+            await message.answer("Использование: <code>/blacklist remove Компания</code>", parse_mode="HTML")
+            return
+        rem_raw = subparts[1].strip()
+        rem_items = [x.strip() for x in rem_raw.split(",") if x.strip()] if "," in rem_raw else [rem_raw]
+        removed = []
+        remaining = []
+        for t in terms:
+            if any(t.casefold() == target.casefold() for target in rem_items):
+                removed.append(t)
+            else:
+                remaining.append(t)
+
+        if not removed:
+            await message.answer(f"ℹ Термины не найдены в чёрном списке: <b>{html.escape(rem_raw)}</b>", parse_mode="HTML")
+            return
+
+        current["exclude_terms"] = remaining
+        search.settings = current
+        await repo.update_search_settings(search.id, current)
+        await message.answer(f"✅ Из чёрного списка удалено: <b>{html.escape(', '.join(removed))}</b>", parse_mode="HTML")
+        return
+
+    new_items = [x.strip() for x in raw.split(",") if x.strip()] if "," in raw else [raw]
+    added = []
+    for item in new_items:
+        if not any(item.casefold() == existing.casefold() for existing in terms):
+            terms.append(item)
+            added.append(item)
+
+    if not added:
+        await message.answer("ℹ Указанные термины уже есть в чёрном списке.")
+        return
+
+    current["exclude_terms"] = terms
+    search.settings = current
+    await repo.update_search_settings(search.id, current)
+    await message.answer(f"✅ В чёрный список добавлено: <b>{html.escape(', '.join(added))}</b>", parse_mode="HTML")
+
 
 @router.message(Command("country"))
 async def country(message: Message) -> None:
@@ -683,6 +765,20 @@ async def _advance_stretch(callback, user_id: int, current_match_id: int) -> Non
         reply_markup=stretch_keyboard(match.id, job.id),
     )
 
+async def _advance_saved(callback, user_id: int, current_match_id: int) -> None:
+    rows = await repo.saved_matches(user_id, None)
+    picked = _pick_next_review(rows, current_match_id)
+    if not picked:
+        await callback.message.edit_text("✅ Сохранённых вакансий больше нет.")
+        return
+    index, (match, job) = picked
+    await callback.message.edit_text(
+        _render_saved_card(match, job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=saved_keyboard(match.id, job.id),
+    )
+
+
 async def _advance_review(callback, user_id: int, current_match_id: int) -> None:
     rows = await repo.review_matches(user_id, None)
     picked = _pick_next_review(rows, current_match_id)
@@ -961,6 +1057,24 @@ async def stretch_save_callback(callback: CallbackQuery) -> None:
     await _advance_stretch(callback, user.id, match.id)
 
 
+@router.callback_query(F.data.startswith("saved_remove:"))
+async def saved_remove_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "reviewed")
+    await callback.answer("🗑 Убрано из сохранённых")
+    await _advance_saved(callback, user.id, match.id)
+
+
 @router.callback_query(F.data.startswith("saved_next:"))
 async def saved_next_callback(callback: CallbackQuery) -> None:
     user = await repo.get_user_by_chat(callback.message.chat.id)
@@ -1226,3 +1340,47 @@ async def generic_text(message: Message, bot: Bot) -> None:
         job = parse_telegram_job(message.text, source_ref=source_ref)
         await ingest_and_match(bot, job, only_user_id=user.id)
         await message.answer("✅ Пересланный пост добавлен в общий pipeline и оценён для твоего профиля.")
+
+
+@router.callback_query(F.data.startswith("blacklist_job:"))
+async def blacklist_job_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID вакансии", show_alert=True)
+        return
+    job_id = int(raw_id)
+    job = await repo.get_job(job_id)
+    if not job:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+
+    profile, search = await _first_search(user.id)
+    if not search:
+        await callback.answer("Профиль поиска не найден", show_alert=True)
+        return
+
+    target = (job.company or "").strip() or (job.title or "").strip()
+    if not target:
+        await callback.answer("Не удалось определить компанию или название", show_alert=True)
+        return
+
+    current = dict(search.settings or {})
+    terms = list(current.get("exclude_terms") or [])
+    if not any(t.casefold() == target.casefold() for t in terms):
+        terms.append(target)
+        current["exclude_terms"] = terms
+        search.settings = current
+        await repo.update_search_settings(search.id, current)
+
+    match = await repo.get_match_for_user_job(user.id, job_id)
+    if match:
+        await repo.set_match_status(match.id, "excluded")
+
+    await callback.answer(f"🚫 «{target}» в чёрном списке", show_alert=True)
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass

@@ -130,7 +130,7 @@ def test_saved_next_callback_handles_last_item(monkeypatch):
     message.edit_text.assert_not_awaited()
 
 
-def test_saved_keyboard_has_details_back_and_next():
+def test_saved_keyboard_has_remove_details_back_and_next():
     from app.telegram.ui import saved_keyboard
 
     keyboard = saved_keyboard(401, 31)
@@ -139,4 +139,82 @@ def test_saved_keyboard_has_details_back_and_next():
         for row in keyboard.inline_keyboard
         for button in row
     ]
-    assert callbacks == ["details:31", "saved_prev:401", "saved_next:401"]
+    assert callbacks == [
+        "saved_remove:401",
+        "details:31",
+        "saved_prev:401",
+        "saved_next:401",
+    ]
+
+
+def test_saved_remove_callback_marks_match_reviewed(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from app.telegram import handlers
+
+    cur = SimpleNamespace(id=401, user_id=7)
+    nxt = SimpleNamespace(id=402, user_id=7, total_score=82)
+    job = SimpleNamespace(id=32, title="Linux Engineer", company="Beta")
+
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data="saved_remove:401", message=message, answer=AsyncMock())
+
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "get_match", AsyncMock(return_value=cur))
+    monkeypatch.setattr(handlers.repo, "set_match_status", AsyncMock())
+    monkeypatch.setattr(handlers.repo, "saved_matches", AsyncMock(return_value=[(nxt, job)]))
+
+    asyncio.run(handlers.saved_remove_callback(callback))
+
+    handlers.repo.set_match_status.assert_awaited_once_with(401, "reviewed")
+    callback.answer.assert_awaited_once_with("🗑 Убрано из сохранённых")
+    handlers.repo.saved_matches.assert_awaited_once_with(7, None)
+    text = message.edit_text.await_args.args[0]
+    assert "Linux Engineer" in text
+    assert "82/100" in text
+    assert "1 из 1" in text
+
+
+def test_saved_remove_callback_finishes_empty_queue(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from app.telegram import handlers
+
+    cur = SimpleNamespace(id=401, user_id=7)
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data="saved_remove:401", message=message, answer=AsyncMock())
+
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "get_match", AsyncMock(return_value=cur))
+    monkeypatch.setattr(handlers.repo, "set_match_status", AsyncMock())
+    monkeypatch.setattr(handlers.repo, "saved_matches", AsyncMock(return_value=[]))
+
+    asyncio.run(handlers.saved_remove_callback(callback))
+
+    handlers.repo.set_match_status.assert_awaited_once_with(401, "reviewed")
+    callback.answer.assert_awaited_once_with("🗑 Убрано из сохранённых")
+    text = message.edit_text.await_args.args[0]
+    assert "Сохранённых вакансий больше нет" in text
+
+
+def test_saved_remove_callback_rejects_foreign_match(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from app.telegram import handlers
+
+    cur = SimpleNamespace(id=401, user_id=99)
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data="saved_remove:401", message=message, answer=AsyncMock())
+
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "get_match", AsyncMock(return_value=cur))
+    monkeypatch.setattr(handlers.repo, "set_match_status", AsyncMock())
+
+    asyncio.run(handlers.saved_remove_callback(callback))
+
+    handlers.repo.set_match_status.assert_not_awaited()
+    callback.answer.assert_awaited_once_with("Вакансия не найдена", show_alert=True)
+
