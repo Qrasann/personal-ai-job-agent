@@ -1,5 +1,14 @@
 # DEVELOPMENT LOG
 
+## 2026-09-19 — TASK-004: /export Command Implementation
+- **Changes:**
+  - Создан модуль `app/services/export.py` с функциями сериализации в структурированный Markdown и JSON.
+  - В `app/telegram/handlers.py` зарегистрирован хэндлер команды `/export` (с поддержкой формата `/export json`).
+  - Файлы отправляются пользователю как документы через `BufferedInputFile`.
+  - Добавлены тесты `tests/test_export.py` (4 новых теста).
+- **Tests:** 168 passed, 3 skipped.
+
+
 ## 2026-09-19 — v3.5.3 Release & Project OS Setup
 - **Changes:**
   - Устранена гонка `UniqueViolationError` при одновременной вставке вакансий (коммит `4797db8`).

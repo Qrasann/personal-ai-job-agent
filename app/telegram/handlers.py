@@ -6,7 +6,7 @@ import time
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
 from app.candidates.bootstrap import bootstrap_user
 from app.config import settings
@@ -19,6 +19,7 @@ from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
+from app.export import export_to_json, export_to_markdown, prepare_export_data
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
@@ -1384,3 +1385,41 @@ async def blacklist_job_callback(callback: CallbackQuery) -> None:
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception:
         pass
+
+@router.message(Command("export"))
+async def export_saved_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+
+    rows = await repo.saved_matches(user.id, None)
+    if not rows:
+        await message.answer("⭐ Сохранённых вакансий пока нет для экспорта.")
+        return
+
+    parts = (message.text or "").strip().split()
+    fmt = "md"
+    if len(parts) > 1 and parts[1].lower() in ("json", "js"):
+        fmt = "json"
+
+    urls: dict[int, str] = {}
+    for _, job in rows:
+        ref = await repo.source_ref(job.id)
+        if ref and ref.url:
+            urls[job.id] = ref.url
+
+    data = prepare_export_data(rows, urls)
+    ts = int(time.time())
+
+    if fmt == "json":
+        content = export_to_json(data)
+        filename = f"saved_vacancies_{ts}.json"
+        caption = f"📁 Экспорт {len(rows)} сохранённых вакансий в JSON."
+    else:
+        content = export_to_markdown(data)
+        filename = f"saved_vacancies_{ts}.md"
+        caption = f"📁 Экспорт {len(rows)} сохранённых вакансий в Markdown."
+
+    document = BufferedInputFile(content.encode("utf-8"), filename=filename)
+    await message.answer_document(document=document, caption=caption)
+
