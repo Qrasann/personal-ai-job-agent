@@ -3,13 +3,13 @@
 Updated: 2026-09-19
 
 ## Version
-v3.5.3 (Tagged: `v3.5.3`, Commit: `4f247a0`)
+v3.6.0 (Tagged: `v3.6.0`, Commit: `4f247a0`)
 
 ## Status
 STABLE
 
 ## Current Phase
-v3.5.3 — Ingestion Resilience & In-Memory Duplicate Mitigation
+v3.6.0 — Ingestion Resilience & In-Memory Duplicate Mitigation
 
 ## Completed in Current Phase
 - [x] Реализовано управление черным списком: `/blacklist`, `/blacklist <term>`, `/blacklist remove <term>`, `/blacklist clear`.
