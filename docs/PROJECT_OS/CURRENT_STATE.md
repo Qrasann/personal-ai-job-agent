@@ -14,6 +14,7 @@ v3.5.3 — Ingestion Resilience & In-Memory Duplicate Mitigation
 ## Completed in Current Phase
 - [x] Реализовано управление черным списком: `/blacklist`, `/blacklist <term>`, `/blacklist remove <term>`, `/blacklist clear`.
 - [x] Добавлена инлайн-кнопка «🚫 В чёрный список» в карточки вакансий.
+- [x] Реализована команда экспорта сохранённых вакансий `/export` (Markdown / JSON).
 - [x] Устранена гонка параллельной вставки (`UniqueViolationError` на `ix_jobs_fingerprint` и `uq_source_job`) через `session.begin_nested()` сейвпоинты в `upsert_job`.
 - [x] Покрыто юнит-тестом `tests/test_upsert_race.py`.
 - [x] Бот развернут в Docker, Telegram long polling активен, фоновый планировщик APScheduler (`scan_all`, 15м) функционирует.
