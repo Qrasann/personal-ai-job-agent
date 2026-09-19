@@ -122,3 +122,31 @@ def test_blacklist_job_callback_adds_company_and_marks_match_excluded(monkeypatc
     set_status.assert_awaited_with(101, "excluded")
     assert callback.answer.await_args.kwargs.get("show_alert") is True
     callback.message.edit_reply_markup.assert_awaited_with(reply_markup=None)
+
+
+def test_blacklist_command_remove_term_and_not_found(monkeypatch):
+    search = SimpleNamespace(id=9, settings={"exclude_terms": ["casino", "Evil Corp", "Crypto"]})
+    profile = SimpleNamespace(id=3)
+    user = SimpleNamespace(id=7)
+    update = AsyncMock()
+
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=user))
+    monkeypatch.setattr(handlers, "_first_search", AsyncMock(return_value=(profile, search)))
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+
+    # 1. Validation when no term provided
+    empty_rem = SimpleNamespace(text="/blacklist remove", answer=AsyncMock())
+    asyncio.run(handlers.blacklist_command(empty_rem))
+    assert "Использование" in empty_rem.answer.await_args.args[0]
+
+    # 2. Not found
+    missing_msg = SimpleNamespace(text="/blacklist remove NonExistent", answer=AsyncMock())
+    asyncio.run(handlers.blacklist_command(missing_msg))
+    assert "не найдены" in missing_msg.answer.await_args.args[0]
+
+    # 3. Successful removal (case-insensitive)
+    rem_msg = SimpleNamespace(text="/blacklist remove evil corp", answer=AsyncMock())
+    asyncio.run(handlers.blacklist_command(rem_msg))
+    assert search.settings["exclude_terms"] == ["casino", "Crypto"]
+    update.assert_awaited_with(9, {"exclude_terms": ["casino", "Crypto"]})
+    assert "Evil Corp" in rem_msg.answer.await_args.args[0]

@@ -377,10 +377,21 @@ async def blacklist_command(message: Message) -> None:
     parts = (message.text or "").split(maxsplit=1)
     if len(parts) == 1:
         if not terms:
-            await message.answer("🚫 Чёрный список пуст.\nДобавить: <code>/blacklist Компания</code>\nОчистить: <code>/blacklist clear</code>", parse_mode="HTML")
+            await message.answer(
+                "🚫 Чёрный список пуст.\n"
+                "Добавить: <code>/blacklist Компания</code>\n"
+                "Удалить: <code>/blacklist remove Компания</code>\n"
+                "Очистить: <code>/blacklist clear</code>",
+                parse_mode="HTML",
+            )
             return
         items = "\n".join(f"• {html.escape(t)}" for t in terms)
-        await message.answer(f"🚫 <b>Чёрный список (exclude_terms):</b>\n{items}\n\nОчистить: <code>/blacklist clear</code>", parse_mode="HTML")
+        await message.answer(
+            f"🚫 <b>Чёрный список (exclude_terms):</b>\n{items}\n\n"
+            "Удалить: <code>/blacklist remove Компания</code>\n"
+            "Очистить: <code>/blacklist clear</code>",
+            parse_mode="HTML",
+        )
         return
 
     raw = parts[1].strip()
@@ -391,6 +402,31 @@ async def blacklist_command(message: Message) -> None:
         await message.answer("✅ Чёрный список очищен.")
         return
 
+    subparts = raw.split(maxsplit=1)
+    if subparts[0].casefold() in {"remove", "rm", "del", "delete"}:
+        if len(subparts) == 1 or not subparts[1].strip():
+            await message.answer("Использование: <code>/blacklist remove Компания</code>", parse_mode="HTML")
+            return
+        rem_raw = subparts[1].strip()
+        rem_items = [x.strip() for x in rem_raw.split(",") if x.strip()] if "," in rem_raw else [rem_raw]
+        removed = []
+        remaining = []
+        for t in terms:
+            if any(t.casefold() == target.casefold() for target in rem_items):
+                removed.append(t)
+            else:
+                remaining.append(t)
+
+        if not removed:
+            await message.answer(f"ℹ Термины не найдены в чёрном списке: <b>{html.escape(rem_raw)}</b>", parse_mode="HTML")
+            return
+
+        current["exclude_terms"] = remaining
+        search.settings = current
+        await repo.update_search_settings(search.id, current)
+        await message.answer(f"✅ Из чёрного списка удалено: <b>{html.escape(', '.join(removed))}</b>", parse_mode="HTML")
+        return
+
     new_items = [x.strip() for x in raw.split(",") if x.strip()] if "," in raw else [raw]
     added = []
     for item in new_items:
@@ -399,7 +435,7 @@ async def blacklist_command(message: Message) -> None:
             added.append(item)
 
     if not added:
-        await message.answer("ℹ️ Указанные термины уже есть в чёрном списке.")
+        await message.answer("ℹ Указанные термины уже есть в чёрном списке.")
         return
 
     current["exclude_terms"] = terms
