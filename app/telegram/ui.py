@@ -57,7 +57,13 @@ def vacancy_details_keyboard(job_id: int) -> InlineKeyboardMarkup:
                     text="🧩 Сравнить с профилем",
                     callback_data=f"compare:{job_id}",
                 )
-            ]
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🚫 В чёрный список",
+                    callback_data=f"blacklist_job:{job_id}",
+                )
+            ],
         ]
     )
 
