@@ -1,3 +1,18 @@
+# Personal AI Job Agent
+
+> **Project Context & Guidelines:** Полная документация, текущий статус и правила разработки зафиксированы в [`docs/PROJECT_OS/`](docs/PROJECT_OS/).
+
+## v3.5.3 — Ingestion Resilience & Project OS
+
+- Атомарный upsert вакансий с защитой от race condition при одновременном фоновом и ручном сканировании (`savepoints`).
+- Стабильный сьют из 164 тестов.
+- Переносимый контекст разработки в `docs/PROJECT_OS/`.
+
+## v3.5.2 — Control Profile & Blacklist
+
+- Управление черным списком: добавление, очистка и выборочное удаление стоп-слов (`/blacklist remove`).
+- Инлайн-кнопка исключения компании в карточках вакансий.
+
 # v3.5.1 — Search Quality & Telegram UX
 
 This release improves vacancy discovery, realistic candidate fit classification and Telegram vacancy browsing.

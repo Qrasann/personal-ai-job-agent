@@ -1,3 +1,14 @@
+## v3.5.3 — Ingestion Resilience & Project OS
+
+- **Fixed:** Устранена гонка параллельного сохранения вакансий (`UniqueViolationError` по `fingerprint` и `uq_source_job`) через вложенные транзакции `session.begin_nested()`.
+- **Added:** Тест параллельного сохранения `tests/test_upsert_race.py`.
+- **Added:** Операционная система проекта `docs/PROJECT_OS/` (переносимый контекст разработки).
+
+## v3.5.2 — Control Profile & Blacklist Management
+
+- **Added:** Интерактивное управление черным списком: `/blacklist`, `/blacklist <термин>`, `/blacklist remove <термин>`, `/blacklist clear`.
+- **Added:** Инлайн-кнопка «🚫 В чёрный список» в карточках вакансий для исключения нерелевантных компаний прямо из Telegram.
+
 # Changelog
 
 ## 3.5.1
