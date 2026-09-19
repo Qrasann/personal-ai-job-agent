@@ -19,7 +19,7 @@ v3.5.3 — Ingestion Resilience & In-Memory Duplicate Mitigation
 - [x] Бот развернут в Docker, Telegram long polling активен, фоновый планировщик APScheduler (`scan_all`, 15м) функционирует.
 
 ## Active Task
-Внедрение Project OS (portable context) и мониторинг фонового сканирования.
+Мониторинг завершен успешно. Готовность к бэклогу v3.6.0.
 
 ## In Progress
 - [ ] Оформление документации `docs/PROJECT_OS/`.
