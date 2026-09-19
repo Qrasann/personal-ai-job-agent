@@ -683,6 +683,20 @@ async def _advance_stretch(callback, user_id: int, current_match_id: int) -> Non
         reply_markup=stretch_keyboard(match.id, job.id),
     )
 
+async def _advance_saved(callback, user_id: int, current_match_id: int) -> None:
+    rows = await repo.saved_matches(user_id, None)
+    picked = _pick_next_review(rows, current_match_id)
+    if not picked:
+        await callback.message.edit_text("✅ Сохранённых вакансий больше нет.")
+        return
+    index, (match, job) = picked
+    await callback.message.edit_text(
+        _render_saved_card(match, job, index + 1, len(rows)),
+        parse_mode="HTML",
+        reply_markup=saved_keyboard(match.id, job.id),
+    )
+
+
 async def _advance_review(callback, user_id: int, current_match_id: int) -> None:
     rows = await repo.review_matches(user_id, None)
     picked = _pick_next_review(rows, current_match_id)
@@ -959,6 +973,24 @@ async def stretch_save_callback(callback: CallbackQuery) -> None:
     await repo.set_match_status(match.id, "saved")
     await callback.answer("⭐ Сохранено")
     await _advance_stretch(callback, user.id, match.id)
+
+
+@router.callback_query(F.data.startswith("saved_remove:"))
+async def saved_remove_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match = await repo.get_match(int(raw_id))
+    if not match or match.user_id != user.id:
+        await callback.answer("Вакансия не найдена", show_alert=True)
+        return
+    await repo.set_match_status(match.id, "reviewed")
+    await callback.answer("🗑 Убрано из сохранённых")
+    await _advance_saved(callback, user.id, match.id)
 
 
 @router.callback_query(F.data.startswith("saved_next:"))

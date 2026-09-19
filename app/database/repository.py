@@ -19,7 +19,7 @@ from app.database.models import (
 from app.domain.jobs import NormalizedJob
 from app.candidates.fact_types import normalize_experience_type
 
-REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
+REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped", "reviewed"})
 
 
 async def get_user_by_chat(chat_id: int | str) -> User | None:

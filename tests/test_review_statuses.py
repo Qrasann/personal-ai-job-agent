@@ -4,6 +4,7 @@ from app.database import repository as repo
 def test_review_decisions_suppress_reposts():
     assert "saved" in repo.REPOST_SUPPRESS_STATUSES
     assert "skipped" in repo.REPOST_SUPPRESS_STATUSES
+    assert "reviewed" in repo.REPOST_SUPPRESS_STATUSES
 
 
 def test_select_review_matches_keeps_only_notified_and_deduplicates():

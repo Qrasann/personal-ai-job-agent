@@ -121,13 +121,13 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
             lane = _match_lane(result, threshold)
             if lane == "filtered":
                 counters["filtered"] += 1
-                if match.status not in {"applied", "prepared", "skipped", "saved"}:
+                if match.status not in {"applied", "prepared", "skipped", "saved", "reviewed"}:
                     await repo.set_match_status(match.id, "filtered")
                 continue
 
             if lane == "stretch":
                 counters["stretch"] += 1
-                if match.status not in {"applied", "prepared", "skipped", "saved", "stretch"}:
+                if match.status not in {"applied", "prepared", "skipped", "saved", "stretch", "reviewed"}:
                     await repo.set_match_status(match.id, "stretch")
                 continue
 
