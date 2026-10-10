@@ -52,4 +52,6 @@
 - [x] Add `/scanstatus` and `/cancel` for in-flight manual scans.
 - [x] Validate rebuilt Telegram bot polling and startup scan; real-chat command
   controls remain part of v3.5.2 acceptance above.
-- [ ] Consider competition/applicant signals where public sources expose them.
+- [x] Audit competition/applicant signals in connected public sources. Per-vacancy
+  applicant counts are employer-only (HH and Job Bank); EURES exposes positions,
+  not applicant volume. Keep candidate counts unknown instead of estimating them.

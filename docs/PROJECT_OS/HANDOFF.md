@@ -14,6 +14,12 @@ EURES successfully. Existing PostgreSQL and storage volumes remain attached.
 Telegram real-chat acceptance remains a separate owner task before tagging
 v3.5.2/v3.5.3 releases.
 
+The v3.5.3 public competition-signal item has been audited: HH response counts
+require employer-side access, Job Bank applicant tables live in the employer
+dashboard, and EURES exposes number of positions rather than applicant counts.
+No connected public source currently supplies reliable per-vacancy applicant
+counts, so the agent does not infer or fabricate one.
+
 ## Prior v3.5.3 deployed state — 2026-10-11
 
 Code release commit: `e4fa198f63d07a5120f6e480b63a7be9cdb46efd` on

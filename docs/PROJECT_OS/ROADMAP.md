@@ -19,7 +19,8 @@ Stable baseline on main.
 - source timing and timeouts;
 - cancellation;
 - persistent scan and control panels;
-- applicant/competition signals where available.
+- applicant/competition signals where available (audited 2026-10-11; current
+  public feeds do not expose per-vacancy applicant counts).
 
 ## v3.5.4 — Multi-Source Discovery & Source Intelligence
 - employer career sites;

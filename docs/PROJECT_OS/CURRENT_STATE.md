@@ -15,6 +15,8 @@
 - v3.5.3 PostgreSQL-backed suite: 197 passed, 63.80% branch coverage.
 - v3.5.4 suite: 203 passed, 64.39% branch coverage; GitHub Actions run 110
   passed. Startup scan called the EURES search API successfully (HTTP 200).
+- Public competition-data audit found no per-vacancy applicant counts in the
+  connected public feeds; employer-only counts remain unknown in this app.
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
   concurrent adapters; manual scans persist status/timings in `runtime_state`
   and expose `/scanstatus` and `/cancel`.

@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-10-11 — public competition-signal audit
+- Reviewed the fields consumed from HH, Job Bank, EURES, Arbeitnow and RemoteOK.
+- HH documents response counters for employer-authorized vacancy data; the
+  public API request used for discovery currently returns HTTP 403 in this
+  environment, and the public HH page parser exposes no applicant count.
+- Job Bank explains that applications are shown in the employer's Applicants
+  and matches dashboard, not in public vacancy details. EURES `numberOfPosts`
+  counts positions rather than applicants. The public Arbeitnow and RemoteOK
+  payloads consumed here contain no applicant-count field.
+- Closed the v3.5.3 consideration item without adding a fabricated estimate;
+  future implementation needs a public per-vacancy count field or an explicitly
+  authorized employer integration.
+
 ## 2026-10-11 — EURES cross-border discovery (v3.5.4)
 - Verified the public EURES search and detail endpoints against live responses.
   The search supports an employer cross-border recruitment flag and returns
