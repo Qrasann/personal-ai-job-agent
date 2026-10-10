@@ -1,5 +1,12 @@
 # Current State
 
+## Latest local changes
+- Telegram `/salary` supports current, desired and minimum values by currency;
+  minimum remains connected to scoring.
+- Telegram `/blacklist` supports case-insensitive add/remove/clear across active
+  Career-first and Relocation-first profiles.
+- Latest PostgreSQL-backed suite: 194 passed, 63.65% branch coverage (55% gate).
+
 ## Stable baseline
 - main: v3.5.1
 - baseline commit: 6f73110324fdf657f6695c25a5af540d2a94e72f

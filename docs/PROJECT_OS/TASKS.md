@@ -21,11 +21,14 @@
 - [x] Make one scan discover and match each active SearchProfile independently.
 - [x] Preserve profile settings and matches when parallel search is disabled.
 - [x] Full CI green (GitHub Actions run 102 succeeded for the Job Bank commit).
-- [ ] Complete comprehensive Telegram acceptance; startup, parallel activation
-  and dual-profile scan already passed the earlier local smoke test.
-- [ ] Compare testsbuild with main and port useful Saved/blacklist/profile work.
-- [ ] Add current/desired/minimum salary controls.
-- [ ] Add blacklist controls.
+- [x] Add current/desired/minimum salary controls in Telegram; minimum feeds
+  the existing per-currency scoring threshold.
+- [x] Add Telegram blacklist controls with case-insensitive add/remove/clear,
+  persisted across active search directions.
+- [x] Compare testsbuild with main and selectively port useful behavior;
+  Saved navigation already exists locally, and no broad branch merge was needed.
+- [ ] Complete comprehensive Telegram acceptance in a real chat; local polling,
+  dual-profile scan, and updated startup acceptance remain to be verified.
 - [ ] Tag v3.5.2 after acceptance.
 
 ## Next

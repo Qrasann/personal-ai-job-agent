@@ -1,5 +1,28 @@
 # Handoff
 
+## Latest stage — salary and blacklist controls
+
+The active branch now includes Telegram `/salary` and `/blacklist` commands.
+Minimum salary is stored in the existing `minimum_salary` scoring setting;
+current and desired salary values are stored separately as preference data.
+All settings are synchronized to each active search profile. No schema
+migration is needed. Regression coverage passes with 194 tests against the
+isolated PostgreSQL test service and 63.65% branch coverage. Changes are not
+yet committed or published at this handoff snapshot.
+
+`testsbuild` is 11 commits ahead and one behind `main` (diverged). Saved queue
+navigation is already present in this branch; do not merge testsbuild wholesale.
+
+## Next implementation stage — v3.5.3 Fast Scan & Scan Dashboard
+
+Review current source-specific delays first, especially Job Bank's five-second
+crawl delay. Fast Scan should bound concurrent discovery, keep database
+ingestion and matching ordered, and retain per-source errors/timings. A
+persistent latest-run dashboard can use `runtime_state` without a destructive
+schema change. Add `/scanstatus` and ensure `/cancel` does not interrupt HH
+message composition behavior. Verify with mocked concurrency/cancellation
+tests, the full PostgreSQL suite, and local Compose logs.
+
 For v3.5.2 dual-mode review:
 1. read CURRENT_STATE.md and TASKS.md;
 2. inspect app/search/preferences.py;

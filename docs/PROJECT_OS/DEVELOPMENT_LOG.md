@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-10-10 — Telegram salary and blacklist controls
+- Added `/salary current|desired|minimum <currency> <amount|clear>` and a
+  read-only summary; only `minimum` affects matching, preserving the current
+  currency-aware scoring behavior.
+- Added `/blacklist add|remove|clear` with case-insensitive deduplication and
+  synchronization to every active search profile.
+- Compared GitHub `testsbuild` with `main`: branches diverged (11 ahead, one
+  behind). Saved navigation is already implemented here, so no wholesale
+  port was necessary.
+- Full isolated PostgreSQL suite: 194 passed, 63.65% branch coverage; initial
+  attempt without the test-only postgres service had the expected connection
+  failures, then passed once that isolated service was started.
+- Local bot is still running v3.5.2 from the prior source stage; this change
+  awaits commit, GitHub publication, and rebuild.
+
 ## 2026-10-10 — v3.5.2 restart
 - Confirmed main is v3.5.1 at 6f73110324fdf657f6695c25a5af540d2a94e72f.
 - Confirmed the experimental branch is testsbuild.

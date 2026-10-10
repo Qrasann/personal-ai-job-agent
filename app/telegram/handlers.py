@@ -19,6 +19,7 @@ from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
+from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
@@ -94,6 +95,8 @@ def _main_menu_text() -> str:
         "/country — текущая страна\n"
         "/targets — целевые страны\n"
         "/settings — текущие настройки\n\n"
+        "/salary — зарплатные ориентиры\n"
+        "/blacklist — исключаемые слова\n\n"
         "🧠 <b>Профиль и вакансии</b>\n"
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
@@ -204,6 +207,64 @@ async def resume_agent(message: Message) -> None:
     if user:
         await repo.set_state(user.id, "paused", "false")
         await message.answer("🟢 Автоматический поиск возобновлён.")
+
+
+@router.message(Command("salary"))
+async def salary_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    searches = await repo.list_search_profiles(profile.id) if profile else []
+    if not searches:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    text = (message.text or "").strip()
+    if len(text.split()) == 1:
+        cfg = searches[0].settings or {}
+        def show(key: str) -> str:
+            values = cfg.get(f"{key}_salary") or (cfg.get("minimum_salary", {}) if key == "minimum" else {})
+            return ", ".join(f"{currency} {amount:,}".replace(",", " ") for currency, amount in sorted(values.items())) or "не задана"
+        await message.answer(
+            "💰 Зарплатные ориентиры\n"
+            f"Текущая: {show('current')}\nЖелаемая: {show('desired')}\nМинимум для фильтра: {show('minimum')}\n\n"
+            "Формат: /salary current|desired|minimum USD 3000; очистить: /salary desired USD clear"
+        )
+        return
+    try:
+        kind, currency, amount = parse_salary_command(text)
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    for search in searches:
+        await repo.update_search_settings(search.id, update_salary(search.settings or {}, kind, currency, amount))
+    await message.answer(f"✅ {'Очищено' if amount is None else 'Сохранено'}: {kind} {currency}" + (f" {amount:,}".replace(",", " ") if amount else ""))
+
+
+@router.message(Command("blacklist"))
+async def blacklist_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    searches = await repo.list_search_profiles(profile.id) if profile else []
+    if not searches:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    parts = (message.text or "").split(maxsplit=2)
+    cfg = searches[0].settings or {}
+    if len(parts) == 1:
+        terms = cfg.get("exclude_terms") or []
+        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nОчистить: /blacklist clear")
+        return
+    action = parts[1].casefold()
+    term = parts[2].strip() if len(parts) == 3 else ""
+    if action not in {"add", "remove", "clear"} or (action != "clear" and not term):
+        await message.answer("Формат: /blacklist add|remove <слово> или /blacklist clear")
+        return
+    for search in searches:
+        await repo.update_search_settings(search.id, update_blacklist(search.settings or {}, action, term))
+    await message.answer("✅ Blacklist обновлён.")
 
 
 @router.message(Command("roles"))
