@@ -32,3 +32,26 @@
 - Live API contract check passed; the current feed contained no matches for the six configured broad roles, which remains a source-coverage limitation rather than a reason to relax relevance scoring.
 - A live Arbeitnow notification exposed false salary extraction from arbitrary description numbers; salary fallback is now limited to explicit source salary/card fields, while queue/list views require structured salary data.
 - Added root `AGENTS.md` so locally installed Codex starts with the correct repository, deployment, testing, data-safety and dual-search instructions.
+
+## 2026-10-10 — public international source stage
+- Audited HEAD `7c987da`, the clean release worktree, running Compose `repo`
+  v3.5.2 and healthy PostgreSQL; read all PROJECT_OS documents.
+- Validated public Job Bank Canada search/details and its five-second robots
+  crawl delay. DWP public search returned a service-error page and was deferred.
+- Added bounded international TFW discovery and Canada country selection,
+  preserving independent profile queries and source/geography controls.
+- Kept explicit eligibility, LMIA status and employer support offers separate;
+  stored source URLs and evidence. Missing support remains unknown.
+- Prevented decimal CAD/hour source text from entering the integer/USD salary
+  fallback; no monthly salary or support claim is fabricated.
+- Added parsing, refusal, eligibility, evidence, crawl-delay and independent
+  profile/source-control regressions. Live adapter check found one warehouse
+  worker vacancy open to international candidates with requested LMIA and
+  unknown sponsorship; no data was ingested by this standalone check.
+- Created local .venv and used the isolated PostgreSQL tmpfs test service.
+- Final full suite: 191 passed, 64.16% branch coverage (55% gate); Python
+  compilation and `git diff --check` passed. Remote CI remains pending.
+- Rebuilt local Compose `repo`; runtime is v3.5.2, polling works, both search
+  profiles remain active, and existing named PostgreSQL/storage volumes were
+  preserved. Startup scan including Job Bank finished successfully at 20:44:49
+  UTC. Changes remain uncommitted and unpublished; HEAD is `7c987da`.

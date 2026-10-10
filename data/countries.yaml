@@ -1,4 +1,11 @@
 countries:
+  CA:
+    name: Canada
+    aliases: [Canada, Канада]
+    languages: [en, fr]
+    currencies: [CAD]
+    local_sources: []
+    query_languages: [en, fr]
   GE:
     name: Georgia
     aliases: [Georgia, Грузия, საქართველო]
@@ -48,6 +55,7 @@ countries:
     query_languages: [en, pt]
 
 international_sources:
+  - {id: jobbank, name: Job Bank Canada, scope: canada, transport: public_web, capability: discovery}
   - {id: remoteok, name: Remote OK, scope: remote, transport: api, capability: discovery}
   - {id: arbeitnow, name: Arbeitnow, scope: germany, transport: public_api, capability: discovery}
   - {id: lever, name: Lever company career pages, scope: global, transport: public_api, capability: discovery}

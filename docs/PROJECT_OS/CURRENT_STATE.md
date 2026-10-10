@@ -29,6 +29,8 @@
 - idempotent profile creation that preserves legacy profile IDs and saved relocation settings.
 - strategy-aligned role scoring, so Relocation-first vacancies are evaluated against `relocation_queries` rather than the career role list.
 - public Arbeitnow Germany discovery with English-to-German aliases for configured broad roles and conservative visa/relocation evidence extraction.
+- public Job Bank Canada international TFW discovery with separate eligibility,
+  LMIA status and explicit support evidence; Canada country selection.
 
 ## Verified in the current development environment
 - Parent feature baseline: 166 passed with isolated PostgreSQL 16, 62.57% branch coverage.
@@ -37,6 +39,12 @@
 - Strategy-aligned scoring suite: 176 passed with isolated PostgreSQL 16.
 - Python compilation, `git diff --check` and repository-history secret scan passed.
 - Local manual Telegram smoke test passed for v3.5.2 startup, schema 2/2, parallel profile activation and dual-profile `/scan`.
+- Latest source-stage verification is recorded in HANDOFF.md; baseline before
+  this stage was commit `7c987da`. Local changes have not been published.
+- Job Bank source-stage full suite: 191 passed against isolated PostgreSQL 16,
+  64.16% branch coverage (55% gate).
+- Local Compose `repo` was rebuilt from the source-stage worktree; both profiles
+  remained active and the startup scan including Job Bank completed successfully.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.

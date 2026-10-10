@@ -20,12 +20,40 @@ Current branch: `feature/v3.5.2-dual-search-modes`, based on `origin/feature/v3.
 No database migration is required; new keys are stored in the existing JSON settings field.
 Rollback is limited to the dual-mode commit/files because legacy `queries` remain unchanged.
 
-Verified on 2026-10-10: 175 pytest tests passed against isolated PostgreSQL 16;
-branch coverage 63.22% (gate 55%); compile, diff check and secret scan passed.
-Manual Telegram smoke testing remains unverified.
+Earlier verification on 2026-10-10: 175 pytest tests passed against isolated
+PostgreSQL 16; branch coverage 63.22% (gate 55%). Subsequent startup, parallel
+profile activation and dual-profile scan smoke tests passed locally, as recorded
+in DEVELOPMENT_LOG.md. Comprehensive Telegram acceptance and remote CI remain
+pending.
 
 Parallel search is opt-in. The existing profile becomes `Career-first`; one
 `Relocation-first` profile is created and reused. Disabling parallel search
 sets that profile inactive and does not delete its settings or JobMatch rows.
 
 Do not merge testsbuild wholesale. Compare it with main and port selected functionality with tests.
+
+## Job Bank source stage — 2026-10-10
+
+Baseline HEAD: `7c987da`; this stage adds local changes on the same branch.
+Review `app/sources/adapters/jobbank.py`, its service/registry integration,
+`tests/test_jobbank.py` and `docs/developer/INTERNATIONAL_SOURCES.md`.
+The adapter uses the active profile's queries and respects source/geography
+controls and relocation mode. Eligibility restrictions are explicit exclusions;
+missing support stays unknown. LMIA is never equated with sponsorship approval.
+No schema migration, automated application or private HH action was added.
+Live adapter check returned one international warehouse-worker vacancy with
+LMIA requested and unknown sponsorship. DWP currently returns a service-error
+page and was deferred.
+
+Final local verification: 191 tests passed against isolated PostgreSQL 16,
+64.16% branch coverage (gate 55%); Python compilation and `git diff --check`
+passed. The local .venv uses Python 3.14; the deployment image remains Python
+3.12. Remote CI and comprehensive Telegram acceptance are still pending.
+
+Local deployment was rebuilt with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+rebuild` from this worktree. Runtime remains v3.5.2; both Career-first and
+Relocation-first are active. PostgreSQL stayed healthy and existing
+`repo_jobagent_v3_pg` / `repo_jobagent_v3_files` volumes were preserved.
+The startup scheduled scan fetched Job Bank search/detail pages with HTTP 200
+and completed successfully at 20:44:49 UTC on 2026-10-10.
+Changes are uncommitted; HEAD is still `7c987da`. No push, merge or PR occurred.

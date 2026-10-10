@@ -11,4 +11,10 @@
 - Country picker is limited to data/countries.yaml.
 - Only implemented adapters actually scan; future registered sources still need collectors.
 - HH is primarily domestic and RemoteOK is tech-heavy. Arbeitnow adds Germany coverage but its current feed can legitimately contain no low-barrier role matches; additional legal-work/visa-capable country sources are still needed.
+- Job Bank Canada adds international TFW coverage, but an LMIA request or
+  permission to apply does not establish sponsorship or candidate eligibility.
+  Initial coverage is one page, six queries and twelve details per profile;
+  the five-second crawl delay adds up to about 90 seconds plus network time.
+  Decimal CAD/hour salaries are preserved as source text; structured salary
+  normalization and display are pending.
 - Full CI is required before merge; live Telegram polling and dual-profile scan smoke tests passed on the local deployment.

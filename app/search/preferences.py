@@ -103,6 +103,12 @@ def city_priority(settings: dict | None, city: str | None) -> int:
 
 
 def _signals(job: NormalizedJob) -> dict[str, bool]:
+    if job.source == "jobbank":
+        # Explicit adapter evidence outranks incidental permit/LMIA terminology.
+        support = (job.raw or {}).get("support_signals") or {}
+        return {key: support.get(key) is True for key in (
+            "relocation", "visa_sponsorship", "work_permit", "relocation_package", "immigration_support"
+        )}
     text = _norm_text(" ".join([job.title or "", job.description or "", str(job.raw or "")]))
     return {
         "relocation": job.relocation is True or bool(re.search(r"\brelocat(?:e|ion)\b|релокац|переезд", text)),
