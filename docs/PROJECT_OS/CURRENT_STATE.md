@@ -5,7 +5,10 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- Latest PostgreSQL-backed suite: 194 passed, 63.65% branch coverage (55% gate).
+- Latest PostgreSQL-backed suite: 197 passed, 63.80% branch coverage (55% gate).
+- v3.5.3 Fast Scan & Scan Dashboard work is now in progress: source discovery
+  is bounded to three concurrent adapters; manual scans store status and
+  timings in `runtime_state` and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
 - main: v3.5.1

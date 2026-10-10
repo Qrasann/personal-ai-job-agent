@@ -32,4 +32,12 @@
 - [ ] Tag v3.5.2 after acceptance.
 
 ## Next
-v3.5.3 Fast Scan & Scan Dashboard.
+## v3.5.3 Fast Scan & Scan Dashboard
+- [x] Run independent source discovery with a bounded concurrency of three;
+  preserve source priority for sequential matching/ingestion.
+- [x] Add source duration and isolated timeout/error reporting.
+- [x] Reuse existing discovery cache; persist latest manual scan status and
+  source summary in `runtime_state`.
+- [x] Add `/scanstatus` and `/cancel` for in-flight manual scans.
+- [ ] Validate the rebuilt Telegram bot's startup scan and real-chat controls.
+- [ ] Consider competition/applicant signals where public sources expose them.

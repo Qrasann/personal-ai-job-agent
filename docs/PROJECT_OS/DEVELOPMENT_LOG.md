@@ -15,6 +15,22 @@
 - Local bot is still running v3.5.2 from the prior source stage; this change
   awaits commit, GitHub publication, and rebuild.
 
+## 2026-10-11 — v3.5.3 Fast Scan & Scan Dashboard
+- Source discovery now runs through a shared semaphore capped at three
+  adapters; the existing priority order still controls sequential matching
+  and ingestion, avoiding concurrent database-side notification races.
+- Each source discovery has a 180-second bound and records `duration_ms`;
+  source errors/timeouts are isolated so successful sources can still finish.
+- Added a persistent manual-scan dashboard in `runtime_state`, `/scanstatus`,
+  and `/cancel`; cancellation clears the HH reply composer as before.
+- Added concurrency, scan progress/status, and cancellation regressions.
+- Full isolated PostgreSQL suite: 197 passed, 63.80% branch coverage (55%
+  gate). Initial sandboxed attempts could not connect to localhost; the same
+  suite passed with the authorized local test database connection.
+- The active Compose bot remains on the published v3.5.2 salary/blacklist
+  commit. This in-progress v3.5.3 stage awaits final commit, CI, rebuild, and
+  startup scan verification.
+
 ## 2026-10-10 — v3.5.2 restart
 - Confirmed main is v3.5.1 at 6f73110324fdf657f6695c25a5af540d2a94e72f.
 - Confirmed the experimental branch is testsbuild.

@@ -30,6 +30,8 @@ log = logging.getLogger(__name__)
 hh_client = HHClient()
 _DISCOVERY_CACHE: dict[tuple[str, tuple[str, ...]], tuple[float, list[NormalizedJob]]] = {}
 CACHE_TTL_SECONDS = 600
+DISCOVERY_CONCURRENCY = 3
+DISCOVERY_TIMEOUT_SECONDS = 180
 
 
 def _cache_ttl(source_id: str) -> int:
@@ -247,25 +249,40 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(HRGESource())
         adapters.sort(key=lambda item: source_priority(settings_map, item.source_id), reverse=True)
 
-        for adapter in adapters:
-            await emit_progress(f"⏳ {search.name} · {adapter.name}: поиск…")
+        semaphore = asyncio.Semaphore(DISCOVERY_CONCURRENCY)
+
+        async def discover(adapter):
+            cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
+            cached = _DISCOVERY_CACHE.get(cache_key)
+            cache_hit = bool(not force_refresh and cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
+            if cache_hit:
+                return adapter, cached[1], True, None, 0
+            started = time.monotonic()
             try:
-                cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
-                cached = _DISCOVERY_CACHE.get(cache_key)
-                cache_hit = bool(not force_refresh and cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
-                if cache_hit:
-                    jobs = cached[1]
-                else:
-                    jobs = await adapter.discover(context)
-                    _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
+                async with semaphore:
+                    jobs = await asyncio.wait_for(adapter.discover(context), timeout=DISCOVERY_TIMEOUT_SECONDS)
+                _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
+                return adapter, jobs, False, None, int((time.monotonic() - started) * 1000)
+            except Exception as exc:
+                return adapter, [], False, exc, int((time.monotonic() - started) * 1000)
+
+        for adapter in adapters:
+            await emit_progress(f"⏳ {search.name} · {adapter.name}: подготовка поиска…")
+
+        discovered = await asyncio.gather(*(discover(adapter) for adapter in adapters))
+        for adapter, jobs, cache_hit, discovery_error, duration_ms in discovered:
+            try:
+                if discovery_error:
+                    raise discovery_error
                 jobs = [job for job in jobs if vacancy_allowed(job, settings_map, current_country=user.current_country)]
                 jobs.sort(key=lambda job: job_priority(job, settings_map, current_country=user.current_country), reverse=True)
-                search_summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit}
-                aggregate = summary["sources"].setdefault(adapter.source_id, {"found": 0, "cache": True})
+                search_summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit, "duration_ms": duration_ms}
+                aggregate = summary["sources"].setdefault(adapter.source_id, {"found": 0, "cache": True, "duration_ms": 0})
                 aggregate["found"] += len(jobs)
                 aggregate["cache"] = bool(aggregate["cache"] and cache_hit)
+                aggregate["duration_ms"] = max(aggregate["duration_ms"], duration_ms)
                 cache_label = " (кэш)" if cache_hit else ""
-                await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label}")
+                await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · {duration_ms / 1000:.1f} с")
                 for index, job in enumerate(jobs, start=1):
                     counters = await ingest_and_match(bot, job, only_user_id=user.id, only_search_profile_id=search.id)
                     for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
@@ -277,8 +294,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             except Exception as exc:
                 log.exception("source %s failed for search %s", adapter.source_id, search.id)
                 error = _error_text(exc)
-                search_summary["sources"][adapter.source_id] = {"error": error}
-                summary["sources"].setdefault(adapter.source_id, {"error": error})
+                search_summary["sources"][adapter.source_id] = {"error": error, "duration_ms": duration_ms}
+                summary["sources"].setdefault(adapter.source_id, {"error": error, "duration_ms": duration_ms})
                 await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(str(exc))}")
     return summary
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import html
+import json
 import time
 
 from aiogram import Bot, F, Router
@@ -29,6 +30,17 @@ from app.telegram.multicommand import (
 )
 
 router = Router()
+_ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
+
+
+async def _save_scan_dashboard(user_id: int, **values) -> None:
+    current = {}
+    try:
+        current = json.loads(await repo.get_state(user_id, "scan_dashboard", "{}"))
+    except (TypeError, ValueError):
+        pass
+    current.update(values)
+    await repo.set_state(user_id, "scan_dashboard", json.dumps(current, ensure_ascii=False))
 
 
 async def _user(message: Message):
@@ -81,6 +93,7 @@ def _main_menu_text() -> str:
         "🤖 <b>Personal AI Job Agent</b>\n\n"
         "🔎 <b>Поиск и очереди</b>\n"
         "/scan — запустить поиск сейчас\n"
+        "/scanstatus — состояние последнего сканирования\n"
         "/review — разобрать Good-вакансии\n"
         "/stretch — разобрать Stretch-вакансии\n"
         "/saved — сохранённые вакансии\n"
@@ -623,6 +636,14 @@ async def scan(message: Message, bot: Bot) -> None:
     if not user:
         return
 
+    existing = _ACTIVE_SCAN_TASKS.get(user.id)
+    if existing and not existing.done():
+        await message.answer("⏳ Сканирование уже выполняется. /scanstatus покажет прогресс.")
+        return
+    task = asyncio.current_task()
+    if task:
+        _ACTIVE_SCAN_TASKS[user.id] = task
+
     progress = await message.answer(
         "⏳ Ищу вакансии по активным источникам…"
     )
@@ -633,6 +654,7 @@ async def scan(message: Message, bot: Bot) -> None:
     async def update_progress(text: str) -> None:
         nonlocal stage
         stage = text[1:].strip() if text.startswith("⏳") else text
+        await _save_scan_dashboard(user.id, status="running", stage=stage)
 
     async def heartbeat() -> None:
         frames = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
@@ -649,6 +671,7 @@ async def scan(message: Message, bot: Bot) -> None:
     heartbeat_task = asyncio.create_task(heartbeat())
 
     try:
+        await _save_scan_dashboard(user.id, status="running", stage=stage, started_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
         summary = await scan_for_user(bot, user.id, progress_callback=update_progress, force_refresh=True)
         heartbeat_task.cancel()
         try:
@@ -656,6 +679,7 @@ async def scan(message: Message, bot: Bot) -> None:
         except asyncio.CancelledError:
             pass
 
+        await _save_scan_dashboard(user.id, status="completed", stage="Готово", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()), summary=summary)
         source_bits = []
 
         for source_id, info in (summary.get("sources") or {}).items():
@@ -667,7 +691,7 @@ async def scan(message: Message, bot: Bot) -> None:
                 freshness = "кэш" if info.get("cache") else "live"
                 source_bits.append(
                     f"• {html.escape(source_id)}: "
-                    f"{int(info.get('found', 0))} ({freshness})"
+                    f"{int(info.get('found', 0))} ({freshness}, {int(info.get('duration_ms', 0)) / 1000:.1f} с)"
                 )
 
         details = (
@@ -696,16 +720,60 @@ async def scan(message: Message, bot: Bot) -> None:
             + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
             parse_mode="HTML",
         )
+    except asyncio.CancelledError:
+        heartbeat_task.cancel()
+        try:
+            await heartbeat_task
+        except asyncio.CancelledError:
+            pass
+        await _save_scan_dashboard(user.id, status="cancelled", stage="Отменено", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
+        try:
+            await progress.edit_text("⏹ Сканирование остановлено. Результаты уже обработанных источников сохранены.")
+        except Exception:
+            pass
     except Exception as exc:
         heartbeat_task.cancel()
         try:
             await heartbeat_task
         except asyncio.CancelledError:
             pass
+        await _save_scan_dashboard(user.id, status="failed", stage=str(exc)[:500], finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
         await progress.edit_text(
             f"⚠ {html.escape(str(exc))}",
             parse_mode="HTML",
         )
+    finally:
+        if _ACTIVE_SCAN_TASKS.get(user.id) is task:
+            _ACTIVE_SCAN_TASKS.pop(user.id, None)
+
+
+@router.message(Command("scanstatus"))
+async def scan_status(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    try:
+        state = json.loads(await repo.get_state(user.id, "scan_dashboard", "{}"))
+    except (TypeError, ValueError):
+        state = {}
+    if not state:
+        await message.answer("Истории сканирования пока нет. Запусти /scan.")
+        return
+    summary = state.get("summary") or {}
+    sources = []
+    for name, info in (summary.get("sources") or {}).items():
+        if info.get("error"):
+            sources.append(f"• {html.escape(name)}: ошибка ({int(info.get('duration_ms', 0)) / 1000:.1f} с)")
+        else:
+            sources.append(f"• {html.escape(name)}: {int(info.get('found', 0))} вакансий ({int(info.get('duration_ms', 0)) / 1000:.1f} с)")
+    await message.answer(
+        f"📊 Сканирование: <b>{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
+        f"Начато: {html.escape(str(state.get('started_at', '—')))}\n"
+        f"Завершено: {html.escape(str(state.get('finished_at', '—')))}\n"
+        f"Этап: {html.escape(str(state.get('stage', '—')))}\n"
+        + ("\n".join(sources) if sources else "Источники ещё не завершили поиск."),
+        parse_mode="HTML",
+    )
 
 def _pick_next_review(rows, current_match_id: int):
     for index, (match, job) in enumerate(rows):
@@ -1262,6 +1330,12 @@ async def manual(callback: CallbackQuery) -> None:
 async def cancel(message: Message) -> None:
     user = await _require_user(message)
     if user:
+        active = _ACTIVE_SCAN_TASKS.get(user.id)
+        if active and active is not asyncio.current_task() and not active.done():
+            active.cancel()
+            await repo.set_state(user.id, "manual_hh_reply", "")
+            await message.answer("⏹ Останавливаю текущий скан. /scanstatus покажет его итог.")
+            return
         await repo.set_state(user.id, "manual_hh_reply", "")
         await message.answer("Отменено.")
 

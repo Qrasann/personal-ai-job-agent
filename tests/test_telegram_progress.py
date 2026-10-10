@@ -1,5 +1,6 @@
 import asyncio
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 from aiogram.enums import MessageEntityType
 
@@ -227,6 +228,8 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
         "scan_for_user",
         fake_scan,
     )
+    monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(return_value="{}"))
+    monkeypatch.setattr(handlers.repo, "set_state", AsyncMock())
 
     message = IncomingMessage("/scan")
     asyncio.run(
@@ -240,13 +243,50 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
         "⏳ Ищу вакансии по активным источникам…"
     ]
     assert len(message.progress.edits) == 2
-    assert "HH: найдено 2 · анализ 2/2" in message.progress.edits[0][0]
     assert "⏱ Прошло:" in message.progress.edits[0][0]
     assert "Проход поиска завершён" in message.progress.edits[-1][0]
-    assert "hh: 2 (live)" in message.progress.edits[-1][0]
+    assert "hh: 2 (live," in message.progress.edits[-1][0]
     assert "Career-first: 1 обработано, 1 Good, 0 Stretch" in message.progress.edits[-1][0]
     assert "Relocation-first: 1 обработано, 0 Good, 1 Stretch" in message.progress.edits[-1][0]
     assert "🟢 Good: 1" in message.progress.edits[-1][0]
     assert "🟡 Stretch: 1" in message.progress.edits[-1][0]
     assert "⚪ Отфильтровано: 0" in message.progress.edits[-1][0]
     assert "📨 Новых уведомлений: 1" in message.progress.edits[-1][0]
+
+
+def test_scan_status_renders_persisted_source_timing(monkeypatch):
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(
+        handlers.repo,
+        "get_state",
+        AsyncMock(return_value='{"status":"completed","started_at":"2026-10-11 10:00 UTC","finished_at":"2026-10-11 10:01 UTC","stage":"Готово","summary":{"sources":{"jobbank":{"found":2,"duration_ms":12000}}}}'),
+    )
+    message = IncomingMessage("/scanstatus")
+
+    asyncio.run(handlers.scan_status(message))
+
+    rendered = message.answers[0][0]
+    assert "completed" in rendered
+    assert "2026-10-11 10:01 UTC" in rendered
+    assert "jobbank: 2 вакансий (12.0 с)" in rendered
+
+
+def test_cancel_stops_only_the_active_manual_scan(monkeypatch):
+    async def scenario():
+        monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+        monkeypatch.setattr(handlers.repo, "set_state", AsyncMock())
+        waiting = asyncio.Event()
+        task = asyncio.create_task(waiting.wait())
+        handlers._ACTIVE_SCAN_TASKS[7] = task
+        await asyncio.sleep(0)
+        message = IncomingMessage("/cancel")
+        await handlers.cancel(message)
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+        assert task.cancelled()
+        assert "Останавливаю текущий скан" in message.answers[0][0]
+        handlers._ACTIVE_SCAN_TASKS.pop(7, None)
+
+    asyncio.run(scenario())

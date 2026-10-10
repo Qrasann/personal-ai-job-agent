@@ -23,6 +23,25 @@ schema change. Add `/scanstatus` and ensure `/cancel` does not interrupt HH
 message composition behavior. Verify with mocked concurrency/cancellation
 tests, the full PostgreSQL suite, and local Compose logs.
 
+### Implemented in the current working stage
+
+- Discovery for independent adapters runs with a limit of three in parallel;
+  ordering, filtering, and database ingestion remain sequential by source
+  priority.
+- Each source has a 180-second timeout. Failures are isolated and included in
+  the source summary, and successful sources still finish processing.
+- Manual scan state/progress/results persist in the existing `runtime_state`
+  table. `/scanstatus` shows the latest state and source timings; `/cancel`
+  stops an active manual scan and still clears the HH reply composer.
+- Existing source discovery caching remains in place. Job Bank's internal
+  crawl pacing is unchanged.
+
+The full PostgreSQL test suite passed: 197 tests, 63.80% branch coverage.
+The worktree has code changes pending commit, publication, bot rebuild, and
+startup scan verification. Do not rebuild while a startup scan is active. The
+deployment remains on the already published v3.5.2 salary/blacklist commit
+until this stage is published and rebuilt.
+
 For v3.5.2 dual-mode review:
 1. read CURRENT_STATE.md and TASKS.md;
 2. inspect app/search/preferences.py;

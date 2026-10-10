@@ -109,3 +109,43 @@ def test_jobbank_respects_disabled_source_and_independent_profiles(monkeypatch):
     assert matched == [12]
     assert not summary["searches"]["11"]["sources"]
     assert summary["searches"]["12"]["sources"]["jobbank"]["found"] == 1
+
+
+def test_scan_discovers_sources_concurrently_with_a_bounded_limit(monkeypatch):
+    active = 0
+    peak = 0
+
+    class FakeSource:
+        def __init__(self, source_id):
+            self.source_id = source_id
+            self.name = source_id
+
+        async def discover(self, context):
+            nonlocal active, peak
+            active += 1
+            peak = max(peak, active)
+            await asyncio.sleep(0.02)
+            active -= 1
+            return []
+
+    async def fake_context(user_id):
+        user = SimpleNamespace(id=7, current_country="RU", telegram_chat_id="123")
+        profile = SimpleNamespace(target_role="DevOps")
+        search = SimpleNamespace(id=1, name="Career", settings={"queries": ["SRE"], "modes": {"local_ru": True, "remote_international": True, "relocation": True}})
+        return user, profile, [search]
+
+    monkeypatch.setattr(services, "_user_context", fake_context)
+    monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
+    monkeypatch.setattr(services, "build_source_plan", lambda *a, **k: [SimpleNamespace(source_id=name, implemented=True) for name in ("hh", "remoteok", "arbeitnow", "jobbank")])
+    monkeypatch.setattr(services, "HHSource", lambda *a: FakeSource("hh"))
+    monkeypatch.setattr(services, "RemoteOKSource", lambda: FakeSource("remoteok"))
+    monkeypatch.setattr(services, "ArbeitnowSource", lambda: FakeSource("arbeitnow"))
+    monkeypatch.setattr(services, "JobBankSource", lambda: FakeSource("jobbank"))
+    monkeypatch.setattr(services, "vacancy_allowed", lambda *a, **k: True)
+    monkeypatch.setattr(services, "job_priority", lambda *a, **k: 0)
+    services._DISCOVERY_CACHE.clear()
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert 1 < peak <= services.DISCOVERY_CONCURRENCY
+    assert all("duration_ms" in item for item in summary["sources"].values())
