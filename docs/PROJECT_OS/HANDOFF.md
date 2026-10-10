@@ -48,7 +48,8 @@ page and was deferred.
 Final local verification: 191 tests passed against isolated PostgreSQL 16,
 64.16% branch coverage (gate 55%); Python compilation and `git diff --check`
 passed. The local .venv uses Python 3.14; the deployment image remains Python
-3.12. Remote CI and comprehensive Telegram acceptance are still pending.
+3.12. GitHub Actions CI run 102 passed for the Job Bank commit. Comprehensive
+Telegram acceptance remains pending.
 
 Local deployment was rebuilt with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
 rebuild` from this worktree. Runtime remains v3.5.2; both Career-first and

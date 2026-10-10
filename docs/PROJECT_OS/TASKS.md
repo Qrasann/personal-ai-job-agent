@@ -20,7 +20,7 @@
 - [x] Add opt-in independent Career-first and Relocation-first SearchProfiles.
 - [x] Make one scan discover and match each active SearchProfile independently.
 - [x] Preserve profile settings and matches when parallel search is disabled.
-- [ ] Full CI green.
+- [x] Full CI green (GitHub Actions run 102 succeeded for the Job Bank commit).
 - [ ] Complete comprehensive Telegram acceptance; startup, parallel activation
   and dual-profile scan already passed the earlier local smoke test.
 - [ ] Compare testsbuild with main and port useful Saved/blacklist/profile work.

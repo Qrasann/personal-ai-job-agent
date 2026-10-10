@@ -50,7 +50,7 @@
   unknown sponsorship; no data was ingested by this standalone check.
 - Created local .venv and used the isolated PostgreSQL tmpfs test service.
 - Final full suite: 191 passed, 64.16% branch coverage (55% gate); Python
-  compilation and `git diff --check` passed. Remote CI remains pending.
+  compilation and `git diff --check` passed. GitHub Actions CI run 102 passed.
 - Rebuilt local Compose `repo`; runtime is v3.5.2, polling works, both search
   profiles remain active, and existing named PostgreSQL/storage volumes were
   preserved. Startup scan including Job Bank finished successfully at 20:44:49
