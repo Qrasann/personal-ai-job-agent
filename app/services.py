@@ -21,6 +21,7 @@ from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
+from app.search.preferences import job_priority, source_enabled, source_priority, vacancy_allowed
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
@@ -205,7 +206,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
     targets = [normalize_country(str(x)) for x in (settings_map.get("target_countries") or [])]
     targets = [x for x in targets if x]
     plan = build_source_plan(user.current_country, targets, include_international=True)
-    source_ids = {x.source_id for x in plan if x.implemented}
+    source_ids = {x.source_id for x in plan if x.implemented and source_enabled(settings_map, x.source_id)}
     modes = settings_map.get("modes") or {"local_ru": True, "remote_international": True, "relocation": True}
     if not modes.get("local_ru", True):
         source_ids.discard("hh")
@@ -223,6 +224,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
     if "hr_ge" in source_ids:
         adapters.append(HRGESource())
 
+    adapters.sort(key=lambda item: source_priority(settings_map, item.source_id), reverse=True)
+
     for adapter in adapters:
         await emit_progress(f"⏳ {adapter.name}: поиск…")
         try:
@@ -234,6 +237,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             else:
                 jobs = await adapter.discover(context)
                 _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
+            jobs = [job for job in jobs if vacancy_allowed(job, settings_map, current_country=user.current_country)]
+            jobs.sort(key=lambda job: job_priority(job, settings_map, current_country=user.current_country), reverse=True)
             summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit}
             cache_label = " (кэш)" if cache_hit else ""
             await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label}")
