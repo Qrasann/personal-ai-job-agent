@@ -2,8 +2,8 @@
 
 ## Latest state
 - branch: `feature/v3.5.2-dual-search-modes`
-- local and GitHub head: `ad81a21d3273eee1f659b9b8ff1360e2e5b4ae6a`
-- tracked release version: 3.5.3; feature branch is deployed pending real-chat
+- v3.5.3 release commit: `e4fa198f63d07a5120f6e480b63a7be9cdb46efd`
+- runtime/source version: 3.5.3; feature branch is deployed pending real-chat
   command acceptance and release tag.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
@@ -20,7 +20,8 @@
 ## Stable baseline
 - main: v3.5.1
 - baseline commit: 6f73110324fdf657f6695c25a5af540d2a94e72f
-- testsbuild: experimental branch; at restart it was 11 commits ahead and 0 behind main.
+- testsbuild: experimental branch; latest comparison is 11 commits ahead and
+  one behind main (diverged).
 
 ## Active development
 - target: v3.5.3 Fast Scan & Scan Dashboard acceptance

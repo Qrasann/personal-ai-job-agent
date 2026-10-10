@@ -35,6 +35,12 @@
   successfully at 21:04:51 UTC. Existing named volumes were verified.
 - Owner-driven real-chat acceptance of `/salary`, `/blacklist`, `/scanstatus`,
   and `/cancel` remains pending before tagging v3.5.2.
+- Release metadata `VERSION=3.5.3` is published in commit
+  `e4fa198f63d07a5120f6e480b63a7be9cdb46efd`; CI run 108 passed. The bot was
+  rebuilt and reports source/runtime 3.5.3. Its new startup scan completed
+  successfully at 21:11:40 UTC on 2026-10-10 with Job Bank query/detail HTTP
+  200 responses. The v3.5.2 and v3.5.3 release tags both await real-chat
+  command acceptance.
 
 ## 2026-10-10 — v3.5.2 restart
 - Confirmed main is v3.5.1 at 6f73110324fdf657f6695c25a5af540d2a94e72f.

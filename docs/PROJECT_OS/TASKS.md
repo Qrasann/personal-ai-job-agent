@@ -20,7 +20,8 @@
 - [x] Add opt-in independent Career-first and Relocation-first SearchProfiles.
 - [x] Make one scan discover and match each active SearchProfile independently.
 - [x] Preserve profile settings and matches when parallel search is disabled.
-- [x] Full CI green (GitHub Actions run 105 succeeded for Fast Scan).
+- [x] Full CI green (GitHub Actions run 108 succeeded for v3.5.3 release
+  metadata; Fast Scan code run 105 also passed).
 - [x] Add current/desired/minimum salary controls in Telegram; minimum feeds
   the existing per-currency scoring threshold.
 - [x] Add Telegram blacklist controls with case-insensitive add/remove/clear,

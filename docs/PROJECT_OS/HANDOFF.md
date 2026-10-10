@@ -2,21 +2,22 @@
 
 ## Current deployed state — 2026-10-11
 
-Branch `feature/v3.5.2-dual-search-modes` is published through
-`ad81a21d3273eee1f659b9b8ff1360e2e5b4ae6a`. GitHub Actions runs 105 and 106
-passed. `VERSION` and `CHANGELOG.md` now identify the implementation as 3.5.3;
-the release metadata commit and final CI result are pending.
-The `repo` Compose app was polling as `@roma_job_agent_bot` on version 3.5.2;
-the startup dual-profile scan completed successfully, including live Job Bank
-queries/details. Existing named PostgreSQL and storage volumes are preserved.
+Code release commit: `e4fa198f63d07a5120f6e480b63a7be9cdb46efd` on
+`feature/v3.5.2-dual-search-modes`. GitHub Actions runs 105–108 passed.
+`VERSION` and `CHANGELOG.md` identify the implementation as 3.5.3. The `repo`
+Compose app is polling as `@roma_job_agent_bot` on runtime version 3.5.3; the
+startup dual-profile scan completed successfully at 21:11:40 UTC, including
+live Job Bank queries/details. Existing named PostgreSQL and storage volumes
+are preserved.
 Latest PostgreSQL suite: 197 passed, 63.80% branch coverage. v3.5.3 Fast Scan
 uses three concurrent discovery slots, source-level timing and 180-second
 timeouts, sequential priority-ordered ingestion, persistent manual dashboard,
 `/scanstatus`, and `/cancel`.
 
 Remaining release acceptance is an owner-driven Telegram chat check for
-`/salary`, `/blacklist`, `/scanstatus`, and `/cancel`. No real-chat test messages
-were sent in this session. Do not tag v3.5.2 until this acceptance is complete.
+`/salary`, `/blacklist`, `/scanstatus`, and `/cancel`. No real-chat command
+verification was available in this session. Do not tag v3.5.2 or v3.5.3 until
+this acceptance is complete.
 
 ## Latest stage — salary and blacklist controls
 
