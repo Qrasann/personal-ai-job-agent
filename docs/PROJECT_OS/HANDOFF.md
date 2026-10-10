@@ -4,8 +4,9 @@
 
 Branch `feature/v3.5.2-dual-search-modes` is published through
 `ad81a21d3273eee1f659b9b8ff1360e2e5b4ae6a`. GitHub Actions runs 105 and 106
-passed.
-The `repo` Compose app is polling as `@roma_job_agent_bot` on version 3.5.2;
+passed. `VERSION` and `CHANGELOG.md` now identify the implementation as 3.5.3;
+the release metadata commit and final CI result are pending.
+The `repo` Compose app was polling as `@roma_job_agent_bot` on version 3.5.2;
 the startup dual-profile scan completed successfully, including live Job Bank
 queries/details. Existing named PostgreSQL and storage volumes are preserved.
 Latest PostgreSQL suite: 197 passed, 63.80% branch coverage. v3.5.3 Fast Scan

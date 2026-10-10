@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.5.3
+
+Fast Scan & Scan Dashboard.
+
+- Run independent source discovery with a bounded concurrency of three while
+  keeping source-priority ingestion sequential.
+- Record per-source discovery timings and isolate source failures/timeouts.
+- Persist manual scan state and summary in `runtime_state`; add `/scanstatus`
+  and `/cancel` controls.
+- Preserve Job Bank's five-second crawl pacing and existing source cache.
+- Full PostgreSQL suite: 197 passed; branch coverage 63.80% (55% gate).
+- GitHub Actions CI run 105 passed; local Compose startup scan completed.
+- No database migration is required.
+
+## 3.5.2
+
+Search Control Center, dual search profiles, and international relocation sources.
+
+- Add independent Career-first and Relocation-first query profiles and balanced
+  search strategy.
+- Add source/geography controls, salary preferences and blacklist commands.
+- Add public Arbeitnow Germany and Job Bank Canada discovery with conservative
+  visa, eligibility and relocation evidence handling.
+- Full PostgreSQL suite at final v3.5.2 feature stage: 194 passed.
+- No database migration is required.
+
 ## 3.5.1
 
 Search Quality & Telegram UX release.
