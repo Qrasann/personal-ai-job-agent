@@ -195,6 +195,20 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
                     "cache": False,
                 }
             },
+            "searches": {
+                "11": {
+                    "name": "Career-first",
+                    "processed": 1,
+                    "qualified": 1,
+                    "stretch": 0,
+                },
+                "12": {
+                    "name": "Relocation-first",
+                    "processed": 1,
+                    "qualified": 0,
+                    "stretch": 1,
+                },
+            },
             "processed": 2,
             "qualified": 1,
             "stretch": 1,
@@ -230,6 +244,8 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     assert "⏱ Прошло:" in message.progress.edits[0][0]
     assert "Проход поиска завершён" in message.progress.edits[-1][0]
     assert "hh: 2 (live)" in message.progress.edits[-1][0]
+    assert "Career-first: 1 обработано, 1 Good, 0 Stretch" in message.progress.edits[-1][0]
+    assert "Relocation-first: 1 обработано, 0 Good, 1 Stretch" in message.progress.edits[-1][0]
     assert "🟢 Good: 1" in message.progress.edits[-1][0]
     assert "🟡 Stretch: 1" in message.progress.edits[-1][0]
     assert "⚪ Отфильтровано: 0" in message.progress.edits[-1][0]

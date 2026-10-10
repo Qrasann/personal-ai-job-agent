@@ -8,9 +8,9 @@ from aiogram.types import CallbackQuery, Message
 
 from app.database import repository as repo
 from app.geo.countries import all_supported_countries, normalize_country
-from app.search.preferences import search_config
+from app.search.preferences import SEARCH_STRATEGIES, discovery_queries, search_config, search_strategy
 from app.sources.registry import IMPLEMENTED, build_source_plan
-from app.telegram.settings_ui import countries_keyboard, geography_keyboard, next_policy, relocation_keyboard, settings_root_keyboard, source_keyboard
+from app.telegram.settings_ui import countries_keyboard, geography_keyboard, next_policy, relocation_keyboard, settings_root_keyboard, source_keyboard, strategy_keyboard
 
 router = Router(name="search-control")
 
@@ -31,6 +31,15 @@ async def _first_search(user_id: int):
     return profile, searches[0] if searches else None
 
 
+async def _search_for_kind(user_id: int, kind: str):
+    profile = await repo.active_profile(user_id)
+    if not profile:
+        return None, None
+    searches = await repo.list_search_profiles(profile.id)
+    selected = next((item for item in searches if item.kind == kind), None)
+    return profile, selected or (searches[0] if searches else None)
+
+
 async def _save(search, cfg: dict):
     await repo.update_search_settings(search.id, cfg)
     search.settings = cfg
@@ -43,13 +52,15 @@ def _root_text(profile, settings: dict) -> str:
     return (
         "⚙️ <b>Search Control Center</b>\n\n"
         f"🎯 Роль: {html.escape(profile.target_role or '—')}\n"
+        f"🧭 Стратегия: <b>{html.escape(search_strategy(cfg))}</b>\n"
         f"🔎 Источники: {html.escape(', '.join(active) or 'нет')}\n"
         f"🏙 Мой город: {html.escape(str(cfg.get('local_city') or 'не задан'))}\n"
         f"🏙 Доп. города: {html.escape(', '.join(cfg.get('selected_cities') or []) or 'нет')}\n"
         f"🌍 Страны: {html.escape(', '.join(cfg.get('target_countries') or []) or 'нет')}\n\n"
         "Приоритет 0–100 влияет на порядок обработки.\n"
         "Relocation policy: any → prefer → require → exclude.\n\n"
-        "Доп. города: <code>/cities Москва, Санкт-Петербург</code>"
+        "Доп. города: <code>/cities Москва, Санкт-Петербург</code>\n"
+        "Relocation-роли: <code>/relocationroles warehouse, hotel staff</code>"
     )
 
 
@@ -86,6 +97,85 @@ async def cities_command(message: Message) -> None:
     cfg["geography"] = geo
     await _save(search, cfg)
     await message.answer("✅ Города: " + (", ".join(cities) if cities else "очищены"))
+
+
+@router.message(Command("relocationroles"))
+async def relocation_roles_command(message: Message) -> None:
+    user = await _user_message(message)
+    if not user:
+        return
+    profile, search = await _search_for_kind(user.id, "relocation")
+    if not search:
+        return
+    cfg = search_config(search.settings)
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) == 1:
+        roles = cfg.get("relocation_queries") or []
+        await message.answer("✈️ Relocation-роли: " + (", ".join(roles) or "не заданы"))
+        return
+    raw = parts[1].strip()
+    roles = [] if raw.casefold() == "clear" else [item.strip() for item in raw.split(",") if item.strip()]
+    cfg["relocation_queries"] = list(dict.fromkeys(roles))
+    await _save(search, cfg)
+    active = discovery_queries(cfg, profile.target_role)
+    await message.answer(
+        "✅ Relocation-роли: " + (", ".join(roles) if roles else "очищены")
+        + "\nАктивные запросы: " + (", ".join(active) or "нет")
+    )
+
+
+@router.message(Command("parallelsearch"))
+async def parallel_search_command(message: Message) -> None:
+    user = await _user_message(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    if not profile:
+        return
+    parts = (message.text or "").split(maxsplit=1)
+    action = parts[1].strip().casefold() if len(parts) > 1 else "status"
+    if action not in {"on", "off", "status"}:
+        await message.answer("Использование: /parallelsearch on|off|status")
+        return
+    if action != "status":
+        await repo.configure_parallel_search_profiles(profile.id, enabled=action == "on")
+    searches = await repo.list_search_profiles(profile.id)
+    relocation_active = any(item.kind == "relocation" for item in searches)
+    await message.answer(
+        "🧭 Параллельный поиск: " + ("ON" if relocation_active else "OFF")
+        + "\nАктивные профили: " + (", ".join(item.name for item in searches) or "нет")
+        + "\nНастройте широкий трек через /relocationroles."
+    )
+
+
+@router.callback_query(F.data == "cfg:strategy")
+async def strategy_callback(callback: CallbackQuery) -> None:
+    user = await _user_callback(callback)
+    if not user:
+        return
+    _, search = await _first_search(user.id)
+    await callback.message.edit_text(
+        "🧭 <b>Стратегия поиска</b>\n"
+        "Career-first использует карьерные запросы.\n"
+        "Relocation-first использует relocation-роли и выше ставит вакансии с подтверждаемыми сигналами поддержки.\n"
+        "Balanced запускает оба набора. Unknown не считается отказом.",
+        parse_mode="HTML",
+        reply_markup=strategy_keyboard(search.settings or {}),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("cfg:strategy:"))
+async def strategy_set_callback(callback: CallbackQuery) -> None:
+    user = await _user_callback(callback)
+    value = callback.data.split(":", 2)[2]
+    if not user or value not in SEARCH_STRATEGIES:
+        return
+    _, search = await _first_search(user.id)
+    cfg = search_config(search.settings)
+    cfg["search_strategy"] = value
+    await _save(search, cfg)
+    await strategy_callback(callback)
 
 
 @router.callback_query(F.data == "cfg:root")

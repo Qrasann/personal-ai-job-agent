@@ -6,6 +6,7 @@ from typing import Any
 from app.domain.jobs import NormalizedJob
 
 POLICY_VALUES = ("any", "prefer", "require", "exclude")
+SEARCH_STRATEGIES = ("career_first", "relocation_first", "balanced")
 DEFAULT_PRIORITY = 50
 
 
@@ -36,7 +37,40 @@ def search_config(settings: dict | None) -> dict:
     cfg.setdefault("selected_cities", [])
     cfg.setdefault("geography", {})
     cfg.setdefault("relocation_preferences", {})
+    cfg.setdefault("search_strategy", "balanced")
+    cfg.setdefault("relocation_queries", [])
     return cfg
+
+
+def search_strategy(settings: dict | None) -> str:
+    value = str(search_config(settings).get("search_strategy") or "balanced").casefold()
+    return value if value in SEARCH_STRATEGIES else "balanced"
+
+
+def discovery_queries(settings: dict | None, fallback: str = "") -> list[str]:
+    """Return a stable, deduplicated query list for the selected strategy.
+
+    Existing ``queries`` remain the career track for backwards compatibility.
+    A relocation-only track falls back to them until the user explicitly adds
+    broader relocation roles, so changing strategy can never disable discovery.
+    """
+    cfg = search_config(settings)
+    career = [str(item).strip() for item in _list(cfg.get("queries")) if str(item).strip()]
+    if not career and fallback.strip():
+        career = [fallback.strip()]
+    relocation = [
+        str(item).strip()
+        for item in _list(cfg.get("relocation_queries"))
+        if str(item).strip()
+    ]
+    strategy = search_strategy(cfg)
+    if strategy == "career_first":
+        selected = career
+    elif strategy == "relocation_first":
+        selected = relocation or career
+    else:
+        selected = career + relocation
+    return list(dict.fromkeys(selected))
 
 
 def source_enabled(settings: dict | None, source_id: str) -> bool:
@@ -131,6 +165,7 @@ def job_priority(job: NormalizedJob, settings: dict | None, *, current_country: 
     local_city = _norm_text(str(cfg.get("local_city") or ""))
     if local_city and _norm_text(job.city) == local_city:
         score += 15
+    strategy = search_strategy(cfg)
     for key, present in _signals(job).items():
         if present:
             policy = _policy(cfg, key)
@@ -138,4 +173,8 @@ def job_priority(job: NormalizedJob, settings: dict | None, *, current_country: 
                 score += 20
             elif policy == "require":
                 score += 30
+            elif strategy == "relocation_first":
+                score += 15
+            elif strategy == "balanced":
+                score += 5
     return score

@@ -1,7 +1,7 @@
 from dataclasses import replace
 
 from app.domain.jobs import NormalizedJob
-from app.search.preferences import job_priority, source_enabled, vacancy_allowed
+from app.search.preferences import discovery_queries, job_priority, search_strategy, source_enabled, vacancy_allowed
 
 
 def make_job(**kwargs):
@@ -44,3 +44,40 @@ def test_priority_prefers_target_country_and_source():
     local = make_job(source="hh", country="RU")
     target = make_job(source="remoteok", country="ES", city="Madrid", visa_sponsorship=True)
     assert job_priority(target, cfg, current_country="RU") > job_priority(local, cfg, current_country="RU")
+
+
+def test_balanced_strategy_combines_career_and_relocation_queries():
+    cfg = {
+        "search_strategy": "balanced",
+        "queries": ["DevOps Engineer", "DevOps Engineer"],
+        "relocation_queries": ["warehouse worker", "hotel staff"],
+    }
+    assert discovery_queries(cfg, "fallback") == [
+        "DevOps Engineer",
+        "warehouse worker",
+        "hotel staff",
+    ]
+
+
+def test_each_strategy_keeps_its_query_track_independent():
+    cfg = {"queries": ["SRE"], "relocation_queries": ["factory worker"]}
+    assert discovery_queries({**cfg, "search_strategy": "career_first"}) == ["SRE"]
+    assert discovery_queries({**cfg, "search_strategy": "relocation_first"}) == ["factory worker"]
+
+
+def test_relocation_strategy_falls_back_without_disabling_discovery():
+    cfg = {"search_strategy": "relocation_first", "relocation_queries": []}
+    assert discovery_queries(cfg, "DevOps Engineer") == ["DevOps Engineer"]
+    assert search_strategy({"search_strategy": "unexpected"}) == "balanced"
+
+
+def test_relocation_strategy_prioritizes_evidence_but_not_unknown_as_false():
+    cfg = {"search_strategy": "relocation_first"}
+    unknown = make_job(country="DE", city="Berlin")
+    supported = make_job(
+        country="DE",
+        city="Berlin",
+        description="Relocation package and work permit support are provided.",
+    )
+    assert vacancy_allowed(unknown, cfg, current_country="RU")
+    assert job_priority(supported, cfg, current_country="RU") > job_priority(unknown, cfg, current_country="RU")

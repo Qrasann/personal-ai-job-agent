@@ -48,7 +48,16 @@ async def _repository_review_flow(monkeypatch):
         profile = await repo.ensure_default_profile(user.id)
         searches = await repo.list_search_profiles(profile.id)
         assert len(searches) == 1
-        search = searches[0]
+        await repo.configure_parallel_search_profiles(profile.id, enabled=True)
+        searches = await repo.list_search_profiles(profile.id)
+        assert [item.kind for item in searches] == ["career", "relocation"]
+        assert [item.settings["search_strategy"] for item in searches] == ["career_first", "relocation_first"]
+        await repo.configure_parallel_search_profiles(profile.id, enabled=True)
+        assert len(await repo.list_search_profiles(profile.id)) == 2
+        await repo.configure_parallel_search_profiles(profile.id, enabled=False)
+        assert [item.kind for item in await repo.list_search_profiles(profile.id)] == ["career"]
+        await repo.configure_parallel_search_profiles(profile.id, enabled=True)
+        search = (await repo.list_search_profiles(profile.id))[0]
 
         fact = await repo.add_fact(
             profile.id,
@@ -100,6 +109,24 @@ async def _repository_review_flow(monkeypatch):
             reason="integration test",
             status="notified",
         )
+
+        concurrent = await asyncio.gather(*[
+            repo.save_match(
+                job_id=job.id,
+                user_id=user.id,
+                profile_id=profile.id,
+                search_profile_id=search.id,
+                resume_id=resume.id,
+                technical_score=80 + index,
+                geography_score=90,
+                salary_score=70,
+                relocation_score=50,
+                total_score=78,
+                reason=f"concurrent update {index}",
+            )
+            for index in range(5)
+        ])
+        assert {item.id for item in concurrent} == {match.id}
 
         review = await repo.review_matches(user.id, 10)
         assert len(review) == 1

@@ -613,10 +613,20 @@ async def scan(message: Message, bot: Bot) -> None:
             "\n".join(source_bits)
             or "• активных источников нет"
         )
+        profile_bits = []
+        for info in (summary.get("searches") or {}).values():
+            profile_bits.append(
+                f"• {html.escape(str(info.get('name') or 'Search'))}: "
+                f"{int(info.get('processed', 0))} обработано, "
+                f"{int(info.get('qualified', 0))} Good, "
+                f"{int(info.get('stretch', 0))} Stretch"
+            )
+        profile_details = "\n\n<b>Профили поиска</b>\n" + "\n".join(profile_bits) if profile_bits else ""
 
         await progress.edit_text(
             "✅ <b>Проход поиска завершён</b>\n\n"
             + details
+            + profile_details
             + f"\n\nОбработано: {int(summary.get('processed', 0))}"
             + f"\n🟢 Good: {int(summary.get('qualified', 0))}"
             + f"\n🟡 Stretch: {int(summary.get('stretch', 0))}"

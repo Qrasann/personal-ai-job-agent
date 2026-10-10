@@ -17,7 +17,7 @@ def test_force_refresh_bypasses_discovery_cache(monkeypatch):
     async def fake_context(user_id):
         user = SimpleNamespace(id=7, current_country="RU")
         profile = SimpleNamespace(target_role="DevOps")
-        search = SimpleNamespace(settings={"queries": ["DevOps"], "modes": {"local_ru": True, "remote_international": False, "relocation": False}})
+        search = SimpleNamespace(id=1, name="Career-first", settings={"queries": ["DevOps"], "modes": {"local_ru": True, "remote_international": False, "relocation": False}})
         return user, profile, [search]
     monkeypatch.setattr(services, "_user_context", fake_context)
     monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
@@ -30,3 +30,42 @@ def test_force_refresh_bypasses_discovery_cache(monkeypatch):
     asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
 
     assert len(calls) == 2
+
+
+def test_scan_uses_each_search_profile_independently(monkeypatch):
+    contexts = []
+    matched_searches = []
+
+    class FakeHHSource:
+        source_id = "hh"
+        name = "HH"
+        def __init__(self, *args): pass
+        async def discover(self, context):
+            contexts.append(list(context.queries))
+            return [SimpleNamespace(source="hh", source_job_id=str(len(contexts)), country="RU", city="Tver")]
+
+    async def fake_context(user_id):
+        user = SimpleNamespace(id=7, current_country="RU", telegram_chat_id="123")
+        profile = SimpleNamespace(target_role="DevOps")
+        career = SimpleNamespace(id=11, name="Career-first", settings={"search_strategy": "career_first", "queries": ["SRE"], "modes": {"local_ru": True, "remote_international": False}})
+        relocation = SimpleNamespace(id=12, name="Relocation-first", settings={"search_strategy": "relocation_first", "queries": ["SRE"], "relocation_queries": ["warehouse"], "modes": {"local_ru": True, "remote_international": False}})
+        return user, profile, [career, relocation]
+
+    async def fake_ingest(bot, job, **kwargs):
+        matched_searches.append(kwargs["only_search_profile_id"])
+        return {key: 0 for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate")}
+
+    monkeypatch.setattr(services, "_user_context", fake_context)
+    monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
+    monkeypatch.setattr(services, "build_source_plan", lambda *a, **k: [SimpleNamespace(source_id="hh", implemented=True)])
+    monkeypatch.setattr(services, "HHSource", FakeHHSource)
+    monkeypatch.setattr(services, "vacancy_allowed", lambda *a, **k: True)
+    monkeypatch.setattr(services, "job_priority", lambda *a, **k: 0)
+    monkeypatch.setattr(services, "ingest_and_match", fake_ingest)
+    services._DISCOVERY_CACHE.clear()
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert contexts == [["SRE"], ["warehouse"]]
+    assert matched_searches == [11, 12]
+    assert set(summary["searches"]) == {"11", "12"}
