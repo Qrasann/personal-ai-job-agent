@@ -159,7 +159,11 @@ async def ingest_and_match(
                 job.salary_from,
                 job.salary_to,
                 job.salary_currency,
-                fallback_text=job.description,
+                fallback_text=str(
+                    (normalized.raw or {}).get("salary_text")
+                    or (normalized.raw or {}).get("card_text")
+                    or ""
+                ),
             )
             text = (
                 f"🔥 <b>{html.escape(job.title)}</b>\n"
@@ -372,7 +376,7 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
     )
 
     raw = (ref.raw or {}) if ref else {}
-    fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or job.description or "")
+    fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or "")
 
     return {
         "job": job,

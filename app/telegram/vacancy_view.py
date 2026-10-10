@@ -38,7 +38,6 @@ def _salary(job, details: dict, fallback_salary_text: str = "") -> str:
         for part in (
             str(fallback_salary_text or ""),
             str(details.get("salary_text") or ""),
-            str(job.description or ""),
         )
         if part
     )
@@ -72,12 +71,10 @@ def render_queue_card(
 ) -> str:
     title = _clip(repair_mojibake(str(getattr(job, "title", "") or "")), 120)
     company = _clip(repair_mojibake(str(getattr(job, "company", "") or "")), 100)
-    description = str(getattr(job, "description", "") or "")
     salary = format_salary(
         getattr(job, "salary_from", None),
         getattr(job, "salary_to", None),
         getattr(job, "salary_currency", None),
-        fallback_text=description,
     )
 
     location = repair_mojibake(
@@ -124,7 +121,7 @@ def render_jobs_list(rows: list[tuple[object, object]]) -> str:
     for match, job in rows:
         title = _clip(repair_mojibake(job.title or ""), 90)
         company = _clip(repair_mojibake(job.company or ""), 70)
-        salary = format_salary(job.salary_from, job.salary_to, job.salary_currency, fallback_text=job.description)
+        salary = format_salary(job.salary_from, job.salary_to, job.salary_currency)
         experience = extract_experience(job.description)
         meta = [f"💰 {salary}"]
         if job.city or job.country:
