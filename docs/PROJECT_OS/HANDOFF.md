@@ -3,7 +3,8 @@
 ## Current deployed state — 2026-10-11
 
 Branch `feature/v3.5.2-dual-search-modes` is published through
-`9695c731c8aec59b5be715b89c267fff83ddc7cd`. GitHub Actions run 105 passed.
+`ad81a21d3273eee1f659b9b8ff1360e2e5b4ae6a`. GitHub Actions runs 105 and 106
+passed.
 The `repo` Compose app is polling as `@roma_job_agent_bot` on version 3.5.2;
 the startup dual-profile scan completed successfully, including live Job Bank
 queries/details. Existing named PostgreSQL and storage volumes are preserved.

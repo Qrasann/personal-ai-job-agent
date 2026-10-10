@@ -2,7 +2,7 @@
 
 ## Latest state
 - branch: `feature/v3.5.2-dual-search-modes`
-- local and GitHub head: `9695c731c8aec59b5be715b89c267fff83ddc7cd`
+- local and GitHub head: `ad81a21d3273eee1f659b9b8ff1360e2e5b4ae6a`
 - tracked release version: 3.5.2; v3.5.3 Fast Scan features are implemented
   and deployed on this feature branch pending real-chat acceptance.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
