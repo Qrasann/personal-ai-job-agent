@@ -14,7 +14,7 @@
 - [x] Keep career and relocation discovery queries independent.
 - [x] Add Telegram strategy selection and `/relocationroles`.
 - [x] Add unauthenticated Arbeitnow Germany discovery with conservative support signals.
-- [ ] Add further official or public relocation sources with usable legal-work/visa evidence.
+- [x] Add further public international sources with explicit candidate-eligibility evidence.
 - [x] Add public Job Bank Canada discovery for international candidates; keep
   LMIA, eligibility and explicit support evidence separate.
 - [x] Add public EURES vacancies explicitly flagged for cross-border
@@ -22,8 +22,8 @@
 - [x] Add opt-in independent Career-first and Relocation-first SearchProfiles.
 - [x] Make one scan discover and match each active SearchProfile independently.
 - [x] Preserve profile settings and matches when parallel search is disabled.
-- [x] Full CI green (GitHub Actions run 108 succeeded for v3.5.3 release
-  metadata; Fast Scan code run 105 also passed).
+- [x] Full CI green (GitHub Actions run 110 succeeded for v3.5.4; Fast Scan
+  code run 105 also passed).
 - [x] Add current/desired/minimum salary controls in Telegram; minimum feeds
   the existing per-currency scoring threshold.
 - [x] Add Telegram blacklist controls with case-insensitive add/remove/clear,
@@ -38,6 +38,8 @@
 ## v3.5.4 Multi-Source International Discovery
 - [x] Add bounded EURES discovery for the employer's cross-border recruitment
   flag and support EURES destination-country selection.
+- [x] Full PostgreSQL suite (203 passed) and coverage gate (64.39%) pass;
+  GitHub Actions run 110 passes; Compose runtime updated to 3.5.4.
 - [ ] Complete real-chat acceptance for the latest Telegram controls and
   source dashboard before tagging releases.
 

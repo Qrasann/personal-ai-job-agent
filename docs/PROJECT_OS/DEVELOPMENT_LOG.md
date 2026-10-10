@@ -10,8 +10,15 @@
   visa sponsorship and relocation support remain unknown.
 - Added EURES member-country destinations to country selection and added
   parsing, request, role filter, unknown-support and registry tests.
-- Public live response confirmed the API's current shape. Full suite, CI,
-  publication and v3.5.4 deployment are pending.
+- Public search/detail endpoints returned HTTP 200. Full isolated PostgreSQL
+  suite: 203 passed, 64.39% branch coverage; GitHub Actions run 110 passed.
+- Published as `1dc62366fcca46e778d6650928b1fd4c91c2d5cd` and rebuilt Compose
+  project `repo`; runtime reports 3.5.4. Startup scan reached EURES search
+  successfully. PostgreSQL and existing named storage volumes were preserved.
+- A direct standalone `httpx` smoke request experienced a TLS record-layer
+  error in the host environment; `curl` endpoint checks and the deployed
+  startup search both succeeded. Automated tests cover parsing and detail
+  enrichment. Real Telegram chat acceptance remains owner-driven.
 
 ## 2026-10-10 — Telegram salary and blacklist controls
 - Added `/salary current|desired|minimum <currency> <amount|clear>` and a

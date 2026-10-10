@@ -2,10 +2,9 @@
 
 ## Latest state
 - branch: `feature/v3.5.2-dual-search-modes`
-- v3.5.3 baseline commit: `e4fa198f63d07a5120f6e480b63a7be9cdb46efd`
-- active source version: 3.5.4; EURES adapter is implemented locally and awaits
-  full verification, publication, and deployment. Runtime remains 3.5.3 until
-  that stage completes.
+- v3.5.4 EURES implementation commit: `1dc62366fcca46e778d6650928b1fd4c91c2d5cd`
+- source/runtime version: 3.5.4; published on the current feature branch and
+  running in local Compose project `repo`.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -13,7 +12,9 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- Latest PostgreSQL-backed suite: 197 passed, 63.80% branch coverage (55% gate).
+- v3.5.3 PostgreSQL-backed suite: 197 passed, 63.80% branch coverage.
+- v3.5.4 suite: 203 passed, 64.39% branch coverage; GitHub Actions run 110
+  passed. Startup scan called the EURES search API successfully (HTTP 200).
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
   concurrent adapters; manual scans persist status/timings in `runtime_state`
   and expose `/scanstatus` and `/cancel`.
@@ -25,7 +26,7 @@
   one behind main (diverged).
 
 ## Active development
-- target: v3.5.3 Fast Scan & Scan Dashboard acceptance
+- target: owner-driven real-chat acceptance for the current Telegram controls
 
 ## Implemented on active branch
 - enable/disable implemented job sources;
@@ -71,6 +72,9 @@
 - Manual Telegram `/scanstatus`, `/cancel`, `/salary` and `/blacklist` commands
   still need an owner-driven real-chat acceptance. No real-chat test message
   was sent from this session.
+- EURES stage was published and deployed as v3.5.4 on 2026-10-11. The startup
+  scan reached EURES search, and PostgreSQL/storage named volumes remain
+  `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.
