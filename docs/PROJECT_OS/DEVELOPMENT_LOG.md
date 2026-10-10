@@ -22,3 +22,8 @@
 - Restricted matching from each discovery pass to its originating SearchProfile while preserving separate JobMatch rows.
 - Added aggregate and per-profile scan summaries plus unit and PostgreSQL integration coverage.
 - Reproduced a production `uq_job_profile_search` race from local logs and made `save_match` an atomic PostgreSQL upsert.
+
+## 2026-10-10 — local v3.5.2 smoke test
+- Deployed commit `9007824` against the preserved v3.5.1 PostgreSQL volume and verified schema 2/2, polling and a successful scheduled scan.
+- Enabled Career-first and Relocation-first profiles and completed a manual dual-profile `/scan` without concurrency errors.
+- The live result exposed that relocation discovery used `relocation_queries` while scoring still used only career `queries`; aligned scoring with the active strategy and added regression coverage.

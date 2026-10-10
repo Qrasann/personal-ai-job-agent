@@ -27,13 +27,15 @@
 - opt-in `/parallelsearch on|off|status` for independent Career-first and Relocation-first SearchProfiles;
 - per-profile discovery, filtering, ordering, counters and matching in one scan;
 - idempotent profile creation that preserves legacy profile IDs and saved relocation settings.
+- strategy-aligned role scoring, so Relocation-first vacancies are evaluated against `relocation_queries` rather than the career role list.
 
 ## Verified in the current development environment
 - Parent feature baseline: 166 passed with isolated PostgreSQL 16, 62.57% branch coverage.
 - Previous dual-mode suite: 173 passed with isolated PostgreSQL 16, 62.84% branch coverage.
 - Full parallel-profile suite: 175 passed with isolated PostgreSQL 16, 63.22% branch coverage.
+- Strategy-aligned scoring suite: 176 passed with isolated PostgreSQL 16.
 - Python compilation, `git diff --check` and repository-history secret scan passed.
-- Manual Telegram smoke test is still pending because this environment has no bot token.
+- Local manual Telegram smoke test passed for v3.5.2 startup, schema 2/2, parallel profile activation and dual-profile `/scan`.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.
