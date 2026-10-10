@@ -20,6 +20,7 @@ from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.adapters.arbeitnow import ArbeitnowSource
 from app.sources.adapters.jobbank import JobBankSource
+from app.sources.adapters.eures import EuresSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
@@ -230,6 +231,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             source_ids.discard("remoteok")
         if not modes.get("relocation", True):
             source_ids.discard("jobbank")
+            source_ids.discard("eures")
         context = SourceContext(user_id=user.id, current_country=user.current_country, target_countries=targets, queries=queries)
         search_summary = {"name": search.name, "sources": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
         summary["searches"][str(search.id)] = search_summary
@@ -243,6 +245,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(ArbeitnowSource())
         if "jobbank" in source_ids:
             adapters.append(JobBankSource())
+        if "eures" in source_ids:
+            adapters.append(EuresSource())
         if "jobs_ge" in source_ids:
             adapters.append(JobsGESource())
         if "hr_ge" in source_ids:

@@ -1,5 +1,17 @@
 # Handoff
 
+## Active stage — v3.5.4 EURES discovery
+
+The working tree adds bounded EURES search for vacancies whose employer has
+enabled the EURES cross-border recruitment flag. This flag is evidence of
+interest in hiring across EURES countries only; it is not visa sponsorship,
+relocation support, or third-country work authorization. The live public search
+and detail endpoints returned HTTP 200. Validate `app/sources/adapters/eures.py`,
+`tests/test_eures.py`, country catalog changes and source wiring, then run the
+full PostgreSQL suite, publish the branch, and rebuild Compose project `repo`
+without removing its named volumes. Telegram real-chat acceptance remains a
+separate owner task before tagging v3.5.2/v3.5.3 releases.
+
 ## Current deployed state — 2026-10-11
 
 Code release commit: `e4fa198f63d07a5120f6e480b63a7be9cdb46efd` on

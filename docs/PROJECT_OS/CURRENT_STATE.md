@@ -2,9 +2,10 @@
 
 ## Latest state
 - branch: `feature/v3.5.2-dual-search-modes`
-- v3.5.3 release commit: `e4fa198f63d07a5120f6e480b63a7be9cdb46efd`
-- runtime/source version: 3.5.3; feature branch is deployed pending real-chat
-  command acceptance and release tag.
+- v3.5.3 baseline commit: `e4fa198f63d07a5120f6e480b63a7be9cdb46efd`
+- active source version: 3.5.4; EURES adapter is implemented locally and awaits
+  full verification, publication, and deployment. Runtime remains 3.5.3 until
+  that stage completes.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -48,6 +49,8 @@
 - public Arbeitnow Germany discovery with English-to-German aliases for configured broad roles and conservative visa/relocation evidence extraction.
 - public Job Bank Canada international TFW discovery with separate eligibility,
   LMIA status and explicit support evidence; Canada country selection.
+- public EURES discovery restricted to employer-flagged cross-border vacancies;
+  its recruitment flag never implies visa or relocation support.
 
 ## Verified in the current development environment
 - Parent feature baseline: 166 passed with isolated PostgreSQL 16, 62.57% branch coverage.

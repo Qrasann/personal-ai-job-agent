@@ -1,5 +1,28 @@
 # Public international discovery
 
+## EURES — implemented on 2026-10-11
+
+- Public portal: https://eures.europa.eu/portal/jv-se/home?lang=en&pageCode=find_a_job
+- The EURES public search endpoint is undocumented; the adapter follows the
+  publicly observable portal contract. Search and vacancy details returned
+  HTTP 200 during the live contract check.
+- Searches the active profile's role queries and requests only vacancies with
+  `euresFlagCodes=["WITH"]`. Because the endpoint can return broad/fuzzy
+  matches, the adapter also requires a query token in the title.
+- EURES describes the flag as an employer expression of interest in recruiting
+  internationally across EURES countries. This is evidence of cross-border
+  recruitment interest, not visa sponsorship, relocation support, or permission
+  for a third-country national to work in the destination country.
+- Stores the flag, its evidence, and source details URL; visa and relocation
+  fields remain unknown. Uses application links from vacancy details when
+  provided and otherwise links to the public EURES portal.
+- Bounds each profile to six queries and eight detail requests. No apply or
+  messaging capability is enabled. EURES member-country destinations are
+  selectable in the country catalog.
+- Endpoint contract reference (community-maintained, reverse engineered):
+  https://github.com/rorar/EURES-API-Documentation. The European Commission's
+  official portal and its vacancy record remain the data source.
+
 ## Job Bank Canada — implemented on 2026-10-10
 
 - Official entrypoint: https://www.jobbank.gc.ca/findajob/foreign-candidates

@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-10-11 — EURES cross-border discovery (v3.5.4)
+- Verified the public EURES search and detail endpoints against live responses.
+  The search supports an employer cross-border recruitment flag and returns
+  official vacancy detail/application instructions.
+- Added a bounded EURES adapter for each active search profile, filtering out
+  broad matches whose title does not match the active role query.
+- Persisted the EURES flag and evidence URL as international-candidate signals;
+  visa sponsorship and relocation support remain unknown.
+- Added EURES member-country destinations to country selection and added
+  parsing, request, role filter, unknown-support and registry tests.
+- Public live response confirmed the API's current shape. Full suite, CI,
+  publication and v3.5.4 deployment are pending.
+
 ## 2026-10-10 — Telegram salary and blacklist controls
 - Added `/salary current|desired|minimum <currency> <amount|clear>` and a
   read-only summary; only `minimum` affects matching, preserving the current

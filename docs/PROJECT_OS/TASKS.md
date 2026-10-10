@@ -17,6 +17,8 @@
 - [ ] Add further official or public relocation sources with usable legal-work/visa evidence.
 - [x] Add public Job Bank Canada discovery for international candidates; keep
   LMIA, eligibility and explicit support evidence separate.
+- [x] Add public EURES vacancies explicitly flagged for cross-border
+  recruitment; keep this separate from visa and relocation support.
 - [x] Add opt-in independent Career-first and Relocation-first SearchProfiles.
 - [x] Make one scan discover and match each active SearchProfile independently.
 - [x] Preserve profile settings and matches when parallel search is disabled.
@@ -33,6 +35,12 @@
 - [ ] Tag v3.5.2 after acceptance.
 
 ## Next
+## v3.5.4 Multi-Source International Discovery
+- [x] Add bounded EURES discovery for the employer's cross-border recruitment
+  flag and support EURES destination-country selection.
+- [ ] Complete real-chat acceptance for the latest Telegram controls and
+  source dashboard before tagging releases.
+
 ## v3.5.3 Fast Scan & Scan Dashboard
 - [x] Run independent source discovery with a bounded concurrency of three;
   preserve source priority for sequential matching/ingestion.

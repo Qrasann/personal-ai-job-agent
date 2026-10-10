@@ -6,6 +6,35 @@ countries:
     currencies: [CAD]
     local_sources: []
     query_languages: [en, fr]
+  AT: {name: Austria, aliases: [Austria, Österreich, Австрия], languages: [de], currencies: [EUR], local_sources: [], query_languages: [en, de]}
+  BE: {name: Belgium, aliases: [Belgium, België, Belgique, Бельгия], languages: [nl, fr, de], currencies: [EUR], local_sources: [], query_languages: [en, nl, fr, de]}
+  BG: {name: Bulgaria, aliases: [Bulgaria, България, Болгария], languages: [bg], currencies: [EUR], local_sources: [], query_languages: [en, bg]}
+  CH: {name: Switzerland, aliases: [Switzerland, Schweiz, Suisse, Швейцария], languages: [de, fr, it], currencies: [CHF], local_sources: [], query_languages: [en, de, fr, it]}
+  CY: {name: Cyprus, aliases: [Cyprus, Κύπρος, Кипр], languages: [el, tr], currencies: [EUR], local_sources: [], query_languages: [en, el]}
+  CZ: {name: Czechia, aliases: [Czechia, Czech Republic, Česko, Чехия], languages: [cs], currencies: [CZK], local_sources: [], query_languages: [en, cs]}
+  DE: {name: Germany, aliases: [Germany, Deutschland, Германия], languages: [de], currencies: [EUR], local_sources: [], query_languages: [en, de]}
+  DK: {name: Denmark, aliases: [Denmark, Danmark, Дания], languages: [da], currencies: [DKK], local_sources: [], query_languages: [en, da]}
+  EE: {name: Estonia, aliases: [Estonia, Eesti, Эстония], languages: [et], currencies: [EUR], local_sources: [], query_languages: [en, et]}
+  FI: {name: Finland, aliases: [Finland, Suomi, Финляндия], languages: [fi, sv], currencies: [EUR], local_sources: [], query_languages: [en, fi]}
+  FR: {name: France, aliases: [France, Франция], languages: [fr], currencies: [EUR], local_sources: [], query_languages: [en, fr]}
+  GR: {name: Greece, aliases: [Greece, Ελλάδα, Греция], languages: [el], currencies: [EUR], local_sources: [], query_languages: [en, el]}
+  HR: {name: Croatia, aliases: [Croatia, Hrvatska, Хорватия], languages: [hr], currencies: [EUR], local_sources: [], query_languages: [en, hr]}
+  HU: {name: Hungary, aliases: [Hungary, Magyarország, Венгрия], languages: [hu], currencies: [HUF], local_sources: [], query_languages: [en, hu]}
+  IE: {name: Ireland, aliases: [Ireland, Éire, Ирландия], languages: [en, ga], currencies: [EUR], local_sources: [], query_languages: [en]}
+  IS: {name: Iceland, aliases: [Iceland, Ísland, Исландия], languages: [is], currencies: [ISK], local_sources: [], query_languages: [en, is]}
+  IT: {name: Italy, aliases: [Italy, Italia, Италия], languages: [it], currencies: [EUR], local_sources: [], query_languages: [en, it]}
+  LI: {name: Liechtenstein, aliases: [Liechtenstein, Лихтенштейн], languages: [de], currencies: [CHF], local_sources: [], query_languages: [en, de]}
+  LT: {name: Lithuania, aliases: [Lithuania, Lietuva, Литва], languages: [lt], currencies: [EUR], local_sources: [], query_languages: [en, lt]}
+  LU: {name: Luxembourg, aliases: [Luxembourg, Lëtzebuerg, Люксембург], languages: [lb, fr, de], currencies: [EUR], local_sources: [], query_languages: [en, fr, de]}
+  LV: {name: Latvia, aliases: [Latvia, Latvija, Латвия], languages: [lv], currencies: [EUR], local_sources: [], query_languages: [en, lv]}
+  MT: {name: Malta, aliases: [Malta, Мальта], languages: [mt, en], currencies: [EUR], local_sources: [], query_languages: [en]}
+  NL: {name: Netherlands, aliases: [Netherlands, Nederland, Нидерланды], languages: [nl], currencies: [EUR], local_sources: [], query_languages: [en, nl]}
+  "NO": {name: Norway, aliases: [Norway, Norge, Норвегия], languages: ["no"], currencies: [NOK], local_sources: [], query_languages: [en, "no"]}
+  PL: {name: Poland, aliases: [Poland, Polska, Польша], languages: [pl], currencies: [PLN], local_sources: [], query_languages: [en, pl]}
+  RO: {name: Romania, aliases: [Romania, România, Румыния], languages: [ro], currencies: [RON], local_sources: [], query_languages: [en, ro]}
+  SE: {name: Sweden, aliases: [Sweden, Sverige, Швеция], languages: [sv], currencies: [SEK], local_sources: [], query_languages: [en, sv]}
+  SI: {name: Slovenia, aliases: [Slovenia, Slovenija, Словения], languages: [sl], currencies: [EUR], local_sources: [], query_languages: [en, sl]}
+  SK: {name: Slovakia, aliases: [Slovakia, Slovensko, Словакия], languages: [sk], currencies: [EUR], local_sources: [], query_languages: [en, sk]}
   GE:
     name: Georgia
     aliases: [Georgia, Грузия, საქართველო]
@@ -56,6 +85,7 @@ countries:
 
 international_sources:
   - {id: jobbank, name: Job Bank Canada, scope: canada, transport: public_web, capability: discovery}
+  - {id: eures, name: EURES, scope: eures, transport: public_api, capability: discovery}
   - {id: remoteok, name: Remote OK, scope: remote, transport: api, capability: discovery}
   - {id: arbeitnow, name: Arbeitnow, scope: germany, transport: public_api, capability: discovery}
   - {id: lever, name: Lever company career pages, scope: global, transport: public_api, capability: discovery}

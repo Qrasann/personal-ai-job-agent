@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.5.4
+
+EURES cross-border vacancy discovery.
+
+- Add public EURES search restricted to vacancies with the employer's
+  cross-border recruitment flag, bounded by active profile queries.
+- Preserve the EURES eligibility signal and evidence URL; do not infer visa
+  sponsorship, relocation benefits, or third-country work authorization.
+- Add EURES countries to destination selection and retain employer application
+  links from the source vacancy details.
+- No database migration is required.
+
 ## 3.5.3
 
 Fast Scan & Scan Dashboard.
