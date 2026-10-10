@@ -14,6 +14,8 @@ For v3.5.2 dual-mode review:
 11. run `/parallelsearch on`, confirm two active profiles, then verify one `/scan` reports both profile names in progress;
 12. run `/parallelsearch off`, confirm only Career-first remains active, then enable it again and confirm relocation settings survived.
 
+Local release clones can update their tracked branch with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`; the command refuses dirty worktrees, detached HEADs and branches without an upstream.
+
 Current branch: `feature/v3.5.2-dual-search-modes`, based on `origin/feature/v3.5.2-search-control`.
 No database migration is required; new keys are stored in the existing JSON settings field.
 Rollback is limited to the dual-mode commit/files because legacy `queries` remain unchanged.
