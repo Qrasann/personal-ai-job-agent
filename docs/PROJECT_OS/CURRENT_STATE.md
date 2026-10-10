@@ -28,6 +28,7 @@
 - per-profile discovery, filtering, ordering, counters and matching in one scan;
 - idempotent profile creation that preserves legacy profile IDs and saved relocation settings.
 - strategy-aligned role scoring, so Relocation-first vacancies are evaluated against `relocation_queries` rather than the career role list.
+- public Arbeitnow Germany discovery with English-to-German aliases for configured broad roles and conservative visa/relocation evidence extraction.
 
 ## Verified in the current development environment
 - Parent feature baseline: 166 passed with isolated PostgreSQL 16, 62.57% branch coverage.

@@ -13,6 +13,8 @@
 - [x] Add career-first, relocation-first and balanced search strategies.
 - [x] Keep career and relocation discovery queries independent.
 - [x] Add Telegram strategy selection and `/relocationroles`.
+- [x] Add unauthenticated Arbeitnow Germany discovery with conservative support signals.
+- [ ] Add further official or public relocation sources with usable legal-work/visa evidence.
 - [x] Add opt-in independent Career-first and Relocation-first SearchProfiles.
 - [x] Make one scan discover and match each active SearchProfile independently.
 - [x] Preserve profile settings and matches when parallel search is disabled.

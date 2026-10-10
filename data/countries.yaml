@@ -49,6 +49,7 @@ countries:
 
 international_sources:
   - {id: remoteok, name: Remote OK, scope: remote, transport: api, capability: discovery}
+  - {id: arbeitnow, name: Arbeitnow, scope: germany, transport: public_api, capability: discovery}
   - {id: lever, name: Lever company career pages, scope: global, transport: public_api, capability: discovery}
   - {id: greenhouse, name: Greenhouse company career pages, scope: global, transport: public_api, capability: discovery}
   - {id: telegram, name: Telegram vacancy channels, scope: configured_channels, transport: bot_api, capability: discovery}

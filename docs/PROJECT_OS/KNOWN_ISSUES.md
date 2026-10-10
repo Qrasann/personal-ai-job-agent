@@ -9,4 +9,5 @@
 - City priority exists in the preference engine but dedicated Telegram city-priority buttons are pending.
 - Country picker is limited to data/countries.yaml.
 - Only implemented adapters actually scan; future registered sources still need collectors.
+- HH is primarily domestic and RemoteOK is tech-heavy. Arbeitnow adds Germany coverage but its current feed can legitimately contain no low-barrier role matches; additional legal-work/visa-capable country sources are still needed.
 - Full CI is required before merge; live Telegram polling and dual-profile scan smoke tests passed on the local deployment.

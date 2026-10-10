@@ -18,4 +18,5 @@ def test_source_plan_keeps_international():
     assert "rabota_md" in ids
     assert "jobs_ge" in ids
     assert "remoteok" in ids
+    assert "arbeitnow" in ids
     assert "telegram" in ids

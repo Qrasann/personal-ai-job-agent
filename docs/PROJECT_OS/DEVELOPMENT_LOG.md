@@ -28,3 +28,5 @@
 - Enabled Career-first and Relocation-first profiles and completed a manual dual-profile `/scan` without concurrency errors.
 - The live result exposed that relocation discovery used `relocation_queries` while scoring still used only career `queries`; aligned scoring with the active strategy and added regression coverage.
 - Made `./job-agent update` follow the checked-out branch's configured upstream instead of refusing every non-main release branch; detached or untracked branches and dirty worktrees remain protected.
+- Added the unauthenticated Arbeitnow Germany API as an international source, including broad-role German aliases and explicit-only visa/relocation signals.
+- Live API contract check passed; the current feed contained no matches for the six configured broad roles, which remains a source-coverage limitation rather than a reason to relax relevance scoring.

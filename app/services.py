@@ -18,6 +18,7 @@ from app.matching.fact_comparison import compare_facts
 from app.providers.hh import HHClient, HHError
 from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
+from app.sources.adapters.arbeitnow import ArbeitnowSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
@@ -229,6 +230,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(HHSource(hh_client))
         if "remoteok" in source_ids:
             adapters.append(RemoteOKSource())
+        if "arbeitnow" in source_ids:
+            adapters.append(ArbeitnowSource())
         if "jobs_ge" in source_ids:
             adapters.append(JobsGESource())
         if "hr_ge" in source_ids:
@@ -341,7 +344,7 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
         raise RuntimeError("Вакансия не найдена")
 
     ref = None
-    for source_id in ("hh", "remoteok", "telegram", "jobs_ge", "hr_ge"):
+    for source_id in ("hh", "remoteok", "arbeitnow", "telegram", "jobs_ge", "hr_ge"):
         ref = await repo.source_ref(job.id, source_id)
         if ref:
             break
@@ -416,7 +419,7 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
     cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
     refs = []
-    for source_id in ("hh", "remoteok", "telegram"):
+    for source_id in ("hh", "remoteok", "arbeitnow", "telegram"):
         ref = await repo.source_ref(job.id, source_id)
         if ref:
             refs.append(ref)
