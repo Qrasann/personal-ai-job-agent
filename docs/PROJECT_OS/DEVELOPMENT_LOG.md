@@ -27,9 +27,14 @@
 - Full isolated PostgreSQL suite: 197 passed, 63.80% branch coverage (55%
   gate). Initial sandboxed attempts could not connect to localhost; the same
   suite passed with the authorized local test database connection.
-- The active Compose bot remains on the published v3.5.2 salary/blacklist
-  commit. This in-progress v3.5.3 stage awaits final commit, CI, rebuild, and
-  startup scan verification.
+- Published as `9695c731c8aec59b5be715b89c267fff83ddc7cd`; GitHub Actions run
+  105 passed. The local Compose bot was rebuilt and is polling as
+  `@roma_job_agent_bot`. The startup scan ran HH public fallback, RemoteOK,
+  Arbeitnow, and Job Bank discoveries with overlapping requests; Job Bank
+  source/detail responses returned HTTP 200 and the scheduled scan completed
+  successfully at 21:04:51 UTC. Existing named volumes were verified.
+- Owner-driven real-chat acceptance of `/salary`, `/blacklist`, `/scanstatus`,
+  and `/cancel` remains pending before tagging v3.5.2.
 
 ## 2026-10-10 — v3.5.2 restart
 - Confirmed main is v3.5.1 at 6f73110324fdf657f6695c25a5af540d2a94e72f.

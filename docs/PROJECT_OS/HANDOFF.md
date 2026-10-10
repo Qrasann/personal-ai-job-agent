@@ -1,19 +1,32 @@
 # Handoff
 
+## Current deployed state — 2026-10-11
+
+Branch `feature/v3.5.2-dual-search-modes` is published through
+`9695c731c8aec59b5be715b89c267fff83ddc7cd`. GitHub Actions run 105 passed.
+The `repo` Compose app is polling as `@roma_job_agent_bot` on version 3.5.2;
+the startup dual-profile scan completed successfully, including live Job Bank
+queries/details. Existing named PostgreSQL and storage volumes are preserved.
+Latest PostgreSQL suite: 197 passed, 63.80% branch coverage. v3.5.3 Fast Scan
+uses three concurrent discovery slots, source-level timing and 180-second
+timeouts, sequential priority-ordered ingestion, persistent manual dashboard,
+`/scanstatus`, and `/cancel`.
+
+Remaining release acceptance is an owner-driven Telegram chat check for
+`/salary`, `/blacklist`, `/scanstatus`, and `/cancel`. No real-chat test messages
+were sent in this session. Do not tag v3.5.2 until this acceptance is complete.
+
 ## Latest stage — salary and blacklist controls
 
-The active branch now includes Telegram `/salary` and `/blacklist` commands.
-Minimum salary is stored in the existing `minimum_salary` scoring setting;
-current and desired salary values are stored separately as preference data.
-All settings are synchronized to each active search profile. No schema
-migration is needed. Regression coverage passes with 194 tests against the
-isolated PostgreSQL test service and 63.65% branch coverage. Changes are not
-yet committed or published at this handoff snapshot.
+Telegram `/salary` and `/blacklist` were added in the published 3.5.2 stage.
+Minimum salary uses the existing `minimum_salary` scoring setting; current and
+desired salary are kept separately. Both controls apply to each active profile.
+No schema migration is needed.
 
 `testsbuild` is 11 commits ahead and one behind `main` (diverged). Saved queue
 navigation is already present in this branch; do not merge testsbuild wholesale.
 
-## Next implementation stage — v3.5.3 Fast Scan & Scan Dashboard
+## v3.5.3 Fast Scan & Scan Dashboard implementation
 
 Review current source-specific delays first, especially Job Bank's five-second
 crawl delay. Fast Scan should bound concurrent discovery, keep database
@@ -37,10 +50,8 @@ tests, the full PostgreSQL suite, and local Compose logs.
   crawl pacing is unchanged.
 
 The full PostgreSQL test suite passed: 197 tests, 63.80% branch coverage.
-The worktree has code changes pending commit, publication, bot rebuild, and
-startup scan verification. Do not rebuild while a startup scan is active. The
-deployment remains on the already published v3.5.2 salary/blacklist commit
-until this stage is published and rebuilt.
+The implementation is published and deployed. The live startup scan completed
+at 21:04:51 UTC; the next check is the owner-driven Telegram command acceptance.
 
 For v3.5.2 dual-mode review:
 1. read CURRENT_STATE.md and TASKS.md;

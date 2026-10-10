@@ -1,14 +1,21 @@
 # Current State
 
-## Latest local changes
+## Latest state
+- branch: `feature/v3.5.2-dual-search-modes`
+- local and GitHub head: `9695c731c8aec59b5be715b89c267fff83ddc7cd`
+- tracked release version: 3.5.2; v3.5.3 Fast Scan features are implemented
+  and deployed on this feature branch pending real-chat acceptance.
+- local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
+  healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
+  preserved.
 - Telegram `/salary` supports current, desired and minimum values by currency;
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
 - Latest PostgreSQL-backed suite: 197 passed, 63.80% branch coverage (55% gate).
-- v3.5.3 Fast Scan & Scan Dashboard work is now in progress: source discovery
-  is bounded to three concurrent adapters; manual scans store status and
-  timings in `runtime_state` and expose `/scanstatus` and `/cancel`.
+- v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
+  concurrent adapters; manual scans persist status/timings in `runtime_state`
+  and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
 - main: v3.5.1
@@ -16,8 +23,7 @@
 - testsbuild: experimental branch; at restart it was 11 commits ahead and 0 behind main.
 
 ## Active development
-- branch: feature/v3.5.2-dual-search-modes
-- target: v3.5.2 Search Control Center
+- target: v3.5.3 Fast Scan & Scan Dashboard acceptance
 
 ## Implemented on active branch
 - enable/disable implemented job sources;
@@ -49,12 +55,18 @@
 - Strategy-aligned scoring suite: 176 passed with isolated PostgreSQL 16.
 - Python compilation, `git diff --check` and repository-history secret scan passed.
 - Local manual Telegram smoke test passed for v3.5.2 startup, schema 2/2, parallel profile activation and dual-profile `/scan`.
-- Latest source-stage verification is recorded in HANDOFF.md; baseline before
-  this stage was commit `7c987da`. Local changes have not been published.
+- Job Bank source-stage verification and publication are recorded in
+  DEVELOPMENT_LOG.md and HANDOFF.md.
 - Job Bank source-stage full suite: 191 passed against isolated PostgreSQL 16,
   64.16% branch coverage (55% gate).
 - Local Compose `repo` was rebuilt from the source-stage worktree; both profiles
   remained active and the startup scan including Job Bank completed successfully.
+- Current fast-scan startup completed successfully at 21:04:51 UTC on 2026-10-10;
+  public HH web fallback, RemoteOK, Arbeitnow, Job Bank searches and Job Bank
+  detail fetches returned successfully. GitHub CI run 105 passed.
+- Manual Telegram `/scanstatus`, `/cancel`, `/salary` and `/blacklist` commands
+  still need an owner-driven real-chat acceptance. No real-chat test message
+  was sent from this session.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.

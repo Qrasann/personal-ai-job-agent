@@ -20,7 +20,7 @@
 - [x] Add opt-in independent Career-first and Relocation-first SearchProfiles.
 - [x] Make one scan discover and match each active SearchProfile independently.
 - [x] Preserve profile settings and matches when parallel search is disabled.
-- [x] Full CI green (GitHub Actions run 102 succeeded for the Job Bank commit).
+- [x] Full CI green (GitHub Actions run 105 succeeded for Fast Scan).
 - [x] Add current/desired/minimum salary controls in Telegram; minimum feeds
   the existing per-currency scoring threshold.
 - [x] Add Telegram blacklist controls with case-insensitive add/remove/clear,
@@ -28,7 +28,7 @@
 - [x] Compare testsbuild with main and selectively port useful behavior;
   Saved navigation already exists locally, and no broad branch merge was needed.
 - [ ] Complete comprehensive Telegram acceptance in a real chat; local polling,
-  dual-profile scan, and updated startup acceptance remain to be verified.
+  dual-profile scheduled scan, and updated startup scan passed.
 - [ ] Tag v3.5.2 after acceptance.
 
 ## Next
@@ -39,5 +39,6 @@
 - [x] Reuse existing discovery cache; persist latest manual scan status and
   source summary in `runtime_state`.
 - [x] Add `/scanstatus` and `/cancel` for in-flight manual scans.
-- [ ] Validate the rebuilt Telegram bot's startup scan and real-chat controls.
+- [x] Validate rebuilt Telegram bot polling and startup scan; real-chat command
+  controls remain part of v3.5.2 acceptance above.
 - [ ] Consider competition/applicant signals where public sources expose them.
