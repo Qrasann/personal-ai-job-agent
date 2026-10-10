@@ -31,3 +31,4 @@
 - Added the unauthenticated Arbeitnow Germany API as an international source, including broad-role German aliases and explicit-only visa/relocation signals.
 - Live API contract check passed; the current feed contained no matches for the six configured broad roles, which remains a source-coverage limitation rather than a reason to relax relevance scoring.
 - A live Arbeitnow notification exposed false salary extraction from arbitrary description numbers; salary fallback is now limited to explicit source salary/card fields, while queue/list views require structured salary data.
+- Added root `AGENTS.md` so locally installed Codex starts with the correct repository, deployment, testing, data-safety and dual-search instructions.
