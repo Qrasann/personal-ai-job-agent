@@ -1,5 +1,27 @@
 # Development Log
 
+## 2026-10-11 — Lineate Recommendation v2 HTML normalization
+- Owner reopened `/job 1091` after the singular qualification-heading fix and
+  reported Technical 42 while interview risk remained `н/д`. The detail route
+  gave Technical Score the decoded Greenhouse text, but Recommendation v2
+  independently analyzed the stored encoded HTML.
+- `score_job` now passes its normalized technical description into
+  Recommendation v2. The regression reproduces the saved encoded HTML and
+  verifies Technical 42 and interview risk 58.
+- Local unit suite: 245 passed, 3 PostgreSQL tests skipped. Full isolated
+  PostgreSQL suite: 248 passed, 68.36% branch coverage. Compileall and
+  `git diff --check` passed. Commit `8a583c7` passed push CI `38151840822` and
+  PR CI `38151843490`.
+- The safe updater deployed the candidate to Compose project `repo`; source and
+  runtime report 3.5.7 and PostgreSQL is healthy. Startup `scan_all` completed
+  from 15:35:45 to 15:38:13 UTC. The five-minute log check found no source
+  errors, SSL failures, timeouts, or tracebacks. HH's API returned 403 and its
+  normal public web fallback succeeded.
+- The owner still needs to verify the Technical and interview-risk lines in
+  Telegram. `main` and the formal release/tag remain v3.5.6; PR #18 is a draft.
+  No merge, tag, release, schema migration, credential or volume change was
+  made.
+
 ## 2026-10-11 — Lineate singular qualification heading
 - Owner's latest `/job 1091` card still showed Technical 100 and interview
   risk `н/д`. Runtime inspection found that the saved Greenhouse description

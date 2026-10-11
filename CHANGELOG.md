@@ -28,18 +28,18 @@
 - Extract English `Minimum N years` / `At least N years` experience wording and
   compare it with commercial Candidate Facts. Add Windows and Databricks to the
   technical evidence vocabulary so explicit Lineate requirements are visible.
+- Use the same decoded vacancy description for Technical Score v2 and
+  Recommendation v2 interview-risk analysis. This fixes stored Greenhouse HTML
+  rows where Technical had a score but interview risk stayed unknown.
 - Retry one Job Bank transport failure under the shared request lock, retaining
   the five-second delay before each attempt; do not retry HTTP status errors.
-- Full isolated PostgreSQL suite: 247 passed; branch coverage 68.36% (55%
-  gate). Compilation and `git diff --check` pass. Required-section commit
-  `7a6901d` passed push CI `38149543660` and PR CI `38149546515`, and its
-  startup scan completed successfully. Follow-up commit `678ddfc` passed push
-  CI `38150088881` and PR CI `38150092577`; documentation commit `664c559`
-  passed push CI `38150288518` and PR CI `38150292566`. The candidate was
-  deployed to Compose project `repo`; its startup scan completed at 15:15:48
-  UTC with no source error in the inspected logs. Owner review of the
-  recalculated Lineate `/job 1091` card remains pending. Draft PR #18 remains
-  unmerged; no v3.5.7 tag or release has been published.
+- Full isolated PostgreSQL suite: 248 passed; branch coverage 68.36% (55%
+  gate). Compilation and `git diff --check` pass. Latest code commit `8a583c7`
+  passed push CI `38151840822` and PR CI `38151843490`. Compose project `repo`
+  runs candidate 3.5.7; its startup scan completed at 15:38:13 UTC without a
+  source error, SSL error, timeout, or traceback in the inspected logs. The
+  owner still needs to review the interview-risk line in Telegram. Draft PR #18
+  remains unmerged; no v3.5.7 tag or release has been published.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

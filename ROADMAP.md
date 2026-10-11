@@ -48,15 +48,17 @@ review found that the posting's `Necessary Qualifications` heading was not
 classified as required, allowing an unqualified fallback score of 100. The
 candidate recognizes common required-qualification headings, extracts
 `Minimum N years` wording, and compares Windows and Databricks signals. The
-latest full isolated PostgreSQL suite passes with 247 tests and 68.36% branch
-coverage. Required-section commit `7a6901d` passed push CI `38149543660` and PR
-CI `38149546515`; follow-up commit `678ddfc` passed push CI `38150088881` and
-PR CI `38150092577`. Documentation commit `664c559` passed push CI
-`38150288518` and PR CI `38150292566`. The latest startup scan ran from
-15:13:24 to 15:15:48 UTC and completed successfully; the inspected scan logs
-show no source errors, SSL failures, timeouts or tracebacks. The owner still
-needs to review the rescored `/job 1091` card in Telegram. PR
-#18 remains draft and v3.5.7 is not merged or formally released.
+owner then reported Technical 42 with interview risk `н/д`. The cause was a
+second path: Recommendation v2 scored the raw stored HTML while Technical
+scored the decoded text. The current candidate passes the same normalized
+description to both calculations. A regression expects Technical 42 and risk
+58 for the encoded Lineate-style posting. The latest full isolated PostgreSQL
+suite passes with 248 tests and 68.36% branch coverage. Commit `8a583c7` passed
+push CI `38151840822` and PR CI `38151843490`. Its Compose startup scan
+completed at 15:38:13 UTC without source errors, SSL failures, timeouts or
+tracebacks in the inspected logs. The owner still needs to review the updated
+interview-risk line in Telegram. PR #18 remains draft and v3.5.7 is not merged
+or formally released.
 
 The [official Lineate posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
 identifies a Georgian office, requires 3+ years of Linux system administration

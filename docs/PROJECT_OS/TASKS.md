@@ -186,8 +186,21 @@
   passed. Deploy through the safe updater; Compose source/runtime 3.5.7 and
   PostgreSQL healthy. Startup scan completed at 15:28:27 UTC with no source
   errors, SSL errors, timeouts, or tracebacks in the inspected logs.
-- [ ] Owner to reopen `/job 1091` and share the recalculated Technical score
-  and interview-risk line for final Telegram verification.
+- [x] Owner reopened `/job 1091` after the singular-heading fix and reported
+  Technical 42 but interview risk `н/д`. The detail route supplies decoded
+  text to Technical Score while Recommendation v2 independently rescored the
+  stored HTML; this isolated the remaining mismatch.
+- [x] Pass the same normalized vacancy text into Recommendation v2 and add a
+  regression for the encoded Lineate HTML. It verifies Technical 42 and an
+  interview-risk score of 58 rather than `н/д`.
+- [x] Full isolated PostgreSQL suite: 248 passed, 68.36% branch coverage;
+  compileall and `git diff --check` passed. Commit `8a583c7` passed push CI
+  `38151840822` and PR CI `38151843490`.
+- [x] Deploy `8a583c7` with the safe updater. Compose source/runtime 3.5.7 and
+  PostgreSQL healthy. Startup scan completed at 15:38:13 UTC; the five-minute
+  log check found no source errors, SSL failures, timeouts, or tracebacks.
+- [ ] Owner to reopen `/job 1091` and share the Technical and interview-risk
+  lines for final Telegram verification.
 - [x] Add one bounded retry for Job Bank `httpx.TransportError` only, preserve
   the existing five-second delay before each request and shared crawl lock, and
   leave HTTP status errors unretried. Regression tests cover recovery,

@@ -1,5 +1,34 @@
 # Handoff
 
+## v3.5.7 Lineate Recommendation v2 HTML normalization — 2026-10-11
+
+The owner reopened `/job 1091` after the singular qualification-heading fix
+and reported Technical 42 but interview risk `н/д`. The detail route calculated
+Technical Score using decoded vacancy text, while Recommendation v2 rescored
+the raw stored HTML. This second path therefore missed the required section.
+
+Commit `8a583c7` passes the same normalized description into both calculations.
+The encoded Greenhouse regression expects Technical 42 and interview risk 58.
+Verification passed: 245 local unit tests (3 PostgreSQL tests skipped), 248
+tests with isolated PostgreSQL, 68.36% branch coverage, `compileall`, and
+`git diff --check`. Push CI `38151840822` and PR CI `38151843490` passed.
+
+The safe updater deployed the candidate to Compose project `repo`. Source and
+runtime report 3.5.7; PostgreSQL is healthy. Startup `scan_all` ran from
+15:35:45 to 15:38:13 UTC and completed successfully. The five-minute log check
+found no source errors, SSL errors, timeouts, or tracebacks. HH API returned
+403, then the ordinary public web fallback succeeded.
+
+**Telegram check still needed:** reopen `/job 1091` and share the Technical and
+interview-risk lines. The regression expects the risk to be 58 for the current
+stored Lineate requirements. Salary, work mode, visa sponsorship and relocation
+support remain unknown without direct posting evidence.
+
+The active branch is `feature/v3.5.7-international-market-coverage`; PR #18
+remains an unmerged draft against `main`. Stable `main` and the latest formal
+release/tag remain v3.5.6. No v3.5.7 tag or release has been made. No schema,
+credential or Docker-volume changes were made.
+
 ## v3.5.7 Lineate singular qualification heading — 2026-10-11
 
 The owner reopened `/job 1091` at 18:20 Moscow time. The card still showed

@@ -12,26 +12,21 @@ vacancy matching.
 - **Latest published GitHub Release/tag:** v3.5.6.
 - **Active candidate:** v3.5.7 on `feature/v3.5.7-international-market-coverage`;
   it remains an unmerged, unreleased draft PR #18.
-- The latest full isolated PostgreSQL suite passes: 247 tests, 68.36% branch
-  coverage. Required-section commit `7a6901d` passed push CI
-  `38149543660` and PR CI `38149546515`; follow-up `678ddfc` passed push CI
-  `38150088881` and PR CI `38150092577`. Documentation commit `664c559` passed
-  push CI `38150288518` and PR CI `38150292566`. The owner previously confirmed
-  `/job 1091` renders readable text, but Technical 100 came from fallback
-  matching because `Necessary Qualifications` was not recognized. The candidate
-  now extracts `Minimum N years` and includes Windows and Databricks in
-  technical evidence matching.
-- The candidate retries one Job Bank transport failure under its shared
-  five-second request pacing; HTTP status errors are not retried. That retry
-  update's startup scan completed at 14:51:38 UTC with Job Bank and EURES
-  search/detail requests returning HTTP 200; no transport failure occurred to
-  exercise the retry. The earlier required-section update's startup scan ran
-  from 15:02:28 to 15:04:57 UTC. The latest candidate startup scan ran from
-  15:13:24 to 15:15:48 UTC and completed successfully. The HH API returned 403
-  before its public web fallback succeeded; all active sources returned
-  successful responses in the inspected scan logs, with no source failure,
-  SSL error, timeout, or traceback. **Review the recalculated Lineate card in
-  Telegram is still pending.**
+- The latest full isolated PostgreSQL suite passes: 248 tests, 68.36% branch
+  coverage. The owner reported Technical 42 but interview risk `н/д` for
+  `/job 1091`; Recommendation v2 had scored the raw stored HTML while Technical
+  used the decoded vacancy text. Commit `8a583c7` now passes the same normalized
+  description to both calculations; push CI `38151840822` and PR CI
+  `38151843490` passed. A regression reproduces the encoded Lineate HTML and
+  expects Technical 42 and interview risk 58. Earlier candidate fixes also
+  recognize singular required-qualification headings, extract `Minimum N
+  years`, and include Windows and Databricks in technical evidence matching.
+- After deploying `8a583c7`, Compose startup `scan_all` completed from 15:35:45
+  to 15:38:13 UTC. EURES, Greenhouse, HR.ge, Job Bank, Arbeitnow, and Remote OK
+  returned successful responses in the inspected logs. HH API returned 403
+  before the ordinary public web fallback succeeded. No source error, SSL
+  error, timeout, or traceback appeared. **Telegram verification of the
+  updated interview-risk line remains pending.**
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details

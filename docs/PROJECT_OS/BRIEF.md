@@ -20,9 +20,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   updated documentation. The merge is recorded at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Branch map: `main` is the stable source at `02f582e`; the current working
-  branch is `feature/v3.5.7-international-market-coverage`, created from that
-  main commit. Its candidate `VERSION` is `3.5.7`; `main` and the deployed
-  Compose app remain `3.5.6`. `feature/v3.5.6-eures-identity-market-targets`
+  branch is `feature/v3.5.7-international-market-coverage`, currently at
+  `8a583c7` and created from that main commit. Its candidate `VERSION` is
+  `3.5.7`; `main` remains `3.5.6`, while local Compose project `repo` runs
+  candidate 3.5.7. `feature/v3.5.6-eures-identity-market-targets`
   is merged and inactive; `feature/v3.5.2-dual-search-modes` is an older branch.
 - Release map: `VERSION=3.5.6` and the latest formal GitHub tag/Release are
   v3.5.6. Changelog entries v3.5.2–v3.5.5 are cumulative milestones included
@@ -132,16 +133,22 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   safe updater deployed the candidate; its startup scan ran from 15:13:24 to
   15:15:48 UTC and completed without source errors. The owner should now review
   the recalculated `/job 1091` card in Telegram.
+- Owner then reported `/job 1091` Technical 42 but interview risk `н/д`. The
+  detail flow passed decoded HTML to Technical Score, while Recommendation v2
+  scored the raw stored HTML. Commit `8a583c7` now passes the same normalized
+  description into both calculations; its regression expects Technical 42 and
+  interview risk 58. Push CI `38151840822` and PR CI `38151843490` passed.
+  The safe updater deployed it to Compose; startup scan completed at 15:38:13
+  UTC without source errors, SSL failures, timeouts, or tracebacks in the
+  inspected five-minute window. The owner still needs to verify the interview
+  risk line in Telegram.
 
 ## Verified
 
-- Latest full isolated PostgreSQL suite: `247 passed`, 68.36% branch coverage
-  (55% gate), including experience wording, required Windows/Databricks
-  signals, and earlier regressions. Compilation and `git diff --check` pass.
-  Required-section commit `7a6901d` passed push CI `38149543660` and PR CI
-  `38149546515`; follow-up `678ddfc` passed push CI `38150088881` and PR CI
-  `38150092577`. Documentation commit `664c559` passed push CI `38150288518`
-  and PR CI `38150292566`.
+- Latest full isolated PostgreSQL suite: `248 passed`, 68.36% branch coverage
+  (55% gate), including encoded Greenhouse HTML and the Recommendation v2
+  interview-risk path. Compilation and `git diff --check` pass. Latest code
+  commit `8a583c7` passed push CI `38151840822` and PR CI `38151843490`.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -151,9 +158,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   currently selected relocation roles do not include Infrastructure Engineer.
 - The safe updater applied the candidate to Compose project `repo`; source and
   runtime report 3.5.7 and PostgreSQL is healthy. The latest startup
-  `scan_all` ran from 15:13:24 to 15:15:48 UTC and completed successfully. HH's
+  `scan_all` ran from 15:35:45 to 15:38:13 UTC and completed successfully. HH's
   API returned 403 before its ordinary public web fallback succeeded; the
-  inspected logs contain no source failure, SSL error, timeout or traceback.
+  five-minute error scan found no source failure, SSL error, timeout or
+  traceback.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
@@ -165,9 +173,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   `38135649948`).
 - Draft PR #18 is open for the v3.5.7 candidate. Career-first GE/AM role and
   location acceptance and readable detail-card check are complete; owner review
-  of the rescored `/job 1091` is still needed. Keep PR #18 draft; v3.5.7 remains
-  unmerged and unreleased. Latest PR head is `7a6901d`; push CI `38149543660`
-  and PR CI `38149546515` passed.
+  of the corrected interview-risk line in `/job 1091` is still needed. Keep PR
+  #18 draft; v3.5.7 remains unmerged and unreleased. Latest code commit is
+  `8a583c7`; push CI `38151840822` and PR CI `38151843490` passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
