@@ -2,8 +2,9 @@
 
 ## Latest state
 - stable GitHub `main`: `6294c2a` (source version 3.5.6). PR #15 is merged.
-- active candidate: `feature/v3.5.6-eures-identity-market-targets` at `6fa3406`,
-  published as PR #16; its CI run `38123697609` passed.
+- active candidate branch: `feature/v3.5.6-eures-identity-market-targets` at
+  `083c2db` (application change `6fa3406`), published as PR #16; push CI
+  `38123697609` and final PR CI `38123840533` passed.
 - local Compose project `repo` runs source/runtime 3.5.6 from the candidate;
   the app is polling and PostgreSQL is healthy.
 - after the candidate update, the startup dual-profile scan completed
@@ -26,13 +27,14 @@
   and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
-- main: v3.5.6
-- release merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`
+- GitHub `main` HEAD: v3.5.6 at `6294c2a`.
+- PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
 
 ## Active development
-- target: owner-driven end-to-end acceptance for `/import` file preview/save
-  and Recommendation v2 vacancy details before release tagging. The owner has
-  already smoke-tested the command entry points and `/status`/`/version`.
+- target: owner verifies `/targets relocation GE`, `/sources` and `/scan` on the
+  updated bot, then completes `/import` preview/save and Recommendation v2
+  vacancy detail acceptance before release tagging. Core command entry points
+  and `/status`/`/version` were already smoke-tested.
 
 ## Implemented on active branch
 - enable/disable implemented job sources;

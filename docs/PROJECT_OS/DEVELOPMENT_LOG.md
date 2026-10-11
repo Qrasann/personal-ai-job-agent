@@ -27,7 +27,9 @@
   gate). `python -m compileall -q app tests` and `git diff --check` passed.
 - Published commit `6fa3406` to
   `feature/v3.5.6-eures-identity-market-targets`; PR #16 CI run
-  `38123697609` passed. GitHub `main` remains unchanged at `6294c2a`.
+  `38123697609` passed. Recorded the verified state in follow-up docs commit
+  `083c2db`; final PR CI run `38123840533` also passed. GitHub `main` remains
+  unchanged at `6294c2a`.
 - Applied the candidate with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
   update`. The app restarted, `/status` reports source/runtime 3.5.6, and
   PostgreSQL stayed healthy. Post-update startup EURES search and detail

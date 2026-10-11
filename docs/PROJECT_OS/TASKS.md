@@ -15,6 +15,8 @@
 - [x] Push `6fa3406` to GitHub branch
   `feature/v3.5.6-eures-identity-market-targets`; PR #16 CI run
   `38123697609` passed.
+- [x] Publish follow-up handoff commit `083c2db`; final PR CI run
+  `38123840533` passed.
 - [x] Apply the candidate through `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
   update`; verify polling, healthy PostgreSQL, and unchanged
   `repo_jobagent_v3_pg` / `repo_jobagent_v3_files` volumes.

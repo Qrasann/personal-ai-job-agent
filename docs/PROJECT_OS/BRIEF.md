@@ -15,8 +15,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
 - GitHub `main`: `6294c2a` (`v3.5.6`). Active candidate branch and deployed
-  source: `feature/v3.5.6-eures-identity-market-targets` (`6fa3406`).
-- GitHub PR #16 is open; CI run `38123697609` passed.
+  source: `feature/v3.5.6-eures-identity-market-targets` (application change
+  `6fa3406`, latest branch commit `083c2db`).
+- GitHub PR #16 is open; push CI `38123697609` and final PR CI `38123840533`
+  passed.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
