@@ -12,10 +12,13 @@ AWS-specific years or assert visa/relocation details.
 
 Verification passes: 247 PostgreSQL-backed tests, 68.36% branch coverage,
 compileall, and `git diff --check`. Push CI `38150088881` and PR CI
-`38150092577` passed. The local Compose bot still runs source `7a6901d`; apply
-`678ddfc` with the safe updater,
-check `/status` and the startup scan logs, then ask the owner to reopen
-`/job 1091` and share the updated score and interview-risk details.
+`38150092577` passed. Docs commit `664c559` passed push CI `38150288518` and
+PR CI `38150292566`. The safe updater deployed the candidate to Compose project
+`repo`: source/runtime 3.5.7 and PostgreSQL healthy. Startup scan completed at
+15:15:48 UTC. The inspected logs show the expected HH API 403 followed by the
+public fallback and no source errors, SSL failures, timeouts or tracebacks.
+The owner still needs to reopen `/job 1091` and share the updated score,
+experience signal and interview-risk details.
 
 PR #18 remains an unmerged draft against `main`. The active candidate is v3.5.7;
 stable `main` and the formal tag/release remain v3.5.6.

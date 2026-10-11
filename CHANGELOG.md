@@ -34,10 +34,12 @@
   gate). Compilation and `git diff --check` pass. Required-section commit
   `7a6901d` passed push CI `38149543660` and PR CI `38149546515`, and its
   startup scan completed successfully. Follow-up commit `678ddfc` passed push
-  CI `38150088881` and PR CI `38150092577`; its deployment scan is pending.
-  Owner review of the recalculated
-  Lineate `/job 1091` card remains pending. Draft PR #18 remains unmerged; no
-  v3.5.7 tag or release has been published.
+  CI `38150088881` and PR CI `38150092577`; documentation commit `664c559`
+  passed push CI `38150288518` and PR CI `38150292566`. The candidate was
+  deployed to Compose project `repo`; its startup scan completed at 15:15:48
+  UTC with no source error in the inspected logs. Owner review of the
+  recalculated Lineate `/job 1091` card remains pending. Draft PR #18 remains
+  unmerged; no v3.5.7 tag or release has been published.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

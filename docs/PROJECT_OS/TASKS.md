@@ -168,9 +168,13 @@
   Databricks to technical evidence matching; regression coverage includes the
   Lineate-style requirements and experience comparison. Full PostgreSQL suite:
   247 passed, 68.36%; compile and diff checks passed.
-- [x] Push CI `38150088881` and PR CI `38150092577` passed on `678ddfc`.
-- [ ] Apply it through the safe updater and inspect the startup scan logs.
-- [ ] Owner to reopen `/job 1091` after deployment and review the recalculated
+- [x] Push CI `38150088881` and PR CI `38150092577` passed on code commit
+  `678ddfc`; docs commit `664c559` also passed push/PR CI `38150288518` and
+  `38150292566`.
+- [x] Apply the candidate through the safe updater. Source/runtime 3.5.7 and
+  PostgreSQL healthy. Startup scan completed at 15:15:48 UTC; inspected logs
+  show no source error, SSL failure, timeout or traceback.
+- [ ] Owner to reopen `/job 1091` now and review the recalculated
   technical score, experience signal and interview-risk evidence. The official
   Lineate listing requires 3+ years Linux system administration, 2+ years AWS
   production, Windows administration, Databricks familiarity and a 24/7 shift.

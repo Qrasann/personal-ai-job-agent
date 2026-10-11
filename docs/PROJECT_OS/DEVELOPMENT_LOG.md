@@ -14,8 +14,12 @@
   AWS years from unrelated facts.
 - Full isolated PostgreSQL suite: 247 passed, 68.36% branch coverage. Compile
   and `git diff --check` pass. The commit is pushed and passed push CI
-  `38150088881` and PR CI `38150092577`. The deployment scan is pending; the
-  bot remains on `7a6901d` until the safe updater applies the follow-up.
+  `38150088881` and PR CI `38150092577`. Docs commit `664c559` passed push CI
+  `38150288518` and PR CI `38150292566`. The safe updater deployed the candidate
+  to Compose project `repo`; startup `scan_all` ran from 15:13:24 to 15:15:48
+  UTC and completed successfully. The log filter found the expected HH API 403
+  and successful public fallback, with no source errors, SSL errors, timeouts
+  or tracebacks. Owner review of the updated `/job 1091` remains pending.
 
 ## 2026-10-11 — Required qualification scoring for Lineate
 - The official Lineate listing uses `Necessary Qualifications` for hard

@@ -127,8 +127,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   wording for experience fit and adds Windows and Databricks to technical
   evidence matching. The full isolated PostgreSQL suite passes: 247 tests,
   68.36% branch coverage; compilation and diff checks pass. The commit is
-  pushed; push CI `38150088881` and PR CI `38150092577` passed. Deployment is
-  pending. The live bot still runs `7a6901d` until the safe updater applies it.
+  pushed; push CI `38150088881` and PR CI `38150092577` passed. Documentation
+  commit `664c559` passed push CI `38150288518` and PR CI `38150292566`. The
+  safe updater deployed the candidate; its startup scan ran from 15:13:24 to
+  15:15:48 UTC and completed without source errors. The owner should now review
+  the recalculated `/job 1091` card in Telegram.
 
 ## Verified
 
@@ -137,7 +140,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   signals, and earlier regressions. Compilation and `git diff --check` pass.
   Required-section commit `7a6901d` passed push CI `38149543660` and PR CI
   `38149546515`; follow-up `678ddfc` passed push CI `38150088881` and PR CI
-  `38150092577`.
+  `38150092577`. Documentation commit `664c559` passed push CI `38150288518`
+  and PR CI `38150292566`.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -145,10 +149,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirmed `/sources` enabled Greenhouse for Relocation-first GE/AM; the
   Greenhouse request returned HTTP 200 and zero query-matched jobs. The
   currently selected relocation roles do not include Infrastructure Engineer.
-- The safe updater applied `7a6901d` to Compose project `repo`; PostgreSQL is
-  healthy. Its startup `scan_all` completed successfully from 15:02:28 to
-  15:04:57 UTC. Commit `678ddfc` is not yet deployed; inspect its startup scan
-  after CI passes and the safe updater applies it.
+- The safe updater applied the candidate to Compose project `repo`; source and
+  runtime report 3.5.7 and PostgreSQL is healthy. The latest startup
+  `scan_all` ran from 15:13:24 to 15:15:48 UTC and completed successfully. HH's
+  API returned 403 before its ordinary public web fallback succeeded; the
+  inspected logs contain no source failure, SSL error, timeout or traceback.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary

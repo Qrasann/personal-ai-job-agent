@@ -5,12 +5,11 @@
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
 - The active feature branch is `feature/v3.5.7-international-market-coverage`,
-  candidate version 3.5.7. Commit `7a6901d` recognizes common English
-  required-qualification headings and passed push CI `38149543660` and PR CI
-  `38149546515`. Follow-up `678ddfc` extracts minimum experience wording and
-  recognizes Windows/Databricks requirements; push CI `38150088881` and PR CI
-  `38150092577` passed. PR #18 is open as a draft against `main`; no merge or v3.5.7
-  tag/release has been made.
+  candidate version 3.5.7. Code commit `678ddfc` adds minimum-experience
+  extraction and Windows/Databricks evidence; push CI `38150088881` and PR CI
+  `38150092577` passed. Latest branch commit `664c559` updates bilingual status
+  docs and passed push CI `38150288518` and PR CI `38150292566`. PR #18 is an
+  open draft against `main`; no merge or v3.5.7 tag/release has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -18,11 +17,12 @@
   `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- Local Compose project `repo` runs source/runtime 3.5.7 at `7a6901d`; that
-  commit's startup scan completed from 15:02:28 to 15:04:57 UTC. Follow-up
-  `678ddfc` is pushed but not yet deployed; after CI, use the safe updater and
-  inspect its scan logs. The owner still needs to review the latest `/job 1091`
-  card in Telegram.
+- Local Compose project `repo` runs source/runtime 3.5.7 with the candidate
+  deployed. Startup `scan_all` ran from 15:13:24 to 15:15:48 UTC and completed
+  successfully. HH's API returned 403 before its public web fallback worked;
+  the inspected scan logs show no source error, SSL failure, timeout or
+  traceback. The owner still needs to review the latest `/job 1091` card in
+  Telegram.
 - Earlier candidate verification: the safe updater rebuilt the feature branch;
   read-only mount inspection
   confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
@@ -58,8 +58,9 @@
 - Latest full isolated PostgreSQL suite: 247 passed, 68.36% branch coverage
   (55% gate); compile and diff checks passed. Required-section commit
   `7a6901d` passed push CI `38149543660` and PR CI `38149546515`; follow-up
-  `678ddfc` passed push CI `38150088881` and PR CI `38150092577`. The owner confirmed `/job 1091` text
-  is readable; after deployment, review the recalculated score, years
+  `678ddfc` passed push CI `38150088881` and PR CI `38150092577`. Docs commit
+  `664c559` passed push CI `38150288518` and PR CI `38150292566`. The owner
+  confirmed `/job 1091` text is readable; review the recalculated score, years
   requirement, and interview-risk evidence in Telegram.
   The Job Bank `ConnectTimeout` remains covered by a one-retry transport
   regression; HTTP status errors remain unretried.
