@@ -17,9 +17,8 @@ To finish the live Lineate role/location check, ask the owner to run
 returned result with `/job <id>`. This adds Georgia/Armenia only to Career-first
 and preserves Relocation-first's broad role search. Do not infer visa or
 relocation support from country targeting or the Greenhouse cross-border
-source. PR #18 remains a draft until this check is complete. GitHub checks
-`38143909265` and `38143905027` pass. No database schema or Docker-volume
-change was made.
+source. PR #18 remains a draft until this check is complete. Its GitHub CI
+checks pass. No database schema or Docker-volume change was made.
 
 ## v3.5.7 source and vacancy realism review — 2026-10-11
 

@@ -14,10 +14,10 @@ vacancy matching.
   it is deployed to the local Compose bot for Telegram acceptance, but is not
   merged or released yet.
 - The candidate's full isolated PostgreSQL suite passes: 240 tests and 68.22%
-  branch coverage; latest PR #18 GitHub checks `38143909265` and `38143905027`
-  pass. The owner confirmed Greenhouse returned HTTP 200 for Relocation-first
-  GE/AM; zero jobs matched that profile's broad role queries. A Career-first
-  GE/AM scan is needed to verify the Lineate Infrastructure Engineer match.
+  branch coverage; PR #18 GitHub checks pass. The owner confirmed Greenhouse
+  returned HTTP 200 for Relocation-first GE/AM; zero jobs matched that profile's
+  broad role queries. A Career-first GE/AM scan is needed to verify the Lineate
+  Infrastructure Engineer match.
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details

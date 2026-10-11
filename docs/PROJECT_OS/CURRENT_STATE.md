@@ -5,10 +5,9 @@
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
 - Candidate application commit `4ccae7f` and handoff follow-up `c8a8017` are on
-  `feature/v3.5.7-international-market-coverage`; current HEAD is
-  `ad680d7c24a4502b9a597b31ac43a1b9518f8402`. Draft PR #18 is open; latest
-  GitHub checks `38143909265` and `38143905027` passed. No merge, tag, or
-  formal release has been made.
+  `feature/v3.5.7-international-market-coverage`, which is synced to its
+  `origin` branch. Draft PR #18 is open; its CI status is tracked on GitHub.
+  No merge, tag, or formal release has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -47,10 +46,10 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- latest full isolated PostgreSQL suite on the v3.5.7 candidate: 240 passed,
-  68.22% branch coverage (55% gate); compile and diff checks pass. GitHub PR
-  checks are green. The owner completed the source-reachability check; live
-  Lineate role/location acceptance remains pending.
+- Latest full isolated PostgreSQL suite on the v3.5.7 candidate: 240 passed,
+  68.22% branch coverage (55% gate); compile and diff checks pass. The owner
+  completed the source-reachability check; live Lineate role/location
+  acceptance remains pending.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the

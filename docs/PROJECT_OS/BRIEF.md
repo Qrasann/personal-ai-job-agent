@@ -113,7 +113,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 - Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `240 passed`,
   68.22% branch coverage (55% gate). Compilation and `git diff --check` pass.
-  GitHub PR #18 checks are green (runs `38143909265` and `38143905027`).
+  GitHub PR #18 checks pass.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned

@@ -45,8 +45,8 @@ work mode, salary, visa and relocation unknown without direct evidence. The
 current Lineate board shows an Infrastructure Engineer for its Georgian office
 and a Data Engineer in Yerevan; only the former matches the current
 DevOps/Infrastructure search. The full isolated PostgreSQL suite passes with
-240 tests and 68.22% branch coverage; latest PR #18 checks `38143909265` and
-`38143905027` passed. The candidate is running on the local Compose bot; the
+240 tests and 68.22% branch coverage; PR #18 checks pass. The candidate is
+running on the local Compose bot; the
 remaining owner acceptance is a Career-first GE/AM scan, and it is not merged
 or formally released.
 
