@@ -1,5 +1,31 @@
 # Development Log
 
+## 2026-10-11 — Georgia source guardrails (v3.5.7 market-coverage work)
+- Reviewed the two existing Georgia adapters and the reported need to target
+  Georgia explicitly. JOBS.GE `/robots.txt` returned HTTP 410; HR.ge returned
+  HTTP 200 with `Allow: /` and a sitemap URL. The HR sitemap is about 5.4 MB
+  and is not used by the adapter. Robots files do not establish content-reuse
+  permission; explicit terms authorizing recurring extraction were not
+  verified.
+- Capped each Georgia source at six matching detail pages, set 15-second
+  request timeouts, and added a two-second delay before every detail request.
+  Failed individual details no longer discard successful results; all-detail
+  failure becomes a visible source failure.
+- Tightened role matching so generic words such as “engineer” cannot by
+  themselves qualify unrelated titles. HR.ge salary is structured only for a
+  clearly labeled range with a single explicit currency and an explicit
+  monthly period. Ambiguous dollar symbols, annual pay and unperiodized ranges
+  remain raw source text and do not enter numeric salary scoring.
+- Added five regressions for role filtering, salary evidence, unknown
+  work-mode/relocation, detail limits, and partial/total detail failures.
+  Targeted tests: 5 passed. Full isolated PostgreSQL suite: 229 passed,
+  67.44% branch coverage (55% gate). `compileall` and `git diff --check` pass.
+- No schema migration or database change. The candidate is not yet pushed or
+  deployed. After publication and the safe update, owner should run
+  `/targets relocation GE`, `/sources`, then `/scan` in Telegram and send the
+  source summary plus any JOBS.GE/HR.ge warnings. Keep current version at
+  3.5.6 pending end-to-end source verification and existing release acceptance.
+
 ## 2026-10-11 — v3.5.6 EURES transport and Georgia profile controls
 
 - Reproduced the reported EURES body-read failure from inside the running app

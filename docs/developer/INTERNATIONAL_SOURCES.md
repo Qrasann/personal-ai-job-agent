@@ -104,10 +104,22 @@
 
 ### Georgia source review
 
-- The existing JOBS.GE and HR.ge adapters need a current terms, robots and
-  request-pacing review before increasing their request volume or listing caps.
-  Do not infer permission from public page access. Keep the sources opt-in by
-  target market and verify a live scan before treating them as available.
+- A live GET of `https://jobs.ge/robots.txt` returned HTTP 410, so no crawl
+  rules could be verified. A live GET of `https://www.hr.ge/robots.txt`
+  returned HTTP 200 with `User-agent: *`, `Allow: /` and a sitemap URL. The
+  sitemap is large (about 5.4 MB); the adapter does not download it. Robots
+  guidance does not grant rights to reuse vacancy content, and no explicit
+  permission for recurring extraction was verified for either board.
+- The adapters now fetch one listing page and at most six matching detail
+  pages per source, use a 15-second request timeout, and wait two seconds
+  before each detail request. Individual detail failures preserve successful
+  results; if all details fail, the scan reports a source error. Keep the
+  sources limited to profiles that target Georgia and verify result quality in
+  Telegram before treating them as useful.
+- Role filtering ignores generic tokens such as “engineer” when a query has a
+  more specific role term. HR.ge salary enters structured scoring only when a
+  single supported currency and an explicit monthly period are present. Bare
+  dollar symbols, annual amounts and unperiodized ranges remain source text.
 - [findjobs.ge terms](https://findjobs.ge/en/terms/) welcome polite discovery by
   search engines and AI assistants, but also prohibit repeated or systematic
   reuse of substantial parts of the board without written permission. A bot

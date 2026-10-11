@@ -20,15 +20,27 @@
   `repo_jobagent_v3_pg` / `repo_jobagent_v3_files` volumes.
 - [x] Verify the first post-update startup scan completed successfully; EURES
   search and detail requests returned HTTP 200 with no SSL retry/error.
-- [ ] Owner runs `/targets relocation GE`, `/sources`, and `/scan` to confirm
-  Georgia appears in the intended profile and to review actual result quality.
+- [x] Review Georgia robots endpoints: JOBS.GE returns 410 (no rules); HR.ge
+  allows `/` and publishes a sitemap. Do not treat robots guidance as reuse
+  permission; no explicit recurring-extraction permission was verified.
+- [x] Bound JOBS.GE/HR.ge to six details per source, 15-second request timeout,
+  and two-second pacing; preserve partial results and report total detail
+  failure. Tighten role matching and require explicit currency plus a monthly
+  period before HR.ge salary is structured for scoring.
+- [x] Add Georgia source regressions and run the full isolated PostgreSQL suite:
+  229 passed, 67.44% branch coverage; compileall and diff check passed.
+- [ ] Push/deploy the guardrail commit and confirm CI passes.
+- [ ] Owner runs `/targets relocation GE`, `/sources`, then `/scan` to confirm
+  Georgia appears in the intended profile and review real results.
 - [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
   detail checks before any v3.5.6 release tag.
 - [ ] Monitor later scheduled EURES scans; the first clean run does not prove
   the underlying TLS cause is permanently resolved.
 
 ## v3.5.7 International Market Coverage — planned
-- [ ] Review JOBS.GE and HR.ge terms, robots guidance, pacing, and result quality.
+- [x] Review JOBS.GE and HR.ge robots guidance and add conservative request
+  bounds. Terms/reuse permission remains unverified; owner must inspect scan
+  quality before treating the sources as useful.
 - [ ] Verify an Armenian public API or obtain permission before adding a
   recurring local source; investigate the official e-work portal first.
 - [ ] Prefer permitted employer career/ATS feeds and verify location, language,

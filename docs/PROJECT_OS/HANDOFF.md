@@ -1,5 +1,34 @@
 # Handoff
 
+## Georgia source guardrails — v3.5.7 market-coverage work (2026-10-11)
+
+The working candidate bounds the existing JOBS.GE and HR.ge adapters to six
+matching details per source, a 15-second request timeout, and a two-second
+delay before each detail request. Individual failures preserve successful
+vacancies; failure of every detail request is surfaced in the scan. Role
+matching no longer accepts a generic word such as “engineer” alone. HR.ge pay
+is structured only when a range has one explicit currency and a clearly stated
+monthly period; ambiguous dollar signs, annual pay and unspecified periods
+stay in source text and do not enter numeric scoring. Work mode and relocation
+remain unknown unless the source provides evidence.
+
+Access review: JOBS.GE `/robots.txt` returned HTTP 410, so crawl rules are not
+available. HR.ge `/robots.txt` returned HTTP 200 and allows `/`, with a link to
+a 5.4 MB sitemap that the adapter does not download. These results do not
+grant permission to reuse listings; recurring automated extraction terms
+remain unverified. The adapters stay limited to Georgia-targeted profiles.
+
+Targeted adapter tests pass (5). Full isolated PostgreSQL suite passes (229
+  tests, 67.44% branch coverage); `compileall` and `git diff --check` pass. No
+schema migration was added. The source/runtime version remains 3.5.6 while
+this v3.5.7 roadmap work is verified. After pushing and applying the candidate
+with the safe updater, the owner needs to run `/targets relocation GE`, then
+`/sources`, then `/scan` in Telegram and share the result summary and any
+source warnings. Do not treat these boards as validated recurring sources
+until result quality and access conditions are reviewed. The prior
+`/import` preview/save and Recommendation v2 detail acceptance remains a
+separate gate before release tagging.
+
 ## v3.5.6 candidate update — PR #16 (2026-10-11)
 
 Candidate commit `6fa3406` is published on

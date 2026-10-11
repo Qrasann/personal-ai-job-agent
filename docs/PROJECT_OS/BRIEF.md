@@ -48,6 +48,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Updated `/targets` to configure all active search profiles by default, with
   explicit `career` and `relocation` scope; `/sources` now shows each profile's
   configured source plan.
+- Bounded JOBS.GE and HR.ge detail fetching to six listings per source, with
+  conservative pacing and timeouts; tightened role matching and require an
+  explicit currency plus monthly period before HR.ge salary enters scoring.
+  Partial detail results survive individual request failures; total failure is
+  reported to the scan.
 - Replaced the mixed-language README with English and Russian entry points,
   aligned changelog headings, refreshed the roadmap, and documented current
   Armenia/Georgia source-access constraints.
@@ -57,8 +62,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Verified
 
-- Latest full PostgreSQL-backed suite: `224 passed`, 66.33% branch coverage
+- Latest full PostgreSQL-backed suite: `229 passed`, 67.44% branch coverage
   (rerun on 2026-10-11; 55% gate).
+- Georgia adapter regressions: `5 passed`; compilation and `git diff --check`
+  passed. The six-detail cap, per-request timeout, inter-request delay,
+  partial-failure behavior and salary evidence rules are covered.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
@@ -86,10 +94,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Complete owner-driven Telegram acceptance on the updated bot: configure and
-verify Georgia through `/targets relocation GE`, `/sources`, and `/scan`, then
-exercise `/import` preview/save and Recommendation v2 vacancy details. Keep
-v3.5.6 untagged until acceptance is recorded.
+Push and deploy the Georgia source guardrails, then have the owner run
+`/targets relocation GE`, `/sources`, and `/scan` in Telegram to verify source
+visibility and real result quality. Continue the existing `/import` and
+Recommendation v2 acceptance before tagging v3.5.6.
 
 ## Open limitations
 
@@ -97,6 +105,11 @@ v3.5.6 untagged until acceptance is recorded.
 - Georgia adapters are implemented but only run when `GE` is selected for a
   search profile. The `/targets` change makes that explicit across both active
   profiles. Armenia has no catalog entry or connected local source yet.
+- JOBS.GE returned HTTP 410 for `/robots.txt`, so no crawl rules could be
+  verified. HR.ge's robots file allows `/` and links a large sitemap, but that
+  does not grant reuse rights; no explicit permission for recurring extraction
+  was verified for either board. Requests are now tightly bounded, and the
+  Telegram scan remains necessary to assess live quality.
 - Armenia source candidates need access review: the state e-work portal did
   not load in the current check; Staff.am prohibits automated scraping without
   permission, while Job.am restricts unauthorized reuse and redistribution. See
