@@ -518,6 +518,6 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append(signals.relocation_reason)
     recommendation_scores = build_recommendation_breakdown(
         job, facts, signals, technical_score=technical, salary_score=salary,
-        relocation_score=relocation, fit=fit,
+        relocation_score=relocation, fit=fit, technical_text=technical_text,
     )
     return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track, fit, recommendation_scores)

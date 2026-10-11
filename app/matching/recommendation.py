@@ -54,13 +54,17 @@ def build_recommendation_breakdown(
     salary_score: int,
     relocation_score: int,
     fit: str,
+    technical_text: str | None = None,
 ) -> dict[str, dict[str, int | str | None]]:
     """Expose evidence-backed dimensions without inventing missing signals.
 
     This is an explainability breakdown, not a reweighting of the established
     notification score. Dimensions without source evidence stay null.
     """
-    text = clean_html_text(" ".join((job.title or "", job.description or ""))).casefold()
+    description = clean_html_text(
+        technical_text if technical_text is not None else (job.description or "")
+    )
+    text = clean_html_text(" ".join((job.title or "", description))).casefold()
     text = re.sub(r"\s+", " ", text)
     fact_text = " ".join(
         fact.value.casefold()
@@ -71,7 +75,7 @@ def build_recommendation_breakdown(
     growth_hit = _explicit_term(text, _GROWTH)
     fast_hit = _explicit_term(text, _FAST)
     fast_block = _explicit_term(text, _FAST_BLOCK)
-    required_technical = score_technical_v2(job.description or "", facts)
+    required_technical = score_technical_v2(description, facts)
 
     infrastructure_terms = {
         label: aliases
