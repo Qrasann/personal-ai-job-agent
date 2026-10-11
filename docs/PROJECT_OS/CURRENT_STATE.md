@@ -1,10 +1,8 @@
 # Current State
 
 ## Latest state
-- branch: `feature/v3.5.2-dual-search-modes`
-- release branch: `feature/v3.5.2-dual-search-modes` at `77379aa`; source/runtime
-  version 3.5.6. GitHub `main` commit `375af5f` is now an ancestor, so PR #15
-  is mergeable without rewriting its history. Both CI runs passed.
+- branch: `main` at merge commit `062eb25` (PR #15); source/runtime version
+  3.5.6. PR #15 is merged and the main branch now contains the release.
 - local Compose project `repo`: source/runtime 3.5.6; app container is up and
   PostgreSQL is healthy. The latest scheduled scan completed despite an EURES
   SSL record-layer failure on one profile.
@@ -16,8 +14,7 @@
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
 - v3.5.6 full PostgreSQL-backed suite: 220 passed, 65.66% branch coverage.
-- GitHub Actions runs `38121809437` (push) and `38121811653` (PR) passed for
-  the synchronized branch.
+- GitHub Actions runs `38121905782` (push) and `38121908521` (PR) passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
   connected public feeds; employer-only counts remain unknown in this app.
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
@@ -25,15 +22,13 @@
   and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
-- main: v3.5.1
-- baseline commit: 6f73110324fdf657f6695c25a5af540d2a94e72f
-- testsbuild: experimental branch; latest comparison is 11 commits ahead and
-  one behind main (diverged).
+- main: v3.5.6
+- release merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`
 
 ## Active development
-- target: owner-driven real-chat acceptance for `/salary`, `/blacklist`,
-  `/scanstatus`, `/cancel`, `/import` and Recommendation v2 details; this is
-  required by the merge rule below before PR #15 is merged into `main`.
+- target: owner-driven end-to-end acceptance for `/import` file preview/save
+  and Recommendation v2 vacancy details before release tagging. The owner has
+  already smoke-tested the command entry points and `/status`/`/version`.
 
 ## Implemented on active branch
 - enable/disable implemented job sources;
@@ -76,9 +71,11 @@
 - Current fast-scan startup completed successfully at 21:04:51 UTC on 2026-10-10;
   public HH web fallback, RemoteOK, Arbeitnow, Job Bank searches and Job Bank
   detail fetches returned successfully. GitHub CI run 105 passed.
-- Manual Telegram `/scanstatus`, `/cancel`, `/salary` and `/blacklist` commands
-  still need an owner-driven real-chat acceptance. No real-chat test message
-  was sent from this session.
+- Owner-provided real-chat smoke test confirmed `/salary`, `/blacklist`,
+  `/scanstatus`, `/cancel`, `/import` prompt, `/version` (3.5.6, schema 4/4,
+  migration OK), and `/status` (ACTIVE). The reported scan completed; EURES
+  failed while HH, RemoteOK, Arbeitnow and Job Bank returned results. No
+  resume file was uploaded and no Recommendation v2 vacancy details were shown.
 - v3.5.6 is running in Compose project `repo`; the latest logs include EURES
   SSL retries and a source failure after bounded retries, while the scheduled
   scan completed. Existing named volumes remain attached.

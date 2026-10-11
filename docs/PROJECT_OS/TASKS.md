@@ -3,9 +3,10 @@
 ## GitHub main synchronization
 - [x] Integrate GitHub `main` commit `375af5f` into the release branch without
   rewriting history; full PostgreSQL suite passed (220 tests, 65.66%), commit
-  `77379aa` was pushed, PR #15 is mergeable, and both CI runs passed.
-- [ ] Owner-run and record Telegram acceptance for the controls/details below;
-  then merge PR #15 into `main` per the current-state merge rule.
+  `77379aa` was pushed, and both CI runs passed.
+- [x] Owner supplied real-chat smoke results for `/salary`, `/blacklist`,
+  `/scanstatus`, `/cancel`, `/import` prompt, `/version` and `/status`.
+- [x] Merge PR #15 into `main`; GitHub main is v3.5.6 at `062eb25`.
 
 ## v3.5.6 Recommendation Model v2
 - [x] Add persisted, explainable component scores for technical fit, growth,
@@ -18,7 +19,8 @@
 - [x] Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage.
 - [x] Publish `496c920`, deploy v3.5.6 and verify schema 4/4, polling and
   unchanged named volumes.
-- [ ] Owner-driven real-chat acceptance before tagging.
+- [ ] Owner opens a vacancy and confirms Recommendation v2 components/evidence
+  render correctly before tagging.
 
 ## v3.5.5 Candidate Import & Profile Sync
 - [x] Extract text from PDF, DOCX and TXT with bounded input/resource limits.
@@ -30,8 +32,10 @@
 - [x] Full isolated PostgreSQL suite: 217 passed, 65.15% branch coverage.
 - [x] Publish commit `8131e2e` and deploy with `./job-agent update`; verify
   runtime 3.5.5, schema 3/3, healthy PostgreSQL and unchanged named volumes.
-- [ ] Owner-driven real-chat acceptance for `/import` and existing controls before
-  tagging.
+- [x] Owner confirmed `/import` opens the upload prompt and existing command
+  smoke tests respond.
+- [ ] Owner uploads a test resume, reviews the preview, then confirms or cancels
+  save; complete before tagging.
 
 ## v3.5.2
 - [x] Search preference engine.

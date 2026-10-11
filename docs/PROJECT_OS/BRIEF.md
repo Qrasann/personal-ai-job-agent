@@ -14,7 +14,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 ## Current runtime
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
-- Active branch: `feature/v3.5.2-dual-search-modes`.
+- Active branch: `main` (`062eb25`, v3.5.6).
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
@@ -39,6 +39,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   left unset and displayed in vacancy details.
 - Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
+- Merged release PR #15 into GitHub `main`; CI passed and the owner supplied
+  a real-chat smoke test for the core Telegram commands.
 
 ## Verified
 
@@ -46,17 +48,21 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   (rerun on 2026-10-11).
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
-- Commit `496c920` is published and deployed; Compose reports source/runtime
+- Commit `496c920` and its release are on `main` at merge commit `062eb25`;
+  Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
   confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
   and RemoteOK; no startup errors were present in the inspected log tail.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
-- GitHub `main` remains v3.5.1 at `375af5f`. Release branch sync commit
-  `77379aa` is pushed to PR #15; GitHub reports `MERGEABLE`, and both push and
-  PR CI runs (38121809437, 38121811653) passed. Keep the PR open until the
-  owner-driven real-chat acceptance below is complete.
+- GitHub PR #15 is merged; `main` is v3.5.6 at `062eb25`. Final push and PR CI
+  runs (38121905782, 38121908521) both passed.
+- Owner-provided Telegram smoke test on 2026-10-11 confirmed `/salary`,
+  `/blacklist`, `/scanstatus`, `/cancel`, `/import` prompt, `/version` and
+  `/status`. The scan completed with an EURES error while other sources
+  returned results. `/import` file preview/save and Recommendation v2 vacancy
+  details still need end-to-end acceptance before release tagging.
 - Latest supplied/runtime logs show intermittent EURES `SSLError` retries,
   some EURES HTTP 200 responses, and a scheduled scan that still completed.
   Job Bank and other sources continue independently; EURES can still be
@@ -64,7 +70,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, `/import`, and Recommendation v2 vacancy details; record results before merging PR #15 into `main` or tagging releases.
+Complete end-to-end Telegram acceptance for `/import` file preview/save and Recommendation v2 vacancy details; record results before release tagging.
 
 ## Open limitations
 

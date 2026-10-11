@@ -120,6 +120,23 @@
   startup search both succeeded. Automated tests cover parsing and detail
   enrichment. Real Telegram chat acceptance remains owner-driven.
 
+# 2026-10-11 — merge v3.5.6 and owner Telegram smoke test
+- Owner-provided Telegram results confirmed `/salary`, `/blacklist`,
+  `/scanstatus`, `/cancel`, `/import` upload prompt, `/version` (3.5.6, schema
+  4/4, migration OK), and `/status` (ACTIVE). The scan status was completed;
+  EURES reported an error while HH, RemoteOK, Arbeitnow and Job Bank returned
+  results. The uploaded-resume preview/save flow and Recommendation v2 vacancy
+  details were not exercised.
+- With full CI green and the command-level smoke test recorded, merged PR #15
+  into `main` as `062eb253bdf8435782e5fcca6cfb1257b271ea86`. GitHub Actions
+  runs `38121905782` and `38121908521` both passed.
+- The running Telegram bot reported v3.5.6 and database schema 4/4; existing
+  PostgreSQL and storage volumes were verified attached. No schema change or
+  application-code change was made in the merge follow-up.
+- Remaining release-tag gate: owner verifies `/import` with a test file through
+  preview and explicit save/cancel, and opens a vacancy to check Recommendation
+  v2 component details.
+
 # 2026-10-11 — reconcile the release branch with GitHub main
 - Checked the clean v3.5.6 release branch against `origin/main`: main is at
   `375af5f` (v3.5.1), while the release branch is at `466c676`; the branches

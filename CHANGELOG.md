@@ -13,6 +13,9 @@ Recommendation Model v2 evidence breakdown.
   notification thresholds remain unchanged pending labeled outcome data.
 - Additive PostgreSQL migration 4 stores recommendation dimensions as JSONB.
 - Full isolated PostgreSQL suite: 220 passed; branch coverage 65.66%.
+- GitHub PR #15 merged this version into `main`; push and PR CI passed.
+- Owner confirmed core Telegram command responses; full `/import` preview/save
+  and Recommendation v2 detail checks remain before release tagging.
 
 ## 3.5.5
 

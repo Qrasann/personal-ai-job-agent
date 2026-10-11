@@ -1,3 +1,31 @@
+# Personal AI Job Agent
+
+Current application version: **v3.5.6**. It runs as a Telegram bot with
+independent Career-first and Relocation-first searches, PostgreSQL-backed
+profiles, and public job-source discovery.
+
+## v3.5.6 — Recommendation Model v2 & Candidate Import
+
+The current version adds evidence-based recommendation details and confirmed
+resume import while preserving the existing dual-search workflow.
+
+- `/salary` manages current, desired and minimum pay; `/blacklist` controls
+  excluded terms; `/scanstatus` and `/cancel` report and control manual scans.
+- `/import` accepts PDF, DOCX and TXT for bounded text extraction. The bot
+  previews extracted content and proposed facts before any save; raw uploaded
+  documents are not written to disk.
+- Vacancy details show evidence-backed technical, growth, salary, remote,
+  relocation, security, infrastructure and competition components. Missing
+  evidence remains unknown, and the existing total-score thresholds are
+  unchanged.
+- International sources include Arbeitnow Germany, Job Bank Canada and EURES.
+  EURES's cross-border flag does not establish visa sponsorship or relocation
+  support.
+- Database schema 4 adds recommendation details without deleting existing
+  data. Full isolated PostgreSQL suite: 220 passed; branch coverage 65.66%.
+- The owner has smoke-tested the core Telegram commands. Full resume preview/save
+  and Recommendation v2 vacancy-detail acceptance remain before release tagging.
+
 # v3.5.1 — Search Quality & Telegram UX
 
 This release improves vacancy discovery, realistic candidate fit classification and Telegram vacancy browsing.

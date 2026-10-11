@@ -1,17 +1,19 @@
 # Handoff
 
-## GitHub branch synchronization — 2026-10-11
+## v3.5.6 main merge and Telegram smoke test — 2026-10-11
 
-GitHub `main` remains at `375af5f` (v3.5.1), while the deployed release branch
-contains v3.5.6 at `77379aa`. PR #15 is the existing path for publishing the
-release. The main commit is integrated into the release branch without
-rewriting history; the merge adds no application-tree changes. The full
-PostgreSQL suite passes (220 tests, 65.66% branch coverage). The update is
-published, PR #15 is `MERGEABLE`, and push/PR CI runs `38121809437` and
-`38121811653` passed. Keep PR #15 open until the owner completes real-chat
-acceptance for `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, `/import`,
-and Recommendation v2 vacancy details, following the merge rule in
-`CURRENT_STATE.md`.
+GitHub PR #15 is merged into `main` at `062eb253bdf8435782e5fcca6cfb1257b271ea86`;
+the branch now contains v3.5.6. The full PostgreSQL suite passes (220 tests,
+65.66% branch coverage), and final push/PR CI runs `38121905782` and
+`38121908521` passed.
+
+Owner-provided real-chat smoke results confirm `/salary`, `/blacklist`,
+`/scanstatus`, `/cancel`, the `/import` upload prompt, `/version` (v3.5.6,
+schema 4/4, migration OK), and `/status` (ACTIVE). The reported scan completed;
+EURES failed after retries while the other configured sources returned results.
+The owner has not yet exercised `/import` with a file through preview/save or
+opened a vacancy to review Recommendation v2 details; both remain required
+before release tagging.
 
 The running Compose app reports source/runtime 3.5.6 and PostgreSQL healthy;
 the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain
