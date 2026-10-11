@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-10-11 — v3.5.5 Candidate Import & Profile Sync
+- Added bounded in-memory extraction for PDF, DOCX and UTF-8/Windows-1251 TXT;
+  scanned PDFs without a text layer are reported rather than OCR-guessed.
+- Added `/import` and a Telegram preview with save-resume, save-resume-and-facts,
+  and cancel choices. The imported resume content is stored only after explicit
+  confirmation; original filename and uploaded binary are not persisted.
+- Facts are proposed only from recognized skills, experience/project and
+  education sections. Exact duplicates are skipped; token overlaps are shown
+  without overwriting. Imported experience type stays `unknown`.
+- Added confidence and provenance columns through additive migration 3; old
+  facts default to confidence 1.0 and provenance `manual`.
+- Targeted importer/storage/Telegram tests: 14 passed. Full isolated PostgreSQL
+  suite: 217 passed; branch coverage 65.15% (55% gate). Unit suite: 214 passed,
+  3 skipped. Real Telegram acceptance remains owner-driven.
+
 ## 2026-10-11 — handle raw EURES SSL failures
 - New deployed logs showed that EURES still failed after the prior update. The
   traceback ended in a raw `ssl.SSLError`, which is not an `httpx.TransportError`

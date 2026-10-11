@@ -3,13 +3,20 @@ from __future__ import annotations
 import asyncio
 import html
 import json
+import io
 import time
+import uuid
+from datetime import datetime
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.candidates.bootstrap import bootstrap_user
+from app.candidates.importer import (
+    MAX_DOCUMENT_BYTES, ResumeImportError, extract_resume_text,
+    guess_language, propose_facts, resume_fingerprint, review_proposals,
+)
 from app.config import settings
 from app.database import repository as repo
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
@@ -31,6 +38,7 @@ from app.telegram.multicommand import (
 
 router = Router()
 _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
+_PENDING_RESUME_IMPORTS: dict[str, dict] = {}
 
 
 async def _save_scan_dashboard(user_id: int, **values) -> None:
@@ -114,6 +122,7 @@ def _main_menu_text() -> str:
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
         "/facts — факты кандидата\n"
+        "/import — импортировать резюме PDF/DOCX/TXT\n"
         "/resumes — варианты резюме\n"
         "/sources — источники вакансий\n\n"
         "🤖 <b>Агент</b>\n"
@@ -514,6 +523,134 @@ async def facts(message: Message) -> None:
         for f in rows[:30]
     )
     await message.answer(text[:4096], parse_mode="HTML")
+
+
+@router.message(Command("import"))
+async def import_resume_command(message: Message) -> None:
+    if not await _require_user(message):
+        return
+    await message.answer("Пришли резюме файлом PDF, DOCX или TXT (до 8 МБ). Перед сохранением покажу извлечённый текст и предложенные факты.")
+
+
+@router.message(F.document)
+async def import_resume_document(message: Message, bot: Bot) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    document = message.document
+    if not document:
+        return
+    if document.file_size and document.file_size > MAX_DOCUMENT_BYTES:
+        await message.answer("❌ Размер файла превышает лимит 8 МБ.")
+        return
+    try:
+        downloaded = await bot.download(document.file_id)
+        if downloaded is None:
+            raise ResumeImportError("Telegram не передал файл для чтения.")
+        payload = downloaded.getvalue() if isinstance(downloaded, io.BytesIO) else downloaded.read()
+        content = extract_resume_text(document.file_name or "", payload)
+    except ResumeImportError as exc:
+        await message.answer(f"❌ {html.escape(str(exc))}", parse_mode="HTML")
+        return
+    except Exception:
+        await message.answer("❌ Не удалось получить файл из Telegram. Попробуй отправить его ещё раз.")
+        return
+
+    profile = await repo.active_profile(user.id)
+    if not profile:
+        await message.answer("❌ Активный профиль не найден.")
+        return
+    fingerprint = resume_fingerprint(content)
+    resumes = await repo.list_resumes(profile.id)
+    if any(resume.external_id == fingerprint for resume in resumes):
+        await message.answer("ℹ️ Такое резюме уже импортировано в этот профиль.")
+        return
+
+    proposals = propose_facts(content)
+    existing = await repo.list_facts(profile.id)
+    review = review_proposals(proposals, existing)
+    token = uuid.uuid4().hex[:12]
+    _PENDING_RESUME_IMPORTS[token] = {
+        "user_id": user.id, "profile_id": profile.id,
+        "content": content, "fingerprint": fingerprint, "language": guess_language(content),
+        "role": profile.target_role or "", "proposals": review.new,
+        "overlaps": review.overlaps, "created_at": time.time(),
+    }
+    now = time.time()
+    for old_token, pending in list(_PENDING_RESUME_IMPORTS.items()):
+        if now - pending["created_at"] > 15 * 60:
+            _PENDING_RESUME_IMPORTS.pop(old_token, None)
+
+    lines = ["📄 <b>Проверка импорта</b>", "", f"Извлечено символов: {len(content)}", f"Язык: {guess_language(content)}"]
+    if review.new:
+        lines.extend(["", "Предлагаемые факты:"])
+        for proposal in review.new[:12]:
+            lines.append(f"• [{proposal.category}] {html.escape(proposal.value[:180])} — уверенность {proposal.confidence:.0%}")
+        if len(review.new) > 12:
+            lines.append(f"… и ещё {len(review.new) - 12}")
+    else:
+        lines.extend(["", "Новых фактов для добавления не найдено."])
+    if review.duplicates:
+        lines.append(f"Совпадающих фактов пропущено: {len(review.duplicates)}.")
+    if review.overlaps:
+        lines.append(f"Похожие на существующие факты помечены как пересечения ({len(review.overlaps)}); они не будут перезаписаны.")
+    lines.extend(["", "Содержимое будет сохранено только после подтверждения."])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Сохранить резюме", callback_data=f"rimp:resume:{token}")],
+        [InlineKeyboardButton(text=f"Сохранить резюме и факты ({len(review.new)})", callback_data=f"rimp:facts:{token}")],
+        [InlineKeyboardButton(text="Отмена", callback_data=f"rimp:cancel:{token}")],
+    ])
+    await message.answer("\n".join(lines)[:4096], parse_mode="HTML", reply_markup=keyboard)
+
+
+@router.callback_query(F.data.startswith("rimp:"))
+async def confirm_resume_import(callback: CallbackQuery) -> None:
+    parts = (callback.data or "").split(":", 2)
+    if len(parts) != 3:
+        await callback.answer("Некорректная команда", show_alert=True)
+        return
+    action, token = parts[1], parts[2]
+    pending = _PENDING_RESUME_IMPORTS.get(token)
+    if not pending or time.time() - pending["created_at"] > 15 * 60:
+        _PENDING_RESUME_IMPORTS.pop(token, None)
+        await callback.answer("Предпросмотр истёк. Отправь документ заново.", show_alert=True)
+        return
+    user = await repo.get_user_by_chat(callback.message.chat.id) if callback.message else None
+    if not user or user.id != pending["user_id"]:
+        await callback.answer("Этот импорт предназначен другому профилю.", show_alert=True)
+        return
+    if action == "cancel":
+        _PENDING_RESUME_IMPORTS.pop(token, None)
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.answer("Импорт отменён")
+        return
+    if action not in {"resume", "facts"}:
+        await callback.answer("Неизвестное действие", show_alert=True)
+        return
+    resumes = await repo.list_resumes(pending["profile_id"])
+    if any(resume.external_id == pending["fingerprint"] for resume in resumes):
+        _PENDING_RESUME_IMPORTS.pop(token, None)
+        await callback.message.edit_text("ℹ️ Такое резюме уже импортировано.")
+        await callback.answer()
+        return
+    item = await repo.add_resume(
+        pending["profile_id"], f"Imported resume {datetime.now():%Y-%m-%d}",
+        pending["language"], pending["role"], content=pending["content"],
+        source="imported", external_id=pending["fingerprint"],
+    )
+    added = 0
+    if action == "facts":
+        for proposal in pending["proposals"]:
+            await repo.add_fact(
+                pending["profile_id"], proposal.value, category=proposal.category,
+                key=proposal.category, experience_type="unknown",
+                confidence=proposal.confidence, provenance="resume_import",
+                evidence=f"resume_import section={proposal.section}; confidence={proposal.confidence:.2f}",
+            )
+            added += 1
+    _PENDING_RESUME_IMPORTS.pop(token, None)
+    await callback.message.edit_text(f"✅ Резюме #{item.id} сохранено." + (f" Добавлено фактов: {added}." if action == "facts" else " Факты не изменялись."))
+    await callback.answer("Импорт завершён")
 
 
 @router.message(Command("fact"))

@@ -72,6 +72,8 @@ async def add_fact(
     commercial: bool = False,
     experience_type: str = "unknown",
     evidence: str = "",
+    confidence: float = 1.0,
+    provenance: str = "manual",
 ) -> CandidateFact:
     normalized_type = normalize_experience_type(experience_type) or "unknown"
     if commercial:
@@ -83,6 +85,8 @@ async def add_fact(
             key=key,
             value=value,
             experience_type=normalized_type,
+            confidence=max(0.0, min(1.0, float(confidence))),
+            provenance=str(provenance)[:64],
             commercial=normalized_type == "commercial",
             evidence=evidence,
         )

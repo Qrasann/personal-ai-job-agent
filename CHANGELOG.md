@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.5.5
+
+Candidate Import & Profile Sync.
+
+- Add bounded PDF, DOCX and TXT resume import with text extraction only; raw
+  uploaded documents are never written to disk.
+- Preview imported content metadata and evidence-scoped fact proposals in
+  Telegram; resume and optional facts are saved only after explicit confirmation.
+- Record fact confidence and provenance, mark experience type unknown, skip
+  exact duplicates and flag overlaps without overwriting existing facts.
+- Add additive PostgreSQL migration 3; all existing candidate facts receive
+  confidence `1.0` and provenance `manual`.
+- Full isolated PostgreSQL suite: 217 passed; branch coverage 65.15%.
+- Real-chat Telegram acceptance remains pending before release tagging.
+
 ## 3.5.4
 
 EURES cross-border vacancy discovery.

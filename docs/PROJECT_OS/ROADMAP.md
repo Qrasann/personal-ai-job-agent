@@ -31,7 +31,12 @@ Stable baseline on main.
 - canonical vacancy and cross-source dedupe.
 
 ## v3.5.5 — Candidate Import & Profile Sync
-PDF/DOCX/text import, provenance, confidence and conflict handling.
+- [x] PDF/DOCX/TXT extraction with bounded size/page/ZIP limits and no raw-file
+  persistence.
+- [x] Telegram preview and explicit confirmation before resume/fact writes.
+- [x] Persist fact confidence/provenance; skip duplicates and flag overlaps.
+- [x] Additive PostgreSQL migration and regression coverage.
+- [ ] Complete owner-driven real-chat acceptance before tagging.
 
 ## v3.5.6 — Recommendation Model v2
 Technical, growth, fast-exit, interview-risk, salary, remote, relocation, security, infrastructure and competition scores.

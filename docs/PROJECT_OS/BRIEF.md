@@ -13,7 +13,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current runtime
 
-- Release/runtime: `v3.5.4`, database schema `2/2`.
+- Source release: `v3.5.5`, database schema `3/3` after deployment.
 - Active branch: `feature/v3.5.2-dual-search-modes`.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
@@ -34,21 +34,22 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Added safe tracked-branch updates through `./job-agent update`.
 - Added Job Bank Canada discovery with separate international eligibility, LMIA, and support evidence.
 - Added bounded EURES discovery using the employer cross-border recruitment flag without treating it as visa sponsorship.
+- Added explicit Telegram resume import for PDF/DOCX/TXT, plus fact confidence/provenance and overlap review.
 - Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
 
 ## Verified
 
-- Latest PostgreSQL-backed suite: `208 passed`, 64.51% branch coverage.
+- Latest PostgreSQL-backed suite: `217 passed`, 65.15% branch coverage.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
-- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy; commit `8a87604` is deployed. Startup logs show EURES retry warnings followed by HTTP 200 responses; one profile still had every search query exhaust retries and reported EURES unavailable. Job Bank and other sources continued successfully.
+- Local Compose deployment is pending the published v3.5.5 update in this stage; prior runtime v3.5.4 had healthy PostgreSQL and EURES partial-result behavior.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 
 ## Current priority
 
-Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, and `/cancel`, record the results, and only then decide release tagging.
+Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, and the new `/import` flow; record results before release tagging.
 
 ## Open limitations
 

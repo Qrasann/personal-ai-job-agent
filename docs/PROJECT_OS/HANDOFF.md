@@ -1,5 +1,25 @@
 # Handoff
 
+## Current stage — v3.5.5 Candidate Import & Profile Sync (2026-10-11)
+
+Implemented `/import` for PDF, DOCX and TXT. Uploads are read in memory and
+bounded by size, page, text and DOCX archive limits. Telegram displays a safe
+preview of proposed facts and requires an explicit save choice; only then does
+the app store extracted resume text and, optionally, proposed facts. It does
+not store uploaded binary data or original filenames. Fact proposals are
+section-scoped, carry confidence and `resume_import` provenance, and retain
+`unknown` experience type. Exact duplicates are skipped; overlaps are flagged
+and never replace existing facts.
+
+Migration 3 only adds `confidence` and `provenance` columns to `candidate_facts`;
+existing rows receive defaults and are preserved. Full isolated PostgreSQL
+suite: 217 passed, 65.15% branch coverage; unit suite: 214 passed, 3 skipped.
+Source `VERSION` is 3.5.5. Publish and apply with the safe tracked-branch update,
+then verify schema 3/3, healthy PostgreSQL, polling and unchanged named volumes.
+Owner-driven Telegram acceptance for `/import` and the outstanding controls
+(`/salary`, `/blacklist`, `/scanstatus`, `/cancel`) remains pending before
+release tagging.
+
 ## Follow-up — raw EURES SSL error (2026-10-11)
 
 The raw `ssl.SSLError` retry fix is published and deployed as `d5d78d3`; logs

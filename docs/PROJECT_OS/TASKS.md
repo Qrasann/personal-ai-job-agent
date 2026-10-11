@@ -1,5 +1,16 @@
 # Tasks
 
+## v3.5.5 Candidate Import & Profile Sync
+- [x] Extract text from PDF, DOCX and TXT with bounded input/resource limits.
+- [x] Add Telegram `/import` with explicit preview, cancel and save choices.
+- [x] Persist resume text only after confirmation; never persist raw upload bytes
+  or original filename.
+- [x] Add confidence/provenance to Candidate Facts through additive migration 3.
+- [x] Detect exact duplicates and flag overlaps without replacing existing facts.
+- [x] Full isolated PostgreSQL suite: 217 passed, 65.15% branch coverage.
+- [ ] Owner-driven real-chat acceptance for `/import` and existing controls before
+  tagging.
+
 ## v3.5.2
 - [x] Search preference engine.
 - [x] Source enable/disable.
