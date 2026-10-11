@@ -93,6 +93,13 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   EURES searches/details, and HR.ge listing/detail requests returned HTTP 200;
   no JOBS.GE request or source error appeared. Named
   `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
+- Owner's follow-up Telegram scan exercised the deployed Arbeitnow retry:
+  Relocation-first received a `ReadTimeout`, the single retry returned HTTP
+  200, and the supplied log excerpt shows EURES, HR.ge, Job Bank, and HH
+  requests succeeding. JOBS.GE was not requested. Telegram handled the update
+  in 162.7 seconds; Job Bank's five-second public crawl delay and twelve detail
+  requests account for a substantial part, but exact per-source timing needs
+  `/scanstatus` to measure.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 - GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
@@ -112,11 +119,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Have the owner confirm `/sources` shows JOBS.GE as paused and run `/scan` once
-after the update to review fresh Georgia results and source warnings. The
-startup scan is clean, but one success does not verify retry recovery under a
-new Arbeitnow timeout. Continue `/import` preview/save and Recommendation v2
-detail acceptance before tagging v3.5.6.
+Have the owner confirm the updated `/sources` view shows JOBS.GE as paused and
+share `/scanstatus` for the 162.7-second scan, so source timings can guide any
+latency work without weakening public-site crawl limits. The live scan already
+verified Arbeitnow recovery after a timeout. Continue `/import` preview/save
+and Recommendation v2 detail acceptance before tagging v3.5.6.
 
 ## Open limitations
 
@@ -132,10 +139,12 @@ detail acceptance before tagging v3.5.6.
   Staff.am prohibits automated scraping without permission, while Job.am
   restricts unauthorized reuse and redistribution. See
   `docs/developer/INTERNATIONAL_SOURCES.md`.
-- Arbeitnow may contain no low-barrier role matches and had a transient
-  `ReadTimeout` in the owner’s earlier scan. The deployed code retries one
-  transport failure; both requests succeeded in the startup scan, so actual
-  recovery from another timeout remains unobserved.
+- Arbeitnow may contain no low-barrier role matches. A later owner-provided
+  Telegram scan confirmed the deployed single retry recovered from a
+  `ReadTimeout` with HTTP 200. Continue monitoring future runs.
+- A later scan update took 162.7 seconds. Supplied logs show twelve Job Bank
+  detail requests spaced around the public crawl delay; exact source-level
+  timings are still needed before considering latency changes.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
 - EURES's compressed-response TLS failure did not recur in the first complete
   post-update scan using identity encoding. Monitor additional runs; do not

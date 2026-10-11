@@ -24,9 +24,9 @@
   vacancies, HR.ge returned 2, JOBS.GE returned HTTP 410, and Arbeitnow had a
   transient `ReadTimeout`. JOBS.GE is paused in the source plan; HR.ge remains
   enabled while recurring reuse permission is unverified. The deployed
-  follow-up adds one bounded retry for Arbeitnow transport failures. Startup
-  scan requests succeeded; a real Telegram `/sources` and fresh `/scan` after
-  the update remain to confirm the user-visible state and result quality.
+  follow-up adds one bounded retry for Arbeitnow transport failures. A later
+  Telegram scan log confirmed a timeout recovered on retry with HTTP 200.
+  Owner confirmation of the updated `/sources` presentation remains pending.
 - Armenia is not yet selectable and has no connected local adapter. The
   official e-work portal's public access contract was not verified; Staff.am
   prohibits automated scraping without permission, and Job.am restricts
@@ -37,5 +37,7 @@
   Initial coverage is one page, six queries and twelve details per profile;
   the five-second crawl delay adds up to about 90 seconds plus network time.
   Decimal CAD/hour salaries are preserved as source text; structured salary
-  normalization and display are pending.
+  normalization and display are pending. A Telegram update took 162.7 seconds
+  with twelve Job Bank detail calls visible; request-level `/scanstatus`
+  timings are needed before changing any crawl bounds.
 - Full CI is required before merge; live Telegram polling and dual-profile scan smoke tests passed on the local deployment.

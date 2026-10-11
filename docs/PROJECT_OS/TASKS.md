@@ -49,8 +49,13 @@
   healthy PostgreSQL, completed startup scan, and attached existing named
   PostgreSQL/storage volumes. Logs show Arbeitnow, EURES, and HR.ge HTTP 200s;
   JOBS.GE was not requested and no source error appeared.
-- [ ] Owner checks `/sources` and runs `/scan` after deployment to confirm
-  JOBS.GE is visibly paused and review fresh Georgia / Arbeitnow results.
+- [x] Owner supplied a post-deploy Telegram scan log: Arbeitnow's single retry
+  recovered from `ReadTimeout` with HTTP 200; EURES, HR.ge, Job Bank, and HH
+  requests in the excerpt succeeded; JOBS.GE was not requested. Telegram
+  handled the update in 162.7 seconds.
+- [ ] Owner confirms `/sources` visibly marks JOBS.GE paused and shares
+  `/scanstatus` for source-level timing. Keep the Job Bank crawl delay intact
+  until measured timings identify a safe optimization.
 - [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
   detail checks before any v3.5.6 release tag.
 - [ ] Monitor later scheduled EURES scans; the first clean run does not prove

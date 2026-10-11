@@ -12,6 +12,10 @@
   Arbeitnow, EURES, and HR.ge requests returned HTTP 200; no JOBS.GE request or
   source failure appeared. Existing named PostgreSQL/storage volumes remain
   attached.
+- Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
+  `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
+  Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
+  Request-level timing is pending `/scanstatus`.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -33,10 +37,11 @@
 - PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
 
 ## Active development
-- target: owner confirms `/sources` shows JOBS.GE paused and runs a fresh `/scan`
-  on the updated bot, then completes `/import` preview/save and Recommendation
-  v2 vacancy detail acceptance before release tagging. Core command entry
-  points and `/status`/`/version` were already smoke-tested.
+- target: owner confirms `/sources` shows JOBS.GE paused and shares `/scanstatus`
+  so the 162.7-second scan can be attributed by source. Then complete `/import`
+  preview/save and Recommendation v2 vacancy detail acceptance before release
+  tagging. Core command entry points and `/status`/`/version` were already
+  smoke-tested.
 
 ## Implemented on active branch
 - enable/disable implemented job sources;
@@ -92,7 +97,8 @@
   supports explicit `career`/`relocation` scope. `/sources` lists plans per
   active profile. Owner has confirmed Relocation-first targets GE and reported
   a live scan; the follow-up pauses JOBS.GE after HTTP 410 and retries one
-  transient Arbeitnow transport failure.
+  transient Arbeitnow transport failure. A subsequent owner Telegram log
+  confirms retry recovery; exact source timings remain pending `/scanstatus`.
 - The v3.5.6 release tag remains pending owner checks for `/import` preview/save
   and Recommendation v2 vacancy details. GitHub's latest published tag remains
   v3.5.1.

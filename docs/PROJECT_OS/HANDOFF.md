@@ -2,6 +2,19 @@
 
 ## Owner Telegram scan and source-resilience follow-up — 2026-10-11
 
+Post-deployment live verification is now available: the owner supplied a fresh
+Telegram log excerpt. Arbeitnow's Relocation-first request timed out, the
+adapter logged `retry 1/1`, and the next request returned HTTP 200. EURES
+search/detail, HR.ge listing/details, Job Bank search/details, and HH fallback
+requests shown in the excerpt returned success; JOBS.GE was not requested.
+The Telegram update completed in 162.7 seconds. Twelve Job Bank detail calls
+are visible, spaced about 6.4 seconds apart, so its five-second crawl delay is
+a material contributor; the excerpt does not include `/scanstatus` source
+timings and cannot attribute the full duration precisely. Next ask the owner
+for `/sources` (to verify paused-state presentation) and `/scanstatus` (to
+measure where scan time is spent). Do not reduce public crawl limits without
+that evidence.
+
 The owner ran `/targets relocation GE`, `/sources`, and `/scan`. The scan
 returned EURES 16, HR.ge 2, and JOBS.GE error; Telegram reported Arbeitnow
 `ReadTimeout` and JOBS.GE HTTP 410. The configured JOBS.GE homepage itself
@@ -20,10 +33,9 @@ the startup scan completed. Arbeitnow, EURES, and HR.ge requests returned HTTP
 `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached. No schema
 change was made.
 
-The owner still needs to confirm `/sources` shows JOBS.GE paused and run a fresh
-`/scan` in Telegram. The clean startup scan does not exercise retry recovery
-after another timeout. Keep `.env`, the database, and existing Compose volumes
-untouched.
+The owner still needs to confirm `/sources` shows JOBS.GE paused in Telegram.
+The later manual scan has now exercised and verified Arbeitnow retry recovery.
+Keep `.env`, the database, and existing Compose volumes untouched.
 
 Prior Georgia guardrail commits are published on PR #16 at `0110173`,
 following adapter change `2963705`. Push CI `38127150025` and PR CI

@@ -51,6 +51,22 @@
   still needs to confirm `/sources` shows JOBS.GE paused and run one fresh
   `/scan` in Telegram to inspect source results after the update.
 
+## 2026-10-11 — live retry and scan-duration verification
+- Owner supplied a post-deployment Telegram log excerpt. Arbeitnow timed out
+  once, logged `retry 1/1`, then returned HTTP 200, confirming retry recovery
+  against the live source.
+- EURES search/details, HR.ge listing/details, Job Bank searches/details, and
+  HH public fallback requests shown in the excerpt returned success; JOBS.GE
+  was not requested. No source error appears in the supplied excerpt.
+- Telegram handled the update in 162,716 ms. Twelve Job Bank detail requests
+  are visible, about 6.4 seconds apart, consistent with its five-second
+  robots crawl delay plus network time. This is a material latency contributor,
+  but `/scanstatus` source timings are needed to allocate the full duration.
+  Do not weaken crawl limits before measuring.
+- Still pending: owner confirms JOBS.GE's paused display in `/sources`, shares
+  `/scanstatus`, and completes `/import` preview/save plus Recommendation v2
+  vacancy-detail acceptance before release tagging.
+
 ## 2026-10-11 — Georgia source guardrails (v3.5.7 market-coverage work)
 - Reviewed the two existing Georgia adapters and the reported need to target
   Georgia explicitly. JOBS.GE `/robots.txt` returned HTTP 410; HR.ge returned
