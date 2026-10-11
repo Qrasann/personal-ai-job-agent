@@ -11,7 +11,7 @@ separate releases or tags. The owner completed Telegram acceptance on
 duplicates detected, and Recommendation v2 details displayed with unsupported
 signals left unknown.
 
-The current candidate also includes a focused EURES transport fix and clearer
+The v3.5.6 release also includes a focused EURES transport fix and clearer
 per-profile market controls:
 
 - EURES sends `Accept-Encoding: identity`; in the live container, a compressed
