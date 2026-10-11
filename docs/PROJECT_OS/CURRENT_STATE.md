@@ -3,8 +3,8 @@
 ## Latest state
 - stable GitHub `main`: `6294c2a` (source version 3.5.6). PR #15 is merged.
 - active candidate branch: `feature/v3.5.6-eures-identity-market-targets` at
-  `083c2db` (application change `6fa3406`), published as PR #16; push CI
-  `38123697609` and final PR CI `38123840533` passed.
+  `e43072c` (application change `6fa3406`), published as PR #16; push and
+  pull-request CI passed for this branch head.
 - local Compose project `repo` runs source/runtime 3.5.6 from the candidate;
   the app is polling and PostgreSQL is healthy.
 - after the candidate update, the startup dual-profile scan completed

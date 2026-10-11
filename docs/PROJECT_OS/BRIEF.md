@@ -16,9 +16,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Source/runtime: `v3.5.6`, database schema `4/4`.
 - GitHub `main`: `6294c2a` (`v3.5.6`). Active candidate branch and deployed
   source: `feature/v3.5.6-eures-identity-market-targets` (application change
-  `6fa3406`, latest branch commit `083c2db`).
-- GitHub PR #16 is open; push CI `38123697609` and final PR CI `38123840533`
-  passed.
+  `6fa3406`, latest branch commit `e43072c`).
+- GitHub PR #16 is open. Candidate and handoff CI checks passed; current PR
+  status is available at https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
@@ -70,7 +70,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 - GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
-  its push CI run `38123697609` passed.
+  push and pull-request CI passed for handoff commit `e43072c`.
 - Owner-provided Telegram smoke test on 2026-10-11 confirmed `/salary`,
   `/blacklist`, `/scanstatus`, `/cancel`, `/import` prompt, `/version` and
   `/status`. The scan completed with an EURES error while other sources
