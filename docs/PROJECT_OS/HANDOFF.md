@@ -4,8 +4,9 @@
 
 The active branch `feature/v3.5.7-international-market-coverage` starts from
 main commit `02f582e`; application commit `4ccae7f` was pushed. Stable `main`
-and the formal tag/Release remain v3.5.6. GitHub push CI run `38143185017`
-passed all jobs. The safe updater applied candidate source/runtime 3.5.7 to
+and the formal tag/Release remain v3.5.6. Draft PR #18 is open; GitHub push CI
+`38143185017` and PR-CI `38143789063` passed all jobs. The safe updater applied
+candidate source/runtime 3.5.7 to
 local Compose. The app is polling, PostgreSQL is healthy, and read-only mount
 inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain
 attached. Startup scan completed at 13:31:05 UTC; EURES returned HTTP 200 and

@@ -14,8 +14,8 @@ vacancy matching.
   it is deployed to the local Compose bot for Telegram acceptance, but is not
   merged or released yet.
 - The candidate's full isolated PostgreSQL suite passes: 240 tests and 68.22%
-  branch coverage; GitHub push CI run `38143185017` passes. Owner Telegram
-  acceptance is pending.
+  branch coverage; GitHub push CI `38143185017` and draft PR #18 CI
+  `38143789063` pass. Owner Telegram acceptance is pending.
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details

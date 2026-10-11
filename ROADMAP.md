@@ -45,9 +45,9 @@ work mode, salary, visa and relocation unknown without direct evidence. The
 current Lineate board shows an Infrastructure Engineer for its Georgian office
 and a Data Engineer in Yerevan; only the former matches the current
 DevOps/Infrastructure search. The full isolated PostgreSQL suite passes with
-240 tests and 68.22% branch coverage; GitHub push CI run `38143185017` passed.
-The candidate is running on the local Compose bot for owner Telegram acceptance;
-it is not a main-branch release or formal release.
+240 tests and 68.22% branch coverage; GitHub push CI `38143185017` and draft
+PR #18 CI `38143789063` passed. The candidate is running on the local Compose
+bot for owner Telegram acceptance; it is not merged or formally released.
 
 The owner has a near-term relocation objective. Prefer live vacancies with
 clear application deadlines and start timing, and record candidate eligibility

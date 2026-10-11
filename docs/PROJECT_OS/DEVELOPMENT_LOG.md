@@ -13,8 +13,9 @@
 - Targeted Greenhouse, country-catalog, and preference tests: 20 passed. The
   full isolated PostgreSQL suite passed: 240 tests, 68.22% branch coverage
   (55% gate); compileall and `git diff --check` passed. GitHub push CI run
-  `38143185017` passed all jobs. The safe updater deployed source/runtime
-  3.5.7 to local Compose; PostgreSQL remains healthy and the existing
+  `38143185017` passed all jobs. Draft PR #18 was opened and PR-CI run
+  `38143789063` passed. The safe updater deployed source/runtime 3.5.7 to local
+  Compose; PostgreSQL remains healthy and the existing
   `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
   Startup scan completed at 13:31:05 UTC; EURES returned HTTP 200 and no errors
   appeared in the inspected tail. No Greenhouse request appeared, so owner

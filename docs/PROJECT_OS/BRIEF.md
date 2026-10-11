@@ -122,6 +122,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions passed for PR #16 and merge commit `874b372` (main run
   `38135649948`).
+- Draft PR #18 is open for the v3.5.7 candidate; push CI `38143185017` and
+  PR-CI `38143789063` both passed. It remains unmerged pending Telegram
+  acceptance.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection

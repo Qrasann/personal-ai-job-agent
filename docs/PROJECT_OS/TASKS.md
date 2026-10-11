@@ -124,6 +124,8 @@
   candidate: 240 passed, 68.22% branch coverage; `git diff --check` passed.
 - [x] Push candidate commit `4ccae7f`; GitHub push CI run `38143185017` passed
   Python checks, Docker build and secret scan.
+- [x] Open draft PR #18 and confirm PR-CI run `38143789063` passed; keep it
+  unmerged until owner Telegram acceptance.
 - [x] Apply with the safe updater; verify source/runtime 3.5.7, healthy
   PostgreSQL, attached original volumes and completed startup scan.
 - [ ] Owner Telegram acceptance after deployment: `/targets relocation GE,AM`,

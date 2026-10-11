@@ -20,8 +20,9 @@
   matching and review.
 - Full isolated PostgreSQL suite: 240 passed; branch coverage 68.22% (55%
   gate). Compilation, `git diff --check`, and GitHub push CI run `38143185017`
-  pass. The candidate is deployed to the local Compose bot for owner Telegram
-  acceptance; it is not merged, tagged, or released.
+  pass. Draft PR #18 is open and PR-CI run `38143789063` passed. The candidate
+  is deployed to the local Compose bot for owner Telegram acceptance; it is not
+  merged, tagged, or released.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

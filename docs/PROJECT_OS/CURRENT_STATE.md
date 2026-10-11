@@ -4,6 +4,10 @@
 - Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
+- Candidate application commit `4ccae7f` and handoff follow-up `c8a8017` are on
+  `feature/v3.5.7-international-market-coverage`. Draft PR #18 is open; push CI
+  `38143185017` and PR-CI `38143789063` passed. No merge, tag, or formal
+  release has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
