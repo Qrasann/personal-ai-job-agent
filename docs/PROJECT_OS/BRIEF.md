@@ -53,9 +53,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   and RemoteOK; no startup errors were present in the inspected log tail.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
-- GitHub `main` is still v3.5.1 at `375af5f`; PR #15 contains v3.5.6 but
-  diverged from the merged search-control commit. A merge-only synchronization
-  is prepared locally; publish it to the PR branch after the checks below.
+- GitHub `main` remains v3.5.1 at `375af5f`. Release branch sync commit
+  `77379aa` is pushed to PR #15; GitHub reports `MERGEABLE`, and both push and
+  PR CI runs (38121809437, 38121811653) passed. Keep the PR open until the
+  owner-driven real-chat acceptance below is complete.
 - Latest supplied/runtime logs show intermittent EURES `SSLError` retries,
   some EURES HTTP 200 responses, and a scheduled scan that still completed.
   Job Bank and other sources continue independently; EURES can still be

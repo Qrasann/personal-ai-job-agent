@@ -134,8 +134,9 @@
   failures; bounded retries sometimes recover and the scheduled scan completed.
 - PR #15 must remain unmerged until the owner records real-chat acceptance for
   the Telegram controls and Recommendation v2 details, as required by the
-  current-state merge rule. The feature-branch synchronization is pending
-  publication and CI verification.
+  current-state merge rule. Published merge commit `77379aa`; PR #15 reports
+  `MERGEABLE`, and push run `38121809437` plus PR run `38121811653` both passed
+  Python checks, Docker build and secret scan.
 
 ## 2026-10-10 — Telegram salary and blacklist controls
 - Added `/salary current|desired|minimum <currency> <amount|clear>` and a

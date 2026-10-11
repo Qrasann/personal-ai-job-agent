@@ -1,11 +1,11 @@
 # Tasks
 
 ## GitHub main synchronization
-- [ ] Synchronize the release branch with GitHub `main` commit `375af5f` on PR
-  #15 without rewriting feature history; run full PostgreSQL tests and publish
-  the updated feature branch so the PR becomes mergeable.
-- [ ] Do not merge PR #15 into `main` until owner-driven Telegram acceptance
-  below is recorded, per the current-state merge rule.
+- [x] Integrate GitHub `main` commit `375af5f` into the release branch without
+  rewriting history; full PostgreSQL suite passed (220 tests, 65.66%), commit
+  `77379aa` was pushed, PR #15 is mergeable, and both CI runs passed.
+- [ ] Owner-run and record Telegram acceptance for the controls/details below;
+  then merge PR #15 into `main` per the current-state merge rule.
 
 ## v3.5.6 Recommendation Model v2
 - [x] Add persisted, explainable component scores for technical fit, growth,

@@ -2,9 +2,9 @@
 
 ## Latest state
 - branch: `feature/v3.5.2-dual-search-modes`
-- feature branch before main synchronization: `466c676`; source/runtime version
-  3.5.6. A merge of GitHub `main` commit `375af5f` is prepared locally so PR
-  #15 can become mergeable without rewriting its history.
+- release branch: `feature/v3.5.2-dual-search-modes` at `77379aa`; source/runtime
+  version 3.5.6. GitHub `main` commit `375af5f` is now an ancestor, so PR #15
+  is mergeable without rewriting its history. Both CI runs passed.
 - local Compose project `repo`: source/runtime 3.5.6; app container is up and
   PostgreSQL is healthy. The latest scheduled scan completed despite an EURES
   SSL record-layer failure on one profile.
@@ -16,8 +16,8 @@
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
 - v3.5.6 full PostgreSQL-backed suite: 220 passed, 65.66% branch coverage.
-- GitHub Actions run 110 passed for v3.5.4; the latest merge-only branch
-  synchronization is being validated separately.
+- GitHub Actions runs `38121809437` (push) and `38121811653` (PR) passed for
+  the synchronized branch.
 - Public competition-data audit found no per-vacancy applicant counts in the
   connected public feeds; employer-only counts remain unknown in this app.
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
