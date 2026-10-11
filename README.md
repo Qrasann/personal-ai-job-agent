@@ -8,10 +8,11 @@ vacancy matching.
 
 ## Project status
 
-- `main` contains source version **v3.5.6**.
-- The latest published GitHub release is **v3.5.1**. The v3.5.6 release tag is
-  intentionally pending end-to-end Telegram acceptance of resume import and
-  vacancy recommendation details.
+- **Source on `main`:** v3.5.6 (`6294c2a`).
+- **Latest published GitHub Release/tag:** v3.5.1.
+- **Changelog entries v3.5.2–v3.5.6:** source milestones, not published GitHub
+  Releases or tags. The v3.5.6 release awaits end-to-end Telegram acceptance
+  of resume import and vacancy recommendation details.
 - The production-style local Compose deployment was last verified on v3.5.6,
   with PostgreSQL healthy and schema 4/4.
 

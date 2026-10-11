@@ -1,5 +1,23 @@
 # Handoff
 
+## GitHub branches and release labels — 2026-10-11
+
+- `main` is the stable source branch at `6294c2a`, with `VERSION` set to
+  v3.5.6. It does not yet contain the open PR #16 changes.
+- Active development is on
+  `feature/v3.5.6-eures-identity-market-targets`; its current tip is `2166e0c`
+  and it targets `main` through [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16).
+  Application commit `170ed4e` is deployed to the local Compose project; later
+  commits on the branch only update handoff documentation.
+- `feature/v3.5.2-dual-search-modes` remains on the remote from earlier work;
+  it is not the active branch for new changes.
+- GitHub Releases and version tags currently stop at v3.5.1. The v3.5.2–v3.5.6
+  changelog entries record source milestones, not formal releases. Keep the
+  v3.5.6 release pending until resume-import and Recommendation v2 Telegram
+  acceptance is complete.
+- README.md and README.ru.md provide English and Russian entry points on the
+  active candidate branch. `main` remains English-only until PR #16 is merged.
+
 ## Owner Telegram scan and source-resilience follow-up — 2026-10-11
 
 Post-deployment live verification is now available: the owner supplied a fresh

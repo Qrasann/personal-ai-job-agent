@@ -45,6 +45,12 @@
   67.67% branch coverage; `compileall` and `git diff --check` passed.
 - [x] Publish `170ed4e` to PR #16; push CI `38129138392` and PR CI
   `38129141546` passed.
+- [x] Clarify in the English/Russian README and changelog that `main` source
+  version v3.5.6 and changelog milestones v3.5.2–v3.5.6 are distinct from the
+  latest formal GitHub Release/tag, v3.5.1. Do not tag v3.5.6 before owner
+  acceptance.
+- [x] Push current branch handoff and README clarification in PR #16; latest
+  push CI `38129983586` passed.
 - [x] Apply through the safe updater; verify runtime 3.5.6, active app,
   healthy PostgreSQL, completed startup scan, and attached existing named
   PostgreSQL/storage volumes. Logs show Arbeitnow, EURES, and HR.ge HTTP 200s;

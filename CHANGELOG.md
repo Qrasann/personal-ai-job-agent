@@ -2,8 +2,9 @@
 
 > The source tree on GitHub `main` is currently v3.5.6. The latest published
 > GitHub release is v3.5.1; v3.5.6 is not tagged yet because the final Telegram
-> acceptance checks are still open. Do not treat an untagged main commit as a
-> published release.
+> acceptance checks are still open. Entries v3.5.2–v3.5.6 document source
+> milestones and are not individual published releases or tags. Do not treat
+> an untagged main commit as a published release.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

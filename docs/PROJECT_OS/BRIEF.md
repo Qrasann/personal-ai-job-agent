@@ -16,9 +16,17 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Source/runtime: `v3.5.6`, database schema `4/4`.
 - GitHub `main`: `6294c2a` (`v3.5.6`). Deployed application commit `170ed4e`
   is on candidate branch `feature/v3.5.6-eures-identity-market-targets`.
-- GitHub PR #16 is open. Push CI `38129138392` and PR CI `38129141546`
-  passed; current checks are at
+- GitHub PR #16 is open on `main`. Candidate branch tip is `2166e0c`; the
+  deployed application code is `170ed4e`. Latest push CI `38129983586` passed;
+  current PR details are at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
+- Branch map: `main` is the stable source; `feature/v3.5.6-eures-identity-market-targets`
+  is the active PR #16 branch and is where current changes are pushed. The
+  remote `feature/v3.5.2-dual-search-modes` branch remains from earlier work
+  but is not the active development branch.
+- Release map: the source `VERSION` on `main` is v3.5.6, while the latest
+  published GitHub tag/Release is v3.5.1. Changelog entries v3.5.2–v3.5.6 are
+  untagged source milestones; v3.5.6 still awaits owner Telegram acceptance.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
