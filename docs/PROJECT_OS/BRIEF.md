@@ -23,8 +23,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Recently completed
 
-- Added bounded retries for EURES transport failures and made source alerts
-  report HTTP status / exception type instead of blank text.
+- Added bounded retries for EURES transport failures, including raw
+  `ssl.SSLError`, and made source alerts report HTTP status / exception type.
 - Added `/parallelsearch on|off|status` and `/relocationroles`.
 - Each profile now discovers, scores, stores, and reports results independently.
 - Fixed concurrent `JobMatch` inserts with an atomic PostgreSQL upsert.
@@ -39,23 +39,23 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Verified
 
-- Latest PostgreSQL-backed suite: `206 passed`, 64.46% branch coverage.
-- Targeted EURES, Job Bank and source-error regressions: `23 passed`.
+- Latest PostgreSQL-backed suite: `207 passed`, 64.49% branch coverage.
+- Targeted EURES, Job Bank and source-error regressions: `24 passed`.
 - GitHub Actions run 110 passed.
-- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy; commit `f397f58` is deployed and the startup EURES search returned HTTP 200.
-- Existing PostgreSQL and storage volumes remain attached after the update. Earlier logs confirmed EURES transport failures and a `ReadTimeout`; regression tests cover retries and HTTP status formatting.
+- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy; commit `f397f58` is deployed. Its startup EURES search returned HTTP 200, but later searches still exposed raw `ssl.SSLError` failures.
+- The follow-up now retries raw SSL errors too; this follow-up is tested but awaits deployment. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 
 ## Current priority
 
-Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, and `/cancel`, record the results, and only then decide release tagging.
+Deploy and verify the raw SSL retry fix for EURES; then complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, and `/cancel` before deciding release tagging.
 
 ## Open limitations
 
 - Source coverage remains the main Relocation-first bottleneck, especially Armenia and low-barrier legal work.
 - Arbeitnow currently improves Germany/Career coverage but may contain no low-barrier roles.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
-- EURES can still fail if repeated transport attempts time out; retry behavior is bounded and does not retry HTTP error responses.
+- EURES can still fail if repeated transport attempts time out; the retry budget is bounded and does not retry HTTP status responses.
 - The EURES cross-border flag is not proof of visa sponsorship, relocation support, or third-country work authorization.
 - Public applicant counts are unavailable in the connected candidate-facing feeds and remain unknown.
 - Dedicated Career Score and Relocation Score, affordability calculation, migration knowledge base, and application tracker are later phases—not completed features.

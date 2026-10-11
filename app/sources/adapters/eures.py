@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
+import ssl
 import uuid
 from datetime import datetime, timezone
 from urllib.parse import quote, urlparse
@@ -12,6 +14,8 @@ from bs4 import BeautifulSoup
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.job_text import clean_html_text
 from app.sources.base import JobSource, SourceContext
+
+log = logging.getLogger(__name__)
 
 
 class EuresSource(JobSource):
@@ -34,9 +38,13 @@ class EuresSource(JobSource):
                 response = await request(*args, **kwargs)
                 response.raise_for_status()
                 return response
-            except httpx.TransportError:
+            except (httpx.TransportError, ssl.SSLError) as exc:
                 if attempt >= self.request_retries:
                     raise
+                log.warning(
+                    "EURES transport failure (%s); retry %s/%s",
+                    type(exc).__name__, attempt + 1, self.request_retries,
+                )
                 await asyncio.sleep(0.5 * (2 ** attempt))
 
     @staticmethod

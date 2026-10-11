@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-10-11 — handle raw EURES SSL failures
+- New deployed logs showed that EURES still failed after the prior update. The
+  traceback ended in a raw `ssl.SSLError`, which is not an `httpx.TransportError`
+  and therefore bypassed the previous retry handler. Some EURES requests still
+  returned HTTP 200, confirming an intermittent transport failure.
+- Extended the bounded retry handler to catch raw SSL errors and log each retry
+  by exception type without including request URLs. HTTP status failures remain
+  non-retryable. Added a regression for the exact bare `ssl.SSLError` path.
+- Targeted source tests: 24 passed. Full isolated PostgreSQL suite: 207 passed,
+  64.49% branch coverage (55% gate). This follow-up still needs deployment and
+  a new runtime-log check.
+
 ## 2026-10-11 — source error resilience
 - Inspected the running Compose project and latest logs after repeated Telegram
   alerts. Confirmed EURES requests can fail with `httpx.ReadTimeout` and an SSL

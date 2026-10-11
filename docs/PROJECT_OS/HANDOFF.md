@@ -1,5 +1,16 @@
 # Handoff
 
+## Follow-up — raw EURES SSL error (2026-10-11)
+
+Post-deployment logs still showed EURES failures. The traceback ended in raw
+`ssl.SSLError`, which bypassed the previous `httpx.TransportError` retry
+handler. The handler now retries both exception classes (two retries with
+short backoff) and logs retry attempts by exception type. HTTP status errors
+remain non-retryable. Regression test and full suite pass (207 tests, 64.49%
+branch coverage). This follow-up is not deployed yet; after publishing, run
+`JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update` and inspect the next EURES
+scan for retry warnings and successful responses.
+
 ## Current stage — source error resilience (2026-10-11)
 
 Latest runtime inspection found EURES transport failures (`ReadTimeout` and an

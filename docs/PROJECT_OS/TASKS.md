@@ -44,6 +44,9 @@
 - [x] Publish as `f397f58`, run the safe tracked-branch update, verify runtime
   3.5.4 / healthy PostgreSQL / EURES HTTP 200, and confirm named volumes remain
   attached.
+- [x] Extend EURES retries to raw `ssl.SSLError`; add a regression test and
+  rerun the full suite (207 passed, 64.49% branch coverage).
+- [ ] Publish and deploy the raw SSL fix; verify the next EURES scan logs.
 
 ## v3.5.4 Multi-Source International Discovery
 - [x] Add bounded EURES discovery for the employer's cross-border recruitment

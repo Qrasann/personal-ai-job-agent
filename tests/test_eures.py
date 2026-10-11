@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import ssl
 
 import httpx
 import pytest
@@ -136,3 +137,21 @@ def test_request_does_not_retry_http_status_errors():
     with pytest.raises(httpx.HTTPStatusError):
         asyncio.run(EuresSource()._request_with_retry(request, "https://example.org"))
     assert len(calls) == 1
+
+
+def test_request_retries_raw_ssl_error(monkeypatch):
+    calls = []
+
+    async def request(url):
+        calls.append(url)
+        if len(calls) == 1:
+            raise ssl.SSLError("record layer failure")
+        return httpx.Response(200, json={"ok": True}, request=httpx.Request("GET", url))
+
+    async def no_wait(_):
+        return None
+
+    monkeypatch.setattr("app.sources.adapters.eures.asyncio.sleep", no_wait)
+    response = asyncio.run(EuresSource()._request_with_retry(request, "https://example.org"))
+    assert response.status_code == 200
+    assert len(calls) == 2
