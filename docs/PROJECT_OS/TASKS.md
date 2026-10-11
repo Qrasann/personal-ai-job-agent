@@ -43,8 +43,12 @@
   at 15 seconds; do not retry HTTP status responses.
 - [x] Full isolated PostgreSQL suite after the source changes: 233 passed,
   67.67% branch coverage; `compileall` and `git diff --check` passed.
-- [ ] Publish the follow-up to PR #16, pass CI, deploy through the safe updater,
-  and verify Compose status/logs plus existing named volume attachment.
+- [x] Publish `170ed4e` to PR #16; push CI `38129138392` and PR CI
+  `38129141546` passed.
+- [x] Apply through the safe updater; verify runtime 3.5.6, active app,
+  healthy PostgreSQL, completed startup scan, and attached existing named
+  PostgreSQL/storage volumes. Logs show Arbeitnow, EURES, and HR.ge HTTP 200s;
+  JOBS.GE was not requested and no source error appeared.
 - [ ] Owner checks `/sources` and runs `/scan` after deployment to confirm
   JOBS.GE is visibly paused and review fresh Georgia / Arbeitnow results.
 - [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy

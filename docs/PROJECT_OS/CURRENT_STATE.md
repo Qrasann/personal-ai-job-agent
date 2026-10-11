@@ -2,14 +2,16 @@
 
 ## Latest state
 - stable GitHub `main`: `6294c2a` (source version 3.5.6). PR #15 is merged.
-- active candidate branch: `feature/v3.5.6-eures-identity-market-targets`
-  (application change `6fa3406`), published as PR #16. Candidate code and
-  handoff CI checks passed; see PR #16 for current branch checks.
-- local Compose project `repo` runs source/runtime 3.5.6 from the candidate;
-  the app is polling and PostgreSQL is healthy.
-- after the candidate update, the startup dual-profile scan completed
-  successfully. EURES search and detail requests returned HTTP 200 without the
-  previous SSL retries/errors.
+- active candidate branch: `feature/v3.5.6-eures-identity-market-targets`;
+  deployed application commit `170ed4e` is published as PR #16. Push CI
+  `38129138392` and PR CI
+  `38129141546` passed.
+- local Compose project `repo` runs source/runtime 3.5.6; app is polling and
+  PostgreSQL is healthy.
+- the startup dual-profile scan completed successfully after the latest update.
+  Arbeitnow, EURES, and HR.ge requests returned HTTP 200; no JOBS.GE request or
+  source failure appeared. Existing named PostgreSQL/storage volumes remain
+  attached.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -17,9 +19,9 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- latest full PostgreSQL-backed suite: 224 passed, 66.33% branch coverage
+- latest full PostgreSQL-backed suite: 233 passed, 67.67% branch coverage
   (55% gate).
-- GitHub Actions runs `38121905782` (push) and `38121908521` (PR) passed.
+- Latest GitHub Actions runs `38129138392` (push) and `38129141546` (PR) passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
   connected public feeds; employer-only counts remain unknown in this app.
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
@@ -31,10 +33,10 @@
 - PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
 
 ## Active development
-- target: owner verifies `/targets relocation GE`, `/sources` and `/scan` on the
-  updated bot, then completes `/import` preview/save and Recommendation v2
-  vacancy detail acceptance before release tagging. Core command entry points
-  and `/status`/`/version` were already smoke-tested.
+- target: owner confirms `/sources` shows JOBS.GE paused and runs a fresh `/scan`
+  on the updated bot, then completes `/import` preview/save and Recommendation
+  v2 vacancy detail acceptance before release tagging. Core command entry
+  points and `/status`/`/version` were already smoke-tested.
 
 ## Implemented on active branch
 - enable/disable implemented job sources;
@@ -88,7 +90,9 @@
   and detail requests; continue monitoring subsequent runs.
 - The updated `/targets` applies markets to all active profiles by default and
   supports explicit `career`/`relocation` scope. `/sources` lists plans per
-  active profile. The owner still needs to set GE and confirm it in Telegram.
+  active profile. Owner has confirmed Relocation-first targets GE and reported
+  a live scan; the follow-up pauses JOBS.GE after HTTP 410 and retries one
+  transient Arbeitnow transport failure.
 - The v3.5.6 release tag remains pending owner checks for `/import` preview/save
   and Recommendation v2 vacancy details. GitHub's latest published tag remains
   v3.5.1.

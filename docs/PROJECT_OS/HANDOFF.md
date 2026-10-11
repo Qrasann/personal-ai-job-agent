@@ -9,13 +9,21 @@ returned 410, so the source is now marked temporarily unavailable and remains
 visible in `/sources` with that reason. Arbeitnow now has a 15-second timeout
 and one retry for transport failures; HTTP status errors are not retried.
 
-The candidate adds regressions for transient timeout recovery, non-retry of
-HTTP status failures, and the paused source-plan state. Full isolated
-PostgreSQL suite: 233 passed, 67.67% branch coverage; `compileall` and
-`git diff --check` passed. No schema or version change was made. Publication,
-deployment through the safe updater, Compose log checks, and a post-update
-Telegram `/sources` and `/scan` remain outstanding. Keep `.env`, the database,
-and existing Compose volumes untouched.
+The candidate adds regressions for transient timeout recovery, retry
+exhaustion, non-retry of HTTP status failures, and the paused source-plan state.
+Full isolated PostgreSQL suite: 233 passed, 67.67% branch coverage;
+`compileall` and `git diff --check` passed. Commit `170ed4e` is published on PR
+#16; push CI `38129138392` and PR CI `38129141546` passed. The safe updater
+applied it. Runtime remains 3.5.6, the app is up, PostgreSQL is healthy, and
+the startup scan completed. Arbeitnow, EURES, and HR.ge requests returned HTTP
+200; no JOBS.GE request or source error appeared. Mount inspection confirms
+`repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached. No schema
+change was made.
+
+The owner still needs to confirm `/sources` shows JOBS.GE paused and run a fresh
+`/scan` in Telegram. The clean startup scan does not exercise retry recovery
+after another timeout. Keep `.env`, the database, and existing Compose volumes
+untouched.
 
 Prior Georgia guardrail commits are published on PR #16 at `0110173`,
 following adapter change `2963705`. Push CI `38127150025` and PR CI
@@ -62,8 +70,9 @@ cause is not yet established.
 `/targets GE` now applies target countries to all active profiles;
 `/targets relocation GE` and `/targets career GE` scope the change. `/sources`
 lists each active profile's configured source plan. Georgia adapters are
-included only for profiles targeting GE. The owner still needs to run the
-Georgia scan in Telegram and confirm its result quality. Armenia is not yet in
+included only for profiles targeting GE. The owner subsequently ran the GE
+scan; the latest result and post-update source checks are recorded above.
+Armenia is not yet in
 the country catalog and has no connected adapter. The Unified Social Service
 lists e-work.am and workforall.am as vacancy platforms, but both public search
 pages timed out and no public API/feed or automated-access terms were verified.

@@ -14,10 +14,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 ## Current runtime
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
-- GitHub `main`: `6294c2a` (`v3.5.6`). Active candidate branch and deployed
-  source: `feature/v3.5.6-eures-identity-market-targets` (latest commit
-  `0110173`, including Georgia request bounds and scheduled cache).
-- GitHub PR #16 is open. Latest push CI `38127150025` and PR CI `38127152783`
+- GitHub `main`: `6294c2a` (`v3.5.6`). Deployed application commit `170ed4e`
+  is on candidate branch `feature/v3.5.6-eures-identity-market-targets`.
+- GitHub PR #16 is open. Push CI `38129138392` and PR CI `38129141546`
   passed; current checks are at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Local release directory: `~/job-agent-release-v352`.
@@ -88,12 +87,12 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
   and RemoteOK; no startup errors were present in the inspected log tail.
-- Georgia guardrails are on PR #16 at `0110173`; latest push and PR CI are
-  green. The owner has now targeted Relocation-first to GE and supplied a live
-  Telegram scan: EURES found 16, HR.ge found 2, JOBS.GE returned HTTP 410, and
-  Arbeitnow reported a transient ReadTimeout. The follow-up pauses JOBS.GE and
-  retries one transient Arbeitnow transport error. Its isolated PostgreSQL
-  suite passes, but publication, deployment, and post-update checks remain.
+- Candidate `170ed4e` is pushed to PR #16, passes push and PR CI, and is applied
+  to Compose project `repo`. Runtime remains 3.5.6; app is up and PostgreSQL is
+  healthy. The startup scan completed successfully. Both Arbeitnow requests,
+  EURES searches/details, and HR.ge listing/detail requests returned HTTP 200;
+  no JOBS.GE request or source error appeared. Named
+  `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 - GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
@@ -113,11 +112,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Publish and safely update the source-resilience follow-up, then verify in
-Compose logs and Telegram that JOBS.GE is visibly paused and Arbeitnow recovers
-from a transient timeout. The owner’s GE-targeted scan is complete; use the next
-scan to confirm source quality. Continue `/import` preview/save and
-Recommendation v2 detail acceptance before tagging v3.5.6.
+Have the owner confirm `/sources` shows JOBS.GE as paused and run `/scan` once
+after the update to review fresh Georgia results and source warnings. The
+startup scan is clean, but one success does not verify retry recovery under a
+new Arbeitnow timeout. Continue `/import` preview/save and Recommendation v2
+detail acceptance before tagging v3.5.6.
 
 ## Open limitations
 
@@ -134,8 +133,9 @@ Recommendation v2 detail acceptance before tagging v3.5.6.
   restricts unauthorized reuse and redistribution. See
   `docs/developer/INTERNATIONAL_SOURCES.md`.
 - Arbeitnow may contain no low-barrier role matches and had a transient
-  `ReadTimeout` in the owner’s scan. The candidate adds one bounded retry;
-  confirm its behavior in the deployed logs.
+  `ReadTimeout` in the owner’s earlier scan. The deployed code retries one
+  transport failure; both requests succeeded in the startup scan, so actual
+  recovery from another timeout remains unobserved.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
 - EURES's compressed-response TLS failure did not recur in the first complete
   post-update scan using identity encoding. Monitor additional runs; do not

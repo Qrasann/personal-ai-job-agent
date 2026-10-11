@@ -23,8 +23,9 @@ per-profile market controls:
 - The owner completed a Relocation-first GE scan: EURES returned 16 jobs,
   HR.ge returned 2, JOBS.GE returned HTTP 410, and Arbeitnow reported a
   transient read timeout. The candidate pauses JOBS.GE and retries one
-  transient Arbeitnow transport failure; verify these changes in the running
-  bot before considering Georgia coverage accepted.
+  transient Arbeitnow transport failure. The updated runtime has a clean
+  startup scan; confirm `/sources` and a fresh `/scan` in Telegram before
+  considering Georgia coverage accepted.
 
 ## Next — v3.5.7 International Market Coverage
 

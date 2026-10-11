@@ -32,8 +32,9 @@ Recommendation Model v2 evidence breakdown.
 - Candidate maintenance on PR #16 (not a tagged release): pause JOBS.GE after
   the configured homepage returned HTTP 410; show its status in `/sources`.
   Add one retry for transient Arbeitnow transport failures with a 15-second
-  timeout. Verification: 233 isolated PostgreSQL tests passed; post-update
-  runtime and Telegram checks remain pending.
+  timeout. Verification: 233 isolated PostgreSQL tests passed, push/PR CI
+  passed, and the safe updater confirmed runtime 3.5.6 with a successful
+  startup scan. Owner Telegram `/sources` and fresh `/scan` checks remain.
 
 ## v3.5.5 — Candidate Import & Profile Sync
 

@@ -33,6 +33,24 @@
   Compose log inspection, and owner Telegram verification after update remain
   pending. Existing database and storage volumes must remain attached.
 
+## 2026-10-11 — deploy public-source resilience candidate
+- Published `170ed4e` to the existing PR #16 branch. Push CI run `38129138392`
+  and PR CI run `38129141546` both passed, including Python tests, secret scan,
+  and Docker build.
+- Applied the candidate with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+  update`. `/status` reports source/runtime 3.5.6, app up, and PostgreSQL
+  healthy. The startup `scan_all` completed successfully.
+- Startup logs show Arbeitnow responses for both active search profiles,
+  EURES searches and detail requests, and HR.ge listing/detail requests all
+  returned HTTP 200. No JOBS.GE request, source failure, traceback, or
+  `ReadTimeout` appeared in the inspected post-update log window.
+- Mount inspection confirms `repo_jobagent_v3_pg` remains at PostgreSQL data
+  and `repo_jobagent_v3_files` remains at `/app/storage`. No migration or
+  database mutation was made.
+- The clean startup scan does not exercise Arbeitnow's retry branch. Owner
+  still needs to confirm `/sources` shows JOBS.GE paused and run one fresh
+  `/scan` in Telegram to inspect source results after the update.
+
 ## 2026-10-11 — Georgia source guardrails (v3.5.7 market-coverage work)
 - Reviewed the two existing Georgia adapters and the reported need to target
   Georgia explicitly. JOBS.GE `/robots.txt` returned HTTP 410; HR.ge returned

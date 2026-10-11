@@ -23,9 +23,10 @@
   confirmed a Relocation-first GE scan on 2026-10-11: EURES returned 16
   vacancies, HR.ge returned 2, JOBS.GE returned HTTP 410, and Arbeitnow had a
   transient `ReadTimeout`. JOBS.GE is paused in the source plan; HR.ge remains
-  enabled while recurring reuse permission is unverified. The follow-up adds
-  one bounded retry for Arbeitnow transport failures; post-deployment behavior
-  still needs confirmation.
+  enabled while recurring reuse permission is unverified. The deployed
+  follow-up adds one bounded retry for Arbeitnow transport failures. Startup
+  scan requests succeeded; a real Telegram `/sources` and fresh `/scan` after
+  the update remain to confirm the user-visible state and result quality.
 - Armenia is not yet selectable and has no connected local adapter. The
   official e-work portal's public access contract was not verified; Staff.am
   prohibits automated scraping without permission, and Job.am restricts
