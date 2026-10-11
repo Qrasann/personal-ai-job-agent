@@ -7,11 +7,14 @@ SSL record-layer error) and a blank Job Bank Telegram alert. EURES now retries
 transport-level failures twice with short backoff; HTTP status responses are
 not retried. Source failure alerts share the normalized text saved in the scan
 summary, including HTTP status codes. Regression tests cover both behaviors.
-The isolated PostgreSQL suite passed: 206 tests, 64.46% branch coverage. The
-change is not yet deployed. After publishing the clean tracked branch, use
-`JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`; it fetches/pulls
+The isolated PostgreSQL suite passed: 206 tests, 64.46% branch coverage.
+Published as `f397f58` and applied with
+`JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`. Runtime/source report
+3.5.4, PostgreSQL is healthy, the bot is polling, and the startup EURES search
+returned HTTP 200. Inspection confirmed `repo_jobagent_v3_pg` and
+`repo_jobagent_v3_files` remain attached. The update command fetches/pulls
 fast-forward-only and rebuilds the currently running service without removing
-the database or volumes. Then check `status` and recent `logs`.
+the database or volumes.
 
 The BRIEF's owner-driven Telegram acceptance remains outstanding for
 `/salary`, `/blacklist`, `/scanstatus`, and `/cancel`; do not claim those real

@@ -13,10 +13,15 @@
   Full isolated PostgreSQL suite: 206 passed, 64.46% branch coverage (55% gate).
 - The first full-suite attempt ran before `postgres-test` was started and had
   three connection-refused integration failures; after starting only the
-  isolated test service, the complete suite passed (206 tests). Production Compose and its
-  PostgreSQL/storage volumes were not changed during verification.
+  isolated test service, the complete suite passed (206 tests). Production
+  Compose and its PostgreSQL/storage volumes were not changed during testing.
+- Published as `f397f5855f9b22a610f7d043377071ed5a99fab0` and deployed with
+  `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`. Runtime/source report
+  3.5.4; the bot is polling as `@roma_job_agent_bot`, PostgreSQL is healthy,
+  and the new startup scan's EURES search returned HTTP 200. Mount inspection
+  confirmed `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
 - Real-chat acceptance of `/salary`, `/blacklist`, `/scanstatus`, and `/cancel`
-  remains owner-driven and unverified. Source fix is pending commit/deployment.
+  remains owner-driven and unverified.
 
 ## 2026-10-11 — public competition-signal audit
 - Reviewed the fields consumed from HH, Job Bank, EURES, Arbeitnow and RemoteOK.

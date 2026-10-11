@@ -41,8 +41,9 @@
 - [x] Ensure source failure notifications contain normalized error details;
   add regression coverage for transport retry and HTTP status formatting.
 - [x] Full PostgreSQL suite: 206 passed, 64.46% branch coverage.
-- [ ] Publish and safely update the running Compose bot; inspect post-update
-  status/logs and confirm existing runtime volumes remain attached.
+- [x] Publish as `f397f58`, run the safe tracked-branch update, verify runtime
+  3.5.4 / healthy PostgreSQL / EURES HTTP 200, and confirm named volumes remain
+  attached.
 
 ## v3.5.4 Multi-Source International Discovery
 - [x] Add bounded EURES discovery for the employer's cross-border recruitment

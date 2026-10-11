@@ -42,8 +42,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Latest PostgreSQL-backed suite: `206 passed`, 64.46% branch coverage.
 - Targeted EURES, Job Bank and source-error regressions: `23 passed`.
 - GitHub Actions run 110 passed.
-- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy and existing named volumes preserved; source-reliability changes are pending deployment.
-- Latest deployed scan logs confirm EURES transport failures and a `ReadTimeout`; a reported Job Bank alert had no exception text. Regression tests cover retries and HTTP status formatting.
+- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy; commit `f397f58` is deployed and the startup EURES search returned HTTP 200.
+- Existing PostgreSQL and storage volumes remain attached after the update. Earlier logs confirmed EURES transport failures and a `ReadTimeout`; regression tests cover retries and HTTP status formatting.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 
 ## Current priority
