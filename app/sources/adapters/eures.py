@@ -169,7 +169,14 @@ class EuresSource(JobSource):
         queries = list(dict.fromkeys(str(q).strip() for q in (context.queries or []) if str(q).strip()))
         if not queries:
             return []
-        headers = {"User-Agent": "JobAgentV3/3.5 (public job discovery)", "Accept": "application/json"}
+        # In the deployed container, EURES compressed response bodies failed
+        # during TLS reads after returning HTTP 200. Identity encoding returned
+        # complete JSON consistently in a live contract check.
+        headers = {
+            "User-Agent": "JobAgentV3/3.5 (public job discovery)",
+            "Accept": "application/json",
+            "Accept-Encoding": "identity",
+        }
         found: dict[str, NormalizedJob] = {}
         transport_errors: list[Exception] = []
         async with httpx.AsyncClient(timeout=25, follow_redirects=True, headers=headers) as client:

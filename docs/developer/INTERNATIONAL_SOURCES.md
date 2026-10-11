@@ -62,3 +62,66 @@
   — candidate for a later contract/access review; no adapter implemented.
 - Employer ATS feeds remain a later option; employer sponsor status must never
   be treated as a sponsorship offer for every vacancy.
+
+## Armenia and Georgia — market coverage review (2026-10-11)
+
+### Current implementation
+
+- Georgia (`GE`) is in `data/countries.yaml`. JOBS.GE and HR.ge adapters are
+  registered and included only when Georgia is a target of that search profile.
+- The owner-provided latest `/scan` listed HH, Remote OK, Arbeitnow, Job Bank
+  and EURES, but no Georgian sources. `/targets` previously changed only the
+  first active profile, which made it easy to leave Relocation-first without
+  Georgia. The updated command now applies target countries to all active
+  profiles by default; `/targets relocation GE` and `/targets career GE` set a
+  single profile. `/sources` displays each active profile's source plan.
+- Armenia (`AM`) is not yet in the country catalog and no Armenian source
+  adapter is connected. Do not present Armenia as a working search market until
+  both country selection and a usable source are implemented.
+
+### Armenia source candidates
+
+- The Armenian Unified Social Service describes [e-work.am](https://e-work.am/)
+  as a state employment platform consolidating vacancies across the country;
+  its official [overview](https://social.welfare.gov.am/en/what-is-e-work)
+  supports it as a candidate for a future access review. Direct portal access
+  timed out during this review, and no public API or automated-access terms
+  could be verified. Do not build an adapter until the public contract and
+  access rules are confirmed.
+- [Staff.am](https://staff.am/jobs/devops-infrastructure) has public listings
+  in the requested DevOps/Infrastructure area, but its [Terms of Use](https://staff.am/en/site/terms-of-use)
+  prohibit automated agents scraping, stripping or mining data without express
+  written permission. No recurring collector without permission or an approved
+  feed.
+- [Job.am](https://job.am/jobs) publishes current local vacancies, but its
+  [Terms of Service](https://job.am/terms) prohibit unauthorized reproduction,
+  publication and further distribution of its materials. Do not mirror vacancy
+  descriptions into the bot without permission or an approved API.
+- For a supported adapter, prefer a documented public feed, a written source
+  agreement, or employer career/ATS endpoints that the employer exposes for
+  discovery. Preserve canonical links and collect only the fields needed for
+  matching.
+
+### Georgia source review
+
+- The existing JOBS.GE and HR.ge adapters need a current terms, robots and
+  request-pacing review before increasing their request volume or listing caps.
+  Do not infer permission from public page access. Keep the sources opt-in by
+  target market and verify a live scan before treating them as available.
+- [findjobs.ge terms](https://findjobs.ge/en/terms/) welcome polite discovery by
+  search engines and AI assistants, but also prohibit repeated or systematic
+  reuse of substantial parts of the board without written permission. A bot
+  scheduled to scan repeatedly must not use it as a recurring source without
+  permission or a suitable public API.
+
+### Eligibility and realistic relocation
+
+- Do not infer citizenship or work rights from a candidate's current country.
+  Keep location, work authorization, visa sponsorship, relocation support,
+  language and salary separate, and leave unsupported fields unknown.
+- For current country-specific rules, consult the official
+  [Armenian employment-based residence guidance](https://migration.mia.gov.am/en/acquiring-employment-based-residence-status),
+  [Georgian residence permit guidance](https://sda.gov.ge/en/products/migration-residence-permits/)
+  and [Georgian labour migration law](https://www.matsne.gov.ge/en/document/view/2806732?publication=6).
+  These links are references for source evidence, not a substitute for checking
+  the candidate's actual status and the rules in force at application time.

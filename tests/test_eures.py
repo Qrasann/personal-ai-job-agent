@@ -108,6 +108,24 @@ def test_discover_uses_active_queries_and_enriches_bounded_results(monkeypatch):
     assert calls[0][2]["keywords"][0]["keyword"] == "DevOps"
 
 
+def test_discover_requests_uncompressed_response_body(monkeypatch):
+    client_headers = {}
+    original_init = httpx.AsyncClient.__init__
+
+    def capture_init(self, *args, **kwargs):
+        client_headers.update(kwargs.get("headers") or {})
+        original_init(self, *args, **kwargs)
+
+    async def post(self, url, json=None, **kwargs):
+        return httpx.Response(200, json={"jvs": []}, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "__init__", capture_init)
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps"])))
+
+    assert client_headers["Accept-Encoding"] == "identity"
+
+
 def test_discover_retries_transient_transport_failure(monkeypatch):
     calls = []
 
