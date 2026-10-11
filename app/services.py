@@ -232,7 +232,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
         targets = [normalize_country(str(x)) for x in (settings_map.get("target_countries") or [])]
         targets = [x for x in targets if x]
         plan = build_source_plan(user.current_country, targets, include_international=True)
-        source_ids = {x.source_id for x in plan if x.implemented and source_enabled(settings_map, x.source_id)}
+        source_ids = {
+            x.source_id for x in plan
+            if x.implemented and getattr(x, "available", True) and source_enabled(settings_map, x.source_id)
+        }
         modes = settings_map.get("modes") or {"local_ru": True, "remote_international": True, "relocation": True}
         if not modes.get("local_ru", True):
             source_ids.discard("hh")

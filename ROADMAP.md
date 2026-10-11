@@ -20,6 +20,11 @@ per-profile market controls:
 - After the bot update, verify both profiles and inspect live scan logs. A
   source returning HTTP 200 headers is not healthy until its response body is
   read and vacancies are parsed.
+- The owner completed a Relocation-first GE scan: EURES returned 16 jobs,
+  HR.ge returned 2, JOBS.GE returned HTTP 410, and Arbeitnow reported a
+  transient read timeout. The candidate pauses JOBS.GE and retries one
+  transient Arbeitnow transport failure; verify these changes in the running
+  bot before considering Georgia coverage accepted.
 
 ## Next — v3.5.7 International Market Coverage
 

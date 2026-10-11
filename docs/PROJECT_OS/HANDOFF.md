@@ -1,28 +1,32 @@
 # Handoff
 
-## Georgia source guardrails — v3.5.7 market-coverage work (2026-10-11)
+## Owner Telegram scan and source-resilience follow-up — 2026-10-11
 
-The candidate is published as commit `0110173` on PR #16, following the adapter
-change `2963705`. Latest push CI `38127150025` and PR CI `38127152783` passed.
-The safe updater rebuilt the app. Source/runtime report 3.5.6; the app is up,
-and PostgreSQL is healthy. Existing
-`repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
-The post-update startup dual-profile scan completed; EURES search/detail
-requests returned HTTP 200 with no EURES/Georgia source failure in the
-inspected logs. Georgia was not scanned because the owner has not yet targeted
-GE in Telegram.
+The owner ran `/targets relocation GE`, `/sources`, and `/scan`. The scan
+returned EURES 16, HR.ge 2, and JOBS.GE error; Telegram reported Arbeitnow
+`ReadTimeout` and JOBS.GE HTTP 410. The configured JOBS.GE homepage itself
+returned 410, so the source is now marked temporarily unavailable and remains
+visible in `/sources` with that reason. Arbeitnow now has a 15-second timeout
+and one retry for transport failures; HTTP status errors are not retried.
 
-The candidate bounds the existing JOBS.GE and HR.ge adapters to six
-matching details per source, a 15-second request timeout, and a two-second
-delay before each detail request. Scheduled Georgia scans reuse discovery
-results for six hours; a manual `/scan` still forces a fresh request.
-Individual failures preserve successful vacancies; failure of every detail
-request is surfaced in the scan. Role
-matching no longer accepts a generic word such as “engineer” alone. HR.ge pay
-is structured only when a range has one explicit currency and a clearly stated
-monthly period; ambiguous dollar signs, annual pay and unspecified periods
-stay in source text and do not enter numeric scoring. Work mode and relocation
-remain unknown unless the source provides evidence.
+The candidate adds regressions for transient timeout recovery, non-retry of
+HTTP status failures, and the paused source-plan state. Full isolated
+PostgreSQL suite: 233 passed, 67.67% branch coverage; `compileall` and
+`git diff --check` passed. No schema or version change was made. Publication,
+deployment through the safe updater, Compose log checks, and a post-update
+Telegram `/sources` and `/scan` remain outstanding. Keep `.env`, the database,
+and existing Compose volumes untouched.
+
+Prior Georgia guardrail commits are published on PR #16 at `0110173`,
+following adapter change `2963705`. Push CI `38127150025` and PR CI
+`38127152783` passed for that prior head, and its safe updater deployment was
+verified before the owner scan. The owner supplied the live Georgia source
+result described above. Georgia detail collection is capped at six per source,
+uses 15-second timeouts and two-second pacing, preserves partial detail results,
+and caches scheduled scans for six hours. Manual `/scan` forces fresh
+discovery. Role matching requires a specific query token; HR.ge salary enters
+scoring only with an explicit currency and monthly period. Work mode and
+relocation remain unknown without source evidence.
 
 Access review: JOBS.GE `/robots.txt` returned HTTP 410, so crawl rules are not
 available. HR.ge `/robots.txt` returned HTTP 200 and allows `/`, with a link to
@@ -30,15 +34,10 @@ a 5.4 MB sitemap that the adapter does not download. These results do not
 grant permission to reuse listings; recurring automated extraction terms
 remain unverified. The adapters stay limited to Georgia-targeted profiles.
 
-Targeted adapter tests pass (5); the scheduled-cache regression also passes.
-Full isolated PostgreSQL suite passes (230 tests, 67.46% branch coverage);
-`compileall` and `git diff --check` pass. No schema migration was added. The
-source/runtime version remains 3.5.6 while
-this v3.5.7 roadmap work is verified. The owner needs to run
-`/targets relocation GE`, then
-`/sources`, then `/scan` in Telegram and share the result summary and any
-source warnings. Do not treat these boards as validated recurring sources
-until result quality and access conditions are reviewed. The prior
+The source/runtime version remains 3.5.6 while v3.5.7 market-coverage work is
+in progress. JOBS.GE access and HR.ge
+reuse terms remain unresolved; do not treat the boards as validated recurring
+sources until access conditions are reviewed. The prior
 `/import` preview/save and Recommendation v2 detail acceptance remains a
 separate gate before release tagging.
 

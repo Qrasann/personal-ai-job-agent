@@ -114,3 +114,5 @@ def test_sources_shows_market_sources_for_each_active_profile(monkeypatch):
     assert "Career-first" in text
     assert "Relocation-first" in text
     assert "JOBS.GE" in text
+    assert "временно приостановлен" in text
+    assert "HTTP 410 Gone" in text

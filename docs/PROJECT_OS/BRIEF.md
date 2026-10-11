@@ -23,7 +23,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
-- Working sources include HH public fallback, RemoteOK, Arbeitnow, Job Bank Canada, EURES, jobs.ge, hr.ge, and configured Telegram ingestion.
+- Working sources include HH public fallback, RemoteOK, Arbeitnow, Job Bank Canada, EURES, HR.ge, and configured Telegram ingestion. JOBS.GE is temporarily paused after its configured endpoint returned HTTP 410.
 - Auto-apply and HH private actions remain off.
 
 ## Recently completed
@@ -55,6 +55,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   Partial detail results survive individual request failures; total failure is
   reported to the scan. Scheduled Georgia discovery now uses a six-hour cache;
   manual `/scan` still forces a refresh.
+- Processed the owner’s live Georgia scan: EURES returned 16, HR.ge returned 2,
+  JOBS.GE returned HTTP 410, and Arbeitnow emitted a transient ReadTimeout.
+  The candidate pauses JOBS.GE with its reason visible in `/sources` and adds
+  one bounded retry for Arbeitnow transport failures.
 - Replaced the mixed-language README with English and Russian entry points,
   aligned changelog headings, refreshed the roadmap, and documented current
   Armenia/Georgia source-access constraints.
@@ -68,12 +72,14 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Verified
 
-- Latest full PostgreSQL-backed suite: `230 passed`, 67.46% branch coverage
+- Latest full PostgreSQL-backed suite: `233 passed`, 67.67% branch coverage
   (rerun on 2026-10-11; 55% gate).
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
   evidence rules are covered.
+- Source-resilience targeted tests: `20 passed`; the full suite includes the
+  Arbeitnow retry and source-availability cases.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
@@ -83,12 +89,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
   and RemoteOK; no startup errors were present in the inspected log tail.
 - Georgia guardrails are on PR #16 at `0110173`; latest push and PR CI are
-  green. The safe updater rebuilt only `repo-app`; runtime remains 3.5.6 and
-  PostgreSQL remains healthy. The existing PostgreSQL and storage volumes are
-  attached. Startup `scan_all` completed successfully; EURES search and detail
-  requests returned HTTP 200, and no EURES/Georgia source failures appeared in
-  the inspected post-update logs. Georgia itself has not been scanned because
-  the owner has not yet targeted GE in Telegram.
+  green. The owner has now targeted Relocation-first to GE and supplied a live
+  Telegram scan: EURES found 16, HR.ge found 2, JOBS.GE returned HTTP 410, and
+  Arbeitnow reported a transient ReadTimeout. The follow-up pauses JOBS.GE and
+  retries one transient Arbeitnow transport error. Its isolated PostgreSQL
+  suite passes, but publication, deployment, and post-update checks remain.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 - GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
@@ -108,28 +113,29 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Have the owner run `/targets relocation GE`, `/sources`, and `/scan` in Telegram
-to verify source visibility and real result quality. Continue the existing
-`/import` and Recommendation v2 acceptance before tagging v3.5.6.
+Publish and safely update the source-resilience follow-up, then verify in
+Compose logs and Telegram that JOBS.GE is visibly paused and Arbeitnow recovers
+from a transient timeout. The owner’s GE-targeted scan is complete; use the next
+scan to confirm source quality. Continue `/import` preview/save and
+Recommendation v2 detail acceptance before tagging v3.5.6.
 
 ## Open limitations
 
 - Source coverage remains the main Relocation-first bottleneck, especially Armenia and low-barrier legal work.
-- Georgia adapters are implemented but only run when `GE` is selected for a
-  search profile. The `/targets` change makes that explicit across both active
-  profiles. Armenia has no catalog entry or connected local source yet.
-- JOBS.GE returned HTTP 410 for `/robots.txt`, so no crawl rules could be
-  verified. HR.ge's robots file allows `/` and links a large sitemap, but that
-  does not grant reuse rights; no explicit permission for recurring extraction
-  was verified for either board. Requests are now tightly bounded, and the
-  Telegram scan remains necessary to assess live quality.
+- Georgia adapters run only when `GE` is selected for a search profile.
+  JOBS.GE's configured homepage returned HTTP 410 and is paused; HR.ge returned
+  two live vacancies in the owner’s scan. Its robots file allows `/` and links
+  a large sitemap, but recurring reuse permission remains unverified. Armenia
+  has no catalog entry or connected local source yet.
 - Armenia has two government-listed vacancy platforms (e-work.am and
   workforall.am), but their public pages timed out and no API/access terms were
   verified. Request a permitted feed and confirm foreign-candidate access;
   Staff.am prohibits automated scraping without permission, while Job.am
   restricts unauthorized reuse and redistribution. See
   `docs/developer/INTERNATIONAL_SOURCES.md`.
-- Arbeitnow currently improves Germany/Career coverage but may contain no low-barrier roles.
+- Arbeitnow may contain no low-barrier role matches and had a transient
+  `ReadTimeout` in the owner’s scan. The candidate adds one bounded retry;
+  confirm its behavior in the deployed logs.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
 - EURES's compressed-response TLS failure did not recur in the first complete
   post-update scan using identity encoding. Monitor additional runs; do not

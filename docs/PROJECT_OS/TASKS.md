@@ -34,8 +34,19 @@
   `38127150025` and PR CI `38127152783` passed. Apply with the safe updater
   and verify the completed startup scan, EURES HTTP 200 responses, healthy
   PostgreSQL, and attached existing volumes.
-- [ ] Owner runs `/targets relocation GE`, `/sources`, then `/scan` to confirm
-  Georgia appears in the intended profile and review real results.
+- [x] Owner ran `/targets relocation GE`, `/sources`, and `/scan`; EURES found
+  16 vacancies, HR.ge found 2, JOBS.GE returned HTTP 410, and Arbeitnow had a
+  transient `ReadTimeout`.
+- [x] Pause JOBS.GE in the source plan after its configured homepage returned
+  HTTP 410; keep it visible in `/sources` with the reason.
+- [x] Add one retry for Arbeitnow transport failures and cap its request timeout
+  at 15 seconds; do not retry HTTP status responses.
+- [x] Full isolated PostgreSQL suite after the source changes: 233 passed,
+  67.67% branch coverage; `compileall` and `git diff --check` passed.
+- [ ] Publish the follow-up to PR #16, pass CI, deploy through the safe updater,
+  and verify Compose status/logs plus existing named volume attachment.
+- [ ] Owner checks `/sources` and runs `/scan` after deployment to confirm
+  JOBS.GE is visibly paused and review fresh Georgia / Arbeitnow results.
 - [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
   detail checks before any v3.5.6 release tag.
 - [ ] Monitor later scheduled EURES scans; the first clean run does not prove

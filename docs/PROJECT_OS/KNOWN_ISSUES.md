@@ -19,10 +19,13 @@
 - Country picker is limited to data/countries.yaml.
 - Only implemented adapters actually scan; future registered sources still need collectors.
 - HH is primarily domestic and RemoteOK is tech-heavy. Arbeitnow adds Germany coverage but its current feed can legitimately contain no low-barrier role matches; additional legal-work/visa-capable country sources are still needed.
-- Georgia adapters are already registered, but only enter a profile's scan
-  when `GE` is selected. The new `/targets` command can set this for both active
-  profiles or for Relocation-first alone; the owner has not yet confirmed a
-  Georgia scan in Telegram.
+- Georgia adapters enter a profile's scan only when `GE` is selected. The owner
+  confirmed a Relocation-first GE scan on 2026-10-11: EURES returned 16
+  vacancies, HR.ge returned 2, JOBS.GE returned HTTP 410, and Arbeitnow had a
+  transient `ReadTimeout`. JOBS.GE is paused in the source plan; HR.ge remains
+  enabled while recurring reuse permission is unverified. The follow-up adds
+  one bounded retry for Arbeitnow transport failures; post-deployment behavior
+  still needs confirmation.
 - Armenia is not yet selectable and has no connected local adapter. The
   official e-work portal's public access contract was not verified; Staff.am
   prohibits automated scraping without permission, and Job.am restricts

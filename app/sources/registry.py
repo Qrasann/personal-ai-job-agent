@@ -14,6 +14,8 @@ class SourcePlan:
     transport: str = "unknown"
     capability: str = "discovery"
     implemented: bool = False
+    available: bool = True
+    availability_note: str | None = None
 
 
 IMPLEMENTED = {"hh", "remoteok", "arbeitnow", "jobbank", "eures", "telegram", "jobs_ge", "hr_ge"}
@@ -30,6 +32,8 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
                 source_id=src["id"], name=src.get("name", src["id"]), scope=f"country:{code}",
                 transport=src.get("transport", "unknown"), capability=src.get("capability", "discovery"),
                 implemented=src["id"] in IMPLEMENTED,
+                available=src.get("available", True) is not False,
+                availability_note=src.get("availability_note"),
             )
     if include_international:
         for src in load_country_catalog().get("international_sources", []):
@@ -37,6 +41,8 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
                 source_id=src["id"], name=src.get("name", src["id"]), scope=src.get("scope", "global"),
                 transport=src.get("transport", "unknown"), capability=src.get("capability", "discovery"),
                 implemented=src["id"] in IMPLEMENTED,
+                available=src.get("available", True) is not False,
+                availability_note=src.get("availability_note"),
             )
     return list(plans.values())
 

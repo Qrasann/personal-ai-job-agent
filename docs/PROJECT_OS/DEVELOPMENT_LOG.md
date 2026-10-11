@@ -15,6 +15,24 @@
   authorized public feed and supports foreign candidates before relocation.
   References: `docs/developer/INTERNATIONAL_SOURCES.md` and `ROADMAP.md`.
 
+## 2026-10-11 — owner Georgia scan and source resilience
+- The owner ran `/targets relocation GE`, `/sources`, and `/scan` in Telegram.
+  EURES returned 16 vacancies, HR.ge returned 2, and JOBS.GE failed with HTTP
+  410. Arbeitnow produced a `ReadTimeout` warning for Relocation-first.
+- Marked JOBS.GE temporarily unavailable in the country source catalog after
+  its configured homepage returned 410. `/sources` keeps the item visible,
+  labels it paused, and includes the reason; `scan_for_user` excludes it from
+  source discovery.
+- Added one bounded retry for Arbeitnow transport failures, with a 15-second
+  request timeout and short backoff. HTTP status failures are not retried.
+- Added regression tests for timeout recovery, retry exhaustion, status-error
+  behavior, and paused source availability. Targeted suite: 20 passed. Full
+  isolated PostgreSQL suite: 233 passed, 67.67% branch coverage; `compileall`
+  and `git diff --check` passed.
+- No schema or application version change. Publication, safe deployment,
+  Compose log inspection, and owner Telegram verification after update remain
+  pending. Existing database and storage volumes must remain attached.
+
 ## 2026-10-11 — Georgia source guardrails (v3.5.7 market-coverage work)
 - Reviewed the two existing Georgia adapters and the reported need to target
   Georgia explicitly. JOBS.GE `/robots.txt` returned HTTP 410; HR.ge returned

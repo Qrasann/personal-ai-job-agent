@@ -544,10 +544,13 @@ async def sources(message: Message) -> None:
         for item in plan:
             if not item.implemented:
                 flag = "🧩"
+            elif not item.available:
+                flag = "⚠️"
             else:
                 flag = "✅" if source_enabled(settings_map, item.source_id) else "⏸"
-            lines.append(f"{flag} {html.escape(item.name)} — {html.escape(item.scope)} — {html.escape(item.transport)}")
-    lines.append("\n✅ = adapter подключён и разрешён настройками; ⏸ = отключён в настройках; 🧩 = adapter ещё не подключён. Это не live health check.")
+            availability = f" · {item.availability_note}" if item.availability_note else ""
+            lines.append(f"{flag} {html.escape(item.name)} — {html.escape(item.scope)} — {html.escape(item.transport)}{html.escape(availability)}")
+    lines.append("\n✅ = источник доступен и разрешён настройками; ⏸ = отключён в настройках; ⚠️ = временно приостановлен; 🧩 = adapter ещё не подключён. Это не live health check.")
     await message.answer("\n".join(lines), parse_mode="HTML")
 
 

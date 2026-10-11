@@ -77,5 +77,8 @@ def test_georgia_plan_has_real_collectors_and_moldova_is_registered():
     ge = {x.source_id: x for x in build_source_plan("GE", [], include_international=False)}
     md = {x.source_id: x for x in build_source_plan("MD", [], include_international=False)}
     assert ge["jobs_ge"].implemented is True
+    assert ge["jobs_ge"].available is False
+    assert "410" in ge["jobs_ge"].availability_note
     assert ge["hr_ge"].implemented is True
+    assert ge["hr_ge"].available is True
     assert "rabota_md" in md
