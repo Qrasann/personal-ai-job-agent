@@ -11,18 +11,24 @@ vacancy matching.
 - **Source on `main`:** v3.5.6.
 - **Latest published GitHub Release/tag:** v3.5.6.
 - **Active candidate:** v3.5.7 on `feature/v3.5.7-international-market-coverage`;
-  it is deployed to local Compose and remains an unmerged, unreleased draft PR
-  #18.
-- The latest full isolated PostgreSQL suite passes: 244 tests, 68.26% branch
-  coverage. Push CI `38148615302` and PR CI `38148617896` pass. The owner
-  completed Career-first GE/AM Telegram acceptance: Lineate's Georgia opening
-  scored 67/100, and `/job 1091` now shows readable text while unsupported
-  salary, work mode, visa and relocation details remain unknown.
+  it remains an unmerged, unreleased draft PR #18.
+- The latest full isolated PostgreSQL suite passes: 247 tests, 68.36% branch
+  coverage. Required-section commit `7a6901d` passed push CI
+  `38149543660` and PR CI `38149546515`; follow-up `678ddfc` passed push CI
+  `38150088881` and PR CI `38150092577`. The owner previously confirmed `/job 1091` renders readable
+  text, but Technical 100 came from fallback matching because the listing's
+  `Necessary Qualifications` section was not recognized. The candidate now
+  extracts `Minimum N years` and includes Windows and Databricks in technical
+  evidence matching. The new code is not yet deployed; repeat the Telegram
+  review after the safe update.
 - The candidate retries one Job Bank transport failure under its shared
-  five-second request pacing; HTTP status errors are not retried. After the
-  update, startup `scan_all` completed at 14:51:38 UTC. Job Bank search and
-  detail requests and EURES search/detail requests returned HTTP 200. The
-  runtime was not asked to retry because no transport failure occurred.
+  five-second request pacing; HTTP status errors are not retried. That retry
+  update's startup scan completed at 14:51:38 UTC with Job Bank and EURES
+  search/detail requests returning HTTP 200; no transport failure occurred to
+  exercise the retry. The earlier required-section update's startup scan ran
+  from 15:02:28 to 15:04:57 UTC. The current minimum-experience and skill
+  matching follow-up is not yet deployed; review the recalculated Lineate card
+  in Telegram after deployment.
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details

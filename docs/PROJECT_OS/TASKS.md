@@ -153,6 +153,27 @@
 - [x] Owner reopened `/job 1091`: the Greenhouse description is now readable;
   salary, work mode, visa/work authorization and relocation assistance remain
   unknown without explicit evidence.
+- [x] Recognize English `Necessary`, `Required`, `Minimum`, and `Essential
+  Qualifications` headings so their technical signals count as required rather
+  than falling back to an unqualified role score. Cover the technical score
+  and interview-risk breakdown with regressions.
+- [x] Full isolated PostgreSQL suite after the scoring fix: 246 passed,
+  68.29% branch coverage; compile and diff checks passed. Push CI `38149543660`
+  and PR CI `38149546515` passed for commit `7a6901d`.
+- [x] Apply `7a6901d` through the safe updater. Source/runtime 3.5.7, app
+  polling and PostgreSQL healthy. Startup scan completed at 15:04:57 UTC;
+  inspected logs show the expected HH public fallback and HTTP 200 responses
+  from the active sources, with no source error.
+- [x] Extract `Minimum N years` / `At least N years` and add Windows and
+  Databricks to technical evidence matching; regression coverage includes the
+  Lineate-style requirements and experience comparison. Full PostgreSQL suite:
+  247 passed, 68.36%; compile and diff checks passed.
+- [x] Push CI `38150088881` and PR CI `38150092577` passed on `678ddfc`.
+- [ ] Apply it through the safe updater and inspect the startup scan logs.
+- [ ] Owner to reopen `/job 1091` after deployment and review the recalculated
+  technical score, experience signal and interview-risk evidence. The official
+  Lineate listing requires 3+ years Linux system administration, 2+ years AWS
+  production, Windows administration, Databricks familiarity and a 24/7 shift.
 - [x] Add one bounded retry for Job Bank `httpx.TransportError` only, preserve
   the existing five-second delay before each request and shared crawl lock, and
   leave HTTP status errors unretried. Regression tests cover recovery,

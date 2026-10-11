@@ -43,11 +43,17 @@ API connector for Lineate. It runs only for profiles targeting AM or GE,
 filters by the profile's role queries and explicit posting location, and leaves
 work mode, salary, visa and relocation unknown without direct evidence. The
 owner completed Career-first GE/AM discovery and confirmed `/job 1091` renders
-readable vacancy text while unsupported fields remain unknown. The latest full
-isolated PostgreSQL suite passes with 244 tests and 68.26% branch coverage;
-push CI `38148615302` and PR CI `38148617896` pass. The candidate is running on
-the local Compose bot; PR #18 remains draft and v3.5.7 is not merged or formally
-released.
+readable vacancy text while unsupported fields remain unknown. A follow-up
+review found that the posting's `Necessary Qualifications` heading was not
+classified as required, allowing an unqualified fallback score of 100. The
+candidate recognizes common required-qualification headings, extracts
+`Minimum N years` wording, and compares Windows and Databricks signals. The
+latest full isolated PostgreSQL suite passes with 247 tests and 68.36% branch
+coverage. Required-section commit `7a6901d` passed push CI `38149543660` and PR
+CI `38149546515`; follow-up commit `678ddfc` passed push CI `38150088881` and
+PR CI `38150092577`. Deployment scan is pending. The owner still needs to
+review the rescored `/job 1091` card in Telegram. PR
+#18 remains draft and v3.5.7 is not merged or formally released.
 
 The [official Lineate posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
 identifies a Georgian office, requires 3+ years of Linux system administration

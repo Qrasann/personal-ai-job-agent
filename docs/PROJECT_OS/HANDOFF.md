@@ -1,5 +1,53 @@
 # Handoff
 
+## v3.5.7 Lineate minimum experience and required signals — 2026-10-11
+
+The follow-up to the Lineate card review is committed as `678ddfc` and pushed
+on `feature/v3.5.7-international-market-coverage`. It extracts English
+`Minimum N years` / `At least N years` text, recognizes Windows and Databricks
+in vacancy technical evidence, and checks that a 3-year Lineate-style
+requirement is compared with commercial candidate experience. Candidate Facts
+remain the source of claims about the candidate; the parser does not invent
+AWS-specific years or assert visa/relocation details.
+
+Verification passes: 247 PostgreSQL-backed tests, 68.36% branch coverage,
+compileall, and `git diff --check`. Push CI `38150088881` and PR CI
+`38150092577` passed. The local Compose bot still runs source `7a6901d`; apply
+`678ddfc` with the safe updater,
+check `/status` and the startup scan logs, then ask the owner to reopen
+`/job 1091` and share the updated score and interview-risk details.
+
+PR #18 remains an unmerged draft against `main`. The active candidate is v3.5.7;
+stable `main` and the formal tag/release remain v3.5.6.
+
+## v3.5.7 Lineate required-qualification scoring — 2026-10-11
+
+The official [Lineate Infrastructure Engineer posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
+is for the Georgian office and explicitly requires at least 3 years of Linux
+system administration, 2 years of AWS in production, and participation in a
+24/7 shift schedule. The previous card showed Technical 100 because the
+deterministic parser did not classify the posting's `Necessary Qualifications`
+heading as required; interview risk therefore appeared as `н/д`.
+
+Commit `7a6901d` adds the common English required-qualification headings to the
+section parser. Technical Score v2 and Recommendation v2 now use recognized
+required technical signals, while absent Candidate Facts stay unknown. The
+full isolated PostgreSQL suite passes (246 tests, 68.29% branch coverage), and
+compile plus `git diff --check` pass. Push CI `38149543660` and PR CI
+`38149546515` passed.
+
+The safe updater deployed the candidate to Compose project `repo`; source and
+runtime report 3.5.7, the app is polling, and PostgreSQL is healthy. Startup
+`scan_all` ran from 15:02:28 to 15:04:57 UTC and completed successfully. HH's
+API returned 403 before the public web fallback succeeded; Greenhouse, EURES,
+HR.ge, Job Bank, Arbeitnow and Remote OK requests shown in the logs returned
+HTTP 200. No source error appeared in the inspected scan tail. Owner review of
+the rescored `/job 1091` remains pending.
+
+The candidate remains on `feature/v3.5.7-international-market-coverage` with
+PR #18 open as a draft against `main`. Stable `main` and the latest formal
+release/tag remain v3.5.6. No merge or release has been made.
+
 ## v3.5.7 Job Bank transport resilience — 2026-10-11
 
 The owner opened `/job 1091` for Lineate's Infrastructure Engineer opening.

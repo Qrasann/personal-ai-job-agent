@@ -1,5 +1,46 @@
 # Development Log
 
+## 2026-10-11 — Lineate experience and technical evidence follow-up
+- The official Lineate posting lists 3+ years Linux system administration,
+  2+ years production AWS, Windows administration, AWS Databricks familiarity,
+  and a 24/7 shift. The earlier section-heading fix exposed its hard technical
+  requirements, but the general experience extractor still missed the
+  `Minimum 3 years` wording and Windows/Databricks were absent from the evidence
+  vocabulary.
+- Commit `678ddfc` recognizes `Minimum N years` and `At least N years`, adds
+  Windows and Databricks to the technical comparison vocabulary, and tests the
+  required-skill and experience-fit behavior. These signals identify posting
+  requirements; they do not invent candidate experience or separately assert
+  AWS years from unrelated facts.
+- Full isolated PostgreSQL suite: 247 passed, 68.36% branch coverage. Compile
+  and `git diff --check` pass. The commit is pushed and passed push CI
+  `38150088881` and PR CI `38150092577`. The deployment scan is pending; the
+  bot remains on `7a6901d` until the safe updater applies the follow-up.
+
+## 2026-10-11 — Required qualification scoring for Lineate
+- The official Lineate listing uses `Necessary Qualifications` for hard
+  requirements, including 3+ years of Linux system administration, 2+ years of
+  production AWS, and a 24/7 shift schedule. The previous requirement parser did
+  not recognize that section heading, so the Technical score used a fallback
+  based on role and keyword overlap while interview risk showed `н/д`.
+- Added common English required-qualification headings to the deterministic
+  section parser. Required Linux/AWS/Kubernetes signals now feed Technical
+  Score v2 and Recommendation v2 interview-risk evidence. Missing candidate
+  facts remain unknown rather than being treated as confirmed experience.
+- Regression tests cover section classification, the technical score, and the
+  interview-risk breakdown. Full isolated PostgreSQL suite: 246 passed, 68.29%
+  branch coverage; compileall and `git diff --check` pass. Commit `7a6901d` was
+  pushed; push CI `38149543660` and PR CI `38149546515` passed.
+- The safe updater applied `7a6901d` to Compose project `repo`; source/runtime
+  is 3.5.7, app polling and PostgreSQL are healthy. The post-deploy startup scan
+  ran from 15:02:28 to 15:04:57 UTC and completed successfully. HH's API
+  returned 403 before the public web fallback succeeded; Greenhouse, EURES,
+  HR.ge, Job Bank, Arbeitnow and Remote OK requests shown in the inspected logs
+  returned HTTP 200, and no source error appeared in the scan tail. The owner
+  still needs to review the recalculated `/job 1091` in Telegram.
+- PR #18 remains open and draft against `main`; stable `main` and the latest
+  formal release/tag remain v3.5.6. No merge or v3.5.7 release was made.
+
 ## 2026-10-11 — Lineate description entity rendering fix
 - Owner's Telegram `/job 1091` check confirmed the vacancy kept salary, work
   mode and unsupported visa/relocation claims unknown, but its description

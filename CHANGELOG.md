@@ -20,15 +20,24 @@
   matching and review.
 - Decode HTML entities in vacancy details before stripping markup, so Greenhouse
   descriptions render as readable Telegram text.
+- Recognize `Necessary Qualifications`, `Required Qualifications`, `Minimum
+  Qualifications`, and `Essential Qualifications` as explicit required
+  sections. This lets Recommendation v2 assess interview risk from the vacancy's
+  mandatory technical signals instead of falling back to an unqualified role
+  score.
+- Extract English `Minimum N years` / `At least N years` experience wording and
+  compare it with commercial Candidate Facts. Add Windows and Databricks to the
+  technical evidence vocabulary so explicit Lineate requirements are visible.
 - Retry one Job Bank transport failure under the shared request lock, retaining
   the five-second delay before each attempt; do not retry HTTP status errors.
-- Full isolated PostgreSQL suite: 244 passed; branch coverage 68.26% (55%
-  gate). Compilation and `git diff --check` pass. Push CI `38148615302` and
-  PR-CI `38148617896` pass. The candidate is deployed to local Compose project
-  `repo`; startup `scan_all` completed at 14:51:38 UTC, with Job Bank and EURES
-  search/detail requests returning HTTP 200. The owner confirmed the Lineate
-  detail card is readable and leaves unsupported fields unknown. Draft PR #18
-  remains unmerged; no v3.5.7 tag or release has been published.
+- Full isolated PostgreSQL suite: 247 passed; branch coverage 68.36% (55%
+  gate). Compilation and `git diff --check` pass. Required-section commit
+  `7a6901d` passed push CI `38149543660` and PR CI `38149546515`, and its
+  startup scan completed successfully. Follow-up commit `678ddfc` passed push
+  CI `38150088881` and PR CI `38150092577`; its deployment scan is pending.
+  Owner review of the recalculated
+  Lineate `/job 1091` card remains pending. Draft PR #18 remains unmerged; no
+  v3.5.7 tag or release has been published.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

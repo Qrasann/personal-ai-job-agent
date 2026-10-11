@@ -114,13 +114,30 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   `&lt;p&gt;`; a regression-tested fix now decodes entities before stripping
   tags. The owner confirmed the deployed description is readable while those
   unsupported facts remain unknown.
+- Review of the [official Lineate posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
+  found required qualifications for 3+ years Linux system administration and
+  2+ years AWS in production, plus a 24/7 shift schedule. The old parser missed
+  its `Necessary Qualifications` heading, which allowed Technical 100 through
+  fallback role/keyword matching and left interview risk `н/д`. Commit
+  `7a6901d` recognizes common English required-qualification headings and uses
+  their technical signals in Recommendation v2. It is deployed; the startup
+  scan completed successfully from 15:02:28 to 15:04:57 UTC, and the owner
+  should review the rescored `/job 1091` card in Telegram.
+- Follow-up commit `678ddfc` extracts `Minimum N years` / `At least N years`
+  wording for experience fit and adds Windows and Databricks to technical
+  evidence matching. The full isolated PostgreSQL suite passes: 247 tests,
+  68.36% branch coverage; compilation and diff checks pass. The commit is
+  pushed; push CI `38150088881` and PR CI `38150092577` passed. Deployment is
+  pending. The live bot still runs `7a6901d` until the safe updater applies it.
 
 ## Verified
 
-- Latest full isolated PostgreSQL suite on the current worktree: `244 passed`,
-  68.26% branch coverage (55% gate), including the encoded-HTML and Job Bank
-  retry regressions. Compilation and `git diff --check` pass. Push CI
-  `38148615302` and PR CI `38148617896` passed for commit `36c425b`.
+- Latest full isolated PostgreSQL suite: `247 passed`, 68.36% branch coverage
+  (55% gate), including experience wording, required Windows/Databricks
+  signals, and earlier regressions. Compilation and `git diff --check` pass.
+  Required-section commit `7a6901d` passed push CI `38149543660` and PR CI
+  `38149546515`; follow-up `678ddfc` passed push CI `38150088881` and PR CI
+  `38150092577`.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -128,11 +145,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirmed `/sources` enabled Greenhouse for Relocation-first GE/AM; the
   Greenhouse request returned HTTP 200 and zero query-matched jobs. The
   currently selected relocation roles do not include Infrastructure Engineer.
-- The safe updater applied `36c425b` to Compose project `repo` without
-  recreating PostgreSQL. Startup `scan_all` completed at 14:51:38 UTC; Job Bank
-  search and 12 detail requests and EURES search/detail returned HTTP 200. The
-  inspected logs contained no source or scan errors. No transport failure
-  occurred, so the live retry path was not triggered.
+- The safe updater applied `7a6901d` to Compose project `repo`; PostgreSQL is
+  healthy. Its startup `scan_all` completed successfully from 15:02:28 to
+  15:04:57 UTC. Commit `678ddfc` is not yet deployed; inspect its startup scan
+  after CI passes and the safe updater applies it.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
@@ -143,9 +159,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - GitHub Actions passed for PR #16 and merge commit `874b372` (main run
   `38135649948`).
 - Draft PR #18 is open for the v3.5.7 candidate. Career-first GE/AM role and
-  location acceptance and the fixed detail-card check are complete. Keep PR
-  #18 draft; v3.5.7 remains unmerged and unreleased. Latest PR head is
-  `36c425b`; push CI `38148615302` and PR CI `38148617896` passed.
+  location acceptance and readable detail-card check are complete; owner review
+  of the rescored `/job 1091` is still needed. Keep PR #18 draft; v3.5.7 remains
+  unmerged and unreleased. Latest PR head is `7a6901d`; push CI `38149543660`
+  and PR CI `38149546515` passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
