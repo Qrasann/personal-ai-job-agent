@@ -155,13 +155,18 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 Continue v3.5.7 on `feature/v3.5.7-international-market-coverage`: confirm the
 public jobseeker path and allowed discovery access for Armenia's official
-workpermit/e-work services, then validate candidate-relevant Georgia results
-under the 2026 work-right rules. Keep nationality-specific eligibility
-unknown until the candidate confirms it. Review the Telegram example where a
-90,000 RUB internship appears despite a 100,000 RUB minimum: the minimum is
-currently a scoring input, not a hard filter, and the salary was only in
-description text. Resolve that semantics/UI issue in the appropriate salary
-stage. Monitor EURES and Job Bank without weakening source pacing.
+e-work/workforall services. The government lists both portals, but their public
+search pages remain inaccessible in checks and no feed/reuse permission is
+confirmed. `workpermit.am` is employer-led; its FAQ answer is not rendered, and
+its guide does not verify anonymous job discovery. Do not add an adapter until
+the feed, access rules, and foreign-candidate path are confirmed. Validate
+candidate-relevant Georgia results under current work-right rules; country
+targeting alone does not establish legal eligibility. Do not store personal
+citizenship details in public project documents. Review the Telegram example
+where a 90,000 RUB internship appears despite a 100,000 RUB minimum: the
+minimum is currently a scoring input, not a hard filter, and the salary was
+only in description text. Resolve that semantics/UI issue in the appropriate
+salary stage. Monitor EURES and Job Bank without weakening source pacing.
 
 ## Open limitations
 
@@ -179,12 +184,15 @@ stage. Monitor EURES and Job Bank without weakening source pacing.
   `docs/developer/INTERNATIONAL_SOURCES.md`.
 - Official Armenia `workpermit.am` enables employer-side processing for
   foreign hires and documents an EAEU work-permit exemption, but no anonymous
-  vacancy feed/API is verified. The portal's job-finding FAQ answer still needs
-  confirmation. User citizenship is unknown to the app.
-- Georgia's local-employment rule changed on 2026-03-01: a right to work is
-  required for covered foreign workers, with employer-led application and
-  follow-up visa/residence steps. The bot does not currently decide individual
-  legal eligibility.
+  vacancy feed/API is verified. Its FAQ question is visible but the answer is
+  not rendered; the public guide documents employer-created vacancies and
+  employer entry of the selected foreign worker. The app has no citizenship
+  field and does not decide individual legal eligibility.
+- Under Georgia's current Labour Migration Law, covered local paid work requires
+  an employment agreement, a right to work obtained through the local employer,
+  and the applicable D1/work-residence/other status. Country targeting does not
+  establish eligibility. The bot does not currently decide individual legal
+  eligibility.
 - Arbeitnow may contain no low-barrier role matches. A later owner-provided
   Telegram scan confirmed the deployed single retry recovered from a
   `ReadTimeout` with HTTP 200. Continue monitoring future runs.

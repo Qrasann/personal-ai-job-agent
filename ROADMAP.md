@@ -65,8 +65,10 @@ preserving the separate Career-first and Relocation-first goals.
   foreign-hiring/work-residence workflow and says EAEU citizens are exempt
   from work-permit documentation for the employment-contract period. It is
   not yet verified as anonymous job discovery or a public feed. Confirm its
-  “How to find a job” flow and access terms, and ask the Unified Social Service
-  about an authorized e-work vacancy feed before building an adapter.
+  “How to find a job” flow and access terms. The FAQ question is visible but
+  the answer is not rendered; the official user guide describes an
+  employer-led vacancy and foreign-worker account flow. Ask the Unified Social
+  Service about an authorized e-work vacancy feed before building an adapter.
 - Official e-work registration guidance requires a PSN or national eID online;
   its in-person path for foreign nationals requires a residence card. Do not
   assume either portal serves a foreign jobseeker before relocation.
@@ -79,6 +81,10 @@ preserving the separate Career-first and Relocation-first goals.
 - Keep visa sponsorship, work authorization, relocation support, salary and
   language requirements as separate evidence fields. Never assume citizenship
   from the current country or turn missing evidence into a refusal.
+- For Georgia, current law requires covered foreign workers in local paid work
+  to hold the right to work, employment agreement and applicable immigration
+  status; the employer submits the right-to-work application. Selecting `GE`
+  must not be presented as proof that a candidate is eligible.
 - `/salary minimum` currently contributes to scoring when salary is structured;
   it is not a hard exclusion rule. The bot's “minimum for filter” wording is
   misleading, and `/job 580` showed a 90,000 RUB amount only inside the

@@ -91,14 +91,16 @@
   and no API/access terms were found. Online e-work registration requires PSN
   or national eID; the in-person foreign-citizen path requires a residence card.
 - [x] Review the official `workpermit.am` employer-side foreign-hiring flow and
-  EAEU exemption. It is not yet a verified anonymous job feed; its public
-  jobseeker FAQ answer still needs checking.
+  EAEU exemption. Its FAQ lists a job-finding question, but the answer is not
+  rendered; the official guide documents an employer-created vacancy and
+  employer entry of the selected foreign worker. No anonymous job feed is
+  verified.
 - [x] Recheck the current Georgian Labour Migration Law: the new right-to-work
   process for covered foreign workers is in force from 2026-03-01.
 - [ ] Ask the Unified Social Service whether it offers an allowed public feed
   and whether foreign candidates can use it before relocating.
-- [ ] Confirm the workpermit.am “How to find a job” workflow and whether any
-  public listings/feed may be accessed by a low-rate discovery client.
+- [ ] Obtain confirmation from the Migration Service about any jobseeker flow
+  or authorized public listings/feed on workpermit.am.
 - [ ] Prefer permitted employer career/ATS feeds and verify location, language,
   expiry and candidate eligibility evidence.
 - [ ] Add Armenian country selection only together with a tested local source.

@@ -94,6 +94,13 @@
   foreign nationals using the in-person service need a residence card. This
   does not establish whether anonymous vacancy browsing is possible, but it
   means neither portal is yet verified as a pre-move foreign-candidate service.
+- The Migration and Citizenship Service's [workpermit.am FAQ](https://workpermit.am/en/faq)
+  displays “How to find a job using this Platform?”, but the answer is not
+  present in the public page response. Its [official user guide](https://workpermit.am/files/Platform_User_Guide.pdf)
+  documents an employer-led flow: the employer registers and submits a vacancy,
+  then enters the selected foreign worker's information; the platform creates
+  that worker's account afterward. This confirms the foreign-hire workflow, not
+  anonymous vacancy discovery or an authorized feed.
 - Ask the Unified Social Service (public contact: `info@socservice.am`) whether
   it offers a vacancy feed/API and permits a low-rate personal discovery
   client. Do not add Armenia to the country catalog or build an adapter until
@@ -125,6 +132,11 @@
   publicly rendered answer was not available in the checked page. Confirm the
   candidate-facing flow and data-access terms with the Migration Service
   (`workpermit@gov.am`) before considering integration.
+- The official [employer/foreigner user guide](https://workpermit.am/files/Platform_User_Guide.pdf)
+  explains that the employer creates the vacancy case and later enters the
+  selected foreign worker's information, after which the worker receives an
+  account. The guide does not establish a public jobseeker search or vacancy
+  feed.
 - The Unified Social Service says employers may post vacancies on e-work.am or
   send them in a prescribed format to `info@socservice.am`. This makes an
   authorized feed/referral request concrete, but does not itself grant the

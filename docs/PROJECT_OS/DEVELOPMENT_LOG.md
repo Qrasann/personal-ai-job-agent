@@ -10,12 +10,30 @@
   anonymous public feed/access rules were not confirmed. The Unified Social
   Service says employers may also send vacancies in a prescribed format to
   `info@socservice.am`; this is a contact route, not permission to collect.
+- Follow-up official-source check: the Unified Social Service's live
+  [labor-market page](https://social.welfare.gov.am/labor-market-situation-in-armenia)
+  explicitly directs jobseekers to e-work.am and workforall.am. Its public
+  [e-work overview](https://social.welfare.gov.am/en/what-is-e-work) describes
+  employer/jobseeker matching. Direct checks of the two portals still did not
+  return usable vacancy pages, and no API/feed or automated-reuse terms were
+  verified.
+- Opened the [workpermit.am FAQ](https://workpermit.am/en/faq) and official
+  [user guide](https://workpermit.am/files/Platform_User_Guide.pdf). The FAQ
+  shows “How to find a job using this Platform?” but its answer is absent from
+  the page response. The guide describes an employer-created vacancy case and
+  says the employer enters the foreign worker's details before the worker's
+  account is created. This supports the employer-side immigration workflow,
+  not public vacancy discovery.
 - Checked Georgia's current official Labour Migration Law. Its relevant
   foreign-worker changes took effect 2026-03-01: local paid work requires an
   employer-mediated right-to-work step, followed by the applicable D1/work
   residence process. The law has a limited completely-remote/no-entry
   exception to follow-up immigration documents; this does not establish
   eligibility for local employment.
+- The current consolidated law says local paid employment requires an
+  employment agreement, a right to work obtained through the local employer,
+  and qualifying immigration status. This remains a candidate-specific legal
+  check; a `GE` target does not establish eligibility.
 - Reviewed the owner-provided `/job 580`: the description says 90,000 RUB,
   but structured salary remains unknown and `/jobs` shows no salary. `/salary`
   calls 100,000 RUB a filter minimum, while current code uses it only in

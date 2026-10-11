@@ -16,14 +16,17 @@ The isolated PostgreSQL suite on this documentation-only candidate passed:
 Official Armenian `workpermit.am` describes an employer-led vacancy and
 foreign-hiring/work-residence procedure and states that EAEU citizens working
 in Armenia are exempt from work-permit documentation for the employment
-contract period. Its FAQ lists a “How to find a job” question, but the answer,
-anonymous listings, and feed/access permissions remain unverified. The
-Unified Social Service documents e-work vacancy posting and a prescribed-format
-email route; permission must still be requested. Georgia's official Labour
-Migration Law includes foreign-worker changes effective 2026-03-01: covered
-local paid work requires a right to work through the local employer and then
-the applicable immigration status. The bot cannot infer individual eligibility
-from `GE` selection or `RU` current-country settings.
+contract period. The FAQ displays “How to find a job using this Platform?” but
+its answer is absent from the public response; the official guide documents an
+employer-created vacancy and employer entry of the selected foreign worker.
+The Unified Social Service's labor-market page explicitly lists e-work.am and
+workforall.am for vacancies, but their public search pages were not readable in
+the checks and no feed/reuse permission is confirmed. The listed
+`info@socservice.am` route is a way to ask for a permitted feed, not permission
+to collect. Georgia's current Labour Migration Law requires, for covered local
+paid work, an employment agreement, a right to work via the local employer, and
+the applicable immigration status. Country targeting does not establish
+individual eligibility.
 
 The owner also showed `/job 580`: the full description contains 90,000 RUB,
 while structured salary stays unknown and `/jobs` displays “not specified.”
@@ -32,22 +35,26 @@ that value as a scoring input when structured salary exists; it is not a hard
 floor. This should be clarified or deliberately implemented as a separate
 tested change before the bot claims to filter below-minimum jobs.
 
-No agency contact was sent. The next owner action, if wanted, is to ask the
-Unified Social Service / Migration Service about candidate access and an
-authorized public feed. Source references and constraints are in
-`docs/developer/INTERNATIONAL_SOURCES.md`.
+No agency contact was sent. The next owner action is to request confirmation
+from the Unified Social Service and Migration Service about pre-move foreign
+jobseeker access and an authorized public vacancy feed. Source references and
+constraints are in `docs/developer/INTERNATIONAL_SOURCES.md`. Personal
+citizenship details are not copied into public repository documents.
 
 ## GitHub branches and release labels — 2026-10-11
 
 - `main` is the stable source branch at v3.5.6. PR #15 and
   [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16) are merged;
   merge CI run `38135649948` passed.
-- The local checkout is on `main`. Application commit `170ed4e` is deployed to
-  Compose project `repo`; later PR #16 commits updated documentation only.
+- The local checkout is on `feature/v3.5.7-international-market-coverage`,
+  created from stable `main` commit `02f582e`. Application commit `170ed4e` is
+  deployed to Compose project `repo`; later PR #16 commits updated
+  documentation only.
 - `feature/v3.5.2-dual-search-modes` remains on the remote from earlier work;
   it is not the active branch for new changes.
 - The merged `feature/v3.5.6-eures-identity-market-targets` branch is inactive.
-  Create the next implementation branch from `main` for v3.5.7.
+  The v3.5.7 source and market-coverage work stays on the current feature
+  branch until it is reviewed, tested, and merged into `main`.
 - Latest formal GitHub Release/tag: v3.5.6 on release commit `50afdab`. Main CI
   run `38138941745` passed. Changelog entries v3.5.2–v3.5.5 are cumulative
   milestones included in the release; no intermediate tags were backfilled.
