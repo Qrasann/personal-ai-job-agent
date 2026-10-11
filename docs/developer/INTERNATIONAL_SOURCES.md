@@ -81,13 +81,23 @@
 
 ### Armenia source candidates
 
-- The Armenian Unified Social Service describes [e-work.am](https://e-work.am/)
-  as a state employment platform consolidating vacancies across the country;
-  its official [overview](https://social.welfare.gov.am/en/what-is-e-work)
-  supports it as a candidate for a future access review. Direct portal access
-  timed out during this review, and no public API or automated-access terms
-  could be verified. Do not build an adapter until the public contract and
-  access rules are confirmed.
+- The Armenian Unified Social Service lists both [e-work.am](https://e-work.am/)
+  and [workforall.am](https://workforall.am/) as its vacancy information
+  platforms on its current [labor-market page](https://social.welfare.gov.am/labor-market-situation-in-armenia).
+  The official [e-work overview](https://social.welfare.gov.am/en/what-is-e-work)
+  says it consolidates vacancies and enables employer/jobseeker matching.
+- Direct browser checks of the public e-work search and workforall vacancy
+  pages timed out. No documented public API, feed, or automated-collection
+  terms were found in the official material reviewed. The government
+  [jobseeker registration guidance](https://social.welfare.gov.am/en/registration-of-job-seekers-1)
+  requires a Public Services Number or national eID for online registration;
+  foreign nationals using the in-person service need a residence card. This
+  does not establish whether anonymous vacancy browsing is possible, but it
+  means neither portal is yet verified as a pre-move foreign-candidate service.
+- Ask the Unified Social Service (public contact: `info@socservice.am`) whether
+  it offers a vacancy feed/API and permits a low-rate personal discovery
+  client. Do not add Armenia to the country catalog or build an adapter until
+  the public endpoint, reuse rules, and foreign-candidate access are confirmed.
 - [Staff.am](https://staff.am/jobs/devops-infrastructure) has public listings
   in the requested DevOps/Infrastructure area, but its [Terms of Use](https://staff.am/en/site/terms-of-use)
   prohibit automated agents scraping, stripping or mining data without express

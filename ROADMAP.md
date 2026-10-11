@@ -37,9 +37,15 @@ preserving the separate Career-first and Relocation-first goals.
   request volume low and don't broaden collection without a clear source
   contract.
 - Build an Armenia source only after confirming a public API or obtaining
-  permission for automated access and reuse. The official e-work portal is a
-  candidate for access review; Job.am and Staff.am have terms that constrain
-  automated collection or redistribution.
+  permission for automated access and reuse. The Unified Social Service lists
+  e-work.am and workforall.am as public vacancy platforms, but both search
+  pages timed out in the current check and no documented API/access terms were
+  found. Request a permitted feed and clarify foreign-candidate access through
+  `info@socservice.am`; Job.am and Staff.am have terms that constrain automated
+  collection or redistribution.
+- Official e-work registration guidance requires a PSN or national eID online;
+  its in-person path for foreign nationals requires a residence card. Do not
+  assume either portal serves a foreign jobseeker before relocation.
 - Prefer employer career feeds or ATS APIs where available. Require a working
   posting URL, publication/expiry checks, location, language and eligibility
   evidence; do not mirror a whole job board.

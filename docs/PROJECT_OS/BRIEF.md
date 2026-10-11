@@ -16,9 +16,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Source/runtime: `v3.5.6`, database schema `4/4`.
 - GitHub `main`: `6294c2a` (`v3.5.6`). Active candidate branch and deployed
   source: `feature/v3.5.6-eures-identity-market-targets` (latest commit
-  `2963705`, including Georgia request bounds).
-- GitHub PR #16 is open. Push CI `38126593765` and PR CI `38126596194` passed; current
-  check status is available at https://github.com/Qrasann/personal-ai-job-agent/pull/16.
+  `0110173`, including Georgia request bounds and scheduled cache).
+- GitHub PR #16 is open. Latest push CI `38127150025` and PR CI `38127152783`
+  passed; current checks are at
+  https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
@@ -57,13 +58,17 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Replaced the mixed-language README with English and Russian entry points,
   aligned changelog headings, refreshed the roadmap, and documented current
   Armenia/Georgia source-access constraints.
+- Confirmed the Armenian Unified Social Service lists e-work.am and
+  workforall.am as vacancy platforms. Their public search pages timed out;
+  API/access terms are unverified, and official registration rules do not yet
+  establish pre-move foreign-candidate access.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
 - Merged release PR #15 into GitHub `main`; CI passed and the owner supplied
   a real-chat smoke test for the core Telegram commands.
 
 ## Verified
 
-- Latest full PostgreSQL-backed suite: `229 passed`, 67.44% branch coverage
+- Latest full PostgreSQL-backed suite: `230 passed`, 67.46% branch coverage
   (rerun on 2026-10-11; 55% gate).
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
@@ -77,8 +82,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
   and RemoteOK; no startup errors were present in the inspected log tail.
-- Georgia guardrail commit `2963705` is on PR #16; push and PR CI are green.
-  The safe updater rebuilt only `repo-app`; runtime remains 3.5.6 and
+- Georgia guardrails are on PR #16 at `0110173`; latest push and PR CI are
+  green. The safe updater rebuilt only `repo-app`; runtime remains 3.5.6 and
   PostgreSQL remains healthy. The existing PostgreSQL and storage volumes are
   attached. Startup `scan_all` completed successfully; EURES search and detail
   requests returned HTTP 200, and no EURES/Georgia source failures appeared in
@@ -118,9 +123,11 @@ to verify source visibility and real result quality. Continue the existing
   does not grant reuse rights; no explicit permission for recurring extraction
   was verified for either board. Requests are now tightly bounded, and the
   Telegram scan remains necessary to assess live quality.
-- Armenia source candidates need access review: the state e-work portal did
-  not load in the current check; Staff.am prohibits automated scraping without
-  permission, while Job.am restricts unauthorized reuse and redistribution. See
+- Armenia has two government-listed vacancy platforms (e-work.am and
+  workforall.am), but their public pages timed out and no API/access terms were
+  verified. Request a permitted feed and confirm foreign-candidate access;
+  Staff.am prohibits automated scraping without permission, while Job.am
+  restricts unauthorized reuse and redistribution. See
   `docs/developer/INTERNATIONAL_SOURCES.md`.
 - Arbeitnow currently improves Germany/Career coverage but may contain no low-barrier roles.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.

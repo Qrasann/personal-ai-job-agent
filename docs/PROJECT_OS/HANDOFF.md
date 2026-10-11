@@ -2,9 +2,10 @@
 
 ## Georgia source guardrails — v3.5.7 market-coverage work (2026-10-11)
 
-The candidate is published as commit `2963705` on PR #16. Push CI
-`38126593765` and PR CI `38126596194` passed. The safe updater rebuilt the app;
-source/runtime report 3.5.6, the app is up, and PostgreSQL is healthy. Existing
+The candidate is published as commit `0110173` on PR #16, following the adapter
+change `2963705`. Latest push CI `38127150025` and PR CI `38127152783` passed.
+The safe updater rebuilt the app. Source/runtime report 3.5.6; the app is up,
+and PostgreSQL is healthy. Existing
 `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
 The post-update startup dual-profile scan completed; EURES search/detail
 requests returned HTTP 200 with no EURES/Georgia source failure in the
@@ -15,8 +16,8 @@ The candidate bounds the existing JOBS.GE and HR.ge adapters to six
 matching details per source, a 15-second request timeout, and a two-second
 delay before each detail request. Scheduled Georgia scans reuse discovery
 results for six hours; a manual `/scan` still forces a fresh request.
-Individual failures preserve successful
-vacancies; failure of every detail request is surfaced in the scan. Role
+Individual failures preserve successful vacancies; failure of every detail
+request is surfaced in the scan. Role
 matching no longer accepts a generic word such as “engineer” alone. HR.ge pay
 is structured only when a range has one explicit currency and a clearly stated
 monthly period; ambiguous dollar signs, annual pay and unspecified periods
@@ -30,9 +31,9 @@ grant permission to reuse listings; recurring automated extraction terms
 remain unverified. The adapters stay limited to Georgia-targeted profiles.
 
 Targeted adapter tests pass (5); the scheduled-cache regression also passes.
-Full isolated PostgreSQL suite passes (230 tests, 67.44% branch coverage);
-`compileall` and `git diff --check` pass. No
-schema migration was added. The source/runtime version remains 3.5.6 while
+Full isolated PostgreSQL suite passes (230 tests, 67.46% branch coverage);
+`compileall` and `git diff --check` pass. No schema migration was added. The
+source/runtime version remains 3.5.6 while
 this v3.5.7 roadmap work is verified. The owner needs to run
 `/targets relocation GE`, then
 `/sources`, then `/scan` in Telegram and share the result summary and any
@@ -64,10 +65,13 @@ cause is not yet established.
 lists each active profile's configured source plan. Georgia adapters are
 included only for profiles targeting GE. The owner still needs to run the
 Georgia scan in Telegram and confirm its result quality. Armenia is not yet in
-the country catalog and has no connected adapter; the official e-work portal's
-public API/access terms remain unverified. Staff.am prohibits automated
-scraping without permission; Job.am restricts unauthorized reuse and
-redistribution. See
+the country catalog and has no connected adapter. The Unified Social Service
+lists e-work.am and workforall.am as vacancy platforms, but both public search
+pages timed out and no public API/feed or automated-access terms were verified.
+Official registration guidance leaves pre-move foreign-candidate access
+unclear. The next source step is to request a permitted feed from
+`info@socservice.am`. Staff.am prohibits automated scraping without permission;
+Job.am restricts unauthorized reuse and redistribution. See
 `docs/developer/INTERNATIONAL_SOURCES.md` and the v3.5.7 plan in `ROADMAP.md`.
 
 The full isolated PostgreSQL suite passed: 224 tests, 66.33% branch coverage;

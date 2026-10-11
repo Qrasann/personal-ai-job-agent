@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-10-11 — Armenia public-source access audit
+- The Armenian Unified Social Service's current labor-market page identifies
+  e-work.am and workforall.am as its vacancy platforms. The official e-work
+  overview describes nationwide listings and employer/jobseeker matching.
+- Direct browser checks of e-work's public search and workforall's vacancy
+  page timed out. The reviewed official material documents no public API/feed
+  or automated-reuse permission. Online e-work registration asks for a Public
+  Services Number or national eID; the official foreign-citizen path for
+  in-person jobseeker registration requires a residence card. This leaves
+  anonymous browsing and pre-move candidate access unverified.
+- No Armenia country/source adapter was added. The next source step is to ask
+  the Unified Social Service (`info@socservice.am`) whether it offers an
+  authorized public feed and supports foreign candidates before relocation.
+  References: `docs/developer/INTERNATIONAL_SOURCES.md` and `ROADMAP.md`.
+
 ## 2026-10-11 — Georgia source guardrails (v3.5.7 market-coverage work)
 - Reviewed the two existing Georgia adapters and the reported need to target
   Georgia explicitly. JOBS.GE `/robots.txt` returned HTTP 410; HR.ge returned
@@ -18,15 +33,16 @@
   clearly labeled range with a single explicit currency and an explicit
   monthly period. Ambiguous dollar symbols, annual pay and unperiodized ranges
   remain raw source text and do not enter numeric salary scoring.
-- Added five Georgia adapter regressions for role filtering, salary evidence, unknown
-  work-mode/relocation, detail limits, and partial/total detail failures.
+- Added five Georgia adapter regressions for role filtering, salary evidence,
+  unknown work-mode/relocation, detail limits, and partial/total detail failures.
   Targeted tests: 5 passed; the scheduled-cache regression also passes. Full
   isolated PostgreSQL suite: 230 passed,
-  67.44% branch coverage (55% gate). `compileall` and `git diff --check` pass.
-- Published as commit `2963705` on the active feature branch/PR #16. Push CI
-  `38126593765` and PR CI `38126596194` passed. Applied through
-  `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`; status reports source
-  and runtime 3.5.6, app up and PostgreSQL healthy. The startup dual-profile
+  67.46% branch coverage (55% gate). `compileall` and `git diff --check` pass.
+- Published as commit `0110173` on the active feature branch/PR #16, following
+  adapter commit `2963705`. Push CI `38127150025` and PR CI `38127152783`
+  passed. Applied through `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`;
+  status reports source/runtime 3.5.6, app up and PostgreSQL healthy. The
+  startup dual-profile
   scan completed successfully; EURES search/detail requests returned HTTP 200
   and no EURES/Georgia source failures appeared in inspected post-update logs.
   Mount inspection confirmed `repo_jobagent_v3_pg` and

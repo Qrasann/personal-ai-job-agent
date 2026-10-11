@@ -29,11 +29,11 @@
   period before HR.ge salary is structured for scoring. Cache scheduled
   Georgia results for six hours; manual `/scan` remains a force refresh.
 - [x] Add Georgia source regressions and run the full isolated PostgreSQL suite:
-  230 passed, 67.44% branch coverage; compileall and diff check passed.
-- [x] Push commit `2963705` to PR #16; push CI `38126593765` and PR CI
-  `38126596194` passed. Apply with the safe updater and verify the completed
-  startup scan, EURES HTTP 200 responses, healthy PostgreSQL, and attached
-  existing volumes.
+  230 passed, 67.46% branch coverage; compileall and diff check passed.
+- [x] Push commits `2963705` and `0110173` to PR #16; latest push CI
+  `38127150025` and PR CI `38127152783` passed. Apply with the safe updater
+  and verify the completed startup scan, EURES HTTP 200 responses, healthy
+  PostgreSQL, and attached existing volumes.
 - [ ] Owner runs `/targets relocation GE`, `/sources`, then `/scan` to confirm
   Georgia appears in the intended profile and review real results.
 - [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
@@ -47,6 +47,12 @@
   quality before treating the sources as useful.
 - [ ] Verify an Armenian public API or obtain permission before adding a
   recurring local source; investigate the official e-work portal first.
+- [x] Check current official Armenian source candidates: the Unified Social
+  Service lists e-work.am and workforall.am; both public search pages timed out,
+  and no API/access terms were found. Online e-work registration requires PSN
+  or national eID; the in-person foreign-citizen path requires a residence card.
+- [ ] Ask the Unified Social Service whether it offers an allowed public feed
+  and whether foreign candidates can use it before relocating.
 - [ ] Prefer permitted employer career/ATS feeds and verify location, language,
   expiry and candidate eligibility evidence.
 - [ ] Add Armenian country selection only together with a tested local source.
