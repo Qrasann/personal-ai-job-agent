@@ -1,11 +1,28 @@
 # Current State
 
 ## Latest state
-- branch: `main` at merge commit `062eb25` (PR #15); source/runtime version
-  3.5.6. PR #15 is merged and the main branch now contains the release.
-- local Compose project `repo`: source/runtime 3.5.6; app container is up and
-  PostgreSQL is healthy. The latest scheduled scan completed despite an EURES
-  SSL record-layer failure on one profile.
+- stable GitHub `main`: `6294c2a` (source version 3.5.6). PR #15 is merged.
+- active candidate branch: `feature/v3.5.6-eures-identity-market-targets`;
+  it is published as PR #16; deployed application code is `170ed4e`. The
+  branch has subsequent handoff/documentation commits. Latest CI checks passed.
+- GitHub Releases and tags currently end at v3.5.1. Source version v3.5.6 and
+  changelog entries v3.5.2–v3.5.6 do not imply those versions were formally
+  published as releases.
+- local Compose project `repo` runs source/runtime 3.5.6; app is polling and
+  PostgreSQL is healthy.
+- the startup dual-profile scan completed successfully after the latest update.
+  Arbeitnow, EURES, and HR.ge requests returned HTTP 200; no JOBS.GE request or
+  source failure appeared. Existing named PostgreSQL/storage volumes remain
+  attached.
+- Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
+  `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
+  Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
+  `/scanstatus` attributes 99.5 seconds to Job Bank, 17.1 to Arbeitnow, 14.5
+  to EURES, 13.0 to HR.ge, 7.6 to HH, and 1.5 to Remote OK.
+- Owner confirmed `/sources` marks JOBS.GE paused after HTTP 410. The completed
+  scan returned HH 209, Remote OK 3, Arbeitnow 2, Job Bank 12, EURES 16, and
+  HR.ge 2. Later log tail shows scheduled `scan_all` completed and Telegram
+  updates were handled within 117–677 ms, with no errors in the excerpt.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -13,8 +30,9 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- v3.5.6 full PostgreSQL-backed suite: 220 passed, 65.66% branch coverage.
-- GitHub Actions runs `38121905782` (push) and `38121908521` (PR) passed.
+- latest full PostgreSQL-backed suite: 233 passed, 67.67% branch coverage
+  (55% gate).
+- Latest GitHub Actions runs `38129138392` (push) and `38129141546` (PR) passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
   connected public feeds; employer-only counts remain unknown in this app.
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
@@ -22,13 +40,17 @@
   and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
-- main: v3.5.6
-- release merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`
+- GitHub `main` HEAD: v3.5.6 at `6294c2a`.
+- PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
 
 ## Active development
-- target: owner-driven end-to-end acceptance for `/import` file preview/save
-  and Recommendation v2 vacancy details before release tagging. The owner has
-  already smoke-tested the command entry points and `/status`/`/version`.
+- PR #16 carries the active candidate and bilingual README; `main` remains the
+  stable source until acceptance and merge. GitHub tags/releases stop at
+  v3.5.1 while `VERSION=3.5.6`; the v3.5.2–v3.5.6 changelog entries are
+  cumulative source milestones. Publish one v3.5.6 release after the owner
+  checks `/import` preview/save and Recommendation v2 vacancy details.
+- Job Bank is the measured latency bottleneck at 99.5 seconds. Preserve its
+  five-second request pacing while evaluating any optimization.
 
 ## Implemented on active branch
 - enable/disable implemented job sources;
@@ -76,9 +98,19 @@
   migration OK), and `/status` (ACTIVE). The reported scan completed; EURES
   failed while HH, RemoteOK, Arbeitnow and Job Bank returned results. No
   resume file was uploaded and no Recommendation v2 vacancy details were shown.
-- v3.5.6 is running in Compose project `repo`; the latest logs include EURES
-  SSL retries and a source failure after bounded retries, while the scheduled
-  scan completed. Existing named volumes remain attached.
+- EURES now requests identity-encoded responses. A direct live check showed
+  compressed response reads failing while identity encoding returned a complete
+  50-result response. The first post-update scan showed successful EURES search
+  and detail requests; continue monitoring subsequent runs.
+- The updated `/targets` applies markets to all active profiles by default and
+  supports explicit `career`/`relocation` scope. `/sources` lists plans per
+  active profile. Owner has confirmed Relocation-first targets GE and reported
+  a live scan; the follow-up pauses JOBS.GE after HTTP 410 and retries one
+  transient Arbeitnow transport failure. A subsequent owner Telegram log
+  confirms retry recovery; exact source timings remain pending `/scanstatus`.
+- The v3.5.6 release tag remains pending owner checks for `/import` preview/save
+  and Recommendation v2 vacancy details. GitHub's latest published tag remains
+  v3.5.1.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.

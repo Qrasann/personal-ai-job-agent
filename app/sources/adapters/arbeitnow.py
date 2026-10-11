@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import re
 
 import httpx
@@ -7,6 +9,9 @@ import httpx
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.sources.base import JobSource, SourceContext
+
+
+log = logging.getLogger(__name__)
 
 
 _ROLE_ALIASES = {
@@ -29,6 +34,8 @@ class ArbeitnowSource(JobSource):
     name = "Arbeitnow"
     capabilities = SourceCapabilities(discovery=True, details=True, apply=False, messages=False)
     endpoint = "https://www.arbeitnow.com/api/job-board-api"
+    request_retries = 1
+    request_timeout_seconds = 15.0
 
     @staticmethod
     def parse_payload(payload: dict, context: SourceContext) -> list[NormalizedJob]:
@@ -76,8 +83,19 @@ class ArbeitnowSource(JobSource):
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
         headers = {"User-Agent": "JobAgentV3/0.1 (job discovery client)"}
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.get(self.endpoint, headers=headers)
-            response.raise_for_status()
-            payload = response.json()
+        async with httpx.AsyncClient(timeout=self.request_timeout_seconds) as client:
+            for attempt in range(self.request_retries + 1):
+                try:
+                    response = await client.get(self.endpoint, headers=headers)
+                    response.raise_for_status()
+                    payload = response.json()
+                    break
+                except httpx.TransportError as exc:
+                    if attempt >= self.request_retries:
+                        raise
+                    log.warning(
+                        "Arbeitnow transport failure (%s); retry %s/%s",
+                        type(exc).__name__, attempt + 1, self.request_retries,
+                    )
+                    await asyncio.sleep(0.5 * (2 ** attempt))
         return self.parse_payload(payload, context)

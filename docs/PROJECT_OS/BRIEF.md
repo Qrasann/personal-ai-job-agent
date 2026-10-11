@@ -14,11 +14,25 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 ## Current runtime
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
-- Active branch: `main` (`062eb25`, v3.5.6).
+- GitHub `main`: `6294c2a` (`v3.5.6`). Deployed application commit `170ed4e`
+  is on candidate branch `feature/v3.5.6-eures-identity-market-targets`.
+- GitHub PR #16 is open on `main`; deployed application code is `170ed4e`.
+  Later commits on the candidate branch update documentation. Current PR
+  details are at
+  https://github.com/Qrasann/personal-ai-job-agent/pull/16.
+- Branch map: `main` is the stable source; `feature/v3.5.6-eures-identity-market-targets`
+  is the active PR #16 branch and is where current changes are pushed. The
+  remote `feature/v3.5.2-dual-search-modes` branch remains from earlier work
+  but is not the active development branch.
+- Release map: `VERSION=3.5.6` identifies source on `main`; the latest formal
+  GitHub tag/Release is v3.5.1. Changelog entries v3.5.2–v3.5.6 are cumulative
+  source milestones, not separate published releases. Publish one cumulative
+  v3.5.6 release after Telegram acceptance; do not backfill tags for the
+  intermediate milestones.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
-- Working sources include HH public fallback, RemoteOK, Arbeitnow, Job Bank Canada, EURES, jobs.ge, hr.ge, and configured Telegram ingestion.
+- Working sources include HH public fallback, RemoteOK, Arbeitnow, Job Bank Canada, EURES, HR.ge, and configured Telegram ingestion. JOBS.GE is temporarily paused after its configured endpoint returned HTTP 410.
 - Auto-apply and HH private actions remain off.
 
 ## Recently completed
@@ -38,14 +52,43 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Added persisted Recommendation v2 component breakdown with unknown values
   left unset and displayed in vacancy details.
 - Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
+- Set EURES `Accept-Encoding: identity` after reproducing TLS body-read failure
+  with the default compressed response and reading the complete 50-result JSON
+  with identity encoding.
+- Updated `/targets` to configure all active search profiles by default, with
+  explicit `career` and `relocation` scope; `/sources` now shows each profile's
+  configured source plan.
+- Bounded JOBS.GE and HR.ge detail fetching to six listings per source, with
+  conservative pacing and timeouts; tightened role matching and require an
+  explicit currency plus monthly period before HR.ge salary enters scoring.
+  Partial detail results survive individual request failures; total failure is
+  reported to the scan. Scheduled Georgia discovery now uses a six-hour cache;
+  manual `/scan` still forces a refresh.
+- Processed the owner’s live Georgia scan: EURES returned 16, HR.ge returned 2,
+  JOBS.GE returned HTTP 410, and Arbeitnow emitted a transient ReadTimeout.
+  The candidate pauses JOBS.GE with its reason visible in `/sources` and adds
+  one bounded retry for Arbeitnow transport failures.
+- Replaced the mixed-language README with English and Russian entry points,
+  aligned changelog headings, refreshed the roadmap, and documented current
+  Armenia/Georgia source-access constraints.
+- Confirmed the Armenian Unified Social Service lists e-work.am and
+  workforall.am as vacancy platforms. Their public search pages timed out;
+  API/access terms are unverified, and official registration rules do not yet
+  establish pre-move foreign-candidate access.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
 - Merged release PR #15 into GitHub `main`; CI passed and the owner supplied
   a real-chat smoke test for the core Telegram commands.
 
 ## Verified
 
-- Latest full PostgreSQL-backed suite: `220 passed`, 65.66% branch coverage
-  (rerun on 2026-10-11).
+- Latest full PostgreSQL-backed suite: `233 passed`, 67.67% branch coverage
+  (rerun on 2026-10-11; 55% gate).
+- Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
+  passes. Compilation and `git diff --check` passed. The six-detail cap,
+  per-request timeout, inter-request delay, partial-failure behavior and salary
+  evidence rules are covered.
+- Source-resilience targeted tests: `20 passed`; the full suite includes the
+  Arbeitnow retry and source-availability cases.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
@@ -54,32 +97,73 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
   and RemoteOK; no startup errors were present in the inspected log tail.
+- Candidate `170ed4e` is pushed to PR #16, passes push and PR CI, and is applied
+  to Compose project `repo`. Runtime remains 3.5.6; app is up and PostgreSQL is
+  healthy. The startup scan completed successfully. Both Arbeitnow requests,
+  EURES searches/details, and HR.ge listing/detail requests returned HTTP 200;
+  no JOBS.GE request or source error appeared. Named
+  `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
+- Owner's follow-up Telegram scan exercised the deployed Arbeitnow retry:
+  Relocation-first received a `ReadTimeout`, the single retry returned HTTP
+  200, and the supplied log excerpt shows EURES, HR.ge, Job Bank, and HH
+  requests succeeding. JOBS.GE was not requested. Telegram handled the update
+  in 162.7 seconds. The later `/scanstatus` attributed 99.5 seconds to Job
+  Bank, 17.1 to Arbeitnow, 14.5 to EURES, 13.0 to HR.ge, 7.6 to HH, and 1.5
+  to RemoteOK. Job Bank's five-second request pacing remains in place.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
-- GitHub PR #15 is merged; `main` is v3.5.6 at `062eb25`. Final push and PR CI
-  runs (38121905782, 38121908521) both passed.
+- GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
+  push and pull-request CI passed for handoff commit `e43072c`.
 - Owner-provided Telegram smoke test on 2026-10-11 confirmed `/salary`,
   `/blacklist`, `/scanstatus`, `/cancel`, `/import` prompt, `/version` and
   `/status`. The scan completed with an EURES error while other sources
   returned results. `/import` file preview/save and Recommendation v2 vacancy
   details still need end-to-end acceptance before release tagging.
-- Latest supplied/runtime logs show intermittent EURES `SSLError` retries,
-  some EURES HTTP 200 responses, and a scheduled scan that still completed.
-  Job Bank and other sources continue independently; EURES can still be
-  unavailable for an individual profile when every bounded attempt fails.
+- After the safe update, the 2026-10-11 startup scan completed successfully.
+  EURES search and detail requests returned HTTP 200 without SSL retry/error
+  logs. Continue monitoring subsequent scheduled scans; one successful run
+  does not establish the underlying TLS cause.
+- Runtime status after update: source/runtime `3.5.6`, app polling, PostgreSQL
+  healthy. The existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
+  volumes remain attached.
+- Owner confirmed `/sources` marks JOBS.GE temporarily paused after HTTP 410
+  and shared `/scanstatus`: the GE scan completed from 09:47:54 to 09:50:36
+  UTC. EURES returned 16 vacancies, HR.ge 2, Job Bank 12, Arbeitnow 2, HH 209,
+  and Remote OK 3. A later app-log tail shows `scan_all` completed and Telegram
+  updates were handled in 117–677 ms; no errors appear in that excerpt.
 
 ## Current priority
 
-Complete end-to-end Telegram acceptance for `/import` file preview/save and Recommendation v2 vacancy details; record results before release tagging.
+Complete end-to-end Telegram acceptance for `/import` (preview, then cancel or
+confirm save) and inspect a vacancy's Recommendation v2 details. These are the
+remaining gates for the cumulative v3.5.6 tag. Source health and timing are now
+verified: JOBS.GE is paused, EURES returned 16 vacancies, and Job Bank took
+99.5 seconds. Keep its five-second request pacing while evaluating latency.
 
 ## Open limitations
 
 - Source coverage remains the main Relocation-first bottleneck, especially Armenia and low-barrier legal work.
-- Arbeitnow currently improves Germany/Career coverage but may contain no low-barrier roles.
+- Georgia adapters run only when `GE` is selected for a search profile.
+  JOBS.GE's configured homepage returned HTTP 410 and is paused; HR.ge returned
+  two live vacancies in the owner’s scan. Its robots file allows `/` and links
+  a large sitemap, but recurring reuse permission remains unverified. Armenia
+  has no catalog entry or connected local source yet.
+- Armenia has two government-listed vacancy platforms (e-work.am and
+  workforall.am), but their public pages timed out and no API/access terms were
+  verified. Request a permitted feed and confirm foreign-candidate access;
+  Staff.am prohibits automated scraping without permission, while Job.am
+  restricts unauthorized reuse and redistribution. See
+  `docs/developer/INTERNATIONAL_SOURCES.md`.
+- Arbeitnow may contain no low-barrier role matches. A later owner-provided
+  Telegram scan confirmed the deployed single retry recovered from a
+  `ReadTimeout` with HTTP 200. Continue monitoring future runs.
+- The latest `/scanstatus` reports Job Bank at 99.5 seconds of a 162-second
+  scan. Its five-second request pacing is intentional; any optimization must
+  preserve the public crawl interval and be measured in a fresh Telegram scan.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
-- EURES may still return partial results or fail for one profile if repeated
-  TLS transport attempts fail; retries are bounded, HTTP status responses are
-  not retried, and other sources continue.
+- EURES returned 16 vacancies in the owner-provided follow-up scan, with no SSL
+  error reported for that run. Monitor additional scheduled runs; do not claim
+  the transport cause is permanently resolved yet.
 - The EURES cross-border flag is not proof of visa sponsorship, relocation support, or third-country work authorization.
 - Public applicant counts are unavailable in the connected candidate-facing feeds and remain unknown.
 - Dedicated Career Score and Relocation Score, affordability calculation, migration knowledge base, and application tracker are later phases—not completed features.

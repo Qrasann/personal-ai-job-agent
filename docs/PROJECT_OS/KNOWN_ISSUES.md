@@ -5,11 +5,13 @@
 - Relocation discovery initially used `relocation_queries` while matching scored only career `queries`, filtering otherwise relevant broad-role results. Matching now uses the active strategy's discovery queries.
 - Generic description text could be misread as a salary for non-HH sources. Notifications and details now use only structured salary values or explicit source salary/card text.
 
-- EURES still has intermittent TLS record-layer failures in the deployed
-  runtime. The adapter retries transport failures and keeps successful query
-  results, but an individual profile may receive no EURES results when all
-  retries fail; the scheduled scan and other sources continue. The cause has
-  not been established from current logs.
+- EURES response bodies failed with a TLS record-layer error when the client
+  negotiated compressed encoding. In a live container check, the default
+  compressed request reproduced the failure, while `Accept-Encoding: identity`
+  returned a full 50-result JSON response. The first complete post-update
+  dual-profile scan returned EURES search and detail responses without SSL
+  errors, and `scan_all` completed. The underlying network/server cause is not
+  established; monitor later scheduled runs.
 
 - work_permit, relocation_package and immigration_support are not separate Job columns yet; v3.5.2 infers them conservatively from vacancy text.
 - Source/country priority affects processing order, not Recommendation Model v2 score yet.
@@ -17,10 +19,27 @@
 - Country picker is limited to data/countries.yaml.
 - Only implemented adapters actually scan; future registered sources still need collectors.
 - HH is primarily domestic and RemoteOK is tech-heavy. Arbeitnow adds Germany coverage but its current feed can legitimately contain no low-barrier role matches; additional legal-work/visa-capable country sources are still needed.
+- Georgia adapters enter a profile's scan only when `GE` is selected. The owner
+  confirmed a Relocation-first GE scan on 2026-10-11: EURES returned 16
+  vacancies, HR.ge returned 2, JOBS.GE returned HTTP 410, and Arbeitnow had a
+  transient `ReadTimeout`. JOBS.GE is paused in the source plan; HR.ge remains
+  enabled while recurring reuse permission is unverified. The deployed
+  follow-up adds one bounded retry for Arbeitnow transport failures. A later
+  Telegram scan log confirmed a timeout recovered on retry with HTTP 200. The
+  owner confirmed `/sources` displays JOBS.GE as paused and provided a completed
+  `/scanstatus` report.
+- Armenia is not yet selectable and has no connected local adapter. The
+  official e-work portal's public access contract was not verified; Staff.am
+  prohibits automated scraping without permission, and Job.am restricts
+  unauthorized reuse and redistribution. No recurring collector should be
+  added without an approved feed or written permission.
 - Job Bank Canada adds international TFW coverage, but an LMIA request or
   permission to apply does not establish sponsorship or candidate eligibility.
   Initial coverage is one page, six queries and twelve details per profile;
-  the five-second crawl delay adds up to about 90 seconds plus network time.
+  the five-second request pacing adds up to about 90 seconds plus network time.
   Decimal CAD/hour salaries are preserved as source text; structured salary
-  normalization and display are pending.
+  normalization and display are pending. A Telegram update took 162.7 seconds
+  with twelve Job Bank detail calls visible; `/scanstatus` measured Job Bank at
+  99.5 seconds. Preserve the five-second request interval while evaluating a
+  safe pacing improvement; do not increase request volume or parallelize calls.
 - Full CI is required before merge; live Telegram polling and dual-profile scan smoke tests passed on the local deployment.

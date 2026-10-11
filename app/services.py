@@ -32,11 +32,16 @@ log = logging.getLogger(__name__)
 hh_client = HHClient()
 _DISCOVERY_CACHE: dict[tuple[str, tuple[str, ...]], tuple[float, list[NormalizedJob]]] = {}
 CACHE_TTL_SECONDS = 600
+GEORGIA_CACHE_TTL_SECONDS = 6 * 60 * 60
 DISCOVERY_CONCURRENCY = 3
 DISCOVERY_TIMEOUT_SECONDS = 180
 
 
 def _cache_ttl(source_id: str) -> int:
+    if source_id in {"jobs_ge", "hr_ge"}:
+        # Public Georgia boards are refreshed less often by scheduled scans.
+        # A user-triggered /scan still explicitly requests a fresh discovery.
+        return GEORGIA_CACHE_TTL_SECONDS
     # Anonymous HH access is intentionally conservative: one lightweight search
     # can be cached for an hour, while other feeds remain fresher.
     if source_id == "hh" and not hh_client.private_api_available:
@@ -227,7 +232,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
         targets = [normalize_country(str(x)) for x in (settings_map.get("target_countries") or [])]
         targets = [x for x in targets if x]
         plan = build_source_plan(user.current_country, targets, include_international=True)
-        source_ids = {x.source_id for x in plan if x.implemented and source_enabled(settings_map, x.source_id)}
+        source_ids = {
+            x.source_id for x in plan
+            if x.implemented and getattr(x, "available", True) and source_enabled(settings_map, x.source_id)
+        }
         modes = settings_map.get("modes") or {"local_ru": True, "remote_international": True, "relocation": True}
         if not modes.get("local_ru", True):
             source_ids.discard("hh")

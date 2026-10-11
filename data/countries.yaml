@@ -41,7 +41,7 @@ countries:
     languages: [ka, en, ru]
     currencies: [GEL, USD]
     local_sources:
-      - {id: jobs_ge, name: JOBS.GE, url: "https://jobs.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true}
+      - {id: jobs_ge, name: JOBS.GE, url: "https://jobs.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true, available: false, availability_note: "временно приостановлен: сайт вернул HTTP 410 Gone"}
       - {id: hr_ge, name: HR.ge, url: "https://www.hr.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true}
     query_languages: [en, ru, ka]
 

@@ -1,6 +1,12 @@
 # Changelog
 
-## 3.5.6
+> The source tree on GitHub `main` is currently v3.5.6. The latest published
+> GitHub release is v3.5.1; v3.5.6 is not tagged yet because the final Telegram
+> acceptance checks are still open. Entries v3.5.2–v3.5.6 document source
+> milestones and are not individual published releases or tags. Do not treat
+> an untagged main commit as a published release.
+
+## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 
 Recommendation Model v2 evidence breakdown.
 
@@ -16,8 +22,24 @@ Recommendation Model v2 evidence breakdown.
 - GitHub PR #15 merged this version into `main`; push and PR CI passed.
 - Owner confirmed core Telegram command responses; full `/import` preview/save
   and Recommendation v2 detail checks remain before release tagging.
+- EURES requests use identity encoding after a live container test reproduced
+  TLS read failures with the default compressed response and successfully read
+  the full 50-result JSON with identity encoding.
+- `/targets` now updates all active search profiles by default and supports
+  explicit `career` or `relocation` scope. `/sources` lists each active
+  profile's configured source plan.
+- Updated-candidate isolated PostgreSQL suite: 224 passed; branch coverage
+  66.33% (55% gate).
+- Candidate maintenance on PR #16 (not a tagged release): pause JOBS.GE after
+  the configured homepage returned HTTP 410; show its status in `/sources`.
+  Add one retry for transient Arbeitnow transport failures with a 15-second
+  timeout. Verification: 233 isolated PostgreSQL tests passed, push/PR CI
+  passed, and the safe updater confirmed runtime 3.5.6 with a successful
+  startup scan. The owner confirmed `/sources` shows JOBS.GE paused and a fresh
+  GE scan returned EURES 16 and HR.ge 2. `/scanstatus` measured Job Bank at
+  99.5 seconds of a 162-second scan; its five-second request pacing remains.
 
-## 3.5.5
+## v3.5.5 — Candidate Import & Profile Sync
 
 Candidate Import & Profile Sync.
 
@@ -32,7 +54,7 @@ Candidate Import & Profile Sync.
 - Full isolated PostgreSQL suite: 217 passed; branch coverage 65.15%.
 - Real-chat Telegram acceptance remains pending before release tagging.
 
-## 3.5.4
+## v3.5.4 — EURES Cross-border Discovery
 
 EURES cross-border vacancy discovery.
 
@@ -44,7 +66,7 @@ EURES cross-border vacancy discovery.
   links from the source vacancy details.
 - No database migration is required.
 
-## 3.5.3
+## v3.5.3 — Fast Scan & Scan Dashboard
 
 Fast Scan & Scan Dashboard.
 
@@ -58,7 +80,7 @@ Fast Scan & Scan Dashboard.
 - GitHub Actions CI run 105 passed; local Compose startup scan completed.
 - No database migration is required.
 
-## 3.5.2
+## v3.5.2 — Search Control Center & Dual Search Modes
 
 Search Control Center, dual search profiles, and international relocation sources.
 
@@ -70,7 +92,7 @@ Search Control Center, dual search profiles, and international relocation source
 - Full PostgreSQL suite at final v3.5.2 feature stage: 194 passed.
 - No database migration is required.
 
-## 3.5.1
+## v3.5.1 — Search Quality & Telegram UX
 
 Search Quality & Telegram UX release.
 
@@ -91,7 +113,7 @@ Search Quality & Telegram UX release.
 - No database migration is required.
 
 
-## 3.5.0
+## v3.5.0 — Review & Saved Workflow
 
 Review and saved workflow release.
 
@@ -108,7 +130,7 @@ Review and saved workflow release.
 - No database migration is required.
 
 
-## 3.4.9
+## v3.4.9 — Quality Foundation
 
 Quality-foundation release.
 
@@ -128,7 +150,7 @@ Quality-foundation release.
 - Added docs/developer/TESTING.md.
 - No database migration is required.
 
-## 3.4.8
+## v3.4.8 — Vacancy Review Queue
 
 Vacancy Review Queue release.
 
@@ -143,7 +165,7 @@ Vacancy Review Queue release.
 - No database migration is required.
 
 
-## 3.4.7
+## v3.4.7 — Technical Score v2 & Live Scan Progress
 
 Technical Score v2, full vacancy details and scan-progress release.
 
@@ -160,7 +182,7 @@ Technical Score v2, full vacancy details and scan-progress release.
 - No database migration is required.
 
 
-## 3.4.6
+## v3.4.6 — Telegram UX & Requirement Classification
 
 Telegram UX, requirement-classification and startup-resilience release.
 
@@ -179,7 +201,7 @@ Telegram UX, requirement-classification and startup-resilience release.
 - No database migration is required.
 
 
-## 3.4.5
+## v3.4.5 — Candidate Facts Vacancy Comparison
 
 Candidate Facts vacancy-comparison release.
 
@@ -195,7 +217,7 @@ Candidate Facts vacancy-comparison release.
 - No database migration is required.
 
 
-## 3.4.4
+## v3.4.4 — Vacancy Details
 
 Vacancy-details Telegram UX release.
 
@@ -208,7 +230,7 @@ Vacancy-details Telegram UX release.
 - Remote/source HTML is cleaned for Telegram display and common UTF-8/Latin-1 mojibake is repaired when safe.
 - No database schema, scoring thresholds, auto-apply or private HH behavior changed.
 
-## 3.4.3
+## v3.4.3 — Runtime Controls
 
 Small manual runtime-control release.
 
@@ -221,7 +243,7 @@ Small manual runtime-control release.
 - `job-agent update` refuses to run outside `main` or with an unclean working tree.
 - Updating a stopped Job Agent keeps it stopped.
 
-## 3.4.2
+## v3.4.2 — CI Foundation
 
 Small CI foundation release.
 
@@ -232,7 +254,7 @@ Small CI foundation release.
 - CI uses Python 3.12 to match the application Docker image.
 - No runtime search, scoring, database schema, Telegram or AI behavior changed.
 
-## 3.4.1
+## v3.4.1 — Candidate Fact Types
 
 Small Candidate Facts typing release.
 
@@ -244,7 +266,7 @@ Small Candidate Facts typing release.
 - Kept the legacy `commercial` boolean synchronized for existing downstream code.
 - No vacancy search, scoring, HH, RemoteOK or application behavior changed.
 
-## 3.4.0
+## v3.4.0 — Storage Foundation
 
 Small storage-foundation release based on 3.3.3.
 

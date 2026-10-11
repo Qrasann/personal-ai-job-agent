@@ -1,5 +1,95 @@
 # Tasks
 
+## v3.5.6 candidate maintenance — EURES and target markets
+- [x] Reproduce EURES TLS body-read failure with default compressed encoding
+  inside the running container; verify that identity encoding reads the full
+  50-result JSON response.
+- [x] Add `Accept-Encoding: identity` to EURES and cover it with a regression
+  test.
+- [x] Make `/targets` apply countries to all active search profiles by default;
+  support explicit `career` and `relocation` scopes.
+- [x] Make `/sources` list each active profile's configured source plan.
+- [x] Replace the mixed-language root README with linked English and Russian
+  versions; align changelog headings and refresh the roadmap/source review.
+- [x] Full isolated PostgreSQL suite: 224 passed; branch coverage 66.33%.
+- [x] Push `6fa3406` to GitHub branch
+  `feature/v3.5.6-eures-identity-market-targets` and pass GitHub CI.
+- [x] Publish follow-up handoff commit `e43072c`; push and PR CI passed.
+- [x] Apply the candidate through `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+  update`; verify polling, healthy PostgreSQL, and unchanged
+  `repo_jobagent_v3_pg` / `repo_jobagent_v3_files` volumes.
+- [x] Verify the first post-update startup scan completed successfully; EURES
+  search and detail requests returned HTTP 200 with no SSL retry/error.
+- [x] Review Georgia robots endpoints: JOBS.GE returns 410 (no rules); HR.ge
+  allows `/` and publishes a sitemap. Do not treat robots guidance as reuse
+  permission; no explicit recurring-extraction permission was verified.
+- [x] Bound JOBS.GE/HR.ge to six details per source, 15-second request timeout,
+  and two-second pacing; preserve partial results and report total detail
+  failure. Tighten role matching and require explicit currency plus a monthly
+  period before HR.ge salary is structured for scoring. Cache scheduled
+  Georgia results for six hours; manual `/scan` remains a force refresh.
+- [x] Add Georgia source regressions and run the full isolated PostgreSQL suite:
+  230 passed, 67.46% branch coverage; compileall and diff check passed.
+- [x] Push commits `2963705` and `0110173` to PR #16; latest push CI
+  `38127150025` and PR CI `38127152783` passed. Apply with the safe updater
+  and verify the completed startup scan, EURES HTTP 200 responses, healthy
+  PostgreSQL, and attached existing volumes.
+- [x] Owner ran `/targets relocation GE`, `/sources`, and `/scan`; EURES found
+  16 vacancies, HR.ge found 2, JOBS.GE returned HTTP 410, and Arbeitnow had a
+  transient `ReadTimeout`.
+- [x] Pause JOBS.GE in the source plan after its configured homepage returned
+  HTTP 410; keep it visible in `/sources` with the reason.
+- [x] Add one retry for Arbeitnow transport failures and cap its request timeout
+  at 15 seconds; do not retry HTTP status responses.
+- [x] Full isolated PostgreSQL suite after the source changes: 233 passed,
+  67.67% branch coverage; `compileall` and `git diff --check` passed.
+- [x] Publish `170ed4e` to PR #16; push CI `38129138392` and PR CI
+  `38129141546` passed.
+- [x] Clarify in the English/Russian README and changelog that `main` source
+  version v3.5.6 and changelog milestones v3.5.2–v3.5.6 are distinct from the
+  latest formal GitHub Release/tag, v3.5.1. Do not tag v3.5.6 before owner
+  acceptance.
+- [x] Push current branch handoff and README clarification in PR #16; latest
+  push CI `38129983586` passed.
+- [x] Apply through the safe updater; verify runtime 3.5.6, active app,
+  healthy PostgreSQL, completed startup scan, and attached existing named
+  PostgreSQL/storage volumes. Logs show Arbeitnow, EURES, and HR.ge HTTP 200s;
+  JOBS.GE was not requested and no source error appeared.
+- [x] Owner supplied a post-deploy Telegram scan log: Arbeitnow's single retry
+  recovered from `ReadTimeout` with HTTP 200; EURES, HR.ge, Job Bank, and HH
+  requests in the excerpt succeeded; JOBS.GE was not requested. Telegram
+  handled the update in 162.7 seconds.
+- [x] Owner confirmed `/sources` visibly marks JOBS.GE paused and shared
+  `/scanstatus`: completed GE scan returned HH 209, Remote OK 3, Arbeitnow 2,
+  Job Bank 12, EURES 16, and HR.ge 2. Timings: HH 7.6s, Remote OK 1.5s,
+  Arbeitnow 17.1s, Job Bank 99.5s, EURES 14.5s, HR.ge 13.0s. Keep Job Bank's
+  five-second request interval while evaluating latency.
+- [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
+  detail checks before any v3.5.6 release tag.
+- [ ] Monitor later scheduled EURES scans; the first clean run does not prove
+  the underlying TLS cause is permanently resolved.
+- [ ] Evaluate whether Job Bank pacing can avoid idle time while retaining at
+  least five seconds between request starts and no overlapping requests; verify
+  the effect with a fresh Telegram `/scan` before changing the runtime.
+
+## v3.5.7 International Market Coverage — planned
+- [x] Review JOBS.GE and HR.ge robots guidance and add conservative request
+  bounds. Terms/reuse permission remains unverified; owner must inspect scan
+  quality before treating the sources as useful.
+- [ ] Verify an Armenian public API or obtain permission before adding a
+  recurring local source; investigate the official e-work portal first.
+- [x] Check current official Armenian source candidates: the Unified Social
+  Service lists e-work.am and workforall.am; both public search pages timed out,
+  and no API/access terms were found. Online e-work registration requires PSN
+  or national eID; the in-person foreign-citizen path requires a residence card.
+- [ ] Ask the Unified Social Service whether it offers an allowed public feed
+  and whether foreign candidates can use it before relocating.
+- [ ] Prefer permitted employer career/ATS feeds and verify location, language,
+  expiry and candidate eligibility evidence.
+- [ ] Add Armenian country selection only together with a tested local source.
+- [ ] Keep visa sponsorship, work authorization, relocation support, salary
+  and language evidence separate; unknown remains unknown.
+
 ## GitHub main synchronization
 - [x] Integrate GitHub `main` commit `375af5f` into the release branch without
   rewriting history; full PostgreSQL suite passed (220 tests, 65.66%), commit

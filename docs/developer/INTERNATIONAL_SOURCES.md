@@ -62,3 +62,90 @@
   — candidate for a later contract/access review; no adapter implemented.
 - Employer ATS feeds remain a later option; employer sponsor status must never
   be treated as a sponsorship offer for every vacancy.
+
+## Armenia and Georgia — market coverage review (2026-10-11)
+
+### Current implementation
+
+- Georgia (`GE`) is in `data/countries.yaml`. JOBS.GE and HR.ge adapters are
+  registered and included only when Georgia is a target of that search profile.
+- The owner-provided latest `/scan` listed HH, Remote OK, Arbeitnow, Job Bank
+  and EURES, but no Georgian sources. `/targets` previously changed only the
+  first active profile, which made it easy to leave Relocation-first without
+  Georgia. The updated command now applies target countries to all active
+  profiles by default; `/targets relocation GE` and `/targets career GE` set a
+  single profile. `/sources` displays each active profile's source plan.
+- Armenia (`AM`) is not yet in the country catalog and no Armenian source
+  adapter is connected. Do not present Armenia as a working search market until
+  both country selection and a usable source are implemented.
+
+### Armenia source candidates
+
+- The Armenian Unified Social Service lists both [e-work.am](https://e-work.am/)
+  and [workforall.am](https://workforall.am/) as its vacancy information
+  platforms on its current [labor-market page](https://social.welfare.gov.am/labor-market-situation-in-armenia).
+  The official [e-work overview](https://social.welfare.gov.am/en/what-is-e-work)
+  says it consolidates vacancies and enables employer/jobseeker matching.
+- Direct browser checks of the public e-work search and workforall vacancy
+  pages timed out. No documented public API, feed, or automated-collection
+  terms were found in the official material reviewed. The government
+  [jobseeker registration guidance](https://social.welfare.gov.am/en/registration-of-job-seekers-1)
+  requires a Public Services Number or national eID for online registration;
+  foreign nationals using the in-person service need a residence card. This
+  does not establish whether anonymous vacancy browsing is possible, but it
+  means neither portal is yet verified as a pre-move foreign-candidate service.
+- Ask the Unified Social Service (public contact: `info@socservice.am`) whether
+  it offers a vacancy feed/API and permits a low-rate personal discovery
+  client. Do not add Armenia to the country catalog or build an adapter until
+  the public endpoint, reuse rules, and foreign-candidate access are confirmed.
+- [Staff.am](https://staff.am/jobs/devops-infrastructure) has public listings
+  in the requested DevOps/Infrastructure area, but its [Terms of Use](https://staff.am/en/site/terms-of-use)
+  prohibit automated agents scraping, stripping or mining data without express
+  written permission. No recurring collector without permission or an approved
+  feed.
+- [Job.am](https://job.am/jobs) publishes current local vacancies, but its
+  [Terms of Service](https://job.am/terms) prohibit unauthorized reproduction,
+  publication and further distribution of its materials. Do not mirror vacancy
+  descriptions into the bot without permission or an approved API.
+- For a supported adapter, prefer a documented public feed, a written source
+  agreement, or employer career/ATS endpoints that the employer exposes for
+  discovery. Preserve canonical links and collect only the fields needed for
+  matching.
+
+### Georgia source review
+
+- A live GET of `https://jobs.ge/robots.txt` returned HTTP 410, so no crawl
+  rules could be verified. A live GET of `https://www.hr.ge/robots.txt`
+  returned HTTP 200 with `User-agent: *`, `Allow: /` and a sitemap URL. The
+  sitemap is large (about 5.4 MB); the adapter does not download it. Robots
+  guidance does not grant rights to reuse vacancy content, and no explicit
+  permission for recurring extraction was verified for either board.
+- The adapters now fetch one listing page and at most six matching detail
+  pages per source, use a 15-second request timeout, and wait two seconds
+  before each detail request. Individual detail failures preserve successful
+  results; if all details fail, the scan reports a source error. Keep the
+  sources limited to profiles that target Georgia and verify result quality in
+  Telegram before treating them as useful.
+- Scheduled scans reuse cached Georgia results for six hours. Telegram
+  `/scan` explicitly forces fresh discovery for the owner's requested test.
+- Role filtering ignores generic tokens such as “engineer” when a query has a
+  more specific role term. HR.ge salary enters structured scoring only when a
+  single supported currency and an explicit monthly period are present. Bare
+  dollar symbols, annual amounts and unperiodized ranges remain source text.
+- [findjobs.ge terms](https://findjobs.ge/en/terms/) welcome polite discovery by
+  search engines and AI assistants, but also prohibit repeated or systematic
+  reuse of substantial parts of the board without written permission. A bot
+  scheduled to scan repeatedly must not use it as a recurring source without
+  permission or a suitable public API.
+
+### Eligibility and realistic relocation
+
+- Do not infer citizenship or work rights from a candidate's current country.
+  Keep location, work authorization, visa sponsorship, relocation support,
+  language and salary separate, and leave unsupported fields unknown.
+- For current country-specific rules, consult the official
+  [Armenian employment-based residence guidance](https://migration.mia.gov.am/en/acquiring-employment-based-residence-status),
+  [Georgian residence permit guidance](https://sda.gov.ge/en/products/migration-residence-permits/)
+  and [Georgian labour migration law](https://www.matsne.gov.ge/en/document/view/2806732?publication=6).
+  These links are references for source evidence, not a substitute for checking
+  the candidate's actual status and the rules in force at application time.

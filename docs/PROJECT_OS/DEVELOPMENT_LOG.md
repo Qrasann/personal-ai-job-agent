@@ -1,5 +1,177 @@
 # Development Log
 
+## 2026-10-11 — Telegram source dashboard and GitHub release map
+- Owner confirmed `/sources` displays JOBS.GE as paused after its configured
+  endpoint returned HTTP 410; HR.ge remains available for the selected GE
+  market. The completed `/scanstatus` covered 09:47:54–09:50:36 UTC.
+- Source counts were HH 209, Remote OK 3, Arbeitnow 2, Job Bank 12, EURES 16,
+  and HR.ge 2. Discovery timings were HH 7.6s, Remote OK 1.5s, Arbeitnow
+  17.1s, Job Bank 99.5s, EURES 14.5s, and HR.ge 13.0s. Job Bank is the largest
+  measured contributor; keep its five-second request pacing while evaluating
+  any safe improvement.
+- The owner's later log tail shows scheduled `scan_all` completed and Telegram
+  updates were handled within 117–677 ms; no errors appear in that excerpt.
+- Clarified the current GitHub model: `main` is stable at source version 3.5.6;
+  PR #16 carries the current market/source/docs candidate; the latest formal
+  GitHub release/tag is v3.5.1. Changelog entries v3.5.2–v3.5.6 are cumulative
+  source milestones. The intended next formal release is one cumulative v3.5.6
+  tag after `/import` preview/save and Recommendation v2 detail acceptance;
+  intermediate tags will not be backfilled.
+- README and README.ru.md on the candidate branch are aligned bilingual entry
+  points. `main` remains English-only until PR #16 is merged. No release tag or
+  main-branch merge was created during this stage.
+- Removed the duplicate stale PROJECT_OS roadmap; the root `ROADMAP.md` is now
+  the single maintained plan and the PROJECT_OS entry links to it.
+- Verification after the documentation update: isolated PostgreSQL suite
+  `233 passed`, 67.67% branch coverage (55% gate); unit-only suite
+  `230 passed, 3 skipped`; `git diff --check` passed. No application code,
+  schema, runtime, `.env`, or Docker volume was changed.
+
+## 2026-10-11 — Armenia public-source access audit
+- The Armenian Unified Social Service's current labor-market page identifies
+  e-work.am and workforall.am as its vacancy platforms. The official e-work
+  overview describes nationwide listings and employer/jobseeker matching.
+- Direct browser checks of e-work's public search and workforall's vacancy
+  page timed out. The reviewed official material documents no public API/feed
+  or automated-reuse permission. Online e-work registration asks for a Public
+  Services Number or national eID; the official foreign-citizen path for
+  in-person jobseeker registration requires a residence card. This leaves
+  anonymous browsing and pre-move candidate access unverified.
+- No Armenia country/source adapter was added. The next source step is to ask
+  the Unified Social Service (`info@socservice.am`) whether it offers an
+  authorized public feed and supports foreign candidates before relocation.
+  References: `docs/developer/INTERNATIONAL_SOURCES.md` and `ROADMAP.md`.
+
+## 2026-10-11 — owner Georgia scan and source resilience
+- The owner ran `/targets relocation GE`, `/sources`, and `/scan` in Telegram.
+  EURES returned 16 vacancies, HR.ge returned 2, and JOBS.GE failed with HTTP
+  410. Arbeitnow produced a `ReadTimeout` warning for Relocation-first.
+- Marked JOBS.GE temporarily unavailable in the country source catalog after
+  its configured homepage returned 410. `/sources` keeps the item visible,
+  labels it paused, and includes the reason; `scan_for_user` excludes it from
+  source discovery.
+- Added one bounded retry for Arbeitnow transport failures, with a 15-second
+  request timeout and short backoff. HTTP status failures are not retried.
+- Added regression tests for timeout recovery, retry exhaustion, status-error
+  behavior, and paused source availability. Targeted suite: 20 passed. Full
+  isolated PostgreSQL suite: 233 passed, 67.67% branch coverage; `compileall`
+  and `git diff --check` passed.
+- No schema or application version change. Publication, safe deployment,
+  Compose log inspection, and owner Telegram verification after update remain
+  pending. Existing database and storage volumes must remain attached.
+
+## 2026-10-11 — deploy public-source resilience candidate
+- Published `170ed4e` to the existing PR #16 branch. Push CI run `38129138392`
+  and PR CI run `38129141546` both passed, including Python tests, secret scan,
+  and Docker build.
+- Applied the candidate with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+  update`. `/status` reports source/runtime 3.5.6, app up, and PostgreSQL
+  healthy. The startup `scan_all` completed successfully.
+- Startup logs show Arbeitnow responses for both active search profiles,
+  EURES searches and detail requests, and HR.ge listing/detail requests all
+  returned HTTP 200. No JOBS.GE request, source failure, traceback, or
+  `ReadTimeout` appeared in the inspected post-update log window.
+- Mount inspection confirms `repo_jobagent_v3_pg` remains at PostgreSQL data
+  and `repo_jobagent_v3_files` remains at `/app/storage`. No migration or
+  database mutation was made.
+- The clean startup scan does not exercise Arbeitnow's retry branch. Owner
+  still needs to confirm `/sources` shows JOBS.GE paused and run one fresh
+  `/scan` in Telegram to inspect source results after the update.
+
+## 2026-10-11 — live retry and scan-duration verification
+- Owner supplied a post-deployment Telegram log excerpt. Arbeitnow timed out
+  once, logged `retry 1/1`, then returned HTTP 200, confirming retry recovery
+  against the live source.
+- EURES search/details, HR.ge listing/details, Job Bank searches/details, and
+  HH public fallback requests shown in the excerpt returned success; JOBS.GE
+  was not requested. No source error appears in the supplied excerpt.
+- Telegram handled the update in 162,716 ms. Twelve Job Bank detail requests
+  are visible, about 6.4 seconds apart, consistent with its five-second
+  robots crawl delay plus network time. This is a material latency contributor,
+  but `/scanstatus` source timings are needed to allocate the full duration.
+  Do not weaken crawl limits before measuring.
+- Still pending: owner confirms JOBS.GE's paused display in `/sources`, shares
+  `/scanstatus`, and completes `/import` preview/save plus Recommendation v2
+  vacancy-detail acceptance before release tagging.
+
+## 2026-10-11 — Georgia source guardrails (v3.5.7 market-coverage work)
+- Reviewed the two existing Georgia adapters and the reported need to target
+  Georgia explicitly. JOBS.GE `/robots.txt` returned HTTP 410; HR.ge returned
+  HTTP 200 with `Allow: /` and a sitemap URL. The HR sitemap is about 5.4 MB
+  and is not used by the adapter. Robots files do not establish content-reuse
+  permission; explicit terms authorizing recurring extraction were not
+  verified.
+- Capped each Georgia source at six matching detail pages, set 15-second
+  request timeouts, and added a two-second delay before every detail request.
+  Failed individual details no longer discard successful results; all-detail
+  failure becomes a visible source failure.
+- Set a six-hour discovery-cache TTL for scheduled Georgia scans; a Telegram
+  `/scan` still bypasses the cache for a fresh result set.
+- Tightened role matching so generic words such as “engineer” cannot by
+  themselves qualify unrelated titles. HR.ge salary is structured only for a
+  clearly labeled range with a single explicit currency and an explicit
+  monthly period. Ambiguous dollar symbols, annual pay and unperiodized ranges
+  remain raw source text and do not enter numeric salary scoring.
+- Added five Georgia adapter regressions for role filtering, salary evidence,
+  unknown work-mode/relocation, detail limits, and partial/total detail failures.
+  Targeted tests: 5 passed; the scheduled-cache regression also passes. Full
+  isolated PostgreSQL suite: 230 passed,
+  67.46% branch coverage (55% gate). `compileall` and `git diff --check` pass.
+- Published as commit `0110173` on the active feature branch/PR #16, following
+  adapter commit `2963705`. Push CI `38127150025` and PR CI `38127152783`
+  passed. Applied through `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`;
+  status reports source/runtime 3.5.6, app up and PostgreSQL healthy. The
+  startup dual-profile
+  scan completed successfully; EURES search/detail requests returned HTTP 200
+  and no EURES/Georgia source failures appeared in inspected post-update logs.
+  Mount inspection confirmed `repo_jobagent_v3_pg` and
+  `repo_jobagent_v3_files` remain attached. No schema migration or database
+  change. Georgia still needs a targeted Telegram scan: owner should run
+  `/targets relocation GE`, `/sources`, then `/scan` and send the result
+  summary plus source warnings. Keep current version at 3.5.6 pending
+  end-to-end source verification and existing release acceptance.
+
+## 2026-10-11 — v3.5.6 EURES transport and Georgia profile controls
+
+- Reproduced the reported EURES body-read failure from inside the running app
+  container. A default compressed request raised an SSL `ReadError` after
+  headers; disabling keep-alive alone did not help. The same public search with
+  `Accept-Encoding: identity` returned a complete 50-result JSON body (160,781
+  bytes).
+- Added identity encoding to EURES requests and a regression test. The adapter
+  continues using bounded transport retries and preserves partial results.
+- Confirmed why JOBS.GE/HR.ge were missing from the supplied scan: country-local
+  adapters are planned only when a profile targets GE, and `/targets` previously
+  updated only the first active profile. The command now updates all active
+  profiles by default, supports `career` and `relocation` scopes, and displays
+  all active profiles when run without arguments. `/sources` now reports each
+  profile's plan and source-setting state.
+- Replaced the stale mixed-era README with `README.md` (English) and
+  `README.ru.md`, aligned changelog version headings, and rewrote the roadmap
+  around the actual v3.5.6 gate and the next Armenia/Georgia source stage.
+- Added source-access notes: the official Armenian e-work portal could not be
+  reached for API review; Staff.am prohibits automated scraping without express
+  written permission; Job.am restricts unauthorized redistribution; recurring
+  findjobs.ge collection is not suitable without permission under its current
+  terms. No new country feed was added without a verified permitted contract.
+- Full isolated PostgreSQL suite: 224 passed; branch coverage 66.33% (55%
+  gate). `python -m compileall -q app tests` and `git diff --check` passed.
+- Published commit `6fa3406` to
+  `feature/v3.5.6-eures-identity-market-targets`; PR #16 CI run
+  passed. Recorded the verified state in follow-up handoff commit `e43072c`;
+  push and PR CI passed for that branch head. GitHub `main` remains unchanged
+  at `6294c2a`.
+- Applied the candidate with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+  update`. The app restarted, `/status` reports source/runtime 3.5.6, and
+  PostgreSQL stayed healthy. Post-update startup EURES search and detail
+  requests returned HTTP 200; the full startup dual-profile scan completed
+  successfully with no EURES SSL warnings/errors. Mount inspection confirmed
+  the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes.
+- No schema migration was needed. The v3.5.6 release tag remains gated on
+  owner-driven `/import` preview/save and Recommendation v2 vacancy-detail
+  acceptance. The owner should also set GE and inspect `/sources`/`/scan` for
+  Relocation-first. The latest published GitHub release is still v3.5.1.
+
 ## 2026-10-11 — v3.5.6 Recommendation Model v2
 - Added a persisted per-match JSON breakdown for technical, growth, fast-exit,
   interview-risk, salary, remote, relocation, security, infrastructure and

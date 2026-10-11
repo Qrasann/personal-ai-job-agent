@@ -27,6 +27,7 @@ from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
+from app.search.preferences import source_enabled
 from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
 from app.version import current_version
 from app.telegram.multicommand import (
@@ -114,7 +115,7 @@ def _main_menu_text() -> str:
         "/city Тверь — локальный город\n"
         "/domestic_relocation on|off — переезд по РФ\n"
         "/country — текущая страна\n"
-        "/targets — целевые страны\n"
+        "/targets [all|career|relocation] GE[,CA] — рынки поиска\n"
         "/settings — текущие настройки\n\n"
         "/salary — зарплатные ориентиры\n"
         "/blacklist — исключаемые слова\n\n"
@@ -469,15 +470,26 @@ async def targets(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
-    profile, search = await _first_search(user.id)
-    if not search:
+    profile = await repo.active_profile(user.id)
+    if not profile:
         return
-    parts = (message.text or "").split(maxsplit=1)
-    current = search.settings or {}
+    searches = await repo.list_search_profiles(profile.id)
+    if not searches:
+        return
+    parts = (message.text or "").split(maxsplit=2)
     if len(parts) == 1:
-        await message.answer("🎯 Локальные рынки: " + ", ".join(current.get("target_countries") or []) or "не заданы")
+        lines = [f"🎯 <b>{html.escape(item.name)}</b>: " + (", ".join((item.settings or {}).get("target_countries") or []) or "не заданы") for item in searches]
+        await message.answer("\n".join(lines), parse_mode="HTML")
         return
+
+    scope = "all"
     raw = parts[1].strip()
+    if raw.casefold() in {"all", "career", "relocation"}:
+        scope = raw.casefold()
+        if len(parts) < 3:
+            await message.answer("Использование: /targets [all|career|relocation] <GE[,CA]|clear>")
+            return
+        raw = parts[2].strip()
     values = [] if raw.casefold() == "clear" else [x.strip() for x in raw.split(",") if x.strip()]
     codes = []
     for value in values:
@@ -487,9 +499,31 @@ async def targets(message: Message) -> None:
             return
         if code not in codes:
             codes.append(code)
-    current["target_countries"] = codes
-    await repo.update_search_settings(search.id, current)
-    await message.answer("✅ Локальные рынки: " + (", ".join(codes) if codes else "очищены"))
+
+    if scope == "all":
+        selected_searches = searches
+    else:
+        expected_kind = "career" if scope == "career" else "relocation"
+        selected_searches = [item for item in searches if item.kind == expected_kind]
+        if not selected_searches and scope == "career" and len(searches) == 1:
+            selected_searches = searches
+        if not selected_searches:
+            if scope == "relocation":
+                await message.answer("❌ Профиль Relocation-first не активен. Включи его командой /parallelsearch on.")
+            else:
+                await message.answer("❌ Профиль Career-first не найден среди активных поисков.")
+            return
+
+    for search in selected_searches:
+        current = dict(search.settings or {})
+        current["target_countries"] = codes
+        await repo.update_search_settings(search.id, current)
+        search.settings = current
+    target_names = ", ".join(item.name for item in selected_searches)
+    await message.answer(
+        f"✅ Локальные рынки для {target_names}: "
+        + (", ".join(codes) if codes else "очищены")
+    )
 
 
 @router.message(Command("sources"))
@@ -497,14 +531,26 @@ async def sources(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
-    _, search = await _first_search(user.id)
-    targets = (search.settings or {}).get("target_countries") if search else []
-    plan = build_source_plan(user.current_country or "RU", targets or [], include_international=True)
+    profile = await repo.active_profile(user.id)
+    if not profile:
+        return
+    searches = await repo.list_search_profiles(profile.id)
     lines = ["🧭 <b>Источники Personal Job Agent</b>"]
-    for item in plan:
-        flag = "✅" if item.implemented else "🧩"
-        lines.append(f"{flag} {html.escape(item.name)} — {html.escape(item.scope)} — {html.escape(item.transport)}")
-    lines.append("\n✅ = collector уже есть; 🧩 = источник зарегистрирован, нужен отдельный adapter.")
+    for search in searches:
+        settings_map = search.settings or {}
+        targets = settings_map.get("target_countries") or []
+        plan = build_source_plan(user.current_country or "RU", targets, include_international=True)
+        lines.append(f"\n<b>{html.escape(search.name)}</b> · рынки: {html.escape(', '.join(targets) or 'не заданы')}")
+        for item in plan:
+            if not item.implemented:
+                flag = "🧩"
+            elif not item.available:
+                flag = "⚠️"
+            else:
+                flag = "✅" if source_enabled(settings_map, item.source_id) else "⏸"
+            availability = f" · {item.availability_note}" if item.availability_note else ""
+            lines.append(f"{flag} {html.escape(item.name)} — {html.escape(item.scope)} — {html.escape(item.transport)}{html.escape(availability)}")
+    lines.append("\n✅ = источник доступен и разрешён настройками; ⏸ = отключён в настройках; ⚠️ = временно приостановлен; 🧩 = adapter ещё не подключён. Это не live health check.")
     await message.answer("\n".join(lines), parse_mode="HTML")
 
 
