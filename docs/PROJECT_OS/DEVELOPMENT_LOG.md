@@ -120,6 +120,23 @@
   startup search both succeeded. Automated tests cover parsing and detail
   enrichment. Real Telegram chat acceptance remains owner-driven.
 
+# 2026-10-11 — reconcile the release branch with GitHub main
+- Checked the clean v3.5.6 release branch against `origin/main`: main is at
+  `375af5f` (v3.5.1), while the release branch is at `466c676`; the branches
+  diverged after the search-control PR was merged to main.
+- Integrated the main commit into the feature branch without rewriting history;
+  overlapping implementation files retain the later release-branch content.
+  The merge produces no application-tree changes.
+- Reran the full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage.
+- Runtime inspection reports source/runtime 3.5.6, app up, PostgreSQL healthy,
+  and the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
+  attached. Latest EURES logs still show intermittent SSL record-layer
+  failures; bounded retries sometimes recover and the scheduled scan completed.
+- PR #15 must remain unmerged until the owner records real-chat acceptance for
+  the Telegram controls and Recommendation v2 details, as required by the
+  current-state merge rule. The feature-branch synchronization is pending
+  publication and CI verification.
+
 ## 2026-10-10 — Telegram salary and blacklist controls
 - Added `/salary current|desired|minimum <currency> <amount|clear>` and a
   read-only summary; only `minimum` affects matching, preserving the current

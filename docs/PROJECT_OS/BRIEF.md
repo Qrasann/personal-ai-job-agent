@@ -42,7 +42,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Verified
 
-- Latest PostgreSQL-backed suite: `220 passed`, 65.66% branch coverage.
+- Latest full PostgreSQL-backed suite: `220 passed`, 65.66% branch coverage
+  (rerun on 2026-10-11).
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
 - Commit `496c920` is published and deployed; Compose reports source/runtime
@@ -52,17 +53,26 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   and RemoteOK; no startup errors were present in the inspected log tail.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
+- GitHub `main` is still v3.5.1 at `375af5f`; PR #15 contains v3.5.6 but
+  diverged from the merged search-control commit. A merge-only synchronization
+  is prepared locally; publish it to the PR branch after the checks below.
+- Latest supplied/runtime logs show intermittent EURES `SSLError` retries,
+  some EURES HTTP 200 responses, and a scheduled scan that still completed.
+  Job Bank and other sources continue independently; EURES can still be
+  unavailable for an individual profile when every bounded attempt fails.
 
 ## Current priority
 
-Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, `/import`, and Recommendation v2 vacancy details; record results before release tagging.
+Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, `/import`, and Recommendation v2 vacancy details; record results before merging PR #15 into `main` or tagging releases.
 
 ## Open limitations
 
 - Source coverage remains the main Relocation-first bottleneck, especially Armenia and low-barrier legal work.
 - Arbeitnow currently improves Germany/Career coverage but may contain no low-barrier roles.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
-- EURES may still return partial results if repeated transport attempts fail; its retry budget is bounded and HTTP status responses are not retried.
+- EURES may still return partial results or fail for one profile if repeated
+  TLS transport attempts fail; retries are bounded, HTTP status responses are
+  not retried, and other sources continue.
 - The EURES cross-border flag is not proof of visa sponsorship, relocation support, or third-country work authorization.
 - Public applicant counts are unavailable in the connected candidate-facing feeds and remain unknown.
 - Dedicated Career Score and Relocation Score, affordability calculation, migration knowledge base, and application tracker are later phases—not completed features.

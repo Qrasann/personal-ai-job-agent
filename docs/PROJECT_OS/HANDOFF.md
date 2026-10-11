@@ -1,5 +1,24 @@
 # Handoff
 
+## GitHub branch synchronization — 2026-10-11
+
+GitHub `main` remains at `375af5f` (v3.5.1), while the deployed release branch
+contains v3.5.6 at `466c676`. PR #15 is the existing path for publishing the
+release. The main commit has been integrated into the release branch locally
+without rewriting history; the merge does not alter the application tree.
+The full PostgreSQL suite passes (220 tests, 65.66% branch coverage). Publish
+the updated feature branch and verify PR CI/mergeability. Keep PR #15 open until
+the owner completes real-chat acceptance for `/salary`, `/blacklist`,
+`/scanstatus`, `/cancel`, `/import`, and Recommendation v2 vacancy details,
+following the merge rule in `CURRENT_STATE.md`.
+
+The running Compose app reports source/runtime 3.5.6 and PostgreSQL healthy;
+the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain
+attached. Recent logs show intermittent EURES TLS record-layer failures mixed
+with successful HTTP 200 responses. Retries and partial-result handling work,
+but EURES is still an occasional source-level failure; the latest scheduled
+scan completed and other sources continued.
+
 ## Current stage — v3.5.6 Recommendation Model v2 (2026-10-11)
 
 Each new or refreshed match stores a JSONB evidence breakdown for technical,

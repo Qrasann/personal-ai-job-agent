@@ -5,6 +5,12 @@
 - Relocation discovery initially used `relocation_queries` while matching scored only career `queries`, filtering otherwise relevant broad-role results. Matching now uses the active strategy's discovery queries.
 - Generic description text could be misread as a salary for non-HH sources. Notifications and details now use only structured salary values or explicit source salary/card text.
 
+- EURES still has intermittent TLS record-layer failures in the deployed
+  runtime. The adapter retries transport failures and keeps successful query
+  results, but an individual profile may receive no EURES results when all
+  retries fail; the scheduled scan and other sources continue. The cause has
+  not been established from current logs.
+
 - work_permit, relocation_package and immigration_support are not separate Job columns yet; v3.5.2 infers them conservatively from vacancy text.
 - Source/country priority affects processing order, not Recommendation Model v2 score yet.
 - City priority exists in the preference engine but dedicated Telegram city-priority buttons are pending.
