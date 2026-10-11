@@ -4,11 +4,11 @@
 - Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
-- Candidate application commit `5d6b00b` is deployed; the checked-out branch
-  `feature/v3.5.7-international-market-coverage` has uncommitted Job Bank
-  transport-retry work. Draft PR #18 is open; CI passed for the deployed
-  HTML-entity fix (`38147877309` / `38147879757`). No merge, tag, or formal
-  release has been made.
+- The active feature branch is `feature/v3.5.7-international-market-coverage`,
+  candidate version 3.5.7. Commit `36c425b` adds the tested Job Bank retry and
+  is pushed and deployed. PR #18 is open as a draft against `main`; push CI
+  `38148615302` and PR CI `38148617896` passed. No merge or v3.5.7 tag/release
+  has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -16,12 +16,14 @@
   `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- Local Compose project `repo` now runs source/runtime 3.5.7 after the safe
-  updater applied `5d6b00b`. The startup `scan_all` completed at 14:40:12 UTC;
-  EURES search/detail calls returned HTTP 200 and the inspected five-minute
-  log window contained no source errors or SSL failures. PostgreSQL remained
-  healthy and was not recreated.
-- The safe updater rebuilt the feature branch. Read-only mount inspection
+- Local Compose project `repo` runs source/runtime 3.5.7 after the safe updater
+  applied `36c425b`; PostgreSQL remained healthy and was not recreated. Startup
+  `scan_all` completed at 14:51:38 UTC. Job Bank search and 12 detail requests,
+  plus EURES search/detail, returned HTTP 200. No source or scan error appeared
+  in the inspected logs. The scan had no transport failure, so it did not
+  exercise the retry path live.
+- Earlier candidate verification: the safe updater rebuilt the feature branch;
+  read-only mount inspection
   confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
   Startup `scan_all` completed at 13:31:05 UTC; EURES returned HTTP 200 and no
   errors appeared in the inspected tail. The owner later confirmed Greenhouse
@@ -54,10 +56,10 @@
   Career-first and Relocation-first profiles.
 - Latest full isolated PostgreSQL suite, including Job Bank retry regressions:
   244 passed, 68.26% branch coverage (55% gate); compile and diff checks passed.
+  GitHub push/PR CI, safe deployment and post-deploy log review are complete.
   Career-first GE/AM and readable Telegram detail-card acceptance are complete.
-  The latest supplied scan had one isolated Relocation-first Job Bank
-  `ConnectTimeout` (0 jobs, 29.2 seconds). The retry change is tested locally;
-  GitHub CI and post-deploy runtime-log verification remain.
+  The earlier Job Bank `ConnectTimeout` is covered by a one-retry transport
+  regression; HTTP status errors remain unretried.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the

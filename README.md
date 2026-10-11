@@ -11,22 +11,25 @@ vacancy matching.
 - **Source on `main`:** v3.5.6.
 - **Latest published GitHub Release/tag:** v3.5.6.
 - **Active candidate:** v3.5.7 on `feature/v3.5.7-international-market-coverage`;
-  it is deployed to the local Compose bot for Telegram acceptance, but is not
-  merged or released yet.
-- The candidate's full isolated PostgreSQL suite passes: 240 tests and 68.22%
-  branch coverage; PR #18 GitHub checks pass. The owner ran Career-first for
-  GE/AM and received one Lineate Infrastructure Engineer vacancy for Georgia
-  (67/100). Its work mode is unknown. One `/job <id>` detail-card review remains
-  before v3.5.7 acceptance. The same scan had a transient Job Bank
-  `ConnectTimeout` for Relocation-first; EURES returned 16 jobs without an SSL
-  error.
+  it is deployed to local Compose and remains an unmerged, unreleased draft PR
+  #18.
+- The latest full isolated PostgreSQL suite passes: 244 tests, 68.26% branch
+  coverage. Push CI `38148615302` and PR CI `38148617896` pass. The owner
+  completed Career-first GE/AM Telegram acceptance: Lineate's Georgia opening
+  scored 67/100, and `/job 1091` now shows readable text while unsupported
+  salary, work mode, visa and relocation details remain unknown.
+- The candidate retries one Job Bank transport failure under its shared
+  five-second request pacing; HTTP status errors are not retried. After the
+  update, startup `scan_all` completed at 14:51:38 UTC. Job Bank search and
+  detail requests and EURES search/detail requests returned HTTP 200. The
+  runtime was not asked to retry because no transport failure occurred.
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details
   completed in Telegram on 2026-10-11.
 - The checked-out candidate and local Compose runtime report v3.5.7, with
-  PostgreSQL healthy and schema 4/4. GitHub `main` and the formal release stay
-  at v3.5.6 until acceptance and merge.
+  PostgreSQL healthy and schema 4/4. GitHub `main` and the latest formal
+  release/tag stay at v3.5.6. No v3.5.7 tag or release exists yet.
 
 ## Search profiles
 

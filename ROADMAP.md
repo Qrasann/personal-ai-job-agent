@@ -38,18 +38,16 @@ per-profile market controls:
 Focus on useful, legally reachable vacancies in Georgia and Armenia, while
 preserving the separate Career-first and Relocation-first goals.
 
-The active candidate now adds selectable `AM` and a bounded Greenhouse Job
-Board API connector for Lineate. It runs only for profiles targeting AM or GE,
+The active candidate adds selectable `AM` and a bounded Greenhouse Job Board
+API connector for Lineate. It runs only for profiles targeting AM or GE,
 filters by the profile's role queries and explicit posting location, and leaves
 work mode, salary, visa and relocation unknown without direct evidence. The
-current Lineate board shows an Infrastructure Engineer for its Georgian office
-and a Data Engineer in Yerevan; only the former matches the current
-DevOps/Infrastructure search. The full isolated PostgreSQL suite passes with
-240 tests and 68.22% branch coverage; PR #18 checks pass. The candidate is
-running on the local Compose bot. The owner completed the Career-first GE/AM
-scan and received one Lineate Infrastructure Engineer vacancy for Georgia
-(67/100). The remaining Telegram acceptance is to open its detail card and
-verify evidence fields; v3.5.7 is not merged or formally released.
+owner completed Career-first GE/AM discovery and confirmed `/job 1091` renders
+readable vacancy text while unsupported fields remain unknown. The latest full
+isolated PostgreSQL suite passes with 244 tests and 68.26% branch coverage;
+push CI `38148615302` and PR CI `38148617896` pass. The candidate is running on
+the local Compose bot; PR #18 remains draft and v3.5.7 is not merged or formally
+released.
 
 The [official Lineate posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
 identifies a Georgian office, requires 3+ years of Linux system administration
@@ -67,12 +65,14 @@ The owner first checked `/targets relocation GE,AM`, `/sources`, `/scan`, and
 `/scanstatus`. Greenhouse · Lineate was enabled and returned HTTP 200, but no
 jobs matched the broad non-technical Relocation-first role queries. The owner
 then selected GE/AM for Career-first and the live scan returned the Georgia
-Infrastructure Engineer. Open that notification with `/job <id>` to finish
-acceptance without replacing the broad Relocation-first search. The same scan
-showed Job Bank `ConnectTimeout` for Relocation-first (0 jobs, 29.2 seconds);
-EURES returned 16 without an SSL error and the remaining sources completed.
-Track Job Bank retry behavior as a separate reliability fix and preserve its
-five-second request spacing.
+Infrastructure Engineer. The owner opened `/job 1091` and accepted the readable
+description and conservative unknown fields. A bounded Job Bank transport
+retry is implemented and deployed; it retries once under the shared crawl lock
+with the existing five-second delay, and does not retry HTTP status errors.
+After deployment, startup `scan_all` completed at 14:51:38 UTC. Job Bank search
+and detail requests and EURES search/detail requests returned HTTP 200. No
+transport failure occurred in that run, so runtime retry recovery remains
+covered by regression tests rather than a live failure injection.
 
 - The owner confirmed the active Relocation-first target `GE`, the paused JOBS.GE
   status, and a completed live scan: EURES returned 16 vacancies and HR.ge 2.

@@ -158,9 +158,14 @@
   leave HTTP status errors unretried. Regression tests cover recovery,
   exhaustion, status handling and pacing; full isolated PostgreSQL suite:
   244 passed, 68.26% branch coverage.
-- [ ] Push the retry change, pass GitHub CI, safely update the local Compose
-  app, and inspect startup scan logs for Job Bank retry behavior and source
-  errors.
+- [x] Push commit `36c425b`; push CI `38148615302` and PR CI `38148617896`
+  passed Python checks, Docker build and secret scan.
+- [x] Safely update Compose project `repo`; source/runtime is 3.5.7,
+  PostgreSQL is healthy, and startup `scan_all` completed at 14:51:38 UTC.
+  Job Bank search and 12 detail requests and EURES search/detail requests
+  returned HTTP 200; no Job Bank, EURES or scan error appeared in the inspected
+  logs. No runtime transport failure occurred, so retry recovery is verified by
+  regressions, not by injecting a live failure.
 - [ ] For the time-sensitive relocation search, verify each useful opening's
   active/closing status, application deadline, expected start timing, and work
   eligibility from public evidence; leave missing details unknown.

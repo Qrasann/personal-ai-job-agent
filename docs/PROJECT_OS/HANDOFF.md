@@ -1,6 +1,6 @@
 # Handoff
 
-## v3.5.7 Lineate detail rendering follow-up — 2026-10-11
+## v3.5.7 Job Bank transport resilience — 2026-10-11
 
 The owner opened `/job 1091` for Lineate's Infrastructure Engineer opening.
 The card correctly left salary, work mode, and unsupported visa/relocation
@@ -19,17 +19,31 @@ HTTP 200; the inspected log window had no source errors or SSL failures.
 
 The owner reopened `/job 1091` after deployment and confirmed that the
 description is readable. Salary, work mode, and unsupported visa/relocation
-claims remain unknown. Telegram acceptance for this rendering fix is complete.
-PR #18 remains a draft; no merge or v3.5.7 release/tag has been made.
+claims remain unknown. Telegram acceptance for the Lineate discovery and detail
+rendering is complete.
 
-The next reliability change addresses the earlier Relocation-first Job Bank
-`ConnectTimeout`. The implementation now retries one `httpx.TransportError`
-under the existing shared request lock, with the existing five-second delay
-before each attempt. HTTP status errors are not retried. Job Bank tests pass
-(15); the full isolated PostgreSQL suite passes (244 tests, 68.26% branch
-coverage), as do compilation and `git diff --check`. GitHub CI, safe deployment
-and runtime scan-log review remain before this stage is complete. No schema,
-credential, production-data, or Docker-volume changes are part of this work.
+To handle the earlier Relocation-first Job Bank `ConnectTimeout`, commit
+`36c425b` adds one retry for `httpx.TransportError` under the existing shared
+request lock, with the existing five-second delay before each attempt. HTTP
+status errors are not retried. Job Bank tests pass (15); the full isolated
+PostgreSQL suite passes (244 tests, 68.26% branch coverage), as do compilation
+and `git diff --check`. Push CI `38148615302` and PR CI `38148617896` passed.
+
+The safe updater deployed commit `36c425b` to Compose project `repo`. Source
+and runtime report 3.5.7; PostgreSQL is healthy. Startup `scan_all` completed
+at 14:51:38 UTC. Job Bank search and 12 detail requests and EURES search/detail
+requests returned HTTP 200; no source or scan errors appeared in the inspected
+logs. No transport error occurred during this scan, so live retry recovery was
+not triggered; the bounded behavior is covered by regressions. No schema,
+credential, production-data or Docker-volume changes were made.
+
+The checked-out candidate is on
+`feature/v3.5.7-international-market-coverage`; PR #18 remains open and draft
+against `main`. Stable `main`, the formal release and latest tag remain
+v3.5.6. No v3.5.7 merge, tag or release has been made. The next product stage
+is to review permitted employer ATS feeds and owner-selected Telegram sources
+for relevant Georgia/Armenia openings, while preserving the separate search
+profiles and evidence rules.
 
 ## v3.5.7 owner Career-first GE/AM scan — 2026-10-11
 
@@ -47,12 +61,11 @@ The current [official Lineate posting](https://job-boards.greenhouse.io/lineate/
 identifies a Georgian office, requires at least 3 years of Linux system
 administration and 2 years of AWS in production, and includes a 24/7 shift
 schedule. The posting does not state salary, work mode, visa sponsorship, or
-relocation assistance. These remain unknown. The bot sent one notification;
-the remaining acceptance is for the owner to locate its ID in `/jobs`, open
-`/job <id>`, and confirm the detail card does not invent those facts. PR #18
-remains draft; do not merge or tag v3.5.7 before this review. The isolated
-test suite and prior GitHub CI are green. No database/schema or volume change
-was made.
+relocation assistance. These remain unknown. The bot sent one notification.
+The owner later opened `/job 1091` and confirmed the deployed description is
+readable while unsupported facts remain unknown; the result is recorded at the
+top of this handoff. PR #18 remains a draft. No database/schema or volume
+change was made.
 
 ## v3.5.7 owner Telegram source check — 2026-10-11
 
@@ -66,13 +79,12 @@ The full scan ran from 14:03:57 to 14:06:34 UTC and returned HH 209, Remote OK
 3, Arbeitnow 2, Job Bank 12, EURES 16, Greenhouse 0, and HR.ge 2. Job Bank took
 about 100.5 seconds.
 
-To finish the live Lineate role/location check, ask the owner to run
-`/targets career GE,AM`, `/sources`, `/scan`, and `/scanstatus`, then inspect a
-returned result with `/job <id>`. This adds Georgia/Armenia only to Career-first
-and preserves Relocation-first's broad role search. Do not infer visa or
-relocation support from country targeting or the Greenhouse cross-border
-source. PR #18 remains a draft until this check is complete. Its GitHub CI
-checks pass. No database schema or Docker-volume change was made.
+The owner subsequently ran `/targets career GE,AM`, `/sources`, `/scan`, and
+`/scanstatus`, then inspected Lineate with `/job 1091`; see the current
+acceptance result above. This added Georgia/Armenia only to Career-first and
+preserved Relocation-first's broad role search. Do not infer visa or relocation
+support from country targeting or the Greenhouse source. PR #18 remains a draft.
+No database schema or Docker-volume change was made.
 
 ## v3.5.7 source and vacancy realism review — 2026-10-11
 
@@ -369,9 +381,10 @@ returned HTTP 200. Inspection confirmed `repo_jobagent_v3_pg` and
 fast-forward-only and rebuilds the currently running service without removing
 the database or volumes.
 
-The BRIEF's owner-driven Telegram acceptance remains outstanding for
-`/salary`, `/blacklist`, `/scanstatus`, and `/cancel`; do not claim those real
-chat commands passed or tag releases until the owner records the results.
+At the time of this v3.5.4 note, owner-driven Telegram acceptance for
+`/salary`, `/blacklist`, `/scanstatus`, and `/cancel` remained outstanding. The
+owner later supplied those real-chat results; the acceptance is recorded in
+the v3.5.6 handoff above.
 
 ## Current deployment — v3.5.4 EURES discovery
 
@@ -472,9 +485,8 @@ Rollback is limited to the dual-mode commit/files because legacy `queries` remai
 Earlier verification on 2026-10-10: 175 pytest tests passed against isolated
 PostgreSQL 16; branch coverage 63.22% (gate 55%). Subsequent startup, parallel
 profile activation and dual-profile scan smoke tests passed locally, as recorded
-in DEVELOPMENT_LOG.md. Remote CI now passes for the later v3.5.4 stage;
-comprehensive owner-driven Telegram control acceptance remains pending. Read
-`BRIEF.md` first for the current concise state and priority.
+in DEVELOPMENT_LOG.md. Remote CI and Telegram acceptance were completed in
+later release stages; read `BRIEF.md` first for the current concise state.
 
 Parallel search is opt-in. The existing profile becomes `Career-first`; one
 `Relocation-first` profile is created and reused. Disabling parallel search
@@ -498,8 +510,10 @@ page and was deferred.
 Final local verification: 191 tests passed against isolated PostgreSQL 16,
 64.16% branch coverage (gate 55%); Python compilation and `git diff --check`
 passed. The local .venv uses Python 3.14; the deployment image remains Python
-3.12. GitHub Actions CI run 102 passed for the Job Bank commit. Comprehensive
-Telegram acceptance remains pending.
+3.12. GitHub Actions CI run 102 passed for the Job Bank commit. Telegram
+acceptance was pending at this stage; the owner later confirmed the core
+commands, resume import and Recommendation v2 detail flow (see the v3.5.6
+acceptance entry above).
 
 Local deployment was rebuilt with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
 rebuild` from this worktree. Runtime remains v3.5.2; both Career-first and

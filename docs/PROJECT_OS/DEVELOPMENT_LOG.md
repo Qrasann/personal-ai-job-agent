@@ -28,8 +28,19 @@
   transient connect timeout, one-retry exhaustion, no retry for HTTP 503, and
   the existing per-request delay checks. Full isolated PostgreSQL suite:
   `244 passed`, 68.26% branch coverage. Compileall and `git diff --check` pass;
-  the isolated test service is stopped. GitHub CI, deployment and post-deploy
-  logs remain pending.
+  the isolated test service is stopped. Commit `36c425b` was pushed; push CI
+  `38148615302` and PR CI `38148617896` passed Python checks, Docker build and
+  secret scan.
+- The safe updater applied the candidate to Compose project `repo`; source and
+  runtime report 3.5.7, and PostgreSQL is healthy. Startup `scan_all` completed
+  at 14:51:38 UTC. Job Bank search and 12 details, plus EURES search/details,
+  returned HTTP 200. No Job Bank, EURES or scan error appeared in the inspected
+  logs. The scan did not encounter a transport failure, so live retry recovery
+  remains covered by regression tests rather than failure injection.
+- PR #18 remains open and draft against `main`. Stable `main`, the formal
+  release and latest tag remain v3.5.6; no v3.5.7 tag/release or merge was
+  made. The owner confirmed the post-deploy `/job 1091` description is readable
+  and leaves unsupported facts unknown.
 
 ## 2026-10-11 — v3.5.7 owner Telegram source check
 - Owner set Relocation-first markets to GE and AM and shared `/sources`,

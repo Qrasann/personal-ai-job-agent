@@ -120,8 +120,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Latest full isolated PostgreSQL suite on the current worktree: `244 passed`,
   68.26% branch coverage (55% gate), including the encoded-HTML and Job Bank
   retry regressions. Compilation and `git diff --check` pass. Push CI
-  `38147877309` and PR CI `38147879757` passed for deployed commit `5d6b00b`;
-  CI for the current retry change is pending.
+  `38148615302` and PR CI `38148617896` passed for commit `36c425b`.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -129,10 +128,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirmed `/sources` enabled Greenhouse for Relocation-first GE/AM; the
   Greenhouse request returned HTTP 200 and zero query-matched jobs. The
   currently selected relocation roles do not include Infrastructure Engineer.
-- The safe updater applied `5d6b00b` to Compose project `repo` without
-  recreating PostgreSQL. The startup scan completed at 14:40:12 UTC; EURES
-  search/detail requests returned HTTP 200, and the inspected log window had
-  no source errors or SSL failures.
+- The safe updater applied `36c425b` to Compose project `repo` without
+  recreating PostgreSQL. Startup `scan_all` completed at 14:51:38 UTC; Job Bank
+  search and 12 detail requests and EURES search/detail returned HTTP 200. The
+  inspected logs contained no source or scan errors. No transport failure
+  occurred, so the live retry path was not triggered.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
@@ -144,7 +144,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   `38135649948`).
 - Draft PR #18 is open for the v3.5.7 candidate. Career-first GE/AM role and
   location acceptance and the fixed detail-card check are complete. Keep PR
-  #18 draft; v3.5.7 remains unmerged and unreleased.
+  #18 draft; v3.5.7 remains unmerged and unreleased. Latest PR head is
+  `36c425b`; push CI `38148615302` and PR CI `38148617896` passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
@@ -205,9 +206,11 @@ country-specific work eligibility. Keep unverified dates and support unknown.
 Do not copy the owner's personal relocation estimate into public repository
 files.
 
-Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`. The current
-worktree passes the full isolated PostgreSQL suite and compile checks; CI for
-the Job Bank retry and its deployment/runtime-log review remain.
+Continue v3.5.7 on `feature/v3.5.7-international-market-coverage`. The bounded
+Job Bank retry is fully tested, pushed and deployed. `main` and the latest
+formal tag/release remain v3.5.6; PR #18 remains draft. The next product stage
+is permitted source coverage for relevant Georgia/Armenia openings, followed
+by verification of each live role's location, timing and eligibility evidence.
 The owner completed the Career-first GE/AM source check: Greenhouse returned
 one Lineate Infrastructure Engineer vacancy for Georgia and sent one new
 notification. `/job 1091` now displays a readable description and keeps
@@ -227,9 +230,9 @@ citizenship details in public documents. Track the 90,000 RUB internship that
 appeared despite the 100,000 RUB minimum: `/salary minimum` affects scoring,
 not hard filtering, and that amount appeared only in description text. Resolve
 that semantics/UI issue in a separate tested salary stage. Preserve source
-pacing. One bounded Job Bank retry for transport failures is implemented and
-passes the full local suite; push CI, safe deployment and runtime-log
-verification remain.
+pacing. The bounded Job Bank retry is already tested, deployed and recorded in
+the current feature candidate; continue with permitted source coverage for
+relevant Georgia/Armenia openings.
 
 ## Open limitations
 

@@ -18,11 +18,17 @@
   Current Lineate listings include an Infrastructure Engineer role for its
   Georgian office; current role fit and eligibility still require vacancy-level
   matching and review.
-- Full isolated PostgreSQL suite: 240 passed; branch coverage 68.22% (55%
-  gate). Compilation, `git diff --check`, and GitHub push CI run `38143185017`
-  pass. Draft PR #18 is open and PR-CI run `38143789063` passed. The candidate
-  is deployed to the local Compose bot for owner Telegram acceptance; it is not
-  merged, tagged, or released.
+- Decode HTML entities in vacancy details before stripping markup, so Greenhouse
+  descriptions render as readable Telegram text.
+- Retry one Job Bank transport failure under the shared request lock, retaining
+  the five-second delay before each attempt; do not retry HTTP status errors.
+- Full isolated PostgreSQL suite: 244 passed; branch coverage 68.26% (55%
+  gate). Compilation and `git diff --check` pass. Push CI `38148615302` and
+  PR-CI `38148617896` pass. The candidate is deployed to local Compose project
+  `repo`; startup `scan_all` completed at 14:51:38 UTC, with Job Bank and EURES
+  search/detail requests returning HTTP 200. The owner confirmed the Lineate
+  detail card is readable and leaves unsupported fields unknown. Draft PR #18
+  remains unmerged; no v3.5.7 tag or release has been published.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 
