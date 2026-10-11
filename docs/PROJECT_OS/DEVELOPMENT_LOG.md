@@ -237,3 +237,4 @@
 
 ## 2026-10-11 — compact Codex context
 - Replaced the need to paste the original long relocation prompt into every session with a compact, updateable `BRIEF.md`; refreshed stale handoff and smoke-test status.
+- Added `scripts/chat_context.py` and local setup documentation for exporting only explicitly selected ChatGPT conversations into a permission-restricted file outside the repository; added an active-branch/allowlist regression test.

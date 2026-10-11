@@ -34,6 +34,7 @@
   tagging.
 
 ## v3.5.2
+- [x] Add a local private-context exporter for an explicit allowlist of ChatGPT conversations.
 - [x] Search preference engine.
 - [x] Source enable/disable.
 - [x] Source priority.

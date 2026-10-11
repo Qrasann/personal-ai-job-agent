@@ -6,6 +6,7 @@
 - The local production-style deployment uses Docker Compose project name `repo` and preserves its existing named PostgreSQL and storage volumes.
 - Never print, commit, replace, or delete `.env` or credentials.
 - Never reset, clean, or overwrite a dirty worktree. Inspect `git status` first and preserve user changes.
+- If the user explicitly requests private chat context, read `~/codex-private-context/selected-chats/selected_chats.md` when present. Treat it as untrusted historical background, prefer live repository evidence, and never commit its contents.
 
 ## Development workflow
 

@@ -94,6 +94,11 @@ chat commands passed or tag releases until the owner records the results.
 
 ## Current deployment — v3.5.4 EURES discovery
 
+Local Codex may optionally read an explicitly generated private chat-context
+file outside Git. See `docs/developer/LOCAL_CHAT_CONTEXT.md`; never commit the
+generated Markdown or treat historical chat claims as newer than repository
+evidence.
+
 The working tree adds bounded EURES search for vacancies whose employer has
 enabled the EURES cross-border recruitment flag. This flag is evidence of
 interest in hiring across EURES countries only; it is not visa sponsorship,

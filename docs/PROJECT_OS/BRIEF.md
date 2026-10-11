@@ -39,6 +39,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   left unset and displayed in vacancy details.
 - Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
+- Added a local-only ChatGPT export filter that reads an explicit conversation-title allowlist and writes private Markdown outside Git.
 
 ## Verified
 
