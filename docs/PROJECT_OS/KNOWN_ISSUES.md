@@ -32,9 +32,13 @@
   Greenhouse board is connected for selected AM/GE markets. Its current
   DevOps/Infrastructure match is for a Georgian office; the Yerevan postings
   on that board are data-engineering roles and do not match current queries.
-  The official e-work/workforall access contract remains unverified. Staff.am
+  The candidate is deployed to local Compose for owner acceptance, while
+  `main` and the formal release remain v3.5.6. Its startup scan did not show a
+  Greenhouse request; verify the effective market/source settings with
+  `/sources` and a targeted Telegram `/scan`. The official e-work/workforall
+  access contract remains unverified. Staff.am
   prohibits automated scraping without permission, and Job.am restricts
-  unauthorized reuse and redistribution. The candidate is not deployed yet.
+  unauthorized reuse and redistribution.
 - The official Armenian `workpermit.am` portal describes employer-side
   foreign-hiring and work-residence processing, and states that EAEU citizens
   working in Armenia are exempt from work-permit documents. Its public UI has

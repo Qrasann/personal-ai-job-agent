@@ -3,12 +3,14 @@
 ## v3.5.7 source and vacancy realism review — 2026-10-11
 
 The active branch `feature/v3.5.7-international-market-coverage` starts from
-main commit `02f582e`. Its candidate `VERSION` is 3.5.7; stable `main`, the
-formal tag/Release, and Compose runtime remain v3.5.6. Main CI run `38139660265`
-passed after the release documentation sync. The app is up and PostgreSQL is
-healthy. The latest inspected app log tail ends with scheduled `scan_all`
-completing at 13:12:25 UTC; the visible Job Bank requests returned HTTP 200
-and there were no errors in that excerpt.
+main commit `02f582e`; application commit `4ccae7f` was pushed. Stable `main`
+and the formal tag/Release remain v3.5.6. GitHub push CI run `38143185017`
+passed all jobs. The safe updater applied candidate source/runtime 3.5.7 to
+local Compose. The app is polling, PostgreSQL is healthy, and read-only mount
+inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain
+attached. Startup scan completed at 13:31:05 UTC; EURES returned HTTP 200 and
+no errors appeared in the inspected tail. Greenhouse did not appear in that
+scan; check source enablement and target settings in Telegram.
 
 The v3.5.7 candidate adds selectable country AM and a bounded public
 Greenhouse Job Board API adapter for Lineate. It scans only when the active
@@ -16,8 +18,8 @@ profile selects Armenia or Georgia, filters by role query and explicit posting
 location, and does not infer salary, work mode, visa sponsorship or relocation
 support. Targeted source/country/preference tests pass: 20. The full isolated
 PostgreSQL suite passes: 240 tests, 68.22% branch coverage; compileall and
-`git diff --check` pass. GitHub CI, deployment and Telegram acceptance remain
-outstanding. No schema migration or deployment has been made.
+`git diff --check` pass. Deployment is complete; owner Telegram acceptance
+remains outstanding. No schema migration was made.
 
 Official Armenian `workpermit.am` describes an employer-led vacancy and
 foreign-hiring/work-residence procedure and states that EAEU citizens working

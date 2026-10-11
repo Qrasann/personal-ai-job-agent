@@ -11,15 +11,18 @@ vacancy matching.
 - **Source on `main`:** v3.5.6.
 - **Latest published GitHub Release/tag:** v3.5.6.
 - **Active candidate:** v3.5.7 on `feature/v3.5.7-international-market-coverage`;
-  it is not merged or released yet.
+  it is deployed to the local Compose bot for Telegram acceptance, but is not
+  merged or released yet.
 - The candidate's full isolated PostgreSQL suite passes: 240 tests and 68.22%
-  branch coverage. GitHub CI and owner Telegram acceptance are pending.
+  branch coverage; GitHub push CI run `38143185017` passes. Owner Telegram
+  acceptance is pending.
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details
   completed in Telegram on 2026-10-11.
-- The checked-out candidate source reports v3.5.7; the production-style local
-  Compose image remains runtime v3.5.6, with PostgreSQL healthy and schema 4/4.
+- The checked-out candidate and local Compose runtime report v3.5.7, with
+  PostgreSQL healthy and schema 4/4. GitHub `main` and the formal release stay
+  at v3.5.6 until acceptance and merge.
 
 ## Search profiles
 

@@ -13,8 +13,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current runtime
 
-- Checked-out feature source `VERSION=3.5.7`; running Compose image runtime
-  `3.5.6`, database schema `4/4`.
+- Checked-out feature source and running Compose image runtime are `3.5.7`;
+  database schema remains `4/4`.
 - GitHub `main` contains source version `3.5.6`; PR #15 and PR #16 are merged.
   The deployed application code is `170ed4e`; PR #16's later commits only
   updated documentation. The merge is recorded at
@@ -101,17 +101,18 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   adapter for Lineate. The source runs only for profiles selecting AM or GE,
   matches active role queries, and requires explicit location evidence. It
   keeps visa/relocation unknown absent an employer statement. This v3.5.7
-  candidate is not yet merged, released, or deployed.
+  candidate is deployed to the local Compose bot, but is not merged or released.
 
 ## Verified
 
 - Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `240 passed`,
-  68.22% branch coverage (55% gate). Compilation and `git diff --check` pass;
-  GitHub CI and owner Telegram acceptance are pending.
-- Local Compose check: source tree `3.5.7`, runtime `3.5.6`, app up, PostgreSQL
-  healthy. The inspected app log tail ends with scheduled `scan_all` completing
-  at 13:12:25 UTC; no errors appear in that tail. Candidate code has not been
-  deployed to the bot.
+  68.22% branch coverage (55% gate). Compilation, `git diff --check`, and
+  GitHub push CI run `38143185017` pass. Owner Telegram acceptance is pending.
+- Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
+  Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
+  remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
+  HTTP 200 and no errors appeared in the inspected tail. No Greenhouse request
+  appeared in that scan, so verify `/sources` and run a targeted Telegram scan.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
@@ -150,13 +151,14 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   `/status`. The earlier scan completed with an EURES error while other sources
   returned results. The owner later completed the `/import` and Recommendation
   v2 checks described above.
-- After the safe update, the 2026-10-11 startup scan completed successfully.
+- After the earlier v3.5.6 safe update, the 2026-10-11 startup scan completed
+  successfully.
   EURES search and detail requests returned HTTP 200 without SSL retry/error
   logs. Continue monitoring subsequent scheduled scans; one successful run
   does not establish the underlying TLS cause.
-- Runtime status after update: source/runtime `3.5.6`, app polling, PostgreSQL
-  healthy. The existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
-  volumes remain attached.
+- That earlier v3.5.6 runtime check reported source/runtime `3.5.6`, app
+  polling, PostgreSQL healthy, and the existing named volumes attached; the
+  current v3.5.7 candidate runtime is recorded above.
 - Owner confirmed `/sources` marks JOBS.GE temporarily paused after HTTP 410
   and shared `/scanstatus`: the GE scan completed from 09:47:54 to 09:50:36
   UTC. EURES returned 16 vacancies, HR.ge 2, Job Bank 12, Arbeitnow 2, HH 209,
@@ -171,12 +173,13 @@ country-specific work eligibility. Keep unverified dates and support unknown.
 Do not copy the owner's personal relocation estimate into public repository
 files.
 
-Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`: run the full
-isolated PostgreSQL suite and GitHub CI, then apply the candidate through the
-safe updater and verify the bot without disturbing the existing DB or volumes.
+Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`. The full
+isolated PostgreSQL suite and GitHub push CI have passed, and the candidate is
+applied through the safe updater without changing the existing DB or volumes.
 Owner Telegram acceptance should use `/targets relocation GE,AM`, `/sources`,
-`/scan`, and `/scanstatus`; confirm the current Lineate Infrastructure Engineer
-appears only for GE and does not claim visa/relocation support. Do not make
+`/scan`, and `/scanstatus`; confirm Greenhouse is enabled and the current
+Lineate Infrastructure Engineer appears only for GE without unsupported
+visa/relocation claims. Do not make
 cold government emails a prerequisite. Keep e-work/workforall and
 `workpermit.am` out of automated collection until a relevant public feed or
 authorized route appears. Staff.am and Job.am remain manual search

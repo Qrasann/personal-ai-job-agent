@@ -122,13 +122,14 @@
   and language evidence separate; unknown remains unknown.
 - [x] Run the full isolated PostgreSQL suite and compile checks for the v3.5.7
   candidate: 240 passed, 68.22% branch coverage; `git diff --check` passed.
-- [ ] Push the candidate and confirm GitHub CI passes before merge or deploy.
-- [ ] After checks pass, apply with the safe updater and verify the running
-  Compose project, PostgreSQL health, attached volumes and application logs.
+- [x] Push candidate commit `4ccae7f`; GitHub push CI run `38143185017` passed
+  Python checks, Docker build and secret scan.
+- [x] Apply with the safe updater; verify source/runtime 3.5.7, healthy
+  PostgreSQL, attached original volumes and completed startup scan.
 - [ ] Owner Telegram acceptance after deployment: `/targets relocation GE,AM`,
-  `/sources`, `/scan`, and `/scanstatus`; confirm Lineate appears only for GE
-  under the current DevOps/Infrastructure queries and support claims remain
-  evidence-based.
+  `/sources`, `/scan`, and `/scanstatus`; confirm Greenhouse is enabled and
+  Lineate appears only for GE under the current DevOps/Infrastructure queries.
+  The startup scan did not show a Greenhouse request.
 - [ ] For the time-sensitive relocation search, verify each useful opening's
   active/closing status, application deadline, expected start timing, and work
   eligibility from public evidence; leave missing details unknown.

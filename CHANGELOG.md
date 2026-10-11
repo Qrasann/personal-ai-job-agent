@@ -19,8 +19,9 @@
   Georgian office; current role fit and eligibility still require vacancy-level
   matching and review.
 - Full isolated PostgreSQL suite: 240 passed; branch coverage 68.22% (55%
-  gate). Compilation and `git diff --check` pass. GitHub CI and owner Telegram
-  acceptance remain pending; this candidate is not merged, tagged, or released.
+  gate). Compilation, `git diff --check`, and GitHub push CI run `38143185017`
+  pass. The candidate is deployed to the local Compose bot for owner Telegram
+  acceptance; it is not merged, tagged, or released.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

@@ -11,13 +11,14 @@
   `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- local Compose project `repo` runs runtime 3.5.6; the checked-out feature
-  branch reports source `VERSION=3.5.7`. The app is polling and PostgreSQL is
-  healthy.
-- The latest inspected app log tail ends with the scheduled scan completing at
-  13:12:25 UTC; Job Bank detail requests returned HTTP 200 and no errors appear
-  in that tail. The candidate has not been deployed; the existing named
-  PostgreSQL/storage volumes remain attached.
+- local Compose project `repo` runs source/runtime 3.5.7; the app is polling and
+  PostgreSQL is healthy. Push CI run `38143185017` passed for application commit
+  `4ccae7f`.
+- The safe updater rebuilt the feature branch. Read-only mount inspection
+  confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
+  Startup `scan_all` completed at 13:31:05 UTC; EURES returned HTTP 200 and no
+  errors appeared in the inspected tail. No Greenhouse request appeared, so
+  owner Telegram `/sources` and targeted `/scan` acceptance remain necessary.
 - Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
   `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
   Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
@@ -40,8 +41,8 @@
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
 - latest full isolated PostgreSQL suite on the v3.5.7 candidate: 240 passed,
-  68.22% branch coverage (55% gate); compile and diff checks pass. GitHub CI
-  and owner Telegram acceptance remain pending.
+  68.22% branch coverage (55% gate); compile and diff checks pass. GitHub push
+  CI passed; owner Telegram acceptance remains pending.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
