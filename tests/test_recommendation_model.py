@@ -55,3 +55,25 @@ def test_negated_growth_and_fast_start_phrases_are_not_positive_evidence():
 
     assert result.recommendation_scores["growth"]["score"] is None
     assert result.recommendation_scores["fast_exit"]["score"] is None
+
+
+def test_interview_risk_uses_necessary_qualifications_section():
+    job = Job(
+        fingerprint="rec-necessary-qualifications",
+        title="Infrastructure Engineer",
+        company="Example",
+        description=(
+            "Necessary Qualifications:\n"
+            "Minimum 3 years of Linux system administration experience.\n"
+            "Minimum 2 years of AWS production experience.\n"
+            "Preferred:\nTerraform."
+        ),
+        country="GE",
+    )
+    facts = [CandidateFact(profile_id=1, value="Linux", experience_type="commercial")]
+
+    result = score_job(job, _search(), facts, [])
+
+    assert result.recommendation_scores["interview_risk"]["score"] is not None
+    assert result.recommendation_scores["interview_risk"]["score"] > 0
+    assert "явное покрытие обязательных требований" in result.recommendation_scores["interview_risk"]["evidence"]

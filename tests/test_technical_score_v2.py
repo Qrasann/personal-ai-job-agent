@@ -1,5 +1,6 @@
 from app.database.models import CandidateFact, Job, SearchProfile
 from app.matching.engine import score_job
+from app.matching.fact_comparison import extract_requirement_importance
 from app.matching.technical_score import score_technical_v2
 
 
@@ -76,6 +77,26 @@ Docker
 """
     facts = [_fact("Docker", "commercial")]
     assert score_technical_v2(text, facts) == 15
+
+
+def test_necessary_qualifications_are_scored_as_required_requirements():
+    text = """Necessary Qualifications:
+Minimum 3 years of hands-on Linux system administration experience.
+Minimum 2 years of hands-on experience with AWS in a production environment.
+Working familiarity with Kubernetes.
+Preferred:
+Terraform or Ansible.
+"""
+    importance = extract_requirement_importance(text)
+
+    assert importance["Linux"] == "required"
+    assert importance["AWS"] == "required"
+    assert importance["Kubernetes"] == "required"
+    assert importance["Terraform"] == "preferred"
+    assert score_technical_v2(
+        text,
+        [_fact("Linux", "commercial"), _fact("Terraform", "commercial", fact_id=2)],
+    ) < 100
 
 
 def test_missing_preferred_requirement_only_reduces_small_bonus_lane():
