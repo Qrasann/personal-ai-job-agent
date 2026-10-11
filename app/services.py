@@ -32,11 +32,16 @@ log = logging.getLogger(__name__)
 hh_client = HHClient()
 _DISCOVERY_CACHE: dict[tuple[str, tuple[str, ...]], tuple[float, list[NormalizedJob]]] = {}
 CACHE_TTL_SECONDS = 600
+GEORGIA_CACHE_TTL_SECONDS = 6 * 60 * 60
 DISCOVERY_CONCURRENCY = 3
 DISCOVERY_TIMEOUT_SECONDS = 180
 
 
 def _cache_ttl(source_id: str) -> int:
+    if source_id in {"jobs_ge", "hr_ge"}:
+        # Public Georgia boards are refreshed less often by scheduled scans.
+        # A user-triggered /scan still explicitly requests a fresh discovery.
+        return GEORGIA_CACHE_TTL_SECONDS
     # Anonymous HH access is intentionally conservative: one lightweight search
     # can be cached for an hour, while other feeds remain fresher.
     if source_id == "hh" and not hh_client.private_api_available:

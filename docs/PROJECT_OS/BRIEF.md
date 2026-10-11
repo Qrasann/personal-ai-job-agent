@@ -15,9 +15,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
 - GitHub `main`: `6294c2a` (`v3.5.6`). Active candidate branch and deployed
-  source: `feature/v3.5.6-eures-identity-market-targets` (application change
-  `6fa3406`).
-- GitHub PR #16 is open. Candidate code and handoff CI checks passed; current
+  source: `feature/v3.5.6-eures-identity-market-targets` (latest commit
+  `2963705`, including Georgia request bounds).
+- GitHub PR #16 is open. Push CI `38126593765` and PR CI `38126596194` passed; current
   check status is available at https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
@@ -52,7 +52,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   conservative pacing and timeouts; tightened role matching and require an
   explicit currency plus monthly period before HR.ge salary enters scoring.
   Partial detail results survive individual request failures; total failure is
-  reported to the scan.
+  reported to the scan. Scheduled Georgia discovery now uses a six-hour cache;
+  manual `/scan` still forces a refresh.
 - Replaced the mixed-language README with English and Russian entry points,
   aligned changelog headings, refreshed the roadmap, and documented current
   Armenia/Georgia source-access constraints.
@@ -64,9 +65,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 - Latest full PostgreSQL-backed suite: `229 passed`, 67.44% branch coverage
   (rerun on 2026-10-11; 55% gate).
-- Georgia adapter regressions: `5 passed`; compilation and `git diff --check`
-  passed. The six-detail cap, per-request timeout, inter-request delay,
-  partial-failure behavior and salary evidence rules are covered.
+- Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
+  passes. Compilation and `git diff --check` passed. The six-detail cap,
+  per-request timeout, inter-request delay, partial-failure behavior and salary
+  evidence rules are covered.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
@@ -75,6 +77,13 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
   and RemoteOK; no startup errors were present in the inspected log tail.
+- Georgia guardrail commit `2963705` is on PR #16; push and PR CI are green.
+  The safe updater rebuilt only `repo-app`; runtime remains 3.5.6 and
+  PostgreSQL remains healthy. The existing PostgreSQL and storage volumes are
+  attached. Startup `scan_all` completed successfully; EURES search and detail
+  requests returned HTTP 200, and no EURES/Georgia source failures appeared in
+  the inspected post-update logs. Georgia itself has not been scanned because
+  the owner has not yet targeted GE in Telegram.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 - GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
@@ -94,10 +103,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Push and deploy the Georgia source guardrails, then have the owner run
-`/targets relocation GE`, `/sources`, and `/scan` in Telegram to verify source
-visibility and real result quality. Continue the existing `/import` and
-Recommendation v2 acceptance before tagging v3.5.6.
+Have the owner run `/targets relocation GE`, `/sources`, and `/scan` in Telegram
+to verify source visibility and real result quality. Continue the existing
+`/import` and Recommendation v2 acceptance before tagging v3.5.6.
 
 ## Open limitations
 

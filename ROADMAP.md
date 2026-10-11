@@ -27,8 +27,15 @@ Focus on useful, legally reachable vacancies in Georgia and Armenia, while
 preserving the separate Career-first and Relocation-first goals.
 
 - Confirm the active profile targets and source enablement through `/targets`
-  and `/sources`; test the Georgian adapters through an actual dual-profile
-  scan and make sure their latency and result quality are acceptable.
+  and `/sources`; test the Georgian adapters through a live scan, starting
+  with Relocation-first, and assess latency and result quality. Georgia detail
+  requests are capped and paced, scheduled results are cached for six hours,
+  and `/scan` forces a fresh fetch.
+- Treat the Georgian adapters as limited personal discovery sources. JOBS.GE
+  robots rules were unavailable (HTTP 410), HR.ge allows crawling in
+  robots.txt, and neither board's recurring-reuse terms were confirmed. Keep
+  request volume low and don't broaden collection without a clear source
+  contract.
 - Build an Armenia source only after confirming a public API or obtaining
   permission for automated access and reuse. The official e-work portal is a
   candidate for access review; Job.am and Staff.am have terms that constrain

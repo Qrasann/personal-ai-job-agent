@@ -11,20 +11,30 @@
   request timeouts, and added a two-second delay before every detail request.
   Failed individual details no longer discard successful results; all-detail
   failure becomes a visible source failure.
+- Set a six-hour discovery-cache TTL for scheduled Georgia scans; a Telegram
+  `/scan` still bypasses the cache for a fresh result set.
 - Tightened role matching so generic words such as “engineer” cannot by
   themselves qualify unrelated titles. HR.ge salary is structured only for a
   clearly labeled range with a single explicit currency and an explicit
   monthly period. Ambiguous dollar symbols, annual pay and unperiodized ranges
   remain raw source text and do not enter numeric salary scoring.
-- Added five regressions for role filtering, salary evidence, unknown
+- Added five Georgia adapter regressions for role filtering, salary evidence, unknown
   work-mode/relocation, detail limits, and partial/total detail failures.
-  Targeted tests: 5 passed. Full isolated PostgreSQL suite: 229 passed,
+  Targeted tests: 5 passed; the scheduled-cache regression also passes. Full
+  isolated PostgreSQL suite: 230 passed,
   67.44% branch coverage (55% gate). `compileall` and `git diff --check` pass.
-- No schema migration or database change. The candidate is not yet pushed or
-  deployed. After publication and the safe update, owner should run
-  `/targets relocation GE`, `/sources`, then `/scan` in Telegram and send the
-  source summary plus any JOBS.GE/HR.ge warnings. Keep current version at
-  3.5.6 pending end-to-end source verification and existing release acceptance.
+- Published as commit `2963705` on the active feature branch/PR #16. Push CI
+  `38126593765` and PR CI `38126596194` passed. Applied through
+  `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`; status reports source
+  and runtime 3.5.6, app up and PostgreSQL healthy. The startup dual-profile
+  scan completed successfully; EURES search/detail requests returned HTTP 200
+  and no EURES/Georgia source failures appeared in inspected post-update logs.
+  Mount inspection confirmed `repo_jobagent_v3_pg` and
+  `repo_jobagent_v3_files` remain attached. No schema migration or database
+  change. Georgia still needs a targeted Telegram scan: owner should run
+  `/targets relocation GE`, `/sources`, then `/scan` and send the result
+  summary plus source warnings. Keep current version at 3.5.6 pending
+  end-to-end source verification and existing release acceptance.
 
 ## 2026-10-11 — v3.5.6 EURES transport and Georgia profile controls
 

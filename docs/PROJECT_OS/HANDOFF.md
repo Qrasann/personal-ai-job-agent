@@ -2,9 +2,20 @@
 
 ## Georgia source guardrails — v3.5.7 market-coverage work (2026-10-11)
 
-The working candidate bounds the existing JOBS.GE and HR.ge adapters to six
+The candidate is published as commit `2963705` on PR #16. Push CI
+`38126593765` and PR CI `38126596194` passed. The safe updater rebuilt the app;
+source/runtime report 3.5.6, the app is up, and PostgreSQL is healthy. Existing
+`repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
+The post-update startup dual-profile scan completed; EURES search/detail
+requests returned HTTP 200 with no EURES/Georgia source failure in the
+inspected logs. Georgia was not scanned because the owner has not yet targeted
+GE in Telegram.
+
+The candidate bounds the existing JOBS.GE and HR.ge adapters to six
 matching details per source, a 15-second request timeout, and a two-second
-delay before each detail request. Individual failures preserve successful
+delay before each detail request. Scheduled Georgia scans reuse discovery
+results for six hours; a manual `/scan` still forces a fresh request.
+Individual failures preserve successful
 vacancies; failure of every detail request is surfaced in the scan. Role
 matching no longer accepts a generic word such as “engineer” alone. HR.ge pay
 is structured only when a range has one explicit currency and a clearly stated
@@ -18,11 +29,12 @@ a 5.4 MB sitemap that the adapter does not download. These results do not
 grant permission to reuse listings; recurring automated extraction terms
 remain unverified. The adapters stay limited to Georgia-targeted profiles.
 
-Targeted adapter tests pass (5). Full isolated PostgreSQL suite passes (229
-  tests, 67.44% branch coverage); `compileall` and `git diff --check` pass. No
+Targeted adapter tests pass (5); the scheduled-cache regression also passes.
+Full isolated PostgreSQL suite passes (230 tests, 67.44% branch coverage);
+`compileall` and `git diff --check` pass. No
 schema migration was added. The source/runtime version remains 3.5.6 while
-this v3.5.7 roadmap work is verified. After pushing and applying the candidate
-with the safe updater, the owner needs to run `/targets relocation GE`, then
+this v3.5.7 roadmap work is verified. The owner needs to run
+`/targets relocation GE`, then
 `/sources`, then `/scan` in Telegram and share the result summary and any
 source warnings. Do not treat these boards as validated recurring sources
 until result quality and access conditions are reviewed. The prior

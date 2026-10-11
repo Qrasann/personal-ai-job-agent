@@ -4,6 +4,12 @@ from unittest.mock import AsyncMock
 
 from app import services
 
+
+def test_georgia_sources_use_a_long_scheduled_cache():
+    assert services._cache_ttl("jobs_ge") == 6 * 60 * 60
+    assert services._cache_ttl("hr_ge") == 6 * 60 * 60
+
+
 def test_force_refresh_bypasses_discovery_cache(monkeypatch):
     calls = []
     class FakeHHSource:

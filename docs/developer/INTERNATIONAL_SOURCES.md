@@ -116,6 +116,8 @@
   results; if all details fail, the scan reports a source error. Keep the
   sources limited to profiles that target Georgia and verify result quality in
   Telegram before treating them as useful.
+- Scheduled scans reuse cached Georgia results for six hours. Telegram
+  `/scan` explicitly forces fresh discovery for the owner's requested test.
 - Role filtering ignores generic tokens such as “engineer” when a query has a
   more specific role term. HR.ge salary enters structured scoring only when a
   single supported currency and an explicit monthly period are present. Bare

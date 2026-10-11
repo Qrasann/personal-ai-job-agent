@@ -26,10 +26,14 @@
 - [x] Bound JOBS.GE/HR.ge to six details per source, 15-second request timeout,
   and two-second pacing; preserve partial results and report total detail
   failure. Tighten role matching and require explicit currency plus a monthly
-  period before HR.ge salary is structured for scoring.
+  period before HR.ge salary is structured for scoring. Cache scheduled
+  Georgia results for six hours; manual `/scan` remains a force refresh.
 - [x] Add Georgia source regressions and run the full isolated PostgreSQL suite:
-  229 passed, 67.44% branch coverage; compileall and diff check passed.
-- [ ] Push/deploy the guardrail commit and confirm CI passes.
+  230 passed, 67.44% branch coverage; compileall and diff check passed.
+- [x] Push commit `2963705` to PR #16; push CI `38126593765` and PR CI
+  `38126596194` passed. Apply with the safe updater and verify the completed
+  startup scan, EURES HTTP 200 responses, healthy PostgreSQL, and attached
+  existing volumes.
 - [ ] Owner runs `/targets relocation GE`, `/sources`, then `/scan` to confirm
   Georgia appears in the intended profile and review real results.
 - [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
