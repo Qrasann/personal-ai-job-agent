@@ -1,17 +1,40 @@
 # Handoff
 
+## v3.5.7 owner Telegram source check — 2026-10-11
+
+The owner checked Relocation-first GE/AM with `/sources`, `/scan`, and
+`/scanstatus`. Greenhouse · Lineate was enabled and the public endpoint returned
+HTTP 200, but produced zero role matches. This is consistent with the profile
+settings: Career-first has no selected markets, while Relocation-first is
+searching broad non-technical roles. EURES returned 16 vacancies and the
+supplied scan log contains no EURES SSL failure; keep monitoring later scans.
+The full scan ran from 14:03:57 to 14:06:34 UTC and returned HH 209, Remote OK
+3, Arbeitnow 2, Job Bank 12, EURES 16, Greenhouse 0, and HR.ge 2. Job Bank took
+about 100.5 seconds.
+
+To finish the live Lineate role/location check, ask the owner to run
+`/targets career GE,AM`, `/sources`, `/scan`, and `/scanstatus`, then inspect a
+returned result with `/job <id>`. This adds Georgia/Armenia only to Career-first
+and preserves Relocation-first's broad role search. Do not infer visa or
+relocation support from country targeting or the Greenhouse cross-border
+source. PR #18 remains a draft until this check is complete. GitHub checks
+`38143909265` and `38143905027` pass. No database schema or Docker-volume
+change was made.
+
 ## v3.5.7 source and vacancy realism review — 2026-10-11
 
 The active branch `feature/v3.5.7-international-market-coverage` starts from
 main commit `02f582e`; application commit `4ccae7f` was pushed. Stable `main`
 and the formal tag/Release remain v3.5.6. Draft PR #18 is open; GitHub push CI
-`38143185017` and PR-CI `38143789063` passed all jobs. The safe updater applied
+`38143185017` and PR-CI `38143789063` passed all jobs at that earlier head. The
+latest PR checks are recorded above. The safe updater applied
 candidate source/runtime 3.5.7 to
 local Compose. The app is polling, PostgreSQL is healthy, and read-only mount
 inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain
 attached. Startup scan completed at 13:31:05 UTC; EURES returned HTTP 200 and
-no errors appeared in the inspected tail. Greenhouse did not appear in that
-scan; check source enablement and target settings in Telegram.
+no errors appeared in the inspected tail. The owner's later Telegram scan
+confirmed Greenhouse is enabled for Relocation-first GE/AM and returned HTTP
+200; zero vacancies matched the broad relocation role queries.
 
 The v3.5.7 candidate adds selectable country AM and a bounded public
 Greenhouse Job Board API adapter for Lineate. It scans only when the active
@@ -20,7 +43,8 @@ location, and does not infer salary, work mode, visa sponsorship or relocation
 support. Targeted source/country/preference tests pass: 20. The full isolated
 PostgreSQL suite passes: 240 tests, 68.22% branch coverage; compileall and
 `git diff --check` pass. Deployment is complete; owner Telegram acceptance
-remains outstanding. No schema migration was made.
+for live technical role/location matching remains outstanding. No schema
+migration was made.
 
 Official Armenian `workpermit.am` describes an employer-led vacancy and
 foreign-hiring/work-residence procedure and states that EAEU citizens working

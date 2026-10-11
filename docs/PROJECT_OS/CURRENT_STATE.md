@@ -5,9 +5,10 @@
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
 - Candidate application commit `4ccae7f` and handoff follow-up `c8a8017` are on
-  `feature/v3.5.7-international-market-coverage`. Draft PR #18 is open; push CI
-  `38143185017` and PR-CI `38143789063` passed. No merge, tag, or formal
-  release has been made.
+  `feature/v3.5.7-international-market-coverage`; current HEAD is
+  `ad680d7c24a4502b9a597b31ac43a1b9518f8402`. Draft PR #18 is open; latest
+  GitHub checks `38143909265` and `38143905027` passed. No merge, tag, or
+  formal release has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -16,13 +17,15 @@
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
 - local Compose project `repo` runs source/runtime 3.5.7; the app is polling and
-  PostgreSQL is healthy. Push CI run `38143185017` passed for application commit
-  `4ccae7f`.
+  PostgreSQL is healthy. GitHub push CI run `38143185017` passed for
+  application commit `4ccae7f`; latest PR checks are listed above.
 - The safe updater rebuilt the feature branch. Read-only mount inspection
   confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
   Startup `scan_all` completed at 13:31:05 UTC; EURES returned HTTP 200 and no
-  errors appeared in the inspected tail. No Greenhouse request appeared, so
-  owner Telegram `/sources` and targeted `/scan` acceptance remain necessary.
+  errors appeared in the inspected tail. The owner later confirmed Greenhouse
+  returned HTTP 200 for Relocation-first GE/AM but matched no jobs because its
+  selected role queries are non-technical. A Career-first GE/AM scan remains
+  necessary to verify live role/location matching.
 - Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
   `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
   Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
@@ -45,8 +48,9 @@
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
 - latest full isolated PostgreSQL suite on the v3.5.7 candidate: 240 passed,
-  68.22% branch coverage (55% gate); compile and diff checks pass. GitHub push
-  CI passed; owner Telegram acceptance remains pending.
+  68.22% branch coverage (55% gate); compile and diff checks pass. GitHub PR
+  checks are green. The owner completed the source-reachability check; live
+  Lineate role/location acceptance remains pending.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
@@ -105,8 +109,9 @@
   its recruitment flag never implies visa or relocation support.
 - v3.5.7 candidate adds selectable Armenia (`AM`) and a public Greenhouse
   adapter for Lineate, scoped to profiles targeting Armenia or Georgia and
-  filtered by role query and explicit listing location. Visa and relocation
-  stay unknown without direct evidence; the change has not yet been deployed.
+  filtered by role query and explicit listing location. It is deployed in the
+  local Compose runtime; live technical role/location acceptance is pending.
+  Visa and relocation stay unknown without direct evidence.
 
 ## Verified in the current development environment
 - Parent feature baseline: 166 passed with isolated PostgreSQL 16, 62.57% branch coverage.

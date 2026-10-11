@@ -45,15 +45,24 @@ work mode, salary, visa and relocation unknown without direct evidence. The
 current Lineate board shows an Infrastructure Engineer for its Georgian office
 and a Data Engineer in Yerevan; only the former matches the current
 DevOps/Infrastructure search. The full isolated PostgreSQL suite passes with
-240 tests and 68.22% branch coverage; GitHub push CI `38143185017` and draft
-PR #18 CI `38143789063` passed. The candidate is running on the local Compose
-bot for owner Telegram acceptance; it is not merged or formally released.
+240 tests and 68.22% branch coverage; latest PR #18 checks `38143909265` and
+`38143905027` passed. The candidate is running on the local Compose bot; the
+remaining owner acceptance is a Career-first GE/AM scan, and it is not merged
+or formally released.
 
 The owner has a near-term relocation objective. Prefer live vacancies with
 clear application deadlines and start timing, and record candidate eligibility
 only from vacancy or official-source evidence. Missing dates, visa support and
 relocation benefits remain unknown. The specific personal timing estimate is
 kept out of this public roadmap.
+
+The owner checked `/targets relocation GE,AM`, `/sources`, `/scan`, and
+`/scanstatus`. Greenhouse · Lineate was enabled and returned HTTP 200, but no
+jobs matched the current Relocation-first role queries. That profile is
+searching broad non-technical roles; Career-first has no target markets. The
+next acceptance check is `/targets career GE,AM`, followed by `/sources`,
+`/scan`, `/scanstatus`, and `/job <id>` for a returned Lineate vacancy. This
+tests the technical feed without replacing the broad Relocation-first search.
 
 - The owner confirmed the active Relocation-first target `GE`, the paused JOBS.GE
   status, and a completed live scan: EURES returned 16 vacancies and HR.ge 2.
@@ -127,10 +136,11 @@ kept out of this public roadmap.
   to remove below-minimum vacancies.
 - Measure EURES success by parsed search/detail results per profile, not by
   response status alone; retain partial results and keep retries bounded.
-- After candidate deployment, verify `/targets relocation GE,AM`, `/sources`,
-  and `/scan` in Telegram. Confirm that the Lineate Infrastructure Engineer
-  appears only in the GE profile and carries no unsupported visa/relocation
-  claim; record `/scanstatus` and source warnings.
+- After candidate deployment, verify both independent target/query paths in
+  Telegram. The owner completed the Relocation-first GE/AM source check; the
+  live API returned HTTP 200 and zero role matches. Set Career-first targets
+  to GE/AM for the remaining Lineate location/role check, then inspect the
+  vacancy for unsupported visa/relocation claims and record `/scanstatus`.
 - For near-term relocation decisions, keep opening status, application
   deadline, expected start date and work-eligibility evidence separate. Add
   these fields only when a source provides them; do not infer processing time.

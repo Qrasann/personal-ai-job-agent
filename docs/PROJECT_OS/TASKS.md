@@ -124,14 +124,20 @@
   candidate: 240 passed, 68.22% branch coverage; `git diff --check` passed.
 - [x] Push candidate commit `4ccae7f`; GitHub push CI run `38143185017` passed
   Python checks, Docker build and secret scan.
-- [x] Open draft PR #18 and confirm PR-CI run `38143789063` passed; keep it
-  unmerged until owner Telegram acceptance.
+- [x] Open draft PR #18; GitHub checks `38143909265` and `38143905027` passed.
+  Keep it unmerged until the remaining role/location Telegram check.
 - [x] Apply with the safe updater; verify source/runtime 3.5.7, healthy
   PostgreSQL, attached original volumes and completed startup scan.
-- [ ] Owner Telegram acceptance after deployment: `/targets relocation GE,AM`,
-  `/sources`, `/scan`, and `/scanstatus`; confirm Greenhouse is enabled and
-  Lineate appears only for GE under the current DevOps/Infrastructure queries.
-  The startup scan did not show a Greenhouse request.
+- [x] Owner checked `/targets relocation GE,AM`, `/sources`, `/scan`, and
+  `/scanstatus`. Greenhouse was enabled and its public API returned HTTP 200,
+  with zero matching roles. This is expected for the current configuration:
+  Career-first has no target markets, and Relocation-first searches broad
+  non-technical roles.
+- [ ] Complete live role/location acceptance with `/targets career GE,AM`,
+  `/sources`, `/scan`, `/scanstatus`, and opening
+  any Lineate result with `/job <id>`. Verify that a Georgia listing is shown
+  only in the targeted profile and that visa/relocation remain unknown absent
+  posting evidence.
 - [ ] For the time-sensitive relocation search, verify each useful opening's
   active/closing status, application deadline, expected start timing, and work
   eligibility from public evidence; leave missing details unknown.

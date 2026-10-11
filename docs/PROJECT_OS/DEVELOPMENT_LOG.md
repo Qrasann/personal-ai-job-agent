@@ -1,5 +1,24 @@
 # Development Log
 
+## 2026-10-11 — v3.5.7 owner Telegram source check
+- Owner set Relocation-first markets to GE and AM and shared `/sources`,
+  `/scan`, `/scanstatus`, and app logs. Greenhouse · Lineate appeared as an
+  enabled source; its public Job Board API returned HTTP 200, with zero jobs
+  matching the active profile query list.
+- The zero is explained by independent profile configuration: Career-first
+  markets remain unset, while Relocation-first searches broad roles such as
+  warehouse, production, hotel, kitchen, cleaning and construction work. The
+  Lineate Infrastructure Engineer role is outside those relocation queries.
+  The next live check should target GE/AM for Career-first while leaving the
+  broad relocation search unchanged, then inspect any returned vacancy.
+- The same manual scan completed from 14:03:57 to 14:06:34 UTC. It reported HH
+  209, Remote OK 3, Arbeitnow 2, Job Bank 12, EURES 16, Greenhouse 0 and HR.ge
+  2. EURES had no SSL warning/error in the supplied log; this single run does
+  not prove permanent transport stability. Job Bank took about 100.5 seconds.
+- Local Compose status remained source/runtime 3.5.7 with PostgreSQL healthy.
+  No schema, `.env`, production data or Docker volume changes were made. PR #18
+  remains a draft; GitHub checks `38143909265` and `38143905027` are green.
+
 ## 2026-10-11 — v3.5.7 Armenia and Lineate discovery candidate
 - Added `AM` to the supported country catalog and connected Lineate's public
   Greenhouse Job Board GET API for profiles targeting Armenia or Georgia.

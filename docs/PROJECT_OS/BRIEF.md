@@ -102,17 +102,25 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   matches active role queries, and requires explicit location evidence. It
   keeps visa/relocation unknown absent an employer statement. This v3.5.7
   candidate is deployed to the local Compose bot, but is not merged or released.
+- Owner ran the v3.5.7 Telegram source check for Relocation-first GE/AM. The
+  Lineate Greenhouse endpoint returned HTTP 200 but yielded zero role matches:
+  Career-first has no selected markets, while Relocation-first uses broad
+  non-technical role queries. EURES returned 16 live vacancies with no SSL
+  failure in the supplied scan. A Career-first GE/AM scan is still needed to
+  verify a live Lineate role match.
 
 ## Verified
 
 - Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `240 passed`,
-  68.22% branch coverage (55% gate). Compilation, `git diff --check`, and
-  GitHub push CI run `38143185017` pass. Owner Telegram acceptance is pending.
+  68.22% branch coverage (55% gate). Compilation and `git diff --check` pass.
+  GitHub PR #18 checks are green (runs `38143909265` and `38143905027`).
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
-  HTTP 200 and no errors appeared in the inspected tail. No Greenhouse request
-  appeared in that scan, so verify `/sources` and run a targeted Telegram scan.
+  HTTP 200 and no errors appeared in the inspected tail. The owner later
+  confirmed `/sources` enabled Greenhouse for Relocation-first GE/AM; the
+  Greenhouse request returned HTTP 200 and zero query-matched jobs. The
+  currently selected relocation roles do not include Infrastructure Engineer.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
@@ -122,9 +130,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions passed for PR #16 and merge commit `874b372` (main run
   `38135649948`).
-- Draft PR #18 is open for the v3.5.7 candidate; push CI `38143185017` and
-  PR-CI `38143789063` both passed. It remains unmerged pending Telegram
-  acceptance.
+- Draft PR #18 is open for the v3.5.7 candidate. The owner completed the
+  Relocation-first source check, but end-to-end role/location acceptance is
+  pending a Career-first GE/AM scan. The candidate remains unmerged and
+  unreleased.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
@@ -177,13 +186,16 @@ Do not copy the owner's personal relocation estimate into public repository
 files.
 
 Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`. The full
-isolated PostgreSQL suite and GitHub push CI have passed, and the candidate is
-applied through the safe updater without changing the existing DB or volumes.
-Owner Telegram acceptance should use `/targets relocation GE,AM`, `/sources`,
-`/scan`, and `/scanstatus`; confirm Greenhouse is enabled and the current
-Lineate Infrastructure Engineer appears only for GE without unsupported
-visa/relocation claims. Do not make
-cold government emails a prerequisite. Keep e-work/workforall and
+isolated PostgreSQL suite and GitHub CI have passed, and the candidate is
+running in local Compose with the existing database and volumes preserved.
+The owner confirmed Relocation-first GE/AM, Greenhouse enablement, and a live
+Greenhouse HTTP 200 response; zero vacancies matched because that profile uses
+non-technical relocation roles. Ask the owner to run `/targets career GE,AM`,
+`/sources`, `/scan`, and `/scanstatus`, then inspect any returned Lineate role
+with `/job <id>`. This keeps the broad Relocation-first search intact while
+checking the technical Career-first feed. Do not claim visa or relocation
+support without posting evidence. Do not make cold government emails a
+prerequisite. Keep e-work/workforall and
 `workpermit.am` out of automated collection until a relevant public feed or
 authorized route appears. Staff.am and Job.am remain manual search
 destinations under their current terms. Continue evaluating other permitted
@@ -213,10 +225,11 @@ Job Bank pacing.
   Job.am remain manual search destinations unless their terms or an approved
   feed permit automated reuse. See `docs/developer/INTERNATIONAL_SOURCES.md`.
 - The v3.5.7 candidate makes AM selectable and connects one current Lineate
-  Greenhouse board for explicit Armenia/Georgia locations. Its current
-  Infrastructure Engineer opening is for a Georgian office; current Yerevan
-  data-engineering roles do not match the profile's DevOps/Infrastructure
-  queries. Broader Armenia source coverage remains open.
+  Greenhouse board for explicit Armenia/Georgia locations. The owner's latest
+  Greenhouse request returned HTTP 200 with zero matches under the current
+  Relocation-first role list. Career-first markets remain unset, so its
+  DevOps/Infrastructure queries did not request this market-specific source.
+  Broader Armenia source coverage remains open.
 - Official Armenia `workpermit.am` enables employer-side processing for
   foreign hires and documents an EAEU work-permit exemption, but no anonymous
   vacancy feed/API is verified. Its FAQ question is visible but the answer is
