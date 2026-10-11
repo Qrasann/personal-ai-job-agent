@@ -4,9 +4,10 @@
 - Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
-- Candidate application commit `4ccae7f` and subsequent documentation updates
-  are maintained on `feature/v3.5.7-international-market-coverage`, synced to
-  `origin`. Draft PR #18 is open; CI passed on the prior branch head.
+- Candidate application commit `5d6b00b` and current documentation updates are
+  maintained on `feature/v3.5.7-international-market-coverage`, synced to
+  `origin`. Draft PR #18 is open; push CI `38147877309` and PR CI
+  `38147879757` passed for the HTML-entity fix.
   No merge, tag, or formal release has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
@@ -15,9 +16,11 @@
   `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- Local Compose project `repo` was last verified at source/runtime 3.5.7; the
-  latest owner-provided scan completed. GitHub push CI run `38143185017`
-  passed for application commit `4ccae7f`; latest PR checks are listed above.
+- Local Compose project `repo` now runs source/runtime 3.5.7 after the safe
+  updater applied `5d6b00b`. The startup `scan_all` completed at 14:40:12 UTC;
+  EURES search/detail calls returned HTTP 200 and the inspected five-minute
+  log window contained no source errors or SSL failures. PostgreSQL remained
+  healthy and was not recreated.
 - The safe updater rebuilt the feature branch. Read-only mount inspection
   confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
   Startup `scan_all` completed at 13:31:05 UTC; EURES returned HTTP 200 and no
@@ -27,8 +30,8 @@
   scan returned one Lineate Infrastructure Engineer vacancy explicitly marked
   GE (67/100); work mode was unknown. The owner opened `/job 1091`: salary,
   work mode, and unsupported visa/relocation claims remained unknown, but the
-  description rendered escaped HTML entities. A fix is implemented and fully
-  tested; it still needs deployment and a fresh Telegram detail check.
+  description rendered escaped HTML entities. The fix is deployed; the owner
+  still needs to reopen the detail card and confirm readable text.
 - Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
   `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
   Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.

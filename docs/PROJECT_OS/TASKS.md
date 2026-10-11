@@ -125,8 +125,10 @@
   `git diff --check` passed.
 - [x] Push candidate commit `4ccae7f`; GitHub push CI run `38143185017` passed
   Python checks, Docker build and secret scan.
+- [x] Push HTML-entity fix commit `5d6b00b`; push CI `38147877309` and PR CI
+  `38147879757` passed Python checks, Docker build and secret scan.
 - [x] Open draft PR #18; GitHub checks `38143909265` and `38143905027` passed.
-  Keep it unmerged until the remaining role/location Telegram check.
+  Keep it unmerged until the fixed Telegram detail card is confirmed.
 - [x] Apply with the safe updater; verify source/runtime 3.5.7, healthy
   PostgreSQL, attached original volumes and completed startup scan.
 - [x] Owner checked `/targets relocation GE,AM`, `/sources`, `/scan`, and
@@ -145,10 +147,12 @@
   2+ years production AWS, and 24/7 shift participation; see
   https://job-boards.greenhouse.io/lineate/jobs/8018252. The owner found its
   description displayed as escaped HTML entities.
-- [ ] Push and safely deploy the HTML-entity decoding fix. Ask the owner to
-  reopen `/job 1091` and confirm the description is readable while salary,
-  work mode, visa/work authorization and relocation assistance remain unknown
-  absent explicit evidence.
+- [x] Safely deploy the HTML-entity decoding fix. Compose source/runtime is
+  3.5.7, PostgreSQL remained healthy, and startup `scan_all` completed at
+  14:40:12 UTC. EURES search/detail calls returned HTTP 200 without SSL errors.
+- [ ] Ask the owner to reopen `/job 1091` and confirm the description is
+  readable while salary, work mode, visa/work authorization and relocation
+  assistance remain unknown absent explicit evidence.
 - [ ] Add bounded retry for Job Bank transport failures only, preserving the
   five-second spacing between request starts and existing source isolation.
   Add regression coverage before changing runtime behavior; HTTP status errors

@@ -112,14 +112,14 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   `/job 1091`. Salary, work mode, and unsupported visa/relocation facts stayed
   unknown as intended. The description displayed escaped markup such as
   `&lt;p&gt;`; a regression-tested fix now decodes entities before stripping
-  tags. Deployment and a fresh Telegram detail check are still pending.
+  tags. The fix is deployed; a fresh Telegram detail check is still pending.
 
 ## Verified
 
 - Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `241 passed`,
   68.23% branch coverage (55% gate), including the encoded-HTML regression.
-  Compilation and `git diff --check` pass. GitHub PR #18 checks passed at the
-  prior head; rerun CI after pushing this fix.
+  Compilation and `git diff --check` pass. Push CI `38147877309` and PR CI
+  `38147879757` passed for commit `5d6b00b`.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -127,6 +127,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   confirmed `/sources` enabled Greenhouse for Relocation-first GE/AM; the
   Greenhouse request returned HTTP 200 and zero query-matched jobs. The
   currently selected relocation roles do not include Infrastructure Engineer.
+- The safe updater applied `5d6b00b` to Compose project `repo` without
+  recreating PostgreSQL. The startup scan completed at 14:40:12 UTC; EURES
+  search/detail requests returned HTTP 200, and the inspected log window had
+  no source errors or SSL failures.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
@@ -189,8 +193,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   transient `ConnectTimeout` after 29.2 seconds; the other sources completed.
   No EURES SSL failure appeared in the supplied excerpt. The owner opened
   `/job 1091`; unsupported visa/relocation claims stayed unknown, but its
-  description was rendered as encoded HTML. A decoder fix now passes the full
-  suite; verify readable text and preserved unknowns after deployment.
+  description was rendered as encoded HTML. The decoder fix is deployed and
+  passed the full suite; verify readable text and preserved unknowns in
+  Telegram.
 
 ## Current priority
 
@@ -207,12 +212,12 @@ The owner completed the Career-first GE/AM source check: Greenhouse returned
 one Lineate Infrastructure Engineer vacancy for Georgia and sent one new
 notification. `/job 1091` kept unsupported evidence unknown but displayed
 its description as encoded HTML. A decoder fix now has passing full-suite
-coverage; deploy it and repeat the detail check in Telegram. The official
+coverage; repeat the detail check in Telegram. The official
 posting requires at least 3 years of Linux system administration and 2 years
 of production AWS, and includes a 24/7 shift schedule; it does not state
 salary, work mode, visa sponsorship, or relocation assistance. Ask the owner
-to open `/job 1091` after deployment and verify that the description is
-readable while these fields remain unknown. Keep the
+to open `/job 1091` and verify that the description is readable while these
+fields remain unknown. Keep the
 broad Relocation-first search intact. Do not claim visa or relocation support
 without posting evidence. Do not make cold government emails a prerequisite.
 Keep e-work/workforall and

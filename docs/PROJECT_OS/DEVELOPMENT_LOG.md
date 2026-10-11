@@ -9,11 +9,15 @@
   Greenhouse visa-support evidence extraction.
 - Full isolated PostgreSQL suite: 241 passed, 68.23% branch coverage; Python
   compilation and `git diff --check` pass. The isolated test service is stopped
-  after the run. Push, GitHub CI, safe deployment and post-deploy Telegram
-  detail check remain to be completed.
+  after the run. Commit `5d6b00b` was pushed; push CI `38147877309` and PR CI
+  `38147879757` passed. The safe updater deployed it to Compose project `repo`;
+  source/runtime is 3.5.7, PostgreSQL is healthy, and startup `scan_all`
+  completed at 14:40:12 UTC. EURES returned HTTP 200 without an SSL failure in
+  the inspected log window. The owner's post-deploy Telegram detail check is
+  still pending.
 - Stable `main` and the formal GitHub release remain v3.5.6. This fix stays on
   the draft v3.5.7 feature branch; no merge, tag, schema, credentials, runtime
-  production data or Docker volume changes have been made yet.
+  production data or Docker volume changes were made.
 
 ## 2026-10-11 — v3.5.7 owner Telegram source check
 - Owner set Relocation-first markets to GE and AM and shared `/sources`,

@@ -10,13 +10,17 @@ stripping tags; regressions cover both Greenhouse evidence extraction and the
 Telegram detail renderer. The full isolated PostgreSQL suite passes: 241
 tests, 68.23% branch coverage. Compilation and `git diff --check` pass.
 
-The fix is not deployed yet. Push it on
-`feature/v3.5.7-international-market-coverage`, wait for CI, then use the safe
-`./job-agent update` path and inspect runtime status/logs. Ask the owner to
-reopen `/job 1091` and confirm the description is readable while unsupported
-facts remain unknown. Keep PR #18 draft and do not merge/tag v3.5.7 until that
-Telegram check is complete. No schema, credential, production-data, or Docker
-volume changes are part of this fix.
+Commit `5d6b00b` is pushed on
+`feature/v3.5.7-international-market-coverage`; push CI `38147877309` and PR
+CI `38147879757` passed. The safe `./job-agent update` deployed it to Compose
+project `repo`. Source/runtime is 3.5.7, PostgreSQL stayed healthy, and startup
+`scan_all` completed at 14:40:12 UTC. EURES search/detail requests returned
+HTTP 200; the inspected log window had no source errors or SSL failures.
+
+The remaining owner check is to reopen `/job 1091` and confirm the description
+is readable while unsupported facts remain unknown. Keep PR #18 draft and do
+not merge/tag v3.5.7 until that Telegram check is complete. No schema,
+credential, production-data, or Docker-volume changes are part of this fix.
 
 ## v3.5.7 owner Career-first GE/AM scan — 2026-10-11
 
