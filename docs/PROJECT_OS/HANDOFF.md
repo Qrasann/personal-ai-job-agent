@@ -1,5 +1,23 @@
 # Handoff
 
+## v3.5.7 Lineate detail rendering follow-up — 2026-10-11
+
+The owner opened `/job 1091` for Lineate's Infrastructure Engineer opening.
+The card correctly left salary, work mode, and unsupported visa/relocation
+claims unknown, but displayed the Greenhouse description as escaped markup
+(`&lt;p&gt;`, `&lt;ul&gt;`). `clean_html_text` now decodes HTML entities before
+stripping tags; regressions cover both Greenhouse evidence extraction and the
+Telegram detail renderer. The full isolated PostgreSQL suite passes: 241
+tests, 68.23% branch coverage. Compilation and `git diff --check` pass.
+
+The fix is not deployed yet. Push it on
+`feature/v3.5.7-international-market-coverage`, wait for CI, then use the safe
+`./job-agent update` path and inspect runtime status/logs. Ask the owner to
+reopen `/job 1091` and confirm the description is readable while unsupported
+facts remain unknown. Keep PR #18 draft and do not merge/tag v3.5.7 until that
+Telegram check is complete. No schema, credential, production-data, or Docker
+volume changes are part of this fix.
+
 ## v3.5.7 owner Career-first GE/AM scan — 2026-10-11
 
 The owner ran `/targets career GE,AM`, `/sources`, `/scan`, and `/scanstatus`.

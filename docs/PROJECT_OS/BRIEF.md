@@ -106,14 +106,20 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   Lineate Greenhouse endpoint returned HTTP 200 but yielded zero role matches:
   Career-first has no selected markets, while Relocation-first uses broad
   non-technical role queries. EURES returned 16 live vacancies with no SSL
-  failure in the supplied scan. A Career-first GE/AM scan is still needed to
-  verify a live Lineate role match.
+  failure in the supplied scan. This earlier check preceded the successful
+  Career-first GE/AM role/location scan recorded below.
+- Owner completed the Career-first GE/AM scan and opened Lineate vacancy
+  `/job 1091`. Salary, work mode, and unsupported visa/relocation facts stayed
+  unknown as intended. The description displayed escaped markup such as
+  `&lt;p&gt;`; a regression-tested fix now decodes entities before stripping
+  tags. Deployment and a fresh Telegram detail check are still pending.
 
 ## Verified
 
-- Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `240 passed`,
-  68.22% branch coverage (55% gate). Compilation and `git diff --check` pass.
-  GitHub PR #18 checks pass.
+- Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `241 passed`,
+  68.23% branch coverage (55% gate), including the encoded-HTML regression.
+  Compilation and `git diff --check` pass. GitHub PR #18 checks passed at the
+  prior head; rerun CI after pushing this fix.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -130,10 +136,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions passed for PR #16 and merge commit `874b372` (main run
   `38135649948`).
-- Draft PR #18 is open for the v3.5.7 candidate. The owner completed the
-  Relocation-first source check, but end-to-end role/location acceptance is
-  pending a Career-first GE/AM scan. The candidate remains unmerged and
-  unreleased.
+- Draft PR #18 is open for the v3.5.7 candidate. Career-first GE/AM role and
+  location acceptance is complete; keep PR #18 draft and v3.5.7 unmerged and
+  unreleased until the fixed detail card is confirmed in Telegram.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
@@ -182,9 +187,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   scan returned HH 209, Remote OK 3, Arbeitnow 2, Job Bank 0, EURES 16,
   Greenhouse 1, and HR.ge 2. Job Bank's Relocation-first request failed with a
   transient `ConnectTimeout` after 29.2 seconds; the other sources completed.
-  No EURES SSL failure appeared in the supplied excerpt. The one remaining
-  release acceptance is opening the Lineate vacancy detail in Telegram and
-  confirming unsupported visa/relocation claims stay unknown.
+  No EURES SSL failure appeared in the supplied excerpt. The owner opened
+  `/job 1091`; unsupported visa/relocation claims stayed unknown, but its
+  description was rendered as encoded HTML. A decoder fix now passes the full
+  suite; verify readable text and preserved unknowns after deployment.
 
 ## Current priority
 
@@ -199,11 +205,14 @@ isolated PostgreSQL suite and GitHub CI have passed, and the candidate is
 running in local Compose with the existing database and volumes preserved.
 The owner completed the Career-first GE/AM source check: Greenhouse returned
 one Lineate Infrastructure Engineer vacancy for Georgia and sent one new
-notification. The official posting requires at least 3 years of Linux system
-administration and 2 years of production AWS, and includes a 24/7 shift
-schedule; it does not state salary, work mode, visa sponsorship, or relocation
-assistance. Ask the owner to find the vacancy ID in `/jobs` and open it with
-`/job <id>` to verify the Telegram detail card preserves unknowns. Keep the
+notification. `/job 1091` kept unsupported evidence unknown but displayed
+its description as encoded HTML. A decoder fix now has passing full-suite
+coverage; deploy it and repeat the detail check in Telegram. The official
+posting requires at least 3 years of Linux system administration and 2 years
+of production AWS, and includes a 24/7 shift schedule; it does not state
+salary, work mode, visa sponsorship, or relocation assistance. Ask the owner
+to open `/job 1091` after deployment and verify that the description is
+readable while these fields remain unknown. Keep the
 broad Relocation-first search intact. Do not claim visa or relocation support
 without posting evidence. Do not make cold government emails a prerequisite.
 Keep e-work/workforall and
@@ -238,8 +247,9 @@ Job Bank pacing.
 - The v3.5.7 candidate makes AM selectable and connects one current Lineate
   Greenhouse board for explicit Armenia/Georgia locations. The owner now
   confirmed one Career-first Infrastructure Engineer match in Georgia.
-  Broader Armenia source coverage remains open, and the Telegram detail card
-  still needs review before v3.5.7 acceptance.
+  Broader Armenia source coverage remains open. The owner reviewed `/job 1091`;
+  evidence fields were conservative, but its HTML description was unreadable.
+  The decoding fix needs a post-deploy Telegram check before v3.5.7 acceptance.
 - Official Armenia `workpermit.am` enables employer-side processing for
   foreign hires and documents an EAEU work-permit exemption, but no anonymous
   vacancy feed/API is verified. Its FAQ question is visible but the answer is

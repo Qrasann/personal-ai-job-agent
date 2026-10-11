@@ -88,6 +88,26 @@ def test_greenhouse_support_requires_explicit_employer_evidence():
     assert refused.relocation is False
 
 
+def test_greenhouse_cleans_html_entities_in_posting_content():
+    job = GreenhouseSource.parse_payload(
+        {
+            "jobs": [
+                listing(
+                    4,
+                    "Infrastructure Engineer",
+                    "Georgian office",
+                    "&lt;p&gt;&lt;strong&gt;Linux&lt;/strong&gt;&lt;/p&gt;"
+                    "&lt;ul&gt;&lt;li&gt;We offer visa sponsorship.&lt;/li&gt;&lt;/ul&gt;",
+                )
+            ]
+        },
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )[0]
+
+    assert job.description == "Linux\nWe offer visa sponsorship."
+    assert job.visa_sponsorship is True
+
+
 def test_greenhouse_discovery_uses_the_public_board_api(monkeypatch):
     calls = []
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import re
 
 from bs4 import BeautifulSoup
@@ -29,7 +30,10 @@ def repair_mojibake(value: str) -> str:
 
 
 def clean_html_text(value: str) -> str:
-    text = repair_mojibake(value or "")
+    # Some public job-board APIs return HTML content with tags escaped as
+    # entities (for example, ``&lt;p&gt;``). Decode entities before stripping
+    # markup so Telegram details show readable text instead of the source HTML.
+    text = html.unescape(repair_mojibake(value or ""))
     if "<" in text and ">" in text:
         text = BeautifulSoup(text, "html.parser").get_text("\n", strip=True)
     lines = [" ".join(line.split()) for line in text.splitlines()]

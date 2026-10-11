@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-10-11 — Lineate description entity rendering fix
+- Owner's Telegram `/job 1091` check confirmed the vacancy kept salary, work
+  mode and unsupported visa/relocation claims unknown, but its description
+  appeared as escaped HTML (`&lt;p&gt;`, `&lt;ul&gt;`).
+- Updated `clean_html_text` to decode HTML entities before stripping markup.
+  Regressions verify readable Telegram detail output and preserve explicit
+  Greenhouse visa-support evidence extraction.
+- Full isolated PostgreSQL suite: 241 passed, 68.23% branch coverage; Python
+  compilation and `git diff --check` pass. The isolated test service is stopped
+  after the run. Push, GitHub CI, safe deployment and post-deploy Telegram
+  detail check remain to be completed.
+- Stable `main` and the formal GitHub release remain v3.5.6. This fix stays on
+  the draft v3.5.7 feature branch; no merge, tag, schema, credentials, runtime
+  production data or Docker volume changes have been made yet.
+
 ## 2026-10-11 — v3.5.7 owner Telegram source check
 - Owner set Relocation-first markets to GE and AM and shared `/sources`,
   `/scan`, `/scanstatus`, and app logs. Greenhouse · Lineate appeared as an

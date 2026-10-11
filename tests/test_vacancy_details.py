@@ -57,6 +57,7 @@ def test_hh_public_vacancy_page_parser_uses_json_ld_and_dom_fields():
 def test_text_helpers_clean_html_repair_mojibake_and_format_salary():
     assert repair_mojibake("tecnolÃ³gico") == "tecnológico"
     assert clean_html_text("<p>Linux</p><ul><li>Docker</li></ul>") == "Linux\nDocker"
+    assert clean_html_text("&lt;p&gt;&lt;strong&gt;Linux&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Docker &amp; Git&lt;/li&gt;&lt;/ul&gt;") == "Linux\nDocker & Git"
     assert format_salary(None, 300000, "RUR") == "до 300 000 ₽"
     assert format_salary(None, None, None, fallback_text="175 000 – 300 000 ₽ за месяц") == "175 000–300 000 ₽"
     assert extract_experience("DevOps. Опыт 1-3 года. Linux") == "1-3 года"
@@ -157,7 +158,7 @@ def test_job_details_separates_source_data_from_agent_score():
         "url": "https://hh.ru/vacancy/25",
         "fallback_salary_text": "DevOps Engineer 175 000–300 000 ₽ за месяц",
         "details": {
-            "description": "Обязанности\nCI/CD\nТребования\nLinux Docker",
+            "description": "&lt;p&gt;Обязанности&lt;/p&gt;&lt;p&gt;CI/CD&lt;/p&gt;&lt;p&gt;Требования&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Linux Docker&lt;/li&gt;&lt;/ul&gt;",
             "experience": "Опыт 3-6 лет",
             "salary_to": 300000,
             "salary_currency": "RUR",
@@ -170,6 +171,7 @@ def test_job_details_separates_source_data_from_agent_score():
     }
     text = render_job_details(payload)
     assert "Описание вакансии" in text
+    assert "&lt;p&gt;" not in text
     assert "CI/CD" in text
     assert "Оценка Job Agent" in text
     assert "💰 175 000–300 000 ₽" in text

@@ -121,7 +121,8 @@
 - [ ] Keep visa sponsorship, work authorization, relocation support, salary
   and language evidence separate; unknown remains unknown.
 - [x] Run the full isolated PostgreSQL suite and compile checks for the v3.5.7
-  candidate: 240 passed, 68.22% branch coverage; `git diff --check` passed.
+  candidate after the encoded-HTML fix: 241 passed, 68.23% branch coverage;
+  `git diff --check` passed.
 - [x] Push candidate commit `4ccae7f`; GitHub push CI run `38143185017` passed
   Python checks, Docker build and secret scan.
 - [x] Open draft PR #18; GitHub checks `38143909265` and `38143905027` passed.
@@ -138,12 +139,16 @@
   GE (67/100) and one new notification; EURES returned 16. The separate
   Relocation-first Job Bank request failed with `ConnectTimeout`; all other
   sources completed. The bot showed work mode as unknown.
-- [ ] Inspect the Lineate notification through `/jobs` and `/job <id>`. Confirm
-  the detail card keeps salary, work mode, visa/work authorization, and
-  relocation assistance unknown unless the vacancy provides evidence. The
-  official posting is for a Georgian office and requires 3+ years Linux
-  administration, 2+ years production AWS, and 24/7 shift participation; see
-  https://job-boards.greenhouse.io/lineate/jobs/8018252.
+- [x] Inspect the Lineate notification through `/jobs` and `/job 1091`. Salary,
+  work mode and unsupported visa/relocation facts remain unknown. The official
+  posting is for a Georgian office and requires 3+ years Linux administration,
+  2+ years production AWS, and 24/7 shift participation; see
+  https://job-boards.greenhouse.io/lineate/jobs/8018252. The owner found its
+  description displayed as escaped HTML entities.
+- [ ] Push and safely deploy the HTML-entity decoding fix. Ask the owner to
+  reopen `/job 1091` and confirm the description is readable while salary,
+  work mode, visa/work authorization and relocation assistance remain unknown
+  absent explicit evidence.
 - [ ] Add bounded retry for Job Bank transport failures only, preserving the
   five-second spacing between request starts and existing source isolation.
   Add regression coverage before changing runtime behavior; HTTP status errors

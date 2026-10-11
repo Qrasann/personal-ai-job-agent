@@ -25,7 +25,10 @@
   returned HTTP 200 for Relocation-first GE/AM but matched no jobs because its
   selected role queries are non-technical. The subsequent Career-first GE/AM
   scan returned one Lineate Infrastructure Engineer vacancy explicitly marked
-  GE (67/100); work mode was unknown. Its detail card still needs review.
+  GE (67/100); work mode was unknown. The owner opened `/job 1091`: salary,
+  work mode, and unsupported visa/relocation claims remained unknown, but the
+  description rendered escaped HTML entities. A fix is implemented and fully
+  tested; it still needs deployment and a fresh Telegram detail check.
 - Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
   `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
   Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
@@ -47,12 +50,13 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- Latest full isolated PostgreSQL suite on the v3.5.7 candidate: 240 passed,
-  68.22% branch coverage (55% gate); compile and diff checks pass. The owner
-  completed live Lineate role/location acceptance; Telegram detail-card
-  review remains pending. The latest supplied scan had one isolated
-  Relocation-first Job Bank `ConnectTimeout` (0 jobs, 29.2 seconds); EURES
-  returned 16 without an SSL error and other sources completed.
+- Latest full isolated PostgreSQL suite on the v3.5.7 candidate, including the
+  encoded-HTML regression: 241 passed, 68.23% branch coverage (55% gate);
+  compile and diff checks pass. Live Lineate role/location acceptance is
+  complete; readable Telegram detail-card confirmation remains pending. The
+  latest supplied scan had one isolated Relocation-first Job Bank
+  `ConnectTimeout` (0 jobs, 29.2 seconds); EURES returned 16 without an SSL
+  error and other sources completed.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
