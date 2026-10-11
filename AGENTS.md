@@ -9,11 +9,11 @@
 
 ## Development workflow
 
-- Read `docs/PROJECT_OS/CURRENT_STATE.md`, `TASKS.md`, `KNOWN_ISSUES.md`, `DEVELOPMENT_LOG.md`, and `HANDOFF.md` before changing behavior.
+- Read `docs/PROJECT_OS/BRIEF.md` first. Then read only the detailed PROJECT_OS files relevant to the active task.
 - Continue the existing architecture; do not recreate the project or rewrite working components without evidence.
 - Maintain both independent search directions: Career-first for DevOps/Infrastructure/SRE and Relocation-first for legal international work with evidence-based visa/relocation handling.
 - Do not treat missing relocation evidence as a confirmed refusal, and do not fabricate salary, visa, or relocation claims.
-- Add regression tests for behavior changes and update PROJECT_OS handoff documentation after each completed stage.
+- Add regression tests for behavior changes and update `BRIEF.md`, `DEVELOPMENT_LOG.md`, `TASKS.md`, and `HANDOFF.md` after each completed stage.
 
 ## Verification
 

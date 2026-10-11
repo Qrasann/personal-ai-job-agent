@@ -99,8 +99,9 @@ Rollback is limited to the dual-mode commit/files because legacy `queries` remai
 Earlier verification on 2026-10-10: 175 pytest tests passed against isolated
 PostgreSQL 16; branch coverage 63.22% (gate 55%). Subsequent startup, parallel
 profile activation and dual-profile scan smoke tests passed locally, as recorded
-in DEVELOPMENT_LOG.md. Comprehensive Telegram acceptance and remote CI remain
-pending.
+in DEVELOPMENT_LOG.md. Remote CI now passes for the later v3.5.4 stage;
+comprehensive owner-driven Telegram control acceptance remains pending. Read
+`BRIEF.md` first for the current concise state and priority.
 
 Parallel search is opt-in. The existing profile becomes `Career-first`; one
 `Relocation-first` profile is created and reused. Disabling parallel search
