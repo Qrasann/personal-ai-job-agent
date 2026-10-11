@@ -30,7 +30,8 @@ Recommendation Model v2 evidence breakdown.
   profile's configured source plan.
 - Updated-candidate isolated PostgreSQL suite: 224 passed; branch coverage
   66.33% (55% gate).
-- Candidate maintenance on PR #16 (not a tagged release): pause JOBS.GE after
+- PR #16 merged into `main` at `874b372` (still not a tagged release): pause
+  JOBS.GE after
   the configured homepage returned HTTP 410; show its status in `/sources`.
   Add one retry for transient Arbeitnow transport failures with a 15-second
   timeout. Verification: 233 isolated PostgreSQL tests passed, push/PR CI

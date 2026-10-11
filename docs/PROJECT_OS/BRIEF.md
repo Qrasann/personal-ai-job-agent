@@ -14,21 +14,21 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 ## Current runtime
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
-- GitHub `main`: `6294c2a` (`v3.5.6`). Deployed application commit `170ed4e`
-  is on candidate branch `feature/v3.5.6-eures-identity-market-targets`.
-- GitHub PR #16 is open on `main`; deployed application code is `170ed4e`.
-  Later commits on the candidate branch update documentation. Current PR
-  details are at
+- GitHub `main`: merge commit `874b372` (`VERSION=3.5.6`); PR #15 and PR #16
+  are merged. The deployed application code is `170ed4e`; PR #16's later
+  commits only updated documentation. The merge is recorded at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
-- Branch map: `main` is the stable source; `feature/v3.5.6-eures-identity-market-targets`
-  is the active PR #16 branch and is where current changes are pushed. The
-  remote `feature/v3.5.2-dual-search-modes` branch remains from earlier work
-  but is not the active development branch.
+- Branch map: `main` is the stable source and the local checkout. The
+  `feature/v3.5.6-eures-identity-market-targets` branch is merged and inactive;
+  `feature/v3.5.2-dual-search-modes` is an older remote branch and is not active.
+  Start new implementation work from `main` on a fresh v3.5.7 feature branch.
 - Release map: `VERSION=3.5.6` identifies source on `main`; the latest formal
   GitHub tag/Release is v3.5.1. Changelog entries v3.5.2–v3.5.6 are cumulative
   source milestones, not separate published releases. Publish one cumulative
   v3.5.6 release after Telegram acceptance; do not backfill tags for the
   intermediate milestones.
+- GitHub CI passed for merge commit `874b372` (run `38135649948`); the PR #16
+  push and PR checks also passed (runs `38135381779` and `38135384930`).
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
@@ -76,8 +76,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   API/access terms are unverified, and official registration rules do not yet
   establish pre-move foreign-candidate access.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
-- Merged release PR #15 into GitHub `main`; CI passed and the owner supplied
-  a real-chat smoke test for the core Telegram commands.
+- Merged release PR #15 and candidate PR #16 into GitHub `main`; CI passed and
+  the owner supplied real-chat smoke checks for core commands and the updated
+  source plan/scan.
 
 ## Verified
 
@@ -90,16 +91,17 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Source-resilience targeted tests: `20 passed`; the full suite includes the
   Arbeitnow retry and source-availability cases.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
-- GitHub Actions run 110 passed.
+- GitHub Actions passed for PR #16 and merge commit `874b372` (main run
+  `38135649948`).
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
   confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
   and RemoteOK; no startup errors were present in the inspected log tail.
-- Candidate `170ed4e` is pushed to PR #16, passes push and PR CI, and is applied
-  to Compose project `repo`. Runtime remains 3.5.6; app is up and PostgreSQL is
-  healthy. The startup scan completed successfully. Both Arbeitnow requests,
+- Application commit `170ed4e` was merged to `main` through PR #16 and remains
+  applied to Compose project `repo`. Runtime is 3.5.6; app is up and PostgreSQL
+  is healthy. The startup scan completed successfully. Both Arbeitnow requests,
   EURES searches/details, and HR.ge listing/detail requests returned HTTP 200;
   no JOBS.GE request or source error appeared. Named
   `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
@@ -112,8 +114,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   to RemoteOK. Job Bank's five-second request pacing remains in place.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
-- GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
-  push and pull-request CI passed for handoff commit `e43072c`.
+- GitHub PRs #15 and #16 are merged. PR #16 added EURES/market/source
+  reliability and bilingual documentation; its push/PR CI and the merge-commit
+  CI passed.
 - Owner-provided Telegram smoke test on 2026-10-11 confirmed `/salary`,
   `/blacklist`, `/scanstatus`, `/cancel`, `/import` prompt, `/version` and
   `/status`. The scan completed with an EURES error while other sources

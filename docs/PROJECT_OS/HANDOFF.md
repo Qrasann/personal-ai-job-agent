@@ -2,21 +2,20 @@
 
 ## GitHub branches and release labels — 2026-10-11
 
-- `main` is the stable source branch at `6294c2a`, with `VERSION` set to
-  v3.5.6. It does not yet contain the open PR #16 changes.
-- Active development is on
-  `feature/v3.5.6-eures-identity-market-targets`, which targets `main` through
-  [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16).
-  Application commit `170ed4e` is deployed to the local Compose project;
-  subsequent branch commits record handoff and language/release documentation.
+- `main` is the stable source branch at merge commit `874b372`, with `VERSION`
+  set to v3.5.6. PR #15 and [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16)
+  are merged. Main CI run `38135649948` passed.
+- The local checkout is on `main`. Application commit `170ed4e` is deployed to
+  Compose project `repo`; later PR #16 commits updated documentation only.
 - `feature/v3.5.2-dual-search-modes` remains on the remote from earlier work;
   it is not the active branch for new changes.
+- The merged `feature/v3.5.6-eures-identity-market-targets` branch is inactive.
+  Create the next implementation branch from `main` for v3.5.7.
 - GitHub Releases and version tags currently stop at v3.5.1. The v3.5.2–v3.5.6
   changelog entries are cumulative source milestones, not formal releases.
   Publish one cumulative v3.5.6 release after resume-import and Recommendation
   v2 Telegram acceptance; do not backfill tags for intermediate milestones.
-- README.md and README.ru.md provide English and Russian entry points on the
-  active candidate branch. `main` remains English-only until PR #16 is merged.
+- README.md and README.ru.md provide English and Russian entry points on `main`.
 
 ## Owner Telegram scan and source-resilience follow-up — 2026-10-11
 
@@ -71,7 +70,7 @@ grant permission to reuse listings; recurring automated extraction terms
 remain unverified. The adapters stay limited to Georgia-targeted profiles.
 
 The source/runtime version remains 3.5.6 while v3.5.7 market-coverage work is
-in progress. JOBS.GE access and HR.ge
+planned. JOBS.GE access and HR.ge
 reuse terms remain unresolved; do not treat the boards as validated recurring
 sources until access conditions are reviewed. The prior
 `/import` preview/save and Recommendation v2 detail acceptance remains a
@@ -87,10 +86,12 @@ cumulative v3.5.6 tag/release. Do not backfill intermediate tags.
 
 Candidate commit `6fa3406` is published on
 `feature/v3.5.6-eures-identity-market-targets` as [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16).
-The application and handoff changes passed push and PR CI. GitHub `main` remains at `6294c2a`;
-the candidate and deployed app still report source/runtime v3.5.6. The latest
-published GitHub release is v3.5.1; do not tag v3.5.6 until owner acceptance is
-recorded.
+At the time of this candidate update, the application and handoff changes
+passed push and PR CI while GitHub `main` remained at `6294c2a`. PR #16 was
+later merged into `main` at `874b372`; that merge and its CI are recorded at
+the top of this handoff. The candidate and deployed app report source/runtime
+v3.5.6. The latest published GitHub release/tag remains v3.5.1; do not tag
+v3.5.6 until owner acceptance is recorded.
 
 EURES failed while reading compressed response bodies in the running container.
 A direct request reproduced the TLS record-layer error with default encoding;

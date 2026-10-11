@@ -1,10 +1,12 @@
 # Current State
 
 ## Latest state
-- stable GitHub `main`: `6294c2a` (source version 3.5.6). PR #15 is merged.
-- active candidate branch: `feature/v3.5.6-eures-identity-market-targets`;
-  it is published as PR #16; deployed application code is `170ed4e`. The
-  branch has subsequent handoff/documentation commits. Latest CI checks passed.
+- stable GitHub `main`: merge commit `874b372` (source version 3.5.6). PRs #15
+  and #16 are merged. Deployed application code is `170ed4e`; later commits in
+  PR #16 updated documentation. Main CI run `38135649948` passed.
+- `README.md` and `README.ru.md` now provide English and Russian entry points
+  on `main`. The merged feature branch is inactive; start future implementation
+  work from `main` on a new v3.5.7 feature branch.
 - GitHub Releases and tags currently end at v3.5.1. Source version v3.5.6 and
   changelog entries v3.5.2–v3.5.6 do not imply those versions were formally
   published as releases.
@@ -32,7 +34,8 @@
   Career-first and Relocation-first profiles.
 - latest full PostgreSQL-backed suite: 233 passed, 67.67% branch coverage
   (55% gate).
-- Latest GitHub Actions runs `38129138392` (push) and `38129141546` (PR) passed.
+- PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
+  CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
   connected public feeds; employer-only counts remain unknown in this app.
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
@@ -40,15 +43,15 @@
   and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
-- GitHub `main` HEAD: v3.5.6 at `6294c2a`.
+- GitHub `main` HEAD: v3.5.6 at `874b372`.
 - PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
+- PR #16 merge commit: `874b37255e3bb223d2b49d83027f15b48acfe7c4`.
 
 ## Active development
-- PR #16 carries the active candidate and bilingual README; `main` remains the
-  stable source until acceptance and merge. GitHub tags/releases stop at
-  v3.5.1 while `VERSION=3.5.6`; the v3.5.2–v3.5.6 changelog entries are
-  cumulative source milestones. Publish one v3.5.6 release after the owner
-  checks `/import` preview/save and Recommendation v2 vacancy details.
+- `main` is the active stable source; PR #16 is merged. GitHub tags/releases
+  stop at v3.5.1 while `VERSION=3.5.6`; v3.5.2–v3.5.6 are cumulative source
+  milestones. Publish one v3.5.6 release after the owner checks `/import`
+  preview/save and Recommendation v2 vacancy details.
 - Job Bank is the measured latency bottleneck at 99.5 seconds. Preserve its
   five-second request pacing while evaluating any optimization.
 

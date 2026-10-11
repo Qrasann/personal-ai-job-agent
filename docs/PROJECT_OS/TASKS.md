@@ -51,6 +51,9 @@
   acceptance.
 - [x] Push current branch handoff and README clarification in PR #16; latest
   push CI `38129983586` passed.
+- [x] Merge PR #16 into `main` after candidate CI and owner source/scan checks;
+  merge commit `874b372`, PR push/PR CI `38135381779` / `38135384930`, and main
+  CI `38135649948` passed. `README.md` and `README.ru.md` are now both on main.
 - [x] Apply through the safe updater; verify runtime 3.5.6, active app,
   healthy PostgreSQL, completed startup scan, and attached existing named
   PostgreSQL/storage volumes. Logs show Arbeitnow, EURES, and HR.ge HTTP 200s;

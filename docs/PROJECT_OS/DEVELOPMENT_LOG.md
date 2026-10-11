@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-10-11 — merge source/language candidate into main
+- Merged PR #16 into `main` at `874b37255e3bb223d2b49d83027f15b48acfe7c4`.
+  PR push CI `38135381779`, PR CI `38135384930`, and main merge CI
+  `38135649948` passed.
+- `main` now contains the English `README.md` and Russian `README.ru.md`, the
+  single canonical root roadmap, and the reconciled source/release map. The
+  local checkout is on `main`; the merged feature branch is inactive.
+- The application code deployed to Compose remains `170ed4e`, source/runtime
+  3.5.6. Status reports the app up and PostgreSQL healthy. The latest inspected
+  log tail shows Job Bank detail requests returning HTTP 200 and scheduled
+  `scan_all` completing at 11:12:28 UTC; no failure appears in that excerpt.
+- No application image rebuild or database migration was needed. The formal
+  v3.5.6 release/tag remains pending `/import` preview/save and Recommendation
+  v2 detail acceptance; no tag was created.
+
 ## 2026-10-11 — Telegram source dashboard and GitHub release map
 - Owner confirmed `/sources` displays JOBS.GE as paused after its configured
   endpoint returned HTTP 410; HR.ge remains available for the selected GE
@@ -17,9 +32,9 @@
   source milestones. The intended next formal release is one cumulative v3.5.6
   tag after `/import` preview/save and Recommendation v2 detail acceptance;
   intermediate tags will not be backfilled.
-- README and README.ru.md on the candidate branch are aligned bilingual entry
-  points. `main` remains English-only until PR #16 is merged. No release tag or
-  main-branch merge was created during this stage.
+- README and README.ru.md on the candidate branch were aligned bilingual entry
+  points; the subsequent PR #16 merge put both on `main`. This documentation
+  stage created no release tag.
 - Removed the duplicate stale PROJECT_OS roadmap; the root `ROADMAP.md` is now
   the single maintained plan and the PROJECT_OS entry links to it.
 - Verification after the documentation update: isolated PostgreSQL suite
@@ -159,8 +174,9 @@
 - Published commit `6fa3406` to
   `feature/v3.5.6-eures-identity-market-targets`; PR #16 CI run
   passed. Recorded the verified state in follow-up handoff commit `e43072c`;
-  push and PR CI passed for that branch head. GitHub `main` remains unchanged
-  at `6294c2a`.
+  push and PR CI passed for that branch head. At that point GitHub `main` was
+  still at `6294c2a`; PR #16 was merged later at `874b372` (see the entry at
+  the top of this log).
 - Applied the candidate with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
   update`. The app restarted, `/status` reports source/runtime 3.5.6, and
   PostgreSQL stayed healthy. Post-update startup EURES search and detail
