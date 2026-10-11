@@ -1,5 +1,44 @@
 # Handoff
 
+## v3.5.6 candidate update — PR #16 (2026-10-11)
+
+Candidate commit `6fa3406` is published on
+`feature/v3.5.6-eures-identity-market-targets` as [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16).
+GitHub Actions run `38123697609` passed. GitHub `main` remains at `6294c2a`;
+the candidate and deployed app still report source/runtime v3.5.6. The latest
+published GitHub release is v3.5.1; do not tag v3.5.6 until owner acceptance is
+recorded.
+
+EURES failed while reading compressed response bodies in the running container.
+A direct request reproduced the TLS record-layer error with default encoding;
+the same request using `Accept-Encoding: identity` read all 50 result records.
+The adapter now requests identity encoding. After the safe update, the first
+startup dual-profile scan completed (`scan_all` executed successfully); EURES
+search and detail requests returned HTTP 200, with no SSL retries/errors in the
+run. Continue monitoring later scheduled scans because the underlying network
+cause is not yet established.
+
+`/targets GE` now applies target countries to all active profiles;
+`/targets relocation GE` and `/targets career GE` scope the change. `/sources`
+lists each active profile's configured source plan. Georgia adapters are
+included only for profiles targeting GE. The owner still needs to run the
+Georgia scan in Telegram and confirm its result quality. Armenia is not yet in
+the country catalog and has no connected adapter; the official e-work portal's
+public API/access terms remain unverified. Staff.am prohibits automated
+scraping without permission; Job.am restricts unauthorized reuse and
+redistribution. See
+`docs/developer/INTERNATIONAL_SOURCES.md` and the v3.5.7 plan in `ROADMAP.md`.
+
+The full isolated PostgreSQL suite passed: 224 tests, 66.33% branch coverage;
+compileall and `git diff --check` passed. Compose reports the app polling and
+PostgreSQL healthy. Mount inspection confirms `repo_jobagent_v3_pg` and
+`repo_jobagent_v3_files` remain attached. No database migration was added.
+
+Remaining owner acceptance before release tagging: upload a test resume and
+review/cancel or confirm the `/import` preview/save flow; open a vacancy and
+inspect Recommendation v2 details. Do not publish a v3.5.6 tag before these
+checks.
+
 ## v3.5.6 main merge and Telegram smoke test — 2026-10-11
 
 GitHub PR #15 is merged into `main` at `062eb253bdf8435782e5fcca6cfb1257b271ea86`;

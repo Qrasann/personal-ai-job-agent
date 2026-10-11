@@ -1,11 +1,14 @@
 # Current State
 
 ## Latest state
-- branch: `main` at merge commit `062eb25` (PR #15); source/runtime version
-  3.5.6. PR #15 is merged and the main branch now contains the release.
-- local Compose project `repo`: source/runtime 3.5.6; app container is up and
-  PostgreSQL is healthy. The latest scheduled scan completed despite an EURES
-  SSL record-layer failure on one profile.
+- stable GitHub `main`: `6294c2a` (source version 3.5.6). PR #15 is merged.
+- active candidate: `feature/v3.5.6-eures-identity-market-targets` at `6fa3406`,
+  published as PR #16; its CI run `38123697609` passed.
+- local Compose project `repo` runs source/runtime 3.5.6 from the candidate;
+  the app is polling and PostgreSQL is healthy.
+- after the candidate update, the startup dual-profile scan completed
+  successfully. EURES search and detail requests returned HTTP 200 without the
+  previous SSL retries/errors.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -13,7 +16,8 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- v3.5.6 full PostgreSQL-backed suite: 220 passed, 65.66% branch coverage.
+- latest full PostgreSQL-backed suite: 224 passed, 66.33% branch coverage
+  (55% gate).
 - GitHub Actions runs `38121905782` (push) and `38121908521` (PR) passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
   connected public feeds; employer-only counts remain unknown in this app.
@@ -76,9 +80,16 @@
   migration OK), and `/status` (ACTIVE). The reported scan completed; EURES
   failed while HH, RemoteOK, Arbeitnow and Job Bank returned results. No
   resume file was uploaded and no Recommendation v2 vacancy details were shown.
-- v3.5.6 is running in Compose project `repo`; the latest logs include EURES
-  SSL retries and a source failure after bounded retries, while the scheduled
-  scan completed. Existing named volumes remain attached.
+- EURES now requests identity-encoded responses. A direct live check showed
+  compressed response reads failing while identity encoding returned a complete
+  50-result response. The first post-update scan showed successful EURES search
+  and detail requests; continue monitoring subsequent runs.
+- The updated `/targets` applies markets to all active profiles by default and
+  supports explicit `career`/`relocation` scope. `/sources` lists plans per
+  active profile. The owner still needs to set GE and confirm it in Telegram.
+- The v3.5.6 release tag remains pending owner checks for `/import` preview/save
+  and Recommendation v2 vacancy details. GitHub's latest published tag remains
+  v3.5.1.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.

@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-10-11 — v3.5.6 EURES transport and Georgia profile controls
+
+- Reproduced the reported EURES body-read failure from inside the running app
+  container. A default compressed request raised an SSL `ReadError` after
+  headers; disabling keep-alive alone did not help. The same public search with
+  `Accept-Encoding: identity` returned a complete 50-result JSON body (160,781
+  bytes).
+- Added identity encoding to EURES requests and a regression test. The adapter
+  continues using bounded transport retries and preserves partial results.
+- Confirmed why JOBS.GE/HR.ge were missing from the supplied scan: country-local
+  adapters are planned only when a profile targets GE, and `/targets` previously
+  updated only the first active profile. The command now updates all active
+  profiles by default, supports `career` and `relocation` scopes, and displays
+  all active profiles when run without arguments. `/sources` now reports each
+  profile's plan and source-setting state.
+- Replaced the stale mixed-era README with `README.md` (English) and
+  `README.ru.md`, aligned changelog version headings, and rewrote the roadmap
+  around the actual v3.5.6 gate and the next Armenia/Georgia source stage.
+- Added source-access notes: the official Armenian e-work portal could not be
+  reached for API review; Staff.am prohibits automated scraping without express
+  written permission; Job.am restricts unauthorized redistribution; recurring
+  findjobs.ge collection is not suitable without permission under its current
+  terms. No new country feed was added without a verified permitted contract.
+- Full isolated PostgreSQL suite: 224 passed; branch coverage 66.33% (55%
+  gate). `python -m compileall -q app tests` and `git diff --check` passed.
+- Published commit `6fa3406` to
+  `feature/v3.5.6-eures-identity-market-targets`; PR #16 CI run
+  `38123697609` passed. GitHub `main` remains unchanged at `6294c2a`.
+- Applied the candidate with `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+  update`. The app restarted, `/status` reports source/runtime 3.5.6, and
+  PostgreSQL stayed healthy. Post-update startup EURES search and detail
+  requests returned HTTP 200; the full startup dual-profile scan completed
+  successfully with no EURES SSL warnings/errors. Mount inspection confirmed
+  the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes.
+- No schema migration was needed. The v3.5.6 release tag remains gated on
+  owner-driven `/import` preview/save and Recommendation v2 vacancy-detail
+  acceptance. The owner should also set GE and inspect `/sources`/`/scan` for
+  Relocation-first. The latest published GitHub release is still v3.5.1.
+
 ## 2026-10-11 — v3.5.6 Recommendation Model v2
 - Added a persisted per-match JSON breakdown for technical, growth, fast-exit,
   interview-risk, salary, remote, relocation, security, infrastructure and

@@ -1,5 +1,42 @@
 # Tasks
 
+## v3.5.6 candidate maintenance — EURES and target markets
+- [x] Reproduce EURES TLS body-read failure with default compressed encoding
+  inside the running container; verify that identity encoding reads the full
+  50-result JSON response.
+- [x] Add `Accept-Encoding: identity` to EURES and cover it with a regression
+  test.
+- [x] Make `/targets` apply countries to all active search profiles by default;
+  support explicit `career` and `relocation` scopes.
+- [x] Make `/sources` list each active profile's configured source plan.
+- [x] Replace the mixed-language root README with linked English and Russian
+  versions; align changelog headings and refresh the roadmap/source review.
+- [x] Full isolated PostgreSQL suite: 224 passed; branch coverage 66.33%.
+- [x] Push `6fa3406` to GitHub branch
+  `feature/v3.5.6-eures-identity-market-targets`; PR #16 CI run
+  `38123697609` passed.
+- [x] Apply the candidate through `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+  update`; verify polling, healthy PostgreSQL, and unchanged
+  `repo_jobagent_v3_pg` / `repo_jobagent_v3_files` volumes.
+- [x] Verify the first post-update startup scan completed successfully; EURES
+  search and detail requests returned HTTP 200 with no SSL retry/error.
+- [ ] Owner runs `/targets relocation GE`, `/sources`, and `/scan` to confirm
+  Georgia appears in the intended profile and to review actual result quality.
+- [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
+  detail checks before any v3.5.6 release tag.
+- [ ] Monitor later scheduled EURES scans; the first clean run does not prove
+  the underlying TLS cause is permanently resolved.
+
+## v3.5.7 International Market Coverage — planned
+- [ ] Review JOBS.GE and HR.ge terms, robots guidance, pacing, and result quality.
+- [ ] Verify an Armenian public API or obtain permission before adding a
+  recurring local source; investigate the official e-work portal first.
+- [ ] Prefer permitted employer career/ATS feeds and verify location, language,
+  expiry and candidate eligibility evidence.
+- [ ] Add Armenian country selection only together with a tested local source.
+- [ ] Keep visa sponsorship, work authorization, relocation support, salary
+  and language evidence separate; unknown remains unknown.
+
 ## GitHub main synchronization
 - [x] Integrate GitHub `main` commit `375af5f` into the release branch without
   rewriting history; full PostgreSQL suite passed (220 tests, 65.66%), commit

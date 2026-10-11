@@ -5,11 +5,13 @@
 - Relocation discovery initially used `relocation_queries` while matching scored only career `queries`, filtering otherwise relevant broad-role results. Matching now uses the active strategy's discovery queries.
 - Generic description text could be misread as a salary for non-HH sources. Notifications and details now use only structured salary values or explicit source salary/card text.
 
-- EURES still has intermittent TLS record-layer failures in the deployed
-  runtime. The adapter retries transport failures and keeps successful query
-  results, but an individual profile may receive no EURES results when all
-  retries fail; the scheduled scan and other sources continue. The cause has
-  not been established from current logs.
+- EURES response bodies failed with a TLS record-layer error when the client
+  negotiated compressed encoding. In a live container check, the default
+  compressed request reproduced the failure, while `Accept-Encoding: identity`
+  returned a full 50-result JSON response. The first complete post-update
+  dual-profile scan returned EURES search and detail responses without SSL
+  errors, and `scan_all` completed. The underlying network/server cause is not
+  established; monitor later scheduled runs.
 
 - work_permit, relocation_package and immigration_support are not separate Job columns yet; v3.5.2 infers them conservatively from vacancy text.
 - Source/country priority affects processing order, not Recommendation Model v2 score yet.
@@ -17,6 +19,15 @@
 - Country picker is limited to data/countries.yaml.
 - Only implemented adapters actually scan; future registered sources still need collectors.
 - HH is primarily domestic and RemoteOK is tech-heavy. Arbeitnow adds Germany coverage but its current feed can legitimately contain no low-barrier role matches; additional legal-work/visa-capable country sources are still needed.
+- Georgia adapters are already registered, but only enter a profile's scan
+  when `GE` is selected. The new `/targets` command can set this for both active
+  profiles or for Relocation-first alone; the owner has not yet confirmed a
+  Georgia scan in Telegram.
+- Armenia is not yet selectable and has no connected local adapter. The
+  official e-work portal's public access contract was not verified; Staff.am
+  prohibits automated scraping without permission, and Job.am restricts
+  unauthorized reuse and redistribution. No recurring collector should be
+  added without an approved feed or written permission.
 - Job Bank Canada adds international TFW coverage, but an LMIA request or
   permission to apply does not establish sponsorship or candidate eligibility.
   Initial coverage is one page, six queries and twelve details per profile;

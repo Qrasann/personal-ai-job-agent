@@ -14,7 +14,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 ## Current runtime
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
-- Active branch: `main` (`062eb25`, v3.5.6).
+- GitHub `main`: `6294c2a` (`v3.5.6`). Active candidate branch and deployed
+  source: `feature/v3.5.6-eures-identity-market-targets` (`6fa3406`).
+- GitHub PR #16 is open; CI run `38123697609` passed.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
@@ -38,14 +40,23 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Added persisted Recommendation v2 component breakdown with unknown values
   left unset and displayed in vacancy details.
 - Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
+- Set EURES `Accept-Encoding: identity` after reproducing TLS body-read failure
+  with the default compressed response and reading the complete 50-result JSON
+  with identity encoding.
+- Updated `/targets` to configure all active search profiles by default, with
+  explicit `career` and `relocation` scope; `/sources` now shows each profile's
+  configured source plan.
+- Replaced the mixed-language README with English and Russian entry points,
+  aligned changelog headings, refreshed the roadmap, and documented current
+  Armenia/Georgia source-access constraints.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
 - Merged release PR #15 into GitHub `main`; CI passed and the owner supplied
   a real-chat smoke test for the core Telegram commands.
 
 ## Verified
 
-- Latest full PostgreSQL-backed suite: `220 passed`, 65.66% branch coverage
-  (rerun on 2026-10-11).
+- Latest full PostgreSQL-backed suite: `224 passed`, 66.33% branch coverage
+  (rerun on 2026-10-11; 55% gate).
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
@@ -56,30 +67,43 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   and RemoteOK; no startup errors were present in the inspected log tail.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
-- GitHub PR #15 is merged; `main` is v3.5.6 at `062eb25`. Final push and PR CI
-  runs (38121905782, 38121908521) both passed.
+- GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
+  its push CI run `38123697609` passed.
 - Owner-provided Telegram smoke test on 2026-10-11 confirmed `/salary`,
   `/blacklist`, `/scanstatus`, `/cancel`, `/import` prompt, `/version` and
   `/status`. The scan completed with an EURES error while other sources
   returned results. `/import` file preview/save and Recommendation v2 vacancy
   details still need end-to-end acceptance before release tagging.
-- Latest supplied/runtime logs show intermittent EURES `SSLError` retries,
-  some EURES HTTP 200 responses, and a scheduled scan that still completed.
-  Job Bank and other sources continue independently; EURES can still be
-  unavailable for an individual profile when every bounded attempt fails.
+- After the safe update, the 2026-10-11 startup scan completed successfully.
+  EURES search and detail requests returned HTTP 200 without SSL retry/error
+  logs. Continue monitoring subsequent scheduled scans; one successful run
+  does not establish the underlying TLS cause.
+- Runtime status after update: source/runtime `3.5.6`, app polling, PostgreSQL
+  healthy. The existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
+  volumes remain attached.
 
 ## Current priority
 
-Complete end-to-end Telegram acceptance for `/import` file preview/save and Recommendation v2 vacancy details; record results before release tagging.
+Complete owner-driven Telegram acceptance on the updated bot: configure and
+verify Georgia through `/targets relocation GE`, `/sources`, and `/scan`, then
+exercise `/import` preview/save and Recommendation v2 vacancy details. Keep
+v3.5.6 untagged until acceptance is recorded.
 
 ## Open limitations
 
 - Source coverage remains the main Relocation-first bottleneck, especially Armenia and low-barrier legal work.
+- Georgia adapters are implemented but only run when `GE` is selected for a
+  search profile. The `/targets` change makes that explicit across both active
+  profiles. Armenia has no catalog entry or connected local source yet.
+- Armenia source candidates need access review: the state e-work portal did
+  not load in the current check; Staff.am prohibits automated scraping without
+  permission, while Job.am restricts unauthorized reuse and redistribution. See
+  `docs/developer/INTERNATIONAL_SOURCES.md`.
 - Arbeitnow currently improves Germany/Career coverage but may contain no low-barrier roles.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
-- EURES may still return partial results or fail for one profile if repeated
-  TLS transport attempts fail; retries are bounded, HTTP status responses are
-  not retried, and other sources continue.
+- EURES's compressed-response TLS failure did not recur in the first complete
+  post-update scan using identity encoding. Monitor additional runs; do not
+  claim the root cause is permanently resolved yet.
 - The EURES cross-border flag is not proof of visa sponsorship, relocation support, or third-country work authorization.
 - Public applicant counts are unavailable in the connected candidate-facing feeds and remain unknown.
 - Dedicated Career Score and Relocation Score, affordability calculation, migration knowledge base, and application tracker are later phases—not completed features.
