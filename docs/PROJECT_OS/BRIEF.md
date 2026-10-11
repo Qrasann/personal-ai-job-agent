@@ -42,13 +42,13 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Latest PostgreSQL-backed suite: `208 passed`, 64.51% branch coverage.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
-- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy; commit `d5d78d3` is deployed. Its startup logs showed raw SSL retry warnings, successful retry responses, and one EURES profile still exhausting retries.
-- A follow-up now preserves results from successful queries/details when another EURES request exhausts retries. It is tested but awaits deployment. Existing PostgreSQL and storage volumes remain attached.
+- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy; commit `8a87604` is deployed. Startup logs show EURES retry warnings followed by HTTP 200 responses; one profile still had every search query exhaust retries and reported EURES unavailable. Job Bank and other sources continued successfully.
+- EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 
 ## Current priority
 
-Deploy and verify partial EURES results when an individual request exhausts retries; then complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, and `/cancel` before deciding release tagging.
+Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, and `/cancel`, record the results, and only then decide release tagging.
 
 ## Open limitations
 

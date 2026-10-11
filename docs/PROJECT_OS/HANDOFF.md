@@ -4,12 +4,16 @@
 
 The raw `ssl.SSLError` retry fix is published and deployed as `d5d78d3`; logs
 showed retry warnings and HTTP 200 responses after retries, but one profile
-still exhausted its attempts. A second follow-up now continues across failed
-queries/details and retains successful results; it still reports a source
-failure when all searches or all matching detail requests fail. The full suite
-passes (208 tests, 64.51% branch coverage). Partial-result handling is not yet
-deployed; after publishing, run `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
-update` and inspect the next EURES scan.
+still exhausted its attempts. Partial-result handling is published and
+deployed as `8a87604`; it continues across failed queries/details and retains
+successful results, while still reporting a source failure when all searches
+or all matching detail requests fail. The full suite passes (208 tests,
+64.51% branch coverage). The startup scan showed retry recovery to HTTP 200,
+but one profile exhausted retries for every EURES search query and correctly
+reported EURES unavailable; Job Bank and other sources continued. PostgreSQL
+remained healthy and existing volumes remained attached. The next practical
+task is owner-driven Telegram acceptance for `/salary`, `/blacklist`,
+`/scanstatus`, and `/cancel`.
 
 ## Current stage — source error resilience (2026-10-11)
 

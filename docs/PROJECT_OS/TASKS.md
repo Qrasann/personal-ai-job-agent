@@ -50,7 +50,9 @@
   on successful requests and one profile exhausting its retry budget.
 - [x] Preserve successful EURES query/detail results if another exhausts
   retries; validate with a regression and the full suite (208 passed, 64.51%).
-- [ ] Publish/deploy partial-result handling and verify the next EURES scan.
+- [x] Publish/deploy partial-result handling as `8a87604`; verify retry-to-200
+  behavior and confirm other sources continue when one profile exhausts all
+  EURES search requests.
 
 ## v3.5.4 Multi-Source International Discovery
 - [x] Add bounded EURES discovery for the employer's cross-border recruitment

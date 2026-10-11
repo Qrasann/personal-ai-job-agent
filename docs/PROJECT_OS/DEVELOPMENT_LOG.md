@@ -19,7 +19,12 @@
   or every matching detail fails, the source still reports an error.
 - Added a regression proving one failed query does not discard a successful
   query's vacancy. Targeted source tests: 25 passed. Full isolated PostgreSQL
-  suite: 208 passed, 64.51% branch coverage. This change awaits deployment.
+  suite: 208 passed, 64.51% branch coverage. Published as `8a87604` and
+  deployed through the safe tracked-branch update. Runtime remains 3.5.4;
+  startup logs recorded retry recovery to HTTP 200, while one profile exhausted
+  retries for every EURES search query and correctly reported the source as
+  unavailable. Job Bank and other sources continued; PostgreSQL stayed healthy
+  and existing named volumes remained attached.
 
 ## 2026-10-11 — source error resilience
 - Inspected the running Compose project and latest logs after repeated Telegram
