@@ -113,3 +113,58 @@ def test_discovery_dedupes_queries_and_excludes_restricted_candidates(monkeypatc
     assert sleep.await_count == 3
     assert all(call.args == (5,) for call in sleep.await_args_list)
     assert calls[0][1]["params"]["fglo"] == "1"
+
+
+def test_fetch_retries_transport_failure_once_and_keeps_request_delay(monkeypatch):
+    class Client:
+        calls = 0
+
+        async def get(self, url, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise httpx.ConnectTimeout("temporary connect timeout")
+            return httpx.Response(200, text="ok", request=httpx.Request("GET", url))
+
+    sleep = AsyncMock()
+    monkeypatch.setattr("app.sources.adapters.jobbank.asyncio.sleep", sleep)
+
+    client = Client()
+    assert asyncio.run(JobBankSource()._fetch(client, "https://example.test/job")) == "ok"
+    assert client.calls == 2
+    assert [call.args for call in sleep.await_args_list] == [(5,), (5,)]
+
+
+def test_fetch_does_not_retry_http_status_errors(monkeypatch):
+    class Client:
+        calls = 0
+
+        async def get(self, url, **kwargs):
+            self.calls += 1
+            return httpx.Response(503, request=httpx.Request("GET", url))
+
+    sleep = AsyncMock()
+    monkeypatch.setattr("app.sources.adapters.jobbank.asyncio.sleep", sleep)
+    client = Client()
+
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(JobBankSource()._fetch(client, "https://example.test/job"))
+    assert client.calls == 1
+    sleep.assert_awaited_once_with(5)
+
+
+def test_fetch_stops_after_one_failed_transport_retry(monkeypatch):
+    class Client:
+        calls = 0
+
+        async def get(self, url, **kwargs):
+            self.calls += 1
+            raise httpx.ReadTimeout("temporary read timeout")
+
+    sleep = AsyncMock()
+    monkeypatch.setattr("app.sources.adapters.jobbank.asyncio.sleep", sleep)
+    client = Client()
+
+    with pytest.raises(httpx.ReadTimeout):
+        asyncio.run(JobBankSource()._fetch(client, "https://example.test/job"))
+    assert client.calls == 2
+    assert [call.args for call in sleep.await_args_list] == [(5,), (5,)]

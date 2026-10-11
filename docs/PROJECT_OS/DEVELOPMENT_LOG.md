@@ -13,11 +13,23 @@
   `38147879757` passed. The safe updater deployed it to Compose project `repo`;
   source/runtime is 3.5.7, PostgreSQL is healthy, and startup `scan_all`
   completed at 14:40:12 UTC. EURES returned HTTP 200 without an SSL failure in
-  the inspected log window. The owner's post-deploy Telegram detail check is
-  still pending.
+  the inspected log window. The owner reopened `/job 1091` and confirmed that
+  the description is readable; salary, work mode and unsupported
+  visa/relocation claims remain unknown. Telegram acceptance is complete.
 - Stable `main` and the formal GitHub release remain v3.5.6. This fix stays on
   the draft v3.5.7 feature branch; no merge, tag, schema, credentials, runtime
   production data or Docker volume changes were made.
+
+## 2026-10-11 — Job Bank bounded transport retry
+- Added one retry for `httpx.TransportError` only, under the existing shared
+  request lock and five-second delay before each attempt. HTTP status errors
+  are raised without retrying.
+- Targeted Job Bank tests pass (`15 passed`), including recovery after a
+  transient connect timeout, one-retry exhaustion, no retry for HTTP 503, and
+  the existing per-request delay checks. Full isolated PostgreSQL suite:
+  `244 passed`, 68.26% branch coverage. Compileall and `git diff --check` pass;
+  the isolated test service is stopped. GitHub CI, deployment and post-deploy
+  logs remain pending.
 
 ## 2026-10-11 — v3.5.7 owner Telegram source check
 - Owner set Relocation-first markets to GE and AM and shared `/sources`,

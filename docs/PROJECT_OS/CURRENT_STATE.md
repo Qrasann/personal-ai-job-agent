@@ -4,11 +4,11 @@
 - Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
-- Candidate application commit `5d6b00b` and current documentation updates are
-  maintained on `feature/v3.5.7-international-market-coverage`, synced to
-  `origin`. Draft PR #18 is open; push CI `38147877309` and PR CI
-  `38147879757` passed for the HTML-entity fix.
-  No merge, tag, or formal release has been made.
+- Candidate application commit `5d6b00b` is deployed; the checked-out branch
+  `feature/v3.5.7-international-market-coverage` has uncommitted Job Bank
+  transport-retry work. Draft PR #18 is open; CI passed for the deployed
+  HTML-entity fix (`38147877309` / `38147879757`). No merge, tag, or formal
+  release has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -28,10 +28,9 @@
   returned HTTP 200 for Relocation-first GE/AM but matched no jobs because its
   selected role queries are non-technical. The subsequent Career-first GE/AM
   scan returned one Lineate Infrastructure Engineer vacancy explicitly marked
-  GE (67/100); work mode was unknown. The owner opened `/job 1091`: salary,
-  work mode, and unsupported visa/relocation claims remained unknown, but the
-  description rendered escaped HTML entities. The fix is deployed; the owner
-  still needs to reopen the detail card and confirm readable text.
+  GE (67/100); work mode was unknown. The owner reopened `/job 1091` after the
+  decoder fix and confirmed the description is readable; unsupported salary,
+  work-mode, visa and relocation facts remain unknown.
 - Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
   `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
   Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
@@ -53,13 +52,12 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- Latest full isolated PostgreSQL suite on the v3.5.7 candidate, including the
-  encoded-HTML regression: 241 passed, 68.23% branch coverage (55% gate);
-  compile and diff checks pass. Live Lineate role/location acceptance is
-  complete; readable Telegram detail-card confirmation remains pending. The
-  latest supplied scan had one isolated Relocation-first Job Bank
-  `ConnectTimeout` (0 jobs, 29.2 seconds); EURES returned 16 without an SSL
-  error and other sources completed.
+- Latest full isolated PostgreSQL suite, including Job Bank retry regressions:
+  244 passed, 68.26% branch coverage (55% gate); compile and diff checks passed.
+  Career-first GE/AM and readable Telegram detail-card acceptance are complete.
+  The latest supplied scan had one isolated Relocation-first Job Bank
+  `ConnectTimeout` (0 jobs, 29.2 seconds). The retry change is tested locally;
+  GitHub CI and post-deploy runtime-log verification remain.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the

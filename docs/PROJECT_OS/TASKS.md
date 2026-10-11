@@ -150,13 +150,17 @@
 - [x] Safely deploy the HTML-entity decoding fix. Compose source/runtime is
   3.5.7, PostgreSQL remained healthy, and startup `scan_all` completed at
   14:40:12 UTC. EURES search/detail calls returned HTTP 200 without SSL errors.
-- [ ] Ask the owner to reopen `/job 1091` and confirm the description is
-  readable while salary, work mode, visa/work authorization and relocation
-  assistance remain unknown absent explicit evidence.
-- [ ] Add bounded retry for Job Bank transport failures only, preserving the
-  five-second spacing between request starts and existing source isolation.
-  Add regression coverage before changing runtime behavior; HTTP status errors
-  should not be retried automatically.
+- [x] Owner reopened `/job 1091`: the Greenhouse description is now readable;
+  salary, work mode, visa/work authorization and relocation assistance remain
+  unknown without explicit evidence.
+- [x] Add one bounded retry for Job Bank `httpx.TransportError` only, preserve
+  the existing five-second delay before each request and shared crawl lock, and
+  leave HTTP status errors unretried. Regression tests cover recovery,
+  exhaustion, status handling and pacing; full isolated PostgreSQL suite:
+  244 passed, 68.26% branch coverage.
+- [ ] Push the retry change, pass GitHub CI, safely update the local Compose
+  app, and inspect startup scan logs for Job Bank retry behavior and source
+  errors.
 - [ ] For the time-sensitive relocation search, verify each useful opening's
   active/closing status, application deadline, expected start timing, and work
   eligibility from public evidence; leave missing details unknown.

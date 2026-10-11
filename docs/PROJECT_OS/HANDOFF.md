@@ -17,10 +17,19 @@ project `repo`. Source/runtime is 3.5.7, PostgreSQL stayed healthy, and startup
 `scan_all` completed at 14:40:12 UTC. EURES search/detail requests returned
 HTTP 200; the inspected log window had no source errors or SSL failures.
 
-The remaining owner check is to reopen `/job 1091` and confirm the description
-is readable while unsupported facts remain unknown. Keep PR #18 draft and do
-not merge/tag v3.5.7 until that Telegram check is complete. No schema,
-credential, production-data, or Docker-volume changes are part of this fix.
+The owner reopened `/job 1091` after deployment and confirmed that the
+description is readable. Salary, work mode, and unsupported visa/relocation
+claims remain unknown. Telegram acceptance for this rendering fix is complete.
+PR #18 remains a draft; no merge or v3.5.7 release/tag has been made.
+
+The next reliability change addresses the earlier Relocation-first Job Bank
+`ConnectTimeout`. The implementation now retries one `httpx.TransportError`
+under the existing shared request lock, with the existing five-second delay
+before each attempt. HTTP status errors are not retried. Job Bank tests pass
+(15); the full isolated PostgreSQL suite passes (244 tests, 68.26% branch
+coverage), as do compilation and `git diff --check`. GitHub CI, safe deployment
+and runtime scan-log review remain before this stage is complete. No schema,
+credential, production-data, or Docker-volume changes are part of this work.
 
 ## v3.5.7 owner Career-first GE/AM scan — 2026-10-11
 

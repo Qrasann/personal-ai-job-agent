@@ -112,14 +112,16 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   `/job 1091`. Salary, work mode, and unsupported visa/relocation facts stayed
   unknown as intended. The description displayed escaped markup such as
   `&lt;p&gt;`; a regression-tested fix now decodes entities before stripping
-  tags. The fix is deployed; a fresh Telegram detail check is still pending.
+  tags. The owner confirmed the deployed description is readable while those
+  unsupported facts remain unknown.
 
 ## Verified
 
-- Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `241 passed`,
-  68.23% branch coverage (55% gate), including the encoded-HTML regression.
-  Compilation and `git diff --check` pass. Push CI `38147877309` and PR CI
-  `38147879757` passed for commit `5d6b00b`.
+- Latest full isolated PostgreSQL suite on the current worktree: `244 passed`,
+  68.26% branch coverage (55% gate), including the encoded-HTML and Job Bank
+  retry regressions. Compilation and `git diff --check` pass. Push CI
+  `38147877309` and PR CI `38147879757` passed for deployed commit `5d6b00b`;
+  CI for the current retry change is pending.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -141,8 +143,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - GitHub Actions passed for PR #16 and merge commit `874b372` (main run
   `38135649948`).
 - Draft PR #18 is open for the v3.5.7 candidate. Career-first GE/AM role and
-  location acceptance is complete; keep PR #18 draft and v3.5.7 unmerged and
-  unreleased until the fixed detail card is confirmed in Telegram.
+  location acceptance and the fixed detail-card check are complete. Keep PR
+  #18 draft; v3.5.7 remains unmerged and unreleased.
 - Commit `496c920` and its release are on `main` at merge commit `062eb25`;
   Compose reports source/runtime
   3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
@@ -192,10 +194,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   Greenhouse 1, and HR.ge 2. Job Bank's Relocation-first request failed with a
   transient `ConnectTimeout` after 29.2 seconds; the other sources completed.
   No EURES SSL failure appeared in the supplied excerpt. The owner opened
-  `/job 1091`; unsupported visa/relocation claims stayed unknown, but its
-  description was rendered as encoded HTML. The decoder fix is deployed and
-  passed the full suite; verify readable text and preserved unknowns in
-  Telegram.
+  `/job 1091`; unsupported visa/relocation claims stayed unknown, and the
+  owner confirmed the deployed decoder now renders the description readably.
 
 ## Current priority
 
@@ -205,19 +205,16 @@ country-specific work eligibility. Keep unverified dates and support unknown.
 Do not copy the owner's personal relocation estimate into public repository
 files.
 
-Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`. The full
-isolated PostgreSQL suite and GitHub CI have passed, and the candidate is
-running in local Compose with the existing database and volumes preserved.
+Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`. The current
+worktree passes the full isolated PostgreSQL suite and compile checks; CI for
+the Job Bank retry and its deployment/runtime-log review remain.
 The owner completed the Career-first GE/AM source check: Greenhouse returned
 one Lineate Infrastructure Engineer vacancy for Georgia and sent one new
-notification. `/job 1091` kept unsupported evidence unknown but displayed
-its description as encoded HTML. A decoder fix now has passing full-suite
-coverage; repeat the detail check in Telegram. The official
+notification. `/job 1091` now displays a readable description and keeps
+unsupported evidence unknown, as confirmed by the owner in Telegram. The official
 posting requires at least 3 years of Linux system administration and 2 years
 of production AWS, and includes a 24/7 shift schedule; it does not state
-salary, work mode, visa sponsorship, or relocation assistance. Ask the owner
-to open `/job 1091` and verify that the description is readable while these
-fields remain unknown. Keep the
+salary, work mode, visa sponsorship, or relocation assistance. Keep the
 broad Relocation-first search intact. Do not claim visa or relocation support
 without posting evidence. Do not make cold government emails a prerequisite.
 Keep e-work/workforall and
@@ -229,8 +226,10 @@ targeting alone does not establish legal eligibility. Do not store personal
 citizenship details in public documents. Track the 90,000 RUB internship that
 appeared despite the 100,000 RUB minimum: `/salary minimum` affects scoring,
 not hard filtering, and that amount appeared only in description text. Resolve
-that semantics/UI issue in a separate tested salary stage. Preserve EURES and
-Job Bank pacing.
+that semantics/UI issue in a separate tested salary stage. Preserve source
+pacing. One bounded Job Bank retry for transport failures is implemented and
+passes the full local suite; push CI, safe deployment and runtime-log
+verification remain.
 
 ## Open limitations
 
@@ -251,10 +250,9 @@ Job Bank pacing.
   feed permit automated reuse. See `docs/developer/INTERNATIONAL_SOURCES.md`.
 - The v3.5.7 candidate makes AM selectable and connects one current Lineate
   Greenhouse board for explicit Armenia/Georgia locations. The owner now
-  confirmed one Career-first Infrastructure Engineer match in Georgia.
-  Broader Armenia source coverage remains open. The owner reviewed `/job 1091`;
-  evidence fields were conservative, but its HTML description was unreadable.
-  The decoding fix needs a post-deploy Telegram check before v3.5.7 acceptance.
+  confirmed one Career-first Infrastructure Engineer match in Georgia and
+  accepted the readable `/job 1091` detail card. Broader Armenia source
+  coverage remains open; the candidate stays on draft PR #18.
 - Official Armenia `workpermit.am` enables employer-side processing for
   foreign hires and documents an EAEU work-permit exemption, but no anonymous
   vacancy feed/API is verified. Its FAQ question is visible but the answer is

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 
 import httpx
@@ -11,6 +12,7 @@ from app.sources.base import JobSource, SourceContext
 
 
 _REQUEST_LOCK = asyncio.Lock()
+logger = logging.getLogger(__name__)
 
 
 class JobBankSource(JobSource):
@@ -22,6 +24,26 @@ class JobBankSource(JobSource):
     origin = "https://www.jobbank.gc.ca"
     max_details = 12
     request_delay = 5  # Public robots.txt Crawl-delay.
+
+    async def _fetch(self, client: httpx.AsyncClient, url: str, **kwargs) -> str:
+        """Fetch one page, retrying a single transport failure within the crawl lock."""
+        async with _REQUEST_LOCK:
+            for attempt in range(2):
+                # Keep the source's existing crawl delay before every request,
+                # including a retry, and serialize requests across scan profiles.
+                await asyncio.sleep(self.request_delay)
+                try:
+                    response = await client.get(url, **kwargs)
+                    response.raise_for_status()
+                    return response.text
+                except httpx.TransportError as exc:
+                    if attempt == 1:
+                        raise
+                    logger.warning(
+                        "Job Bank transport failure (%s); retry 1/1",
+                        type(exc).__name__,
+                    )
+        raise RuntimeError("Job Bank request exhausted without a response")
 
     @classmethod
     def parse_search(cls, html: str) -> list[NormalizedJob]:
@@ -95,24 +117,19 @@ class JobBankSource(JobSource):
         jobs = {}
         async with httpx.AsyncClient(timeout=30, follow_redirects=True,
                                      headers={"User-Agent": "JobAgentV3/0.1 (public job discovery)"}) as client:
-            async def fetch(url, **kwargs):
-                # Scheduled/manual scans share one crawl budget in this process.
-                async with _REQUEST_LOCK:
-                    await asyncio.sleep(self.request_delay)
-                    response = await client.get(url, **kwargs)
-                    response.raise_for_status()
-                    return response.text
-
             for query in (context.queries or [])[:6]:
-                page = await fetch(f"{self.origin}/jobsearch/jobsearch",
-                                   params={"fsrc": "32", "fglo": "1", "searchstring": query, "sort": "M"})
+                page = await self._fetch(
+                    client,
+                    f"{self.origin}/jobsearch/jobsearch",
+                    params={"fsrc": "32", "fglo": "1", "searchstring": query, "sort": "M"},
+                )
                 for job in self.parse_search(page):
                     jobs.setdefault(job.source_job_id, job)
                 if len(jobs) >= self.max_details:
                     break
             result = []
             for job in list(jobs.values())[:self.max_details]:
-                job = self.enrich(job, await fetch(job.url))
+                job = self.enrich(job, await self._fetch(client, job.url))
                 if job.raw["international_candidates"] is not False:
                     result.append(job)
             return result
