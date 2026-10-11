@@ -1,5 +1,72 @@
 # Changelog
 
+## 3.5.6
+
+Recommendation Model v2 evidence breakdown.
+
+- Store an explainable per-vacancy breakdown for technical fit, growth,
+  fast-start, interview risk, salary, remote, relocation, security,
+  infrastructure and competition.
+- Keep unsupported dimensions unknown (`null`), including competition counts
+  and employer security signals that public sources do not expose.
+- Show the breakdown in Telegram vacancy details. Existing total scoring and
+  notification thresholds remain unchanged pending labeled outcome data.
+- Additive PostgreSQL migration 4 stores recommendation dimensions as JSONB.
+- Full isolated PostgreSQL suite: 220 passed; branch coverage 65.66%.
+
+## 3.5.5
+
+Candidate Import & Profile Sync.
+
+- Add bounded PDF, DOCX and TXT resume import with text extraction only; raw
+  uploaded documents are never written to disk.
+- Preview imported content metadata and evidence-scoped fact proposals in
+  Telegram; resume and optional facts are saved only after explicit confirmation.
+- Record fact confidence and provenance, mark experience type unknown, skip
+  exact duplicates and flag overlaps without overwriting existing facts.
+- Add additive PostgreSQL migration 3; all existing candidate facts receive
+  confidence `1.0` and provenance `manual`.
+- Full isolated PostgreSQL suite: 217 passed; branch coverage 65.15%.
+- Real-chat Telegram acceptance remains pending before release tagging.
+
+## 3.5.4
+
+EURES cross-border vacancy discovery.
+
+- Add public EURES search restricted to vacancies with the employer's
+  cross-border recruitment flag, bounded by active profile queries.
+- Preserve the EURES eligibility signal and evidence URL; do not infer visa
+  sponsorship, relocation benefits, or third-country work authorization.
+- Add EURES countries to destination selection and retain employer application
+  links from the source vacancy details.
+- No database migration is required.
+
+## 3.5.3
+
+Fast Scan & Scan Dashboard.
+
+- Run independent source discovery with a bounded concurrency of three while
+  keeping source-priority ingestion sequential.
+- Record per-source discovery timings and isolate source failures/timeouts.
+- Persist manual scan state and summary in `runtime_state`; add `/scanstatus`
+  and `/cancel` controls.
+- Preserve Job Bank's five-second crawl pacing and existing source cache.
+- Full PostgreSQL suite: 197 passed; branch coverage 63.80% (55% gate).
+- GitHub Actions CI run 105 passed; local Compose startup scan completed.
+- No database migration is required.
+
+## 3.5.2
+
+Search Control Center, dual search profiles, and international relocation sources.
+
+- Add independent Career-first and Relocation-first query profiles and balanced
+  search strategy.
+- Add source/geography controls, salary preferences and blacklist commands.
+- Add public Arbeitnow Germany and Job Bank Canada discovery with conservative
+  visa, eligibility and relocation evidence handling.
+- Full PostgreSQL suite at final v3.5.2 feature stage: 194 passed.
+- No database migration is required.
+
 ## 3.5.1
 
 Search Quality & Telegram UX release.

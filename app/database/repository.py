@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.database.db import SessionLocal
 from app.database.models import (
@@ -71,6 +72,8 @@ async def add_fact(
     commercial: bool = False,
     experience_type: str = "unknown",
     evidence: str = "",
+    confidence: float = 1.0,
+    provenance: str = "manual",
 ) -> CandidateFact:
     normalized_type = normalize_experience_type(experience_type) or "unknown"
     if commercial:
@@ -82,6 +85,8 @@ async def add_fact(
             key=key,
             value=value,
             experience_type=normalized_type,
+            confidence=max(0.0, min(1.0, float(confidence))),
+            provenance=str(provenance)[:64],
             commercial=normalized_type == "commercial",
             evidence=evidence,
         )
@@ -114,8 +119,50 @@ async def list_resumes(profile_id: int) -> list[ResumeProfile]:
 
 async def list_search_profiles(profile_id: int) -> list[SearchProfile]:
     async with SessionLocal() as session:
-        rows = await session.scalars(select(SearchProfile).where(SearchProfile.profile_id == profile_id, SearchProfile.enabled.is_(True), SearchProfile.deleted_at.is_(None)))
+        rows = await session.scalars(select(SearchProfile).where(SearchProfile.profile_id == profile_id, SearchProfile.enabled.is_(True), SearchProfile.deleted_at.is_(None)).order_by(SearchProfile.id))
         return list(rows)
+
+
+async def configure_parallel_search_profiles(profile_id: int, *, enabled: bool) -> list[SearchProfile]:
+    """Idempotently configure independent career and relocation tracks."""
+    async with SessionLocal() as session:
+        rows = list(await session.scalars(
+            select(SearchProfile)
+            .where(SearchProfile.profile_id == profile_id, SearchProfile.deleted_at.is_(None))
+            .order_by(SearchProfile.id)
+        ))
+        if not rows:
+            return []
+
+        career = next((item for item in rows if item.kind == "career"), rows[0])
+        career_settings = dict(career.settings or {})
+        career_settings["search_strategy"] = "career_first"
+        career.settings = career_settings
+        career.kind = "career"
+        career.name = "Career-first"
+        career.enabled = True
+
+        relocation = next((item for item in rows if item.kind == "relocation"), None)
+        if relocation is None:
+            relocation_settings = dict(career_settings)
+            relocation_settings["search_strategy"] = "relocation_first"
+            relocation = SearchProfile(
+                profile_id=profile_id,
+                name="Relocation-first",
+                kind="relocation",
+                enabled=enabled,
+                settings=relocation_settings,
+            )
+            session.add(relocation)
+        else:
+            relocation_settings = dict(relocation.settings or {})
+            relocation_settings["search_strategy"] = "relocation_first"
+            relocation.settings = relocation_settings
+            relocation.name = "Relocation-first"
+            relocation.enabled = enabled
+
+        await session.commit()
+        return [career, relocation]
 
 
 async def update_search_settings(search_profile_id: int, settings: dict) -> None:
@@ -190,16 +237,19 @@ async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
 
 async def save_match(**kwargs) -> JobMatch:
     async with SessionLocal() as session:
-        existing = await session.scalar(select(JobMatch).where(JobMatch.job_id == kwargs["job_id"], JobMatch.profile_id == kwargs["profile_id"], JobMatch.search_profile_id == kwargs["search_profile_id"]))
-        if existing:
-            for key, value in kwargs.items():
-                setattr(existing, key, value)
-            item = existing
-        else:
-            item = JobMatch(**kwargs)
-            session.add(item)
+        statement = pg_insert(JobMatch).values(**kwargs)
+        update_values = {
+            key: getattr(statement.excluded, key)
+            for key in kwargs
+            if key not in {"id", "job_id", "profile_id", "search_profile_id"}
+        }
+        statement = statement.on_conflict_do_update(
+            constraint="uq_job_profile_search",
+            set_=update_values,
+        ).returning(JobMatch.id)
+        item_id = await session.scalar(statement)
         await session.commit()
-        await session.refresh(item)
+        item = await session.get(JobMatch, item_id)
         return item
 
 

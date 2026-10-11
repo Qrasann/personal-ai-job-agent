@@ -2,14 +2,33 @@ from __future__ import annotations
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.search.preferences import POLICY_VALUES, search_config
+from app.search.preferences import POLICY_VALUES, SEARCH_STRATEGIES, search_config, search_strategy
 
 
 def settings_root_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🧭 Стратегия поиска", callback_data="cfg:strategy")],
         [InlineKeyboardButton(text="🔎 Источники", callback_data="cfg:sources"), InlineKeyboardButton(text="🌍 География", callback_data="cfg:geo")],
         [InlineKeyboardButton(text="✈️ Релокация", callback_data="cfg:reloc")],
     ])
+
+
+def strategy_keyboard(settings: dict) -> InlineKeyboardMarkup:
+    current = search_strategy(settings)
+    labels = {
+        "career_first": "Career-first",
+        "relocation_first": "Relocation-first",
+        "balanced": "Balanced",
+    }
+    rows = [
+        [InlineKeyboardButton(
+            text=("✅ " if value == current else "▫️ ") + labels[value],
+            callback_data=f"cfg:strategy:{value}",
+        )]
+        for value in SEARCH_STRATEGIES
+    ]
+    rows.append([InlineKeyboardButton(text="⬅️ Настройки", callback_data="cfg:root")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def source_keyboard(source_ids: list[str], settings: dict) -> InlineKeyboardMarkup:

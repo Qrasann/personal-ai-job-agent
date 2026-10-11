@@ -16,7 +16,7 @@ class SourcePlan:
     implemented: bool = False
 
 
-IMPLEMENTED = {"hh", "remoteok", "telegram", "jobs_ge", "hr_ge"}
+IMPLEMENTED = {"hh", "remoteok", "arbeitnow", "jobbank", "eures", "telegram", "jobs_ge", "hr_ge"}
 
 
 def build_source_plan(current_country: str | None, target_countries: list[str], *, include_international: bool = True) -> list[SourcePlan]:
@@ -44,6 +44,6 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
 def source_capabilities(source_id: str) -> SourceCapabilities:
     if source_id == "hh":
         return SourceCapabilities(True, False, False, False)
-    if source_id in {"remoteok", "telegram"}:
+    if source_id in {"remoteok", "arbeitnow", "jobbank", "eures", "telegram"}:
         return SourceCapabilities(True, True, False, False)
     return SourceCapabilities(True, False, False, False)

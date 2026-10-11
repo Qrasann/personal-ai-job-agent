@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 2
+CURRENT_SCHEMA_VERSION = 4
 
 
 @dataclass(frozen=True)
@@ -44,6 +44,21 @@ MIGRATIONS: tuple[Migration, ...] = (
         statements=(
             "ALTER TABLE candidate_facts ADD COLUMN IF NOT EXISTS experience_type VARCHAR(32) NOT NULL DEFAULT 'unknown'",
             "UPDATE candidate_facts SET experience_type = 'commercial' WHERE commercial IS TRUE AND experience_type = 'unknown'",
+        ),
+    ),
+    Migration(
+        version=3,
+        name="candidate_fact_confidence_provenance",
+        statements=(
+            "ALTER TABLE candidate_facts ADD COLUMN IF NOT EXISTS confidence FLOAT NOT NULL DEFAULT 1.0",
+            "ALTER TABLE candidate_facts ADD COLUMN IF NOT EXISTS provenance VARCHAR(64) NOT NULL DEFAULT 'manual'",
+        ),
+    ),
+    Migration(
+        version=4,
+        name="job_match_recommendation_scores",
+        statements=(
+            "ALTER TABLE job_matches ADD COLUMN IF NOT EXISTS recommendation_scores JSONB NOT NULL DEFAULT '{}'::jsonb",
         ),
     ),
 )

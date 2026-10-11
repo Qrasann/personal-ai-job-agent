@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
 from app.matching.technical_score import score_technical_v2
+from app.matching.recommendation import build_recommendation_breakdown
+from app.search.preferences import discovery_queries
 
 
 @dataclass(slots=True)
@@ -19,6 +21,7 @@ class MatchResult:
     resume_id: int | None = None
     track: str = "unknown"
     fit: str = "good"
+    recommendation_scores: dict = field(default_factory=dict)
 
 
 def _terms(settings: dict, key: str) -> list[str]:
@@ -362,7 +365,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         "engineer", "administrator", "admin", "specialist", "developer",
         "инженер", "администратор", "специалист", "разработчик",
     }
-    for query in _terms(settings, "queries"):
+    role_queries = [query.casefold() for query in discovery_queries(settings)]
+    for query in role_queries:
         all_tokens = [x for x in re.findall(r"[a-zа-я0-9+#.-]+", query) if len(x) >= 3]
         meaningful = [x for x in all_tokens if x not in generic_role_tokens]
         tokens = meaningful or all_tokens
@@ -370,7 +374,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
             query_hits.append(query)
 
     technical = min(100, 40 + min(25, len(query_hits) * 20) + len(preferred_hits) * 6 + len(strong_hits) * 7)
-    if settings.get("queries") and not query_hits:
+    if role_queries and not query_hits:
         technical = max(20, technical - 18)
 
     structured_technical = score_technical_v2(technical_text if technical_text is not None else (job.description or ""), facts)
@@ -512,4 +516,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append(signals.remote_reason)
     if signals.relocation_reason:
         bits.append(signals.relocation_reason)
-    return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track, fit)
+    recommendation_scores = build_recommendation_breakdown(
+        job, facts, signals, technical_score=technical, salary_score=salary,
+        relocation_score=relocation, fit=fit,
+    )
+    return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track, fit, recommendation_scores)

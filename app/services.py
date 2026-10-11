@@ -6,6 +6,7 @@ import logging
 import time
 
 from aiogram import Bot
+import httpx
 
 from app.agents.llm import make_cover_letter, recruiter_reply
 from app.config import settings
@@ -18,16 +19,21 @@ from app.matching.fact_comparison import compare_facts
 from app.providers.hh import HHClient, HHError
 from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
+from app.sources.adapters.arbeitnow import ArbeitnowSource
+from app.sources.adapters.jobbank import JobBankSource
+from app.sources.adapters.eures import EuresSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
-from app.search.preferences import job_priority, source_enabled, source_priority, vacancy_allowed
+from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
 hh_client = HHClient()
 _DISCOVERY_CACHE: dict[tuple[str, tuple[str, ...]], tuple[float, list[NormalizedJob]]] = {}
 CACHE_TTL_SECONDS = 600
+DISCOVERY_CONCURRENCY = 3
+DISCOVERY_TIMEOUT_SECONDS = 180
 
 
 def _cache_ttl(source_id: str) -> int:
@@ -68,7 +74,13 @@ def _match_lane(result, threshold: int) -> str:
         return "stretch"
     return "qualified"
 
-async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id: int | None = None) -> dict:
+async def ingest_and_match(
+    bot: Bot,
+    normalized: NormalizedJob,
+    *,
+    only_user_id: int | None = None,
+    only_search_profile_id: int | None = None,
+) -> dict:
     counters = {"processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     job, _ = await repo.upsert_job(normalized)
     src = await repo.source_ref(job.id, normalized.source)
@@ -85,6 +97,8 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
         facts = await repo.list_facts(profile.id)
         resumes = await repo.list_resumes(profile.id)
         searches = await repo.list_search_profiles(profile.id)
+        if only_search_profile_id is not None:
+            searches = [item for item in searches if item.id == only_search_profile_id]
         for search in searches:
             counters["processed"] += 1
             result = score_job(job, search, facts, resumes)
@@ -116,6 +130,7 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 geography_score=result.geography_score,
                 salary_score=result.salary_score,
                 relocation_score=result.relocation_score,
+                recommendation_scores=getattr(result, "recommendation_scores", {}),
                 total_score=result.total_score,
                 reason=result.reason,
             )
@@ -150,7 +165,11 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
                 job.salary_from,
                 job.salary_to,
                 job.salary_currency,
-                fallback_text=job.description,
+                fallback_text=str(
+                    (normalized.raw or {}).get("salary_text")
+                    or (normalized.raw or {}).get("card_text")
+                    or ""
+                ),
             )
             text = (
                 f"🔥 <b>{html.escape(job.title)}</b>\n"
@@ -180,12 +199,14 @@ async def ingest_and_match(bot: Bot, normalized: NormalizedJob, *, only_user_id:
 
 
 def _error_text(exc: Exception) -> str:
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"HTTP {exc.response.status_code}"
     message = str(exc).strip()
     return message or type(exc).__name__
 
 
 async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False) -> dict:
-    summary = {"sources": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+    summary = {"sources": {}, "searches": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     async def emit_progress(text: str) -> None:
         if not progress_callback:
             return
@@ -200,59 +221,90 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
     user, profile, searches = ctx
     if await repo.get_state(user.id, "paused", "false") == "true":
         return summary
-    search = searches[0]
-    settings_map = search.settings or {}
-    queries = settings_map.get("queries") or [profile.target_role]
-    targets = [normalize_country(str(x)) for x in (settings_map.get("target_countries") or [])]
-    targets = [x for x in targets if x]
-    plan = build_source_plan(user.current_country, targets, include_international=True)
-    source_ids = {x.source_id for x in plan if x.implemented and source_enabled(settings_map, x.source_id)}
-    modes = settings_map.get("modes") or {"local_ru": True, "remote_international": True, "relocation": True}
-    if not modes.get("local_ru", True):
-        source_ids.discard("hh")
-    if not modes.get("remote_international", True):
-        source_ids.discard("remoteok")
-    context = SourceContext(user_id=user.id, current_country=user.current_country, target_countries=targets, queries=queries)
+    for search in searches:
+        settings_map = search.settings or {}
+        queries = discovery_queries(settings_map, profile.target_role)
+        targets = [normalize_country(str(x)) for x in (settings_map.get("target_countries") or [])]
+        targets = [x for x in targets if x]
+        plan = build_source_plan(user.current_country, targets, include_international=True)
+        source_ids = {x.source_id for x in plan if x.implemented and source_enabled(settings_map, x.source_id)}
+        modes = settings_map.get("modes") or {"local_ru": True, "remote_international": True, "relocation": True}
+        if not modes.get("local_ru", True):
+            source_ids.discard("hh")
+        if not modes.get("remote_international", True):
+            source_ids.discard("remoteok")
+        if not modes.get("relocation", True):
+            source_ids.discard("jobbank")
+            source_ids.discard("eures")
+        context = SourceContext(user_id=user.id, current_country=user.current_country, target_countries=targets, queries=queries)
+        search_summary = {"name": search.name, "sources": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+        summary["searches"][str(search.id)] = search_summary
 
-    adapters = []
-    if "hh" in source_ids:
-        adapters.append(HHSource(hh_client))
-    if "remoteok" in source_ids:
-        adapters.append(RemoteOKSource())
-    if "jobs_ge" in source_ids:
-        adapters.append(JobsGESource())
-    if "hr_ge" in source_ids:
-        adapters.append(HRGESource())
+        adapters = []
+        if "hh" in source_ids:
+            adapters.append(HHSource(hh_client))
+        if "remoteok" in source_ids:
+            adapters.append(RemoteOKSource())
+        if "arbeitnow" in source_ids:
+            adapters.append(ArbeitnowSource())
+        if "jobbank" in source_ids:
+            adapters.append(JobBankSource())
+        if "eures" in source_ids:
+            adapters.append(EuresSource())
+        if "jobs_ge" in source_ids:
+            adapters.append(JobsGESource())
+        if "hr_ge" in source_ids:
+            adapters.append(HRGESource())
+        adapters.sort(key=lambda item: source_priority(settings_map, item.source_id), reverse=True)
 
-    adapters.sort(key=lambda item: source_priority(settings_map, item.source_id), reverse=True)
+        semaphore = asyncio.Semaphore(DISCOVERY_CONCURRENCY)
 
-    for adapter in adapters:
-        await emit_progress(f"⏳ {adapter.name}: поиск…")
-        try:
+        async def discover(adapter):
             cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
             cached = _DISCOVERY_CACHE.get(cache_key)
             cache_hit = bool(not force_refresh and cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
             if cache_hit:
-                jobs = cached[1]
-            else:
-                jobs = await adapter.discover(context)
+                return adapter, cached[1], True, None, 0
+            started = time.monotonic()
+            try:
+                async with semaphore:
+                    jobs = await asyncio.wait_for(adapter.discover(context), timeout=DISCOVERY_TIMEOUT_SECONDS)
                 _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
-            jobs = [job for job in jobs if vacancy_allowed(job, settings_map, current_country=user.current_country)]
-            jobs.sort(key=lambda job: job_priority(job, settings_map, current_country=user.current_country), reverse=True)
-            summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit}
-            cache_label = " (кэш)" if cache_hit else ""
-            await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label}")
-            for index, job in enumerate(jobs, start=1):
-                counters = await ingest_and_match(bot, job, only_user_id=user.id)
-                for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
-                    summary[key] += counters.get(key, 0)
-                if index % 5 == 0 or index == len(jobs):
-                    await emit_progress(f"⏳ {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
-        except Exception as exc:
-            log.exception("source %s failed", adapter.source_id)
-            error = _error_text(exc)
-            summary["sources"][adapter.source_id] = {"error": error}
-            await notify_chat(bot, user.telegram_chat_id, f"⚠️ Источник {adapter.name}: {html.escape(str(exc))}")
+                return adapter, jobs, False, None, int((time.monotonic() - started) * 1000)
+            except Exception as exc:
+                return adapter, [], False, exc, int((time.monotonic() - started) * 1000)
+
+        for adapter in adapters:
+            await emit_progress(f"⏳ {search.name} · {adapter.name}: подготовка поиска…")
+
+        discovered = await asyncio.gather(*(discover(adapter) for adapter in adapters))
+        for adapter, jobs, cache_hit, discovery_error, duration_ms in discovered:
+            try:
+                if discovery_error:
+                    raise discovery_error
+                jobs = [job for job in jobs if vacancy_allowed(job, settings_map, current_country=user.current_country)]
+                jobs.sort(key=lambda job: job_priority(job, settings_map, current_country=user.current_country), reverse=True)
+                search_summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit, "duration_ms": duration_ms}
+                aggregate = summary["sources"].setdefault(adapter.source_id, {"found": 0, "cache": True, "duration_ms": 0})
+                aggregate["found"] += len(jobs)
+                aggregate["cache"] = bool(aggregate["cache"] and cache_hit)
+                aggregate["duration_ms"] = max(aggregate["duration_ms"], duration_ms)
+                cache_label = " (кэш)" if cache_hit else ""
+                await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · {duration_ms / 1000:.1f} с")
+                for index, job in enumerate(jobs, start=1):
+                    counters = await ingest_and_match(bot, job, only_user_id=user.id, only_search_profile_id=search.id)
+                    for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
+                        value = counters.get(key, 0)
+                        summary[key] += value
+                        search_summary[key] += value
+                    if index % 5 == 0 or index == len(jobs):
+                        await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
+            except Exception as exc:
+                log.exception("source %s failed for search %s", adapter.source_id, search.id)
+                error = _error_text(exc)
+                search_summary["sources"][adapter.source_id] = {"error": error, "duration_ms": duration_ms}
+                summary["sources"].setdefault(adapter.source_id, {"error": error, "duration_ms": duration_ms})
+                await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(error)}")
     return summary
 
 
@@ -291,6 +343,7 @@ async def refresh_match_score(match, job, *, technical_text: str = ""):
         geography_score=result.geography_score,
         salary_score=result.salary_score,
         relocation_score=result.relocation_score,
+        recommendation_scores=getattr(result, "recommendation_scores", {}),
         total_score=result.total_score,
         reason=result.reason,
     )
@@ -326,7 +379,7 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
         raise RuntimeError("Вакансия не найдена")
 
     ref = None
-    for source_id in ("hh", "remoteok", "telegram", "jobs_ge", "hr_ge"):
+    for source_id in ("hh", "remoteok", "arbeitnow", "telegram", "jobs_ge", "hr_ge"):
         ref = await repo.source_ref(job.id, source_id)
         if ref:
             break
@@ -354,7 +407,7 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
     )
 
     raw = (ref.raw or {}) if ref else {}
-    fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or job.description or "")
+    fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or "")
 
     return {
         "job": job,
@@ -401,7 +454,7 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
     cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
     refs = []
-    for source_id in ("hh", "remoteok", "telegram"):
+    for source_id in ("hh", "remoteok", "arbeitnow", "telegram"):
         ref = await repo.source_ref(job.id, source_id)
         if ref:
             refs.append(ref)

@@ -19,7 +19,8 @@ Stable baseline on main.
 - source timing and timeouts;
 - cancellation;
 - persistent scan and control panels;
-- applicant/competition signals where available.
+- applicant/competition signals where available (audited 2026-10-11; current
+  public feeds do not expose per-vacancy applicant counts).
 
 ## v3.5.4 — Multi-Source Discovery & Source Intelligence
 - employer career sites;
@@ -30,10 +31,22 @@ Stable baseline on main.
 - canonical vacancy and cross-source dedupe.
 
 ## v3.5.5 — Candidate Import & Profile Sync
-PDF/DOCX/text import, provenance, confidence and conflict handling.
+- [x] PDF/DOCX/TXT extraction with bounded size/page/ZIP limits and no raw-file
+  persistence.
+- [x] Telegram preview and explicit confirmation before resume/fact writes.
+- [x] Persist fact confidence/provenance; skip duplicates and flag overlaps.
+- [x] Additive PostgreSQL migration and regression coverage.
+- [ ] Complete owner-driven real-chat acceptance before tagging.
 
 ## v3.5.6 — Recommendation Model v2
-Technical, growth, fast-exit, interview-risk, salary, remote, relocation, security, infrastructure and competition scores.
+- [x] Persist evidence-backed component breakdown per match and show it in
+  Telegram vacancy details.
+- [x] Keep unsupported values unknown; public competition counts and employer
+  security data remain unavailable.
+- [x] Preserve existing total score and thresholds until real outcome labels
+  support safe calibration.
+- [x] Publish and deploy v3.5.6; verify schema 4/4, polling and named volumes.
+- [ ] Complete owner-driven real-chat acceptance before tagging.
 
 ## v3.5.7 — International / Remote / Relocation Intelligence
 Eligibility, visa/relocation intelligence, country-specific sources and salary normalization.

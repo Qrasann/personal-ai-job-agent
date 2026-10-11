@@ -39,6 +39,32 @@ def test_matching_uses_candidate_facts_and_excludes_gambling():
     assert score_job(bad, search, facts, []).total_score == 0
 
 
+def test_relocation_first_scores_its_own_role_queries():
+    search = SearchProfile(id=2, profile_id=1, settings={
+        "search_strategy": "relocation_first",
+        "queries": ["DevOps Engineer"],
+        "relocation_queries": ["warehouse worker"],
+        "modes": {
+            "local_ru": True,
+            "remote_international": True,
+            "relocation": True,
+        },
+    })
+    job = Job(
+        fingerprint="relocation-role",
+        title="Warehouse Worker",
+        company="Example Logistics",
+        description="Warehouse worker with relocation assistance",
+        country="DE",
+        city="Berlin",
+    )
+
+    result = score_job(job, search, [], [])
+
+    assert result.total_score >= 60
+    assert "роль: warehouse worker" in result.reason
+
+
 def test_telegram_parser_extracts_remote_and_salary():
     job = parse_telegram_job("DevOps Engineer\nRemote worldwide\n$3000-4500\nDocker Kubernetes", source_ref="test")
     assert job.work_mode == "remote"

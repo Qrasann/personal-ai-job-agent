@@ -96,10 +96,15 @@ case "${1:-}" in
 
     update)
         CURRENT_BRANCH="$(git branch --show-current)"
+        UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
 
-        if [[ "$CURRENT_BRANCH" != "main" ]]; then
-            echo "Update refused: current Git branch is '$CURRENT_BRANCH'." >&2
-            echo "Switch to main before updating." >&2
+        if [[ -z "$CURRENT_BRANCH" ]]; then
+            echo "Update refused: detached Git HEAD." >&2
+            exit 1
+        fi
+
+        if [[ -z "$UPSTREAM" ]]; then
+            echo "Update refused: branch '$CURRENT_BRANCH' has no upstream." >&2
             exit 1
         fi
 
@@ -118,7 +123,7 @@ case "${1:-}" in
         echo "Updating Personal AI Job Agent..."
 
         git fetch --prune origin
-        git pull --ff-only origin main
+        git pull --ff-only
 
         if [[ "$WAS_RUNNING" == "true" ]]; then
             echo "Rebuilding and restarting running application..."

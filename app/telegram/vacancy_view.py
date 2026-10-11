@@ -38,7 +38,6 @@ def _salary(job, details: dict, fallback_salary_text: str = "") -> str:
         for part in (
             str(fallback_salary_text or ""),
             str(details.get("salary_text") or ""),
-            str(job.description or ""),
         )
         if part
     )
@@ -72,12 +71,10 @@ def render_queue_card(
 ) -> str:
     title = _clip(repair_mojibake(str(getattr(job, "title", "") or "")), 120)
     company = _clip(repair_mojibake(str(getattr(job, "company", "") or "")), 100)
-    description = str(getattr(job, "description", "") or "")
     salary = format_salary(
         getattr(job, "salary_from", None),
         getattr(job, "salary_to", None),
         getattr(job, "salary_currency", None),
-        fallback_text=description,
     )
 
     location = repair_mojibake(
@@ -124,7 +121,7 @@ def render_jobs_list(rows: list[tuple[object, object]]) -> str:
     for match, job in rows:
         title = _clip(repair_mojibake(job.title or ""), 90)
         company = _clip(repair_mojibake(job.company or ""), 70)
-        salary = format_salary(job.salary_from, job.salary_to, job.salary_currency, fallback_text=job.description)
+        salary = format_salary(job.salary_from, job.salary_to, job.salary_currency)
         experience = extract_experience(job.description)
         meta = [f"💰 {salary}"]
         if job.city or job.country:
@@ -189,6 +186,22 @@ def render_job_details(payload: dict) -> str:
         f"Salary: {match.salary_score}/100",
         f"Relocation: {match.relocation_score}/100",
     ])
+    recommendation_scores = getattr(match, "recommendation_scores", None) or {}
+    if recommendation_scores:
+        labels = {
+            "growth": "Рост", "fast_exit": "Быстрый выход",
+            "interview_risk": "Риск интервью", "remote": "Удалёнка",
+            "security": "Безопасность", "infrastructure": "Инфраструктура",
+            "competition": "Конкуренция",
+        }
+        lines.extend(["", "🧭 <b>Recommendation v2</b>"])
+        for key, label in labels.items():
+            item = recommendation_scores.get(key) or {}
+            value = item.get("score")
+            display = f"{value}/100" if value is not None else "н/д"
+            evidence = str(item.get("evidence") or "")
+            lines.append(f"{html.escape(label)}: {display}" + (f" — {html.escape(_clip(evidence, 140))}" if evidence else ""))
+        lines.append("Конкуренция н/д означает, что публичный источник не дал числа кандидатов.")
     if match.reason:
         lines.extend(["", f"💡 {html.escape(_clip(repair_mojibake(match.reason), 450))}"])
     if warning:

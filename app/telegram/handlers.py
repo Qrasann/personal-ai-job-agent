@@ -2,13 +2,21 @@ from __future__ import annotations
 
 import asyncio
 import html
+import json
+import io
 import time
+import uuid
+from datetime import datetime
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.candidates.bootstrap import bootstrap_user
+from app.candidates.importer import (
+    MAX_DOCUMENT_BYTES, ResumeImportError, extract_resume_text,
+    guess_language, propose_facts, resume_fingerprint, review_proposals,
+)
 from app.config import settings
 from app.database import repository as repo
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
@@ -19,6 +27,7 @@ from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
+from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
@@ -28,6 +37,18 @@ from app.telegram.multicommand import (
 )
 
 router = Router()
+_ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
+_PENDING_RESUME_IMPORTS: dict[str, dict] = {}
+
+
+async def _save_scan_dashboard(user_id: int, **values) -> None:
+    current = {}
+    try:
+        current = json.loads(await repo.get_state(user_id, "scan_dashboard", "{}"))
+    except (TypeError, ValueError):
+        pass
+    current.update(values)
+    await repo.set_state(user_id, "scan_dashboard", json.dumps(current, ensure_ascii=False))
 
 
 async def _user(message: Message):
@@ -80,6 +101,7 @@ def _main_menu_text() -> str:
         "🤖 <b>Personal AI Job Agent</b>\n\n"
         "🔎 <b>Поиск и очереди</b>\n"
         "/scan — запустить поиск сейчас\n"
+        "/scanstatus — состояние последнего сканирования\n"
         "/review — разобрать Good-вакансии\n"
         "/stretch — разобрать Stretch-вакансии\n"
         "/saved — сохранённые вакансии\n"
@@ -94,10 +116,13 @@ def _main_menu_text() -> str:
         "/country — текущая страна\n"
         "/targets — целевые страны\n"
         "/settings — текущие настройки\n\n"
+        "/salary — зарплатные ориентиры\n"
+        "/blacklist — исключаемые слова\n\n"
         "🧠 <b>Профиль и вакансии</b>\n"
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
         "/facts — факты кандидата\n"
+        "/import — импортировать резюме PDF/DOCX/TXT\n"
         "/resumes — варианты резюме\n"
         "/sources — источники вакансий\n\n"
         "🤖 <b>Агент</b>\n"
@@ -204,6 +229,64 @@ async def resume_agent(message: Message) -> None:
     if user:
         await repo.set_state(user.id, "paused", "false")
         await message.answer("🟢 Автоматический поиск возобновлён.")
+
+
+@router.message(Command("salary"))
+async def salary_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    searches = await repo.list_search_profiles(profile.id) if profile else []
+    if not searches:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    text = (message.text or "").strip()
+    if len(text.split()) == 1:
+        cfg = searches[0].settings or {}
+        def show(key: str) -> str:
+            values = cfg.get(f"{key}_salary") or (cfg.get("minimum_salary", {}) if key == "minimum" else {})
+            return ", ".join(f"{currency} {amount:,}".replace(",", " ") for currency, amount in sorted(values.items())) or "не задана"
+        await message.answer(
+            "💰 Зарплатные ориентиры\n"
+            f"Текущая: {show('current')}\nЖелаемая: {show('desired')}\nМинимум для фильтра: {show('minimum')}\n\n"
+            "Формат: /salary current|desired|minimum USD 3000; очистить: /salary desired USD clear"
+        )
+        return
+    try:
+        kind, currency, amount = parse_salary_command(text)
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    for search in searches:
+        await repo.update_search_settings(search.id, update_salary(search.settings or {}, kind, currency, amount))
+    await message.answer(f"✅ {'Очищено' if amount is None else 'Сохранено'}: {kind} {currency}" + (f" {amount:,}".replace(",", " ") if amount else ""))
+
+
+@router.message(Command("blacklist"))
+async def blacklist_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    searches = await repo.list_search_profiles(profile.id) if profile else []
+    if not searches:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    parts = (message.text or "").split(maxsplit=2)
+    cfg = searches[0].settings or {}
+    if len(parts) == 1:
+        terms = cfg.get("exclude_terms") or []
+        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nОчистить: /blacklist clear")
+        return
+    action = parts[1].casefold()
+    term = parts[2].strip() if len(parts) == 3 else ""
+    if action not in {"add", "remove", "clear"} or (action != "clear" and not term):
+        await message.answer("Формат: /blacklist add|remove <слово> или /blacklist clear")
+        return
+    for search in searches:
+        await repo.update_search_settings(search.id, update_blacklist(search.settings or {}, action, term))
+    await message.answer("✅ Blacklist обновлён.")
 
 
 @router.message(Command("roles"))
@@ -442,6 +525,134 @@ async def facts(message: Message) -> None:
     await message.answer(text[:4096], parse_mode="HTML")
 
 
+@router.message(Command("import"))
+async def import_resume_command(message: Message) -> None:
+    if not await _require_user(message):
+        return
+    await message.answer("Пришли резюме файлом PDF, DOCX или TXT (до 8 МБ). Перед сохранением покажу извлечённый текст и предложенные факты.")
+
+
+@router.message(F.document)
+async def import_resume_document(message: Message, bot: Bot) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    document = message.document
+    if not document:
+        return
+    if document.file_size and document.file_size > MAX_DOCUMENT_BYTES:
+        await message.answer("❌ Размер файла превышает лимит 8 МБ.")
+        return
+    try:
+        downloaded = await bot.download(document.file_id)
+        if downloaded is None:
+            raise ResumeImportError("Telegram не передал файл для чтения.")
+        payload = downloaded.getvalue() if isinstance(downloaded, io.BytesIO) else downloaded.read()
+        content = extract_resume_text(document.file_name or "", payload)
+    except ResumeImportError as exc:
+        await message.answer(f"❌ {html.escape(str(exc))}", parse_mode="HTML")
+        return
+    except Exception:
+        await message.answer("❌ Не удалось получить файл из Telegram. Попробуй отправить его ещё раз.")
+        return
+
+    profile = await repo.active_profile(user.id)
+    if not profile:
+        await message.answer("❌ Активный профиль не найден.")
+        return
+    fingerprint = resume_fingerprint(content)
+    resumes = await repo.list_resumes(profile.id)
+    if any(resume.external_id == fingerprint for resume in resumes):
+        await message.answer("ℹ️ Такое резюме уже импортировано в этот профиль.")
+        return
+
+    proposals = propose_facts(content)
+    existing = await repo.list_facts(profile.id)
+    review = review_proposals(proposals, existing)
+    token = uuid.uuid4().hex[:12]
+    _PENDING_RESUME_IMPORTS[token] = {
+        "user_id": user.id, "profile_id": profile.id,
+        "content": content, "fingerprint": fingerprint, "language": guess_language(content),
+        "role": profile.target_role or "", "proposals": review.new,
+        "overlaps": review.overlaps, "created_at": time.time(),
+    }
+    now = time.time()
+    for old_token, pending in list(_PENDING_RESUME_IMPORTS.items()):
+        if now - pending["created_at"] > 15 * 60:
+            _PENDING_RESUME_IMPORTS.pop(old_token, None)
+
+    lines = ["📄 <b>Проверка импорта</b>", "", f"Извлечено символов: {len(content)}", f"Язык: {guess_language(content)}"]
+    if review.new:
+        lines.extend(["", "Предлагаемые факты:"])
+        for proposal in review.new[:12]:
+            lines.append(f"• [{proposal.category}] {html.escape(proposal.value[:180])} — уверенность {proposal.confidence:.0%}")
+        if len(review.new) > 12:
+            lines.append(f"… и ещё {len(review.new) - 12}")
+    else:
+        lines.extend(["", "Новых фактов для добавления не найдено."])
+    if review.duplicates:
+        lines.append(f"Совпадающих фактов пропущено: {len(review.duplicates)}.")
+    if review.overlaps:
+        lines.append(f"Похожие на существующие факты помечены как пересечения ({len(review.overlaps)}); они не будут перезаписаны.")
+    lines.extend(["", "Содержимое будет сохранено только после подтверждения."])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Сохранить резюме", callback_data=f"rimp:resume:{token}")],
+        [InlineKeyboardButton(text=f"Сохранить резюме и факты ({len(review.new)})", callback_data=f"rimp:facts:{token}")],
+        [InlineKeyboardButton(text="Отмена", callback_data=f"rimp:cancel:{token}")],
+    ])
+    await message.answer("\n".join(lines)[:4096], parse_mode="HTML", reply_markup=keyboard)
+
+
+@router.callback_query(F.data.startswith("rimp:"))
+async def confirm_resume_import(callback: CallbackQuery) -> None:
+    parts = (callback.data or "").split(":", 2)
+    if len(parts) != 3:
+        await callback.answer("Некорректная команда", show_alert=True)
+        return
+    action, token = parts[1], parts[2]
+    pending = _PENDING_RESUME_IMPORTS.get(token)
+    if not pending or time.time() - pending["created_at"] > 15 * 60:
+        _PENDING_RESUME_IMPORTS.pop(token, None)
+        await callback.answer("Предпросмотр истёк. Отправь документ заново.", show_alert=True)
+        return
+    user = await repo.get_user_by_chat(callback.message.chat.id) if callback.message else None
+    if not user or user.id != pending["user_id"]:
+        await callback.answer("Этот импорт предназначен другому профилю.", show_alert=True)
+        return
+    if action == "cancel":
+        _PENDING_RESUME_IMPORTS.pop(token, None)
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.answer("Импорт отменён")
+        return
+    if action not in {"resume", "facts"}:
+        await callback.answer("Неизвестное действие", show_alert=True)
+        return
+    resumes = await repo.list_resumes(pending["profile_id"])
+    if any(resume.external_id == pending["fingerprint"] for resume in resumes):
+        _PENDING_RESUME_IMPORTS.pop(token, None)
+        await callback.message.edit_text("ℹ️ Такое резюме уже импортировано.")
+        await callback.answer()
+        return
+    item = await repo.add_resume(
+        pending["profile_id"], f"Imported resume {datetime.now():%Y-%m-%d}",
+        pending["language"], pending["role"], content=pending["content"],
+        source="imported", external_id=pending["fingerprint"],
+    )
+    added = 0
+    if action == "facts":
+        for proposal in pending["proposals"]:
+            await repo.add_fact(
+                pending["profile_id"], proposal.value, category=proposal.category,
+                key=proposal.category, experience_type="unknown",
+                confidence=proposal.confidence, provenance="resume_import",
+                evidence=f"resume_import section={proposal.section}; confidence={proposal.confidence:.2f}",
+            )
+            added += 1
+    _PENDING_RESUME_IMPORTS.pop(token, None)
+    await callback.message.edit_text(f"✅ Резюме #{item.id} сохранено." + (f" Добавлено фактов: {added}." if action == "facts" else " Факты не изменялись."))
+    await callback.answer("Импорт завершён")
+
+
 @router.message(Command("fact"))
 async def fact(message: Message) -> None:
     user = await _require_user(message)
@@ -562,6 +773,14 @@ async def scan(message: Message, bot: Bot) -> None:
     if not user:
         return
 
+    existing = _ACTIVE_SCAN_TASKS.get(user.id)
+    if existing and not existing.done():
+        await message.answer("⏳ Сканирование уже выполняется. /scanstatus покажет прогресс.")
+        return
+    task = asyncio.current_task()
+    if task:
+        _ACTIVE_SCAN_TASKS[user.id] = task
+
     progress = await message.answer(
         "⏳ Ищу вакансии по активным источникам…"
     )
@@ -572,6 +791,7 @@ async def scan(message: Message, bot: Bot) -> None:
     async def update_progress(text: str) -> None:
         nonlocal stage
         stage = text[1:].strip() if text.startswith("⏳") else text
+        await _save_scan_dashboard(user.id, status="running", stage=stage)
 
     async def heartbeat() -> None:
         frames = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
@@ -588,6 +808,7 @@ async def scan(message: Message, bot: Bot) -> None:
     heartbeat_task = asyncio.create_task(heartbeat())
 
     try:
+        await _save_scan_dashboard(user.id, status="running", stage=stage, started_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
         summary = await scan_for_user(bot, user.id, progress_callback=update_progress, force_refresh=True)
         heartbeat_task.cancel()
         try:
@@ -595,6 +816,7 @@ async def scan(message: Message, bot: Bot) -> None:
         except asyncio.CancelledError:
             pass
 
+        await _save_scan_dashboard(user.id, status="completed", stage="Готово", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()), summary=summary)
         source_bits = []
 
         for source_id, info in (summary.get("sources") or {}).items():
@@ -606,17 +828,27 @@ async def scan(message: Message, bot: Bot) -> None:
                 freshness = "кэш" if info.get("cache") else "live"
                 source_bits.append(
                     f"• {html.escape(source_id)}: "
-                    f"{int(info.get('found', 0))} ({freshness})"
+                    f"{int(info.get('found', 0))} ({freshness}, {int(info.get('duration_ms', 0)) / 1000:.1f} с)"
                 )
 
         details = (
             "\n".join(source_bits)
             or "• активных источников нет"
         )
+        profile_bits = []
+        for info in (summary.get("searches") or {}).values():
+            profile_bits.append(
+                f"• {html.escape(str(info.get('name') or 'Search'))}: "
+                f"{int(info.get('processed', 0))} обработано, "
+                f"{int(info.get('qualified', 0))} Good, "
+                f"{int(info.get('stretch', 0))} Stretch"
+            )
+        profile_details = "\n\n<b>Профили поиска</b>\n" + "\n".join(profile_bits) if profile_bits else ""
 
         await progress.edit_text(
             "✅ <b>Проход поиска завершён</b>\n\n"
             + details
+            + profile_details
             + f"\n\nОбработано: {int(summary.get('processed', 0))}"
             + f"\n🟢 Good: {int(summary.get('qualified', 0))}"
             + f"\n🟡 Stretch: {int(summary.get('stretch', 0))}"
@@ -625,16 +857,60 @@ async def scan(message: Message, bot: Bot) -> None:
             + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
             parse_mode="HTML",
         )
+    except asyncio.CancelledError:
+        heartbeat_task.cancel()
+        try:
+            await heartbeat_task
+        except asyncio.CancelledError:
+            pass
+        await _save_scan_dashboard(user.id, status="cancelled", stage="Отменено", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
+        try:
+            await progress.edit_text("⏹ Сканирование остановлено. Результаты уже обработанных источников сохранены.")
+        except Exception:
+            pass
     except Exception as exc:
         heartbeat_task.cancel()
         try:
             await heartbeat_task
         except asyncio.CancelledError:
             pass
+        await _save_scan_dashboard(user.id, status="failed", stage=str(exc)[:500], finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
         await progress.edit_text(
             f"⚠ {html.escape(str(exc))}",
             parse_mode="HTML",
         )
+    finally:
+        if _ACTIVE_SCAN_TASKS.get(user.id) is task:
+            _ACTIVE_SCAN_TASKS.pop(user.id, None)
+
+
+@router.message(Command("scanstatus"))
+async def scan_status(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    try:
+        state = json.loads(await repo.get_state(user.id, "scan_dashboard", "{}"))
+    except (TypeError, ValueError):
+        state = {}
+    if not state:
+        await message.answer("Истории сканирования пока нет. Запусти /scan.")
+        return
+    summary = state.get("summary") or {}
+    sources = []
+    for name, info in (summary.get("sources") or {}).items():
+        if info.get("error"):
+            sources.append(f"• {html.escape(name)}: ошибка ({int(info.get('duration_ms', 0)) / 1000:.1f} с)")
+        else:
+            sources.append(f"• {html.escape(name)}: {int(info.get('found', 0))} вакансий ({int(info.get('duration_ms', 0)) / 1000:.1f} с)")
+    await message.answer(
+        f"📊 Сканирование: <b>{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
+        f"Начато: {html.escape(str(state.get('started_at', '—')))}\n"
+        f"Завершено: {html.escape(str(state.get('finished_at', '—')))}\n"
+        f"Этап: {html.escape(str(state.get('stage', '—')))}\n"
+        + ("\n".join(sources) if sources else "Источники ещё не завершили поиск."),
+        parse_mode="HTML",
+    )
 
 def _pick_next_review(rows, current_match_id: int):
     for index, (match, job) in enumerate(rows):
@@ -1191,6 +1467,12 @@ async def manual(callback: CallbackQuery) -> None:
 async def cancel(message: Message) -> None:
     user = await _require_user(message)
     if user:
+        active = _ACTIVE_SCAN_TASKS.get(user.id)
+        if active and active is not asyncio.current_task() and not active.done():
+            active.cancel()
+            await repo.set_state(user.id, "manual_hh_reply", "")
+            await message.answer("⏹ Останавливаю текущий скан. /scanstatus покажет его итог.")
+            return
         await repo.set_state(user.id, "manual_hh_reply", "")
         await message.answer("Отменено.")
 

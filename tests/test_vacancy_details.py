@@ -69,6 +69,10 @@ def test_format_salary_ignores_legacy_bare_numbers_and_prefers_currency_text():
     assert format_salary(14, None, None, fallback_text="от 160 000 ₽ за месяц") == "от 160 000 ₽"
 
 
+def test_non_salary_description_numbers_are_not_used_without_explicit_fallback():
+    assert format_salary(None, None, None) == "не указана"
+
+
 def test_hh_public_vacancy_prefers_json_ld_salary_range():
     html = r'''
     <html><body>
@@ -114,7 +118,9 @@ def test_jobs_list_includes_job_id_and_details_command():
     match = SimpleNamespace(total_score=65)
     text = render_jobs_list([(match, job)])
     assert "#25 · 65/100" in text
-    assert "до 300 000 ₽" in text
+    # List rows have no source metadata, so arbitrary description numbers must
+    # not be treated as salary. Structured values are rendered when present.
+    assert "💰 не указана" in text
     assert "/job 25" in text
 
 
@@ -138,6 +144,10 @@ def test_job_details_separates_source_data_from_agent_score():
         geography_score=95,
         salary_score=58,
         relocation_score=50,
+        recommendation_scores={
+            "growth": {"score": None, "evidence": "not provided"},
+            "competition": {"score": None, "evidence": "no public data"},
+        },
         reason="режим russia; техника 54",
     )
     payload = {
@@ -164,5 +174,8 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "Оценка Job Agent" in text
     assert "💰 175 000–300 000 ₽" in text
     assert "Technical: 54/100" in text
+    assert "Recommendation v2" in text
+    assert "Рост: н/д" in text
+    assert "Конкуренция н/д" in text
     assert "23.08.2026 10:38" in text
     assert "Открыть оригинал вакансии" in text
