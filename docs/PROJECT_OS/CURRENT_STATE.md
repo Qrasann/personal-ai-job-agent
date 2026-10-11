@@ -1,15 +1,14 @@
 # Current State
 
 ## Latest state
-- stable GitHub `main`: merge commit `874b372` (source version 3.5.6). PRs #15
-  and #16 are merged. Deployed application code is `170ed4e`; later commits in
-  PR #16 updated documentation. Main CI run `38135649948` passed.
+- Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
+  merged. Deployed application code is `170ed4e`; later commits in PR #16
+  updated documentation. Merge CI run `38135649948` passed.
 - `README.md` and `README.ru.md` now provide English and Russian entry points
   on `main`. The merged feature branch is inactive; start future implementation
   work from `main` on a new v3.5.7 feature branch.
-- GitHub Releases and tags currently end at v3.5.1. Source version v3.5.6 and
-  changelog entries v3.5.2–v3.5.6 do not imply those versions were formally
-  published as releases.
+- Latest formal GitHub Release/tag: v3.5.6. Changelog entries v3.5.2–v3.5.5
+  are cumulative milestones included in the v3.5.6 release.
 - local Compose project `repo` runs source/runtime 3.5.6; app is polling and
   PostgreSQL is healthy.
 - the startup dual-profile scan completed successfully after the latest update.
@@ -25,6 +24,11 @@
   scan returned HH 209, Remote OK 3, Arbeitnow 2, Job Bank 12, EURES 16, and
   HR.ge 2. Later log tail shows scheduled `scan_all` completed and Telegram
   updates were handled within 117–677 ms, with no errors in the excerpt.
+- Owner completed the final Telegram release checks: `/import` rejected ZIP,
+  recognized duplicate resumes and saved TXT resume #6 after confirmation
+  (zero facts proposed); `/job 580` rendered Recommendation v2 and left
+  unsupported dimensions unknown. The supplied latest log tail shows
+  `scan_all` completed successfully at 12:12:59 UTC.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -43,15 +47,14 @@
   and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
-- GitHub `main` HEAD: v3.5.6 at `874b372`.
+- GitHub `main` and the cumulative formal release: v3.5.6.
 - PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
 - PR #16 merge commit: `874b37255e3bb223d2b49d83027f15b48acfe7c4`.
 
 ## Active development
-- `main` is the active stable source; PR #16 is merged. GitHub tags/releases
-  stop at v3.5.1 while `VERSION=3.5.6`; v3.5.2–v3.5.6 are cumulative source
-  milestones. Publish one v3.5.6 release after the owner checks `/import`
-  preview/save and Recommendation v2 vacancy details.
+- `main` is the stable source; PR #16 is merged. v3.5.6 is the latest formal
+  tag/release and includes the untagged v3.5.2–v3.5.5 milestones. The next
+  implementation work starts on a new feature branch from `main` for v3.5.7.
 - Job Bank is the measured latency bottleneck at 99.5 seconds. Preserve its
   five-second request pacing while evaluating any optimization.
 
@@ -98,9 +101,8 @@
   detail fetches returned successfully. GitHub CI run 105 passed.
 - Owner-provided real-chat smoke test confirmed `/salary`, `/blacklist`,
   `/scanstatus`, `/cancel`, `/import` prompt, `/version` (3.5.6, schema 4/4,
-  migration OK), and `/status` (ACTIVE). The reported scan completed; EURES
-  failed while HH, RemoteOK, Arbeitnow and Job Bank returned results. No
-  resume file was uploaded and no Recommendation v2 vacancy details were shown.
+  migration OK), and `/status` (ACTIVE). Later acceptance covered a TXT resume
+  import and Recommendation v2 vacancy details; see the latest state above.
 - EURES now requests identity-encoded responses. A direct live check showed
   compressed response reads failing while identity encoding returned a complete
   50-result response. The first post-update scan showed successful EURES search
@@ -111,9 +113,8 @@
   a live scan; the follow-up pauses JOBS.GE after HTTP 410 and retries one
   transient Arbeitnow transport failure. A subsequent owner Telegram log
   confirms retry recovery; exact source timings remain pending `/scanstatus`.
-- The v3.5.6 release tag remains pending owner checks for `/import` preview/save
-  and Recommendation v2 vacancy details. GitHub's latest published tag remains
-  v3.5.1.
+- The owner has completed the Telegram acceptance required for cumulative
+  release v3.5.6; no v3.5.7 source or runtime change has been made yet.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.

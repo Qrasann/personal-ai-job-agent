@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-10-11 — owner Telegram release acceptance
+- `/import` showed the accepted file-type/size prompt, rejected an unsupported
+  ZIP, and detected two previously imported documents as duplicates. The owner
+  then imported `testcv.txt`; Telegram reported resume #6 saved with zero facts
+  added. The implementation persists a resume only through the preview card's
+  confirmation callback, so this successful save verifies the preview/save
+  path. No resume content or credentials were copied into project documents.
+- `/job 580` rendered Recommendation v2 details. Missing growth, fast-start,
+  interview-risk, remote, security, infrastructure, and competition evidence
+  remained `н/д`.
+- The supplied application log tail shows scheduled `scan_all` completed at
+  12:12:59 UTC and Telegram handled the follow-up update successfully.
+- These checks close the final owner-acceptance gate for cumulative v3.5.6;
+  publication is recorded after its tag and bilingual GitHub Release are
+  created.
+
 ## 2026-10-11 — merge source/language candidate into main
 - Merged PR #16 into `main` at `874b37255e3bb223d2b49d83027f15b48acfe7c4`.
   PR push CI `38135381779`, PR CI `38135384930`, and main merge CI
@@ -105,9 +121,10 @@
   robots crawl delay plus network time. This is a material latency contributor,
   but `/scanstatus` source timings are needed to allocate the full duration.
   Do not weaken crawl limits before measuring.
-- Still pending: owner confirms JOBS.GE's paused display in `/sources`, shares
-  `/scanstatus`, and completes `/import` preview/save plus Recommendation v2
-  vacancy-detail acceptance before release tagging.
+- At the time of this log entry, the owner had not yet confirmed the paused
+  source display or shared `/scanstatus`. The owner later supplied both and
+  completed `/import` and Recommendation v2 acceptance, as recorded in the
+  latest handoff entry.
 
 ## 2026-10-11 — Georgia source guardrails (v3.5.7 market-coverage work)
 - Reviewed the two existing Georgia adapters and the reported need to target
@@ -183,10 +200,10 @@
   requests returned HTTP 200; the full startup dual-profile scan completed
   successfully with no EURES SSL warnings/errors. Mount inspection confirmed
   the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes.
-- No schema migration was needed. The v3.5.6 release tag remains gated on
-  owner-driven `/import` preview/save and Recommendation v2 vacancy-detail
-  acceptance. The owner should also set GE and inspect `/sources`/`/scan` for
-  Relocation-first. The latest published GitHub release is still v3.5.1.
+- No schema migration was needed. At the time of this deployment entry, the
+  v3.5.6 tag was gated on owner-driven `/import` and Recommendation v2 checks;
+  the owner later completed them and the cumulative release was published.
+  The owner also set GE and inspected `/sources`/`/scan` for Relocation-first.
 
 ## 2026-10-11 — v3.5.6 Recommendation Model v2
 - Added a persisted per-match JSON breakdown for technical, growth, fast-exit,
@@ -376,14 +393,16 @@
   Arbeitnow, and Job Bank discoveries with overlapping requests; Job Bank
   source/detail responses returned HTTP 200 and the scheduled scan completed
   successfully at 21:04:51 UTC. Existing named volumes were verified.
-- Owner-driven real-chat acceptance of `/salary`, `/blacklist`, `/scanstatus`,
-  and `/cancel` remains pending before tagging v3.5.2.
+- At that stage, owner-driven real-chat acceptance of `/salary`, `/blacklist`,
+  `/scanstatus`, and `/cancel` remained pending. The owner later verified these
+  controls and the project consolidated the milestones into v3.5.6 rather than
+  publishing a retroactive v3.5.2 tag.
 - Release metadata `VERSION=3.5.3` is published in commit
   `e4fa198f63d07a5120f6e480b63a7be9cdb46efd`; CI run 108 passed. The bot was
   rebuilt and reports source/runtime 3.5.3. Its new startup scan completed
   successfully at 21:11:40 UTC on 2026-10-10 with Job Bank query/detail HTTP
-  200 responses. The v3.5.2 and v3.5.3 release tags both await real-chat
-  command acceptance.
+  200 responses. At that stage, v3.5.2/v3.5.3 tags awaited real-chat
+  acceptance; both milestones were later included in cumulative v3.5.6.
 
 ## 2026-10-10 — v3.5.2 restart
 - Confirmed main is v3.5.1 at 6f73110324fdf657f6695c25a5af540d2a94e72f.

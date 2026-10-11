@@ -1,10 +1,8 @@
 # Changelog
 
-> The source tree on GitHub `main` is currently v3.5.6. The latest published
-> GitHub release is v3.5.1; v3.5.6 is not tagged yet because the final Telegram
-> acceptance checks are still open. Entries v3.5.2–v3.5.6 document source
-> milestones and are not individual published releases or tags. Do not treat
-> an untagged main commit as a published release.
+> The source tree on GitHub `main` and the latest formal release/tag are v3.5.6.
+> Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included
+> in v3.5.6; they were not published as individual releases or tags.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 
@@ -20,8 +18,10 @@ Recommendation Model v2 evidence breakdown.
 - Additive PostgreSQL migration 4 stores recommendation dimensions as JSONB.
 - Full isolated PostgreSQL suite: 220 passed; branch coverage 65.66%.
 - GitHub PR #15 merged this version into `main`; push and PR CI passed.
-- Owner confirmed core Telegram command responses; full `/import` preview/save
-  and Recommendation v2 detail checks remain before release tagging.
+- Owner completed Telegram acceptance: unsupported ZIP was rejected, already
+  imported files were detected, a TXT resume was saved after the preview
+  confirmation, and `/job 580` displayed Recommendation v2 with unsupported
+  dimensions left unknown.
 - EURES requests use identity encoding after a live container test reproduced
   TLS read failures with the default compressed response and successfully read
   the full 50-result JSON with identity encoding.
@@ -30,9 +30,9 @@ Recommendation Model v2 evidence breakdown.
   profile's configured source plan.
 - Updated-candidate isolated PostgreSQL suite: 224 passed; branch coverage
   66.33% (55% gate).
-- PR #16 merged into `main` at `874b372` (still not a tagged release): pause
-  JOBS.GE after
-  the configured homepage returned HTTP 410; show its status in `/sources`.
+- PR #16 merged into `main` at `874b372` as part of the cumulative v3.5.6
+  release: pause JOBS.GE after the configured homepage returned HTTP 410; show
+  its status in `/sources`.
   Add one retry for transient Arbeitnow transport failures with a 15-second
   timeout. Verification: 233 isolated PostgreSQL tests passed, push/PR CI
   passed, and the safe updater confirmed runtime 3.5.6 with a successful
@@ -53,7 +53,8 @@ Candidate Import & Profile Sync.
 - Add additive PostgreSQL migration 3; all existing candidate facts receive
   confidence `1.0` and provenance `manual`.
 - Full isolated PostgreSQL suite: 217 passed; branch coverage 65.15%.
-- Real-chat Telegram acceptance remains pending before release tagging.
+- This source milestone is included in cumulative release v3.5.6; it was not
+  tagged as an individual v3.5.5 release.
 
 ## v3.5.4 — EURES Cross-border Discovery
 

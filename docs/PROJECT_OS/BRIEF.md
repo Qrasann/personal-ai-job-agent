@@ -14,19 +14,17 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 ## Current runtime
 
 - Source/runtime: `v3.5.6`, database schema `4/4`.
-- GitHub `main`: merge commit `874b372` (`VERSION=3.5.6`); PR #15 and PR #16
-  are merged. The deployed application code is `170ed4e`; PR #16's later
-  commits only updated documentation. The merge is recorded at
+- GitHub `main` contains source version `3.5.6`; PR #15 and PR #16 are merged.
+  The deployed application code is `170ed4e`; PR #16's later commits only
+  updated documentation. The merge is recorded at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Branch map: `main` is the stable source and the local checkout. The
   `feature/v3.5.6-eures-identity-market-targets` branch is merged and inactive;
   `feature/v3.5.2-dual-search-modes` is an older remote branch and is not active.
   Start new implementation work from `main` on a fresh v3.5.7 feature branch.
-- Release map: `VERSION=3.5.6` identifies source on `main`; the latest formal
-  GitHub tag/Release is v3.5.1. Changelog entries v3.5.2–v3.5.6 are cumulative
-  source milestones, not separate published releases. Publish one cumulative
-  v3.5.6 release after Telegram acceptance; do not backfill tags for the
-  intermediate milestones.
+- Release map: `VERSION=3.5.6` and the latest formal GitHub tag/Release are
+  v3.5.6. Changelog entries v3.5.2–v3.5.5 are cumulative milestones included
+  in that release; do not backfill intermediate tags.
 - GitHub CI passed for merge commit `874b372` (run `38135649948`); the PR #16
   push and PR checks also passed (runs `38135381779` and `38135384930`).
 - Local release directory: `~/job-agent-release-v352`.
@@ -79,6 +77,12 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Merged release PR #15 and candidate PR #16 into GitHub `main`; CI passed and
   the owner supplied real-chat smoke checks for core commands and the updated
   source plan/scan.
+- Owner completed release acceptance in Telegram: the unsupported ZIP was
+  rejected, duplicate resumes were detected, TXT resume #6 was saved through
+  the confirmation flow with zero proposed facts, and `/job 580` displayed
+  Recommendation v2 with unsupported signals as `н/д`.
+- Published the cumulative v3.5.6 GitHub release after Telegram acceptance of
+  TXT resume import and Recommendation v2 vacancy details.
 
 ## Verified
 
@@ -119,9 +123,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   CI passed.
 - Owner-provided Telegram smoke test on 2026-10-11 confirmed `/salary`,
   `/blacklist`, `/scanstatus`, `/cancel`, `/import` prompt, `/version` and
-  `/status`. The scan completed with an EURES error while other sources
-  returned results. `/import` file preview/save and Recommendation v2 vacancy
-  details still need end-to-end acceptance before release tagging.
+  `/status`. The earlier scan completed with an EURES error while other sources
+  returned results. The owner later completed the `/import` and Recommendation
+  v2 checks described above.
 - After the safe update, the 2026-10-11 startup scan completed successfully.
   EURES search and detail requests returned HTTP 200 without SSL retry/error
   logs. Continue monitoring subsequent scheduled scans; one successful run
@@ -137,11 +141,12 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Complete end-to-end Telegram acceptance for `/import` (preview, then cancel or
-confirm save) and inspect a vacancy's Recommendation v2 details. These are the
-remaining gates for the cumulative v3.5.6 tag. Source health and timing are now
-verified: JOBS.GE is paused, EURES returned 16 vacancies, and Job Bank took
-99.5 seconds. Keep its five-second request pacing while evaluating latency.
+Continue the v3.5.7 International Market Coverage stage: verify a permitted
+Armenian public feed or request authorization, validate practical Georgia
+results, and keep visa/work eligibility evidence separate. Monitor EURES
+transport and measure Job Bank latency without weakening its five-second
+request pacing. The cumulative v3.5.6 release gate is closed after the owner's
+Telegram acceptance.
 
 ## Open limitations
 

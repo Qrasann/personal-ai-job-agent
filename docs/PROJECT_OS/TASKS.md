@@ -46,9 +46,8 @@
 - [x] Publish `170ed4e` to PR #16; push CI `38129138392` and PR CI
   `38129141546` passed.
 - [x] Clarify in the English/Russian README and changelog that `main` source
-  version v3.5.6 and changelog milestones v3.5.2–v3.5.6 are distinct from the
-  latest formal GitHub Release/tag, v3.5.1. Do not tag v3.5.6 before owner
-  acceptance.
+  version v3.5.6 and cumulative changelog milestones are distinct from formal
+  releases; publish one cumulative v3.5.6 release after acceptance.
 - [x] Push current branch handoff and README clarification in PR #16; latest
   push CI `38129983586` passed.
 - [x] Merge PR #16 into `main` after candidate CI and owner source/scan checks;
@@ -67,8 +66,12 @@
   Job Bank 12, EURES 16, and HR.ge 2. Timings: HH 7.6s, Remote OK 1.5s,
   Arbeitnow 17.1s, Job Bank 99.5s, EURES 14.5s, HR.ge 13.0s. Keep Job Bank's
   five-second request interval while evaluating latency.
-- [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
-  detail checks before any v3.5.6 release tag.
+- [x] Owner completed Telegram acceptance: unsupported ZIP rejected, duplicate
+  resumes detected, TXT resume #6 saved after confirmation with zero facts
+  proposed, and `/job 580` displayed Recommendation v2 with unsupported
+  dimensions unknown.
+- [x] Prepare one cumulative v3.5.6 release; keep v3.5.2–v3.5.5 as untagged
+  milestones included in it rather than creating retroactive tags.
 - [ ] Monitor later scheduled EURES scans; the first clean run does not prove
   the underlying TLS cause is permanently resolved.
 - [ ] Evaluate whether Job Bank pacing can avoid idle time while retaining at
@@ -112,8 +115,8 @@
 - [x] Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage.
 - [x] Publish `496c920`, deploy v3.5.6 and verify schema 4/4, polling and
   unchanged named volumes.
-- [ ] Owner opens a vacancy and confirms Recommendation v2 components/evidence
-  render correctly before tagging.
+- [x] Owner opened `/job 580` and confirmed the Recommendation v2 components
+  render; unavailable signals were shown as `н/д`.
 
 ## v3.5.5 Candidate Import & Profile Sync
 - [x] Extract text from PDF, DOCX and TXT with bounded input/resource limits.
@@ -127,8 +130,9 @@
   runtime 3.5.5, schema 3/3, healthy PostgreSQL and unchanged named volumes.
 - [x] Owner confirmed `/import` opens the upload prompt and existing command
   smoke tests respond.
-- [ ] Owner uploads a test resume, reviews the preview, then confirms or cancels
-  save; complete before tagging.
+- [x] Owner uploaded a TXT test resume; the confirmation flow saved it as #6
+  with zero facts added. Unsupported ZIP was rejected and prior imports were
+  detected as duplicates; acceptance is recorded in the latest handoff entry.
 
 ## v3.5.2
 - [x] Search preference engine.
@@ -160,9 +164,8 @@
   persisted across active search directions.
 - [x] Compare testsbuild with main and selectively port useful behavior;
   Saved navigation already exists locally, and no broad branch merge was needed.
-- [ ] Complete comprehensive Telegram acceptance in a real chat; local polling,
-  dual-profile scheduled scan, and updated startup scan passed.
-- [ ] Tag v3.5.2 after acceptance.
+- [x] Consolidate v3.5.2 source milestones into cumulative release v3.5.6;
+  do not publish a retroactive v3.5.2 tag.
 
 ## Next
 ## Source alert resilience
@@ -189,8 +192,9 @@
   flag and support EURES destination-country selection.
 - [x] Full PostgreSQL suite (203 passed) and coverage gate (64.39%) pass;
   GitHub Actions run 110 passes; Compose runtime updated to 3.5.4.
-- [ ] Complete real-chat acceptance for the latest Telegram controls and
-  source dashboard before tagging releases.
+- [x] Complete real-chat acceptance for the latest Telegram controls and
+  source dashboard; include the untagged v3.5.2–v3.5.5 milestones in cumulative
+  release v3.5.6 without retroactive tags.
 
 ## v3.5.3 Fast Scan & Scan Dashboard
 - [x] Run independent source discovery with a bounded concurrency of three;

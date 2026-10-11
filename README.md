@@ -9,10 +9,11 @@ vacancy matching.
 ## Project status
 
 - **Source on `main`:** v3.5.6.
-- **Latest published GitHub Release/tag:** v3.5.1.
-- **Changelog entries v3.5.2–v3.5.6:** source milestones, not published GitHub
-  Releases or tags. The v3.5.6 release awaits end-to-end Telegram acceptance
-  of resume import and vacancy recommendation details.
+- **Latest published GitHub Release/tag:** v3.5.6.
+- Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
+  v3.5.6; they were not published as separate releases or tags.
+- Owner acceptance for resume import and Recommendation v2 vacancy details
+  completed in Telegram on 2026-10-11.
 - The production-style local Compose deployment was last verified on v3.5.6,
   with PostgreSQL healthy and schema 4/4.
 

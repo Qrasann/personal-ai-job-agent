@@ -2,11 +2,14 @@
 
 Last reviewed: 2026-10-11
 
-## Current release candidate — v3.5.6
+## Latest release — v3.5.6
 
-The `main` branch contains source version v3.5.6. The last published GitHub
-release is v3.5.1. v3.5.6 remains untagged until the owner checks resume import
-preview/save and Recommendation v2 vacancy details in Telegram.
+The `main` branch and latest formal GitHub tag/release are v3.5.6. Changelog
+entries v3.5.2–v3.5.5 are cumulative milestones included in this release, not
+separate releases or tags. The owner completed Telegram acceptance on
+2026-10-11: TXT resume import saved after confirmation, unsupported ZIP rejected,
+duplicates detected, and Recommendation v2 details displayed with unsupported
+signals left unknown.
 
 The current candidate also includes a focused EURES transport fix and clearer
 per-profile market controls:

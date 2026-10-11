@@ -2,20 +2,35 @@
 
 ## GitHub branches and release labels — 2026-10-11
 
-- `main` is the stable source branch at merge commit `874b372`, with `VERSION`
-  set to v3.5.6. PR #15 and [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16)
-  are merged. Main CI run `38135649948` passed.
+- `main` is the stable source branch at v3.5.6. PR #15 and
+  [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16) are merged;
+  merge CI run `38135649948` passed.
 - The local checkout is on `main`. Application commit `170ed4e` is deployed to
   Compose project `repo`; later PR #16 commits updated documentation only.
 - `feature/v3.5.2-dual-search-modes` remains on the remote from earlier work;
   it is not the active branch for new changes.
 - The merged `feature/v3.5.6-eures-identity-market-targets` branch is inactive.
   Create the next implementation branch from `main` for v3.5.7.
-- GitHub Releases and version tags currently stop at v3.5.1. The v3.5.2–v3.5.6
-  changelog entries are cumulative source milestones, not formal releases.
-  Publish one cumulative v3.5.6 release after resume-import and Recommendation
-  v2 Telegram acceptance; do not backfill tags for intermediate milestones.
+- Latest formal GitHub Release/tag: v3.5.6. Changelog entries v3.5.2–v3.5.5
+  are cumulative source milestones included in that release; no intermediate
+  tags were backfilled.
 - README.md and README.ru.md provide English and Russian entry points on `main`.
+
+## Owner Telegram acceptance — 2026-10-11
+
+The owner completed `/import` and Recommendation v2 smoke checks. The upload
+prompt appeared, ZIP was rejected, and two previously imported documents were
+recognized as duplicates. `testcv.txt` was saved as resume #6 with zero facts
+added. In the implementation, a resume is persisted only from the callback on
+the preview card, so the successful save response confirms the confirmation
+path was exercised. `/job 580` displayed the Recommendation v2 breakdown;
+unsupported growth, fast-start, interview-risk, remote, security,
+infrastructure, and competition signals remained `н/д`. The supplied app log
+shows the scheduled scan completed at 12:12:59 UTC and the Telegram update was
+handled successfully.
+
+These checks close the final v3.5.6 release gate. Future source work starts
+from `main` on a new v3.5.7 feature branch.
 
 ## Owner Telegram scan and source-resilience follow-up — 2026-10-11
 
@@ -72,15 +87,11 @@ remain unverified. The adapters stay limited to Georgia-targeted profiles.
 The source/runtime version remains 3.5.6 while v3.5.7 market-coverage work is
 planned. JOBS.GE access and HR.ge
 reuse terms remain unresolved; do not treat the boards as validated recurring
-sources until access conditions are reviewed. The prior
-`/import` preview/save and Recommendation v2 detail acceptance remains a
-separate gate before release tagging.
+sources until access conditions are reviewed.
 
-The release map is intentional: `VERSION=3.5.6` describes source code, while
-the latest formal GitHub release/tag remains v3.5.1. Entries v3.5.2–v3.5.6 in
-the changelog are cumulative milestones. Once `/import` preview/save and a
-vacancy's Recommendation v2 details are accepted in Telegram, publish one
-cumulative v3.5.6 tag/release. Do not backfill intermediate tags.
+The release map is intentional: `VERSION=3.5.6` describes source code, and
+v3.5.6 is the cumulative formal release. Entries v3.5.2–v3.5.5 are included
+milestones; do not backfill intermediate tags.
 
 ## v3.5.6 candidate update — PR #16 (2026-10-11)
 
@@ -90,8 +101,8 @@ At the time of this candidate update, the application and handoff changes
 passed push and PR CI while GitHub `main` remained at `6294c2a`. PR #16 was
 later merged into `main` at `874b372`; that merge and its CI are recorded at
 the top of this handoff. The candidate and deployed app report source/runtime
-v3.5.6. The latest published GitHub release/tag remains v3.5.1; do not tag
-v3.5.6 until owner acceptance is recorded.
+v3.5.6. At that point the latest release/tag was v3.5.1; the owner later
+completed acceptance and v3.5.6 was published as recorded above.
 
 EURES failed while reading compressed response bodies in the running container.
 A direct request reproduced the TLS record-layer error with default encoding;
@@ -122,10 +133,8 @@ compileall and `git diff --check` passed. Compose reports the app polling and
 PostgreSQL healthy. Mount inspection confirms `repo_jobagent_v3_pg` and
 `repo_jobagent_v3_files` remain attached. No database migration was added.
 
-Remaining owner acceptance before release tagging: upload a test resume and
-review/cancel or confirm the `/import` preview/save flow; open a vacancy and
-inspect Recommendation v2 details. Do not publish a v3.5.6 tag before these
-checks.
+At the time of this candidate note, owner acceptance was still outstanding.
+The owner later completed the resume-import and Recommendation v2 checks above.
 
 ## v3.5.6 main merge and Telegram smoke test — 2026-10-11
 
@@ -138,9 +147,9 @@ Owner-provided real-chat smoke results confirm `/salary`, `/blacklist`,
 `/scanstatus`, `/cancel`, the `/import` upload prompt, `/version` (v3.5.6,
 schema 4/4, migration OK), and `/status` (ACTIVE). The reported scan completed;
 EURES failed after retries while the other configured sources returned results.
-The owner has not yet exercised `/import` with a file through preview/save or
-opened a vacancy to review Recommendation v2 details; both remain required
-before release tagging.
+At this point in the release history, file-based `/import` and Recommendation
+v2 details had not yet been exercised in the owner's chat; both were completed
+later, as recorded at the top of this handoff.
 
 The running Compose app reports source/runtime 3.5.6 and PostgreSQL healthy;
 the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain
@@ -161,7 +170,8 @@ for calibration. Migration 4 adds only `job_matches.recommendation_scores`.
 Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage. Commit
 `496c920` is published and deployed; runtime reports 3.5.6, schema 4/4, healthy
 PostgreSQL and active polling. Existing PostgreSQL and storage volumes remain
-attached. Real-chat acceptance remains required before release tagging.
+attached. Real-chat acceptance was still required at this stage and was
+completed later, as recorded at the top of this handoff.
 
 ## Current stage — v3.5.5 Candidate Import & Profile Sync (2026-10-11)
 
@@ -232,8 +242,8 @@ and detail endpoints returned HTTP 200. The implementation is published at
 full isolated PostgreSQL suite passed (203 tests; 64.39% branch coverage), and
 Compose project `repo` reports source/runtime 3.5.4. The startup scan reached
 EURES successfully. Existing PostgreSQL and storage volumes remain attached.
-Telegram real-chat acceptance remains a separate owner task before tagging
-v3.5.2/v3.5.3 releases.
+At that stage Telegram acceptance remained a separate owner task. It was later
+completed and the cumulative v3.5.6 release includes these untagged milestones.
 
 The v3.5.3 public competition-signal item has been audited: HH response counts
 require employer-side access, Job Bank applicant tables live in the employer
