@@ -1,5 +1,23 @@
 # Handoff
 
+## Owner acceptance — Lineate Recommendation v2 — 2026-10-11
+
+At 18:42 Moscow time, the owner reopened `/job 1091` in Telegram and confirmed
+Technical 42 and interview risk 58, with explicit required-skill coverage and
+`fit=good`. The bot handled the update in 607 ms. This closes the final
+Telegram acceptance check for the normalization fix in `8a583c7`.
+
+The risk score is a matching-gap indicator, not a calibrated probability of an
+interview. Salary, work mode, visa sponsorship, and relocation assistance
+remain unknown without explicit posting evidence. The inspected Compose scan
+completed successfully at 15:38:13 UTC; its checked log window had no source
+errors, SSL failures, timeouts, or tracebacks. Runtime source/version are
+3.5.7, PostgreSQL is healthy, branch
+`feature/v3.5.7-international-market-coverage` is active, and draft PR #18
+targets `main`. `main` and the latest formal release/tag remain v3.5.6. No
+merge, v3.5.7 tag/release, schema migration, credential change, or volume
+change was made.
+
 ## v3.5.7 Lineate Recommendation v2 HTML normalization — 2026-10-11
 
 The owner reopened `/job 1091` after the singular qualification-heading fix
@@ -19,10 +37,11 @@ runtime report 3.5.7; PostgreSQL is healthy. Startup `scan_all` ran from
 found no source errors, SSL errors, timeouts, or tracebacks. HH API returned
 403, then the ordinary public web fallback succeeded.
 
-**Telegram check still needed:** reopen `/job 1091` and share the Technical and
-interview-risk lines. The regression expects the risk to be 58 for the current
-stored Lineate requirements. Salary, work mode, visa sponsorship and relocation
-support remain unknown without direct posting evidence.
+At the time of this handoff entry, Telegram verification was still needed. The
+owner subsequently confirmed Technical 42 and interview risk 58; see the
+acceptance record above. The risk is a matching-gap indicator, not a calibrated
+probability. Salary, work mode, visa sponsorship and relocation support remain
+unknown without direct posting evidence.
 
 The active branch is `feature/v3.5.7-international-market-coverage`; PR #18
 remains an unmerged draft against `main`. Stable `main` and the latest formal
@@ -78,8 +97,8 @@ PR CI `38150292566`. The safe updater deployed the candidate to Compose project
 `repo`: source/runtime 3.5.7 and PostgreSQL healthy. Startup scan completed at
 15:15:48 UTC. The inspected logs show the expected HH API 403 followed by the
 public fallback and no source errors, SSL failures, timeouts or tracebacks.
-The owner still needs to reopen `/job 1091` and share the updated score,
-experience signal and interview-risk details.
+At this handoff stage, the owner had not yet reopened `/job 1091`; the later
+18:42 Telegram acceptance is recorded at the top of this file.
 
 PR #18 remains an unmerged draft against `main`. The active candidate is v3.5.7;
 stable `main` and the formal tag/release remain v3.5.6.
@@ -105,8 +124,8 @@ runtime report 3.5.7, the app is polling, and PostgreSQL is healthy. Startup
 `scan_all` ran from 15:02:28 to 15:04:57 UTC and completed successfully. HH's
 API returned 403 before the public web fallback succeeded; Greenhouse, EURES,
 HR.ge, Job Bank, Arbeitnow and Remote OK requests shown in the logs returned
-HTTP 200. No source error appeared in the inspected scan tail. Owner review of
-the rescored `/job 1091` remains pending.
+HTTP 200. No source error appeared in the inspected scan tail. Owner review was
+pending at that stage and was completed later; see the acceptance record above.
 
 The candidate remains on `feature/v3.5.7-international-market-coverage` with
 PR #18 open as a draft against `main`. Stable `main` and the latest formal

@@ -33,7 +33,7 @@ per-profile market controls:
   99.5 seconds of the 162-second scan. Keep its five-second request pacing
   while evaluating latency improvements.
 
-## Next — v3.5.7 International Market Coverage
+## Active candidate — v3.5.7 International Market Coverage
 
 Focus on useful, legally reachable vacancies in Georgia and Armenia, while
 preserving the separate Career-first and Relocation-first goals.
@@ -56,9 +56,12 @@ description to both calculations. A regression expects Technical 42 and risk
 suite passes with 248 tests and 68.36% branch coverage. Commit `8a583c7` passed
 push CI `38151840822` and PR CI `38151843490`. Its Compose startup scan
 completed at 15:38:13 UTC without source errors, SSL failures, timeouts or
-tracebacks in the inspected logs. The owner still needs to review the updated
-interview-risk line in Telegram. PR #18 remains draft and v3.5.7 is not merged
-or formally released.
+tracebacks in the inspected logs. The owner confirmed `/job 1091` in Telegram
+at 18:42 Moscow time: Technical 42, interview risk 58, and `fit=good` from
+explicit required-skill coverage. This score is a matching-gap indicator, not
+a calibrated probability. Salary, work mode, visa sponsorship and relocation
+remain unknown without direct evidence. Candidate acceptance is complete; PR
+#18 remains draft and v3.5.7 is not merged or formally released.
 
 The [official Lineate posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
 identifies a Georgian office, requires 3+ years of Linux system administration
@@ -71,6 +74,26 @@ clear application deadlines and start timing, and record candidate eligibility
 only from vacancy or official-source evidence. Missing dates, visa support and
 relocation benefits remain unknown. The specific personal timing estimate is
 kept out of this public roadmap.
+
+### Next work after candidate acceptance
+
+1. Audit public, employer-authorized career feeds for Armenia and Georgia,
+   starting with sources that have current DevOps/Infrastructure/SRE roles and
+   explicit city or country data. Record endpoint terms, update cadence,
+   locations, languages, vacancy expiry, and whether international applicants
+   are accepted. Keep manual-search-only sites out of automated collectors.
+2. Check the live Lineate posting and the next Career-first GE/AM scan for
+   validity and role fit. Treat the current single result as a useful lead,
+   not evidence of broad market coverage.
+3. Improve practical Relocation-first coverage with verified low-barrier roles
+   and lawful eligibility signals; do not broaden into unrelated vacancies or
+   infer work authorization from a country target.
+4. Review Job Bank latency separately, preserving its five-second pacing and
+   measuring source timings before changing crawl limits.
+
+PR #18 remains a draft awaiting the owner's decision to promote it for merge.
+Telegram acceptance and source-policy review are complete; do not create a
+release tag until the PR is merged and release checks are complete.
 
 The owner first checked `/targets relocation GE,AM`, `/sources`, `/scan`, and
 `/scanstatus`. Greenhouse · Lineate was enabled and returned HTTP 200, but no
@@ -157,11 +180,11 @@ covered by regression tests rather than a live failure injection.
   to remove below-minimum vacancies.
 - Measure EURES success by parsed search/detail results per profile, not by
   response status alone; retain partial results and keep retries bounded.
-- After candidate deployment, verify both independent target/query paths in
-  Telegram. The owner completed the Relocation-first GE/AM source check; the
-  live API returned HTTP 200 and zero role matches. Set Career-first targets
-  to GE/AM for the remaining Lineate location/role check, then inspect the
-  vacancy for unsupported visa/relocation claims and record `/scanstatus`.
+- At the start of this candidate, verify both independent target/query paths
+  in Telegram. The owner completed the Relocation-first GE/AM source check;
+  the live API returned HTTP 200 and zero role matches. Career-first GE/AM
+  verification later found the Lineate role, and `/job 1091` was accepted with
+  unsupported fields left unknown. See the dated handoff entries above.
 - For near-term relocation decisions, keep opening status, application
   deadline, expected start date and work-eligibility evidence separate. Add
   these fields only when a source provides them; do not infer processing time.

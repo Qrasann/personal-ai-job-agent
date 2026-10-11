@@ -8,8 +8,11 @@
   live card showed Technical 42 but interview risk still `н/д`, because
   Recommendation v2 used the stored encoded HTML while Technical used decoded
   text. Commit `8a583c7` shares the normalized vacancy description between both
-  calculations and passed regression tests, CI, and deployment. Final Telegram
-  verification of `/job 1091` remains pending.
+  calculations and passed regression tests, CI, and deployment. The owner
+  confirmed `/job 1091` in Telegram at 18:42 Moscow time: Technical 42 and
+  interview risk 58, with explicit required-skill coverage and `fit=good`.
+  The displayed risk score reflects the matching gap; it is not a calibrated
+  probability of receiving an interview.
 - Concurrent scheduled/manual scans could both observe a missing JobMatch and then race to insert the same `(job_id, profile_id, search_profile_id)`. `save_match` now uses an atomic PostgreSQL upsert and the fix passed a local scheduled/manual scan smoke test.
 - Relocation discovery initially used `relocation_queries` while matching scored only career `queries`, filtering otherwise relevant broad-role results. Matching now uses the active strategy's discovery queries.
 - Generic description text could be misread as a salary for non-HH sources. Notifications and details now use only structured salary values or explicit source salary/card text.

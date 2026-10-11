@@ -21,7 +21,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Branch map: `main` is the stable source at `02f582e`; the current working
   branch is `feature/v3.5.7-international-market-coverage`, currently at
-  `8a583c7` and created from that main commit. Its candidate `VERSION` is
+  code commit `8a583c7` with later documentation commits, created from that
+  main commit. Its candidate `VERSION` is
   `3.5.7`; `main` remains `3.5.6`, while local Compose project `repo` runs
   candidate 3.5.7. `feature/v3.5.6-eures-identity-market-targets`
   is merged and inactive; `feature/v3.5.2-dual-search-modes` is an older branch.
@@ -140,8 +141,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   interview risk 58. Push CI `38151840822` and PR CI `38151843490` passed.
   The safe updater deployed it to Compose; startup scan completed at 15:38:13
   UTC without source errors, SSL failures, timeouts, or tracebacks in the
-  inspected five-minute window. The owner still needs to verify the interview
-  risk line in Telegram.
+  inspected five-minute window. The owner later confirmed Technical 42 and risk
+  58 in Telegram; see the acceptance record above.
 
 ## Verified
 

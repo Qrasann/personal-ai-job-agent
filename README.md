@@ -13,20 +13,21 @@ vacancy matching.
 - **Active candidate:** v3.5.7 on `feature/v3.5.7-international-market-coverage`;
   it remains an unmerged, unreleased draft PR #18.
 - The latest full isolated PostgreSQL suite passes: 248 tests, 68.36% branch
-  coverage. The owner reported Technical 42 but interview risk `н/д` for
-  `/job 1091`; Recommendation v2 had scored the raw stored HTML while Technical
-  used the decoded vacancy text. Commit `8a583c7` now passes the same normalized
-  description to both calculations; push CI `38151840822` and PR CI
-  `38151843490` passed. A regression reproduces the encoded Lineate HTML and
-  expects Technical 42 and interview risk 58. Earlier candidate fixes also
-  recognize singular required-qualification headings, extract `Minimum N
-  years`, and include Windows and Databricks in technical evidence matching.
+  coverage. The owner confirmed `/job 1091` in Telegram at 18:42 Moscow time:
+  Technical 42 and interview risk 58, with explicit required-skill coverage
+  and `fit=good`. Commit `8a583c7` passes the same normalized description to
+  Technical Score and Recommendation v2; push CI `38151840822` and PR CI
+  `38151843490` passed. The interview-risk score is a matching-gap indicator,
+  not a calibrated probability. Earlier candidate fixes recognize singular
+  required-qualification headings, extract `Minimum N years`, and include
+  Windows and Databricks in technical evidence matching.
 - After deploying `8a583c7`, Compose startup `scan_all` completed from 15:35:45
   to 15:38:13 UTC. EURES, Greenhouse, HR.ge, Job Bank, Arbeitnow, and Remote OK
   returned successful responses in the inspected logs. HH API returned 403
   before the ordinary public web fallback succeeded. No source error, SSL
-  error, timeout, or traceback appeared. **Telegram verification of the
-  updated interview-risk line remains pending.**
+  error, timeout, or traceback appeared in the inspected window. The bot
+  handled the owner's `/job 1091` check in 607 ms; the expected risk line is
+  now confirmed.
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details

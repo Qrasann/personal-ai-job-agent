@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-10-11 — Owner acceptance of Lineate Recommendation v2 repair
+- At 18:42 Moscow time the owner reopened `/job 1091` in Telegram. The live
+  card showed Technical 42 and interview risk 58, with explicit required-skill
+  coverage and `fit=good`; the previous acceptance gate is closed.
+- The bot handled the Telegram update in 607 ms. The runtime was 3.5.7 on the
+  active feature branch; the inspected startup scan had completed and its
+  source logs contained no errors, SSL failures, timeouts, or tracebacks.
+- The risk score is a matching-gap indicator, not a calibrated probability.
+  Salary, work mode, visa sponsorship, and relocation support remain unknown
+  unless the posting provides direct evidence. PR #18 remains a draft against
+  `main`; no merge, tag, or release was made.
+
 ## 2026-10-11 — Lineate Recommendation v2 HTML normalization
 - Owner reopened `/job 1091` after the singular qualification-heading fix and
   reported Technical 42 while interview risk remained `н/д`. The detail route
@@ -17,10 +29,10 @@
   from 15:35:45 to 15:38:13 UTC. The five-minute log check found no source
   errors, SSL failures, timeouts, or tracebacks. HH's API returned 403 and its
   normal public web fallback succeeded.
-- The owner still needs to verify the Technical and interview-risk lines in
-  Telegram. `main` and the formal release/tag remain v3.5.6; PR #18 is a draft.
-  No merge, tag, release, schema migration, credential or volume change was
-  made.
+- At this entry's timestamp, owner verification was still pending; the owner
+  later confirmed the corrected values as recorded above. `main` and the formal
+  release/tag remain v3.5.6; PR #18 is a draft. No merge, tag, release, schema
+  migration, credential or volume change was made.
 
 ## 2026-10-11 — Lineate singular qualification heading
 - Owner's latest `/job 1091` card still showed Technical 100 and interview
@@ -39,9 +51,10 @@
   15:28:27 UTC. Greenhouse, EURES, HR.ge, and Job Bank requests in the
   inspected log window returned HTTP 200. HH API 403 fell back to public web
   search; no source errors, SSL errors, timeouts, or tracebacks appeared.
-- Owner Telegram review of the recalculated `/job 1091` score and interview
-  risk remains pending. Stable `main` and formal release/tag remain v3.5.6;
-  PR #18 is still a draft. No merge or v3.5.7 tag/release was made.
+- At this stage, Telegram review remained pending; the owner later confirmed
+  the recalculated values, as recorded in the newest log entry above. Stable
+  `main` and formal release/tag remain v3.5.6; PR #18 is still a draft. No
+  merge or v3.5.7 tag/release was made.
 
 ## 2026-10-11 — Lineate experience and technical evidence follow-up
 - The official Lineate posting lists 3+ years Linux system administration,
@@ -62,7 +75,8 @@
   to Compose project `repo`; startup `scan_all` ran from 15:13:24 to 15:15:48
   UTC and completed successfully. The log filter found the expected HH API 403
   and successful public fallback, with no source errors, SSL errors, timeouts
-  or tracebacks. Owner review of the updated `/job 1091` remains pending.
+  or tracebacks. At that stage the owner was asked to review `/job 1091`; the
+  later acceptance is recorded at the top of this log.
 
 ## 2026-10-11 — Required qualification scoring for Lineate
 - The official Lineate listing uses `Necessary Qualifications` for hard
@@ -83,8 +97,9 @@
   ran from 15:02:28 to 15:04:57 UTC and completed successfully. HH's API
   returned 403 before the public web fallback succeeded; Greenhouse, EURES,
   HR.ge, Job Bank, Arbeitnow and Remote OK requests shown in the inspected logs
-  returned HTTP 200, and no source error appeared in the scan tail. The owner
-  still needs to review the recalculated `/job 1091` in Telegram.
+  returned HTTP 200, and no source error appeared in the scan tail. At that
+  stage the owner had not yet reviewed `/job 1091`; the later 18:42 acceptance
+  is recorded at the top of this log.
 - PR #18 remains open and draft against `main`; stable `main` and the latest
   formal release/tag remain v3.5.6. No merge or v3.5.7 release was made.
 

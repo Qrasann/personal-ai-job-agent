@@ -3,8 +3,9 @@
 > The source tree on GitHub `main` and the latest formal release/tag are v3.5.6.
 > Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included
 > in v3.5.6; they were not published as individual releases or tags.
-> The active feature branch is preparing v3.5.7; `main` and the latest formal
-> release remain v3.5.6 until candidate checks and acceptance are complete.
+> The active feature branch contains the v3.5.7 candidate; `main` and the
+> latest formal release remain v3.5.6. Candidate checks and owner Telegram
+> acceptance are complete; PR #18 is still an unmerged draft.
 
 ## v3.5.7 — Candidate: Armenia and Georgia ATS Discovery
 
@@ -38,8 +39,12 @@
   passed push CI `38151840822` and PR CI `38151843490`. Compose project `repo`
   runs candidate 3.5.7; its startup scan completed at 15:38:13 UTC without a
   source error, SSL error, timeout, or traceback in the inspected logs. The
-  owner still needs to review the interview-risk line in Telegram. Draft PR #18
-  remains unmerged; no v3.5.7 tag or release has been published.
+  owner confirmed `/job 1091` in Telegram at 18:42 Moscow time: Technical 42
+  and interview risk 58, with mandatory-skill coverage and `fit=good`. This is
+  a matching-gap indicator, not a calibrated probability. Salary, work mode,
+  visa sponsorship and relocation remain unknown without explicit evidence.
+  Candidate acceptance is complete; PR #18 remains unmerged and no v3.5.7 tag
+  or release has been published.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

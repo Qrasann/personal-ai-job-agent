@@ -8,7 +8,10 @@
   candidate version 3.5.7. Latest code commit `8a583c7` makes Recommendation v2
   use the same decoded vacancy text as Technical Score; push CI `38151840822`
   and PR CI `38151843490` passed. PR #18 is an open draft against `main`; no
-  merge or v3.5.7 tag/release has been made.
+  merge or v3.5.7 tag/release has been made. The owner confirmed the Telegram
+  result at 18:42 Moscow time: `/job 1091` showed Technical 42 and interview
+  risk 58 with mandatory-skill coverage and `fit=good`. This is a matching-gap
+  indicator, not a calibrated probability.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -21,8 +24,8 @@
   UTC and completed successfully. EURES, Greenhouse, HR.ge, Job Bank, Arbeitnow,
   and Remote OK returned successfully; HH's API returned 403 before its public
   web fallback worked. The five-minute error scan found no source error, SSL
-  failure, timeout, or traceback. The owner still needs to verify the
-  Recommendation v2 interview-risk line in `/job 1091`.
+  failure, timeout, or traceback in the inspected window. Telegram handled the
+  owner's `/job 1091` check in 607 ms, confirming the expected score and risk.
 - Earlier candidate verification: the safe updater rebuilt the feature branch;
   read-only mount inspection
   confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
@@ -62,8 +65,9 @@
   Technical used decoded text. Commit `8a583c7` passes the same normalized
   description to both paths; its regression expects Technical 42 and risk 58
   for the encoded Lineate posting. Push CI `38151840822` and PR CI
-  `38151843490` passed; deployment and startup scan completed. Telegram
-  verification of the corrected risk line remains pending.
+  `38151843490` passed; deployment, startup scan, and Telegram acceptance are
+  complete. The owner confirmed Technical 42 and risk 58; the score is not a
+  calibrated probability.
   The Job Bank `ConnectTimeout` remains covered by a one-retry transport
   regression; HTTP status errors remain unretried.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit

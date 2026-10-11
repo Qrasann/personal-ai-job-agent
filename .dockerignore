@@ -18,6 +18,7 @@ logs/
 *.backup
 tests/
 docs/
+.private/
 *.md
 pytest.ini
 requirements-dev.txt

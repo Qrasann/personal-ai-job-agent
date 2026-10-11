@@ -199,8 +199,10 @@
 - [x] Deploy `8a583c7` with the safe updater. Compose source/runtime 3.5.7 and
   PostgreSQL healthy. Startup scan completed at 15:38:13 UTC; the five-minute
   log check found no source errors, SSL failures, timeouts, or tracebacks.
-- [ ] Owner to reopen `/job 1091` and share the Technical and interview-risk
-  lines for final Telegram verification.
+- [x] Owner reopened `/job 1091` in Telegram at 18:42 Moscow time and confirmed
+  Technical 42 plus interview risk 58 with explicit required-skill coverage
+  and `fit=good`. This score is a matching-gap indicator, not a calibrated
+  probability.
 - [x] Add one bounded retry for Job Bank `httpx.TransportError` only, preserve
   the existing five-second delay before each request and shared crawl lock, and
   leave HTTP status errors unretried. Regression tests cover recovery,

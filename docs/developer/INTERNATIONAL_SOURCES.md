@@ -75,9 +75,13 @@
   Georgia. The updated command now applies target countries to all active
   profiles by default; `/targets relocation GE` and `/targets career GE` set a
   single profile. `/sources` displays each active profile's source plan.
-- Armenia (`AM`) is not yet in the country catalog and no Armenian source
-  adapter is connected. Do not present Armenia as a working search market until
-  both country selection and a usable source are implemented.
+- Armenia (`AM`) is selectable in the v3.5.7 candidate. That candidate also
+  connects the public Lineate Greenhouse board for profiles targeting `AM` or
+  `GE`; only roles whose title and explicit location match are returned. The
+  live match confirmed so far is one Infrastructure Engineer role for a
+  Georgian office. This is narrow employer coverage, not general Armenian job
+  board coverage; no Armenian-targeted vacancy has yet matched the current
+  DevOps/Infrastructure queries.
 
 ### Armenia source candidates
 
@@ -118,6 +122,17 @@
   publication and further distribution of its materials. Treat it as a manual
   search destination; do not mirror vacancy descriptions into the bot without
   permission or an approved API.
+- [CareerCenter.am](https://careercenter.am/en/jobs) has current Armenia
+  listings, including infrastructure and technical-support roles. Its
+  [posting rules](https://careercenter.am/en/posting-rules) expressly prohibit
+  copying or further disseminating vacancy information to other public sources
+  without prior written consent. Keep it as a manual-search destination; do
+  not connect a recurring adapter without written permission or an approved
+  feed.
+- [Worknet.am](https://worknet.am/en) is another live Armenia job board listed
+  by Relokatz. Its automated-access and reuse terms have not been verified;
+  treat it as a manual-search candidate until those terms and a permitted feed
+  are checked.
 - For a supported adapter, prefer a documented public feed, a written source
   agreement, or employer career/ATS endpoints that the employer exposes for
   discovery. Preserve canonical links and collect only the fields needed for
@@ -182,6 +197,11 @@
   route with permitted recurring access, canonical job links, and candidate
   access before relocation. Government registration prerequisites alone do not
   prove direct employer applications are unavailable to foreign candidates.
+- The Migration and Citizenship Service announced that residence-status
+  applications move to a new electronic system on 2026-11-01, and the existing
+  migration.e-gov.am and Early One channels stop accepting those applications.
+  Recheck the new official workflow before giving the owner a post-arrival
+  checklist or relying on an old guide.
 
 ### Georgia source review
 
