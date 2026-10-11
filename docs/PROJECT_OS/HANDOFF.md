@@ -1,5 +1,28 @@
 # Handoff
 
+## v3.5.7 owner Career-first GE/AM scan — 2026-10-11
+
+The owner ran `/targets career GE,AM`, `/sources`, `/scan`, and `/scanstatus`.
+Career-first used GE/AM and received one new notification: Lineate,
+Infrastructure Engineer, source `greenhouse`, market `GE`, Match 67/100. The
+bot labeled work mode `unknown`. Scan counts were HH 209, Remote OK 3,
+Arbeitnow 2, Job Bank 0, EURES 16, Greenhouse 1, and HR.ge 2. Career-first
+processed 172 vacancies (31 Good, 33 Stretch); Relocation-first processed 61
+(0 Good, 0 Stretch). EURES worked without an SSL error in the supplied logs.
+Job Bank failed only for Relocation-first with `httpx.ConnectTimeout` and took
+29.2 seconds; the scan completed and other sources continued.
+
+The current [official Lineate posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
+identifies a Georgian office, requires at least 3 years of Linux system
+administration and 2 years of AWS in production, and includes a 24/7 shift
+schedule. The posting does not state salary, work mode, visa sponsorship, or
+relocation assistance. These remain unknown. The bot sent one notification;
+the remaining acceptance is for the owner to locate its ID in `/jobs`, open
+`/job <id>`, and confirm the detail card does not invent those facts. PR #18
+remains draft; do not merge or tag v3.5.7 before this review. The isolated
+test suite and prior GitHub CI are green. No database/schema or volume change
+was made.
+
 ## v3.5.7 owner Telegram source check — 2026-10-11
 
 The owner checked Relocation-first GE/AM with `/sources`, `/scan`, and

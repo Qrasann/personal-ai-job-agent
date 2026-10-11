@@ -577,3 +577,27 @@
 
 ## 2026-10-11 — compact Codex context
 - Replaced the need to paste the original long relocation prompt into every session with a compact, updateable `BRIEF.md`; refreshed stale handoff and smoke-test status.
+
+## 2026-10-11 — v3.5.7 Career-first Georgia live check
+- Owner selected GE/AM for Career-first and supplied `/sources`, `/scan`, and
+  `/scanstatus` output. Greenhouse returned one Lineate Infrastructure Engineer
+  opening explicitly located in GE, scored 67/100, and generated one
+  notification. Career-first processed 172 vacancies (31 Good, 33 Stretch);
+  Relocation-first processed 61 (0 Good, 0 Stretch).
+- Source counts: HH 209, Remote OK 3, Arbeitnow 2, Job Bank 0, EURES 16,
+  Greenhouse 1, HR.ge 2. Job Bank failed only for Relocation-first with
+  `httpx.ConnectTimeout` after 29.2 seconds; the scan completed and other
+  sources continued. The supplied log excerpt showed EURES success without an
+  SSL failure.
+- Rechecked the current official Lineate posting: Georgian office, minimum 3
+  years Linux system administration, minimum 2 years production AWS, and a
+  24/7 shift schedule. The posting does not state salary, work mode, visa
+  sponsorship, or relocation assistance. Those fields remain unknown.
+- Updated README in English and Russian, roadmap, branch brief, task list,
+  current state, and this handoff log. No application behavior, database,
+  migration, or Docker volume changed. The remaining v3.5.7 Telegram check is
+  `/jobs` followed by `/job <id>` for the Lineate result; PR #18 stays draft
+  until the detail card is reviewed.
+- Follow-up reliability task: add bounded Job Bank transport retries with
+  regression coverage while preserving the five-second request spacing; do
+  not retry HTTP status errors automatically.

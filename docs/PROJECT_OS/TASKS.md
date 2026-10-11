@@ -133,11 +133,21 @@
   with zero matching roles. This is expected for the current configuration:
   Career-first has no target markets, and Relocation-first searches broad
   non-technical roles.
-- [ ] Complete live role/location acceptance with `/targets career GE,AM`,
-  `/sources`, `/scan`, `/scanstatus`, and opening
-  any Lineate result with `/job <id>`. Verify that a Georgia listing is shown
-  only in the targeted profile and that visa/relocation remain unknown absent
-  posting evidence.
+- [x] Owner completed `/targets career GE,AM`, `/sources`, `/scan`, and
+  `/scanstatus`. Greenhouse returned one Lineate Infrastructure Engineer for
+  GE (67/100) and one new notification; EURES returned 16. The separate
+  Relocation-first Job Bank request failed with `ConnectTimeout`; all other
+  sources completed. The bot showed work mode as unknown.
+- [ ] Inspect the Lineate notification through `/jobs` and `/job <id>`. Confirm
+  the detail card keeps salary, work mode, visa/work authorization, and
+  relocation assistance unknown unless the vacancy provides evidence. The
+  official posting is for a Georgian office and requires 3+ years Linux
+  administration, 2+ years production AWS, and 24/7 shift participation; see
+  https://job-boards.greenhouse.io/lineate/jobs/8018252.
+- [ ] Add bounded retry for Job Bank transport failures only, preserving the
+  five-second spacing between request starts and existing source isolation.
+  Add regression coverage before changing runtime behavior; HTTP status errors
+  should not be retried automatically.
 - [ ] For the time-sensitive relocation search, verify each useful opening's
   active/closing status, application deadline, expected start timing, and work
   eligibility from public evidence; leave missing details unknown.

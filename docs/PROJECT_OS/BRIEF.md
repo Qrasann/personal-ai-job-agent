@@ -176,6 +176,15 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   UTC. EURES returned 16 vacancies, HR.ge 2, Job Bank 12, Arbeitnow 2, HH 209,
   and Remote OK 3. A later app-log tail shows `scan_all` completed and Telegram
   updates were handled in 117–677 ms; no errors appear in that excerpt.
+- Owner ran `/targets career GE,AM`, `/sources`, `/scan`, and `/scanstatus`.
+  Career-first returned one Greenhouse Lineate Infrastructure Engineer opening
+  explicitly marked `GE` (67/100); the bot reported work mode as unknown. The
+  scan returned HH 209, Remote OK 3, Arbeitnow 2, Job Bank 0, EURES 16,
+  Greenhouse 1, and HR.ge 2. Job Bank's Relocation-first request failed with a
+  transient `ConnectTimeout` after 29.2 seconds; the other sources completed.
+  No EURES SSL failure appeared in the supplied excerpt. The one remaining
+  release acceptance is opening the Lineate vacancy detail in Telegram and
+  confirming unsupported visa/relocation claims stay unknown.
 
 ## Current priority
 
@@ -188,14 +197,16 @@ files.
 Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`. The full
 isolated PostgreSQL suite and GitHub CI have passed, and the candidate is
 running in local Compose with the existing database and volumes preserved.
-The owner confirmed Relocation-first GE/AM, Greenhouse enablement, and a live
-Greenhouse HTTP 200 response; zero vacancies matched because that profile uses
-non-technical relocation roles. Ask the owner to run `/targets career GE,AM`,
-`/sources`, `/scan`, and `/scanstatus`, then inspect any returned Lineate role
-with `/job <id>`. This keeps the broad Relocation-first search intact while
-checking the technical Career-first feed. Do not claim visa or relocation
-support without posting evidence. Do not make cold government emails a
-prerequisite. Keep e-work/workforall and
+The owner completed the Career-first GE/AM source check: Greenhouse returned
+one Lineate Infrastructure Engineer vacancy for Georgia and sent one new
+notification. The official posting requires at least 3 years of Linux system
+administration and 2 years of production AWS, and includes a 24/7 shift
+schedule; it does not state salary, work mode, visa sponsorship, or relocation
+assistance. Ask the owner to find the vacancy ID in `/jobs` and open it with
+`/job <id>` to verify the Telegram detail card preserves unknowns. Keep the
+broad Relocation-first search intact. Do not claim visa or relocation support
+without posting evidence. Do not make cold government emails a prerequisite.
+Keep e-work/workforall and
 `workpermit.am` out of automated collection until a relevant public feed or
 authorized route appears. Staff.am and Job.am remain manual search
 destinations under their current terms. Continue evaluating other permitted
@@ -225,11 +236,10 @@ Job Bank pacing.
   Job.am remain manual search destinations unless their terms or an approved
   feed permit automated reuse. See `docs/developer/INTERNATIONAL_SOURCES.md`.
 - The v3.5.7 candidate makes AM selectable and connects one current Lineate
-  Greenhouse board for explicit Armenia/Georgia locations. The owner's latest
-  Greenhouse request returned HTTP 200 with zero matches under the current
-  Relocation-first role list. Career-first markets remain unset, so its
-  DevOps/Infrastructure queries did not request this market-specific source.
-  Broader Armenia source coverage remains open.
+  Greenhouse board for explicit Armenia/Georgia locations. The owner now
+  confirmed one Career-first Infrastructure Engineer match in Georgia.
+  Broader Armenia source coverage remains open, and the Telegram detail card
+  still needs review before v3.5.7 acceptance.
 - Official Armenia `workpermit.am` enables employer-side processing for
   foreign hires and documents an EAEU work-permit exemption, but no anonymous
   vacancy feed/API is verified. Its FAQ question is visible but the answer is
