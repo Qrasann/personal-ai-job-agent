@@ -83,6 +83,8 @@ def test_necessary_qualifications_are_scored_as_required_requirements():
     text = """Necessary Qualifications:
 Minimum 3 years of hands-on Linux system administration experience.
 Minimum 2 years of hands-on experience with AWS in a production environment.
+Working familiarity with AWS Databricks.
+At least 1 year of Windows system administration experience.
 Working familiarity with Kubernetes.
 Preferred:
 Terraform or Ansible.
@@ -92,6 +94,8 @@ Terraform or Ansible.
     assert importance["Linux"] == "required"
     assert importance["AWS"] == "required"
     assert importance["Kubernetes"] == "required"
+    assert importance["Databricks"] == "required"
+    assert importance["Windows"] == "required"
     assert importance["Terraform"] == "preferred"
     assert score_technical_v2(
         text,

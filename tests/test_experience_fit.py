@@ -61,3 +61,32 @@ def test_required_experience_uses_strictest_explicit_requirement():
     )
 
     assert _required_experience_years(job) == 3
+
+def test_minimum_experience_wording_extracts_years_from_qualification_sections():
+    job = Job(
+        fingerprint="experience-minimum-qualifications",
+        title="Infrastructure Engineer",
+        company="ACME",
+        description=(
+            "Necessary Qualifications:\n"
+            "Minimum 3 years of hands-on Linux system administration experience.\n"
+            "Minimum 2 years of hands-on AWS production experience."
+        ),
+        country="GE",
+    )
+
+    assert _required_experience_years(job) == 3
+    result = score_job(
+        job,
+        _search(),
+        [
+            CandidateFact(
+                profile_id=1,
+                value="2 years of Linux system administration",
+                experience_type="commercial",
+            )
+        ],
+        [],
+    )
+    assert result.fit == "stretch"
+    assert "требуется 3+" in result.reason

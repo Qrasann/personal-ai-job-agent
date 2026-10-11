@@ -61,6 +61,12 @@ def test_text_helpers_clean_html_repair_mojibake_and_format_salary():
     assert format_salary(None, 300000, "RUR") == "до 300 000 ₽"
     assert format_salary(None, None, None, fallback_text="175 000 – 300 000 ₽ за месяц") == "175 000–300 000 ₽"
     assert extract_experience("DevOps. Опыт 1-3 года. Linux") == "1-3 года"
+    assert (
+        extract_experience(
+            "Minimum 3 years of hands-on Linux administration experience"
+        )
+        == "Minimum 3 years"
+    )
 
 
 

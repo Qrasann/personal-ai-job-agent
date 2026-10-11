@@ -122,6 +122,7 @@ def extract_experience(value: str) -> str:
     text = clean_html_text(value)
     patterns = (
         r"(?:опыт(?:\s+работы)?\s*[:—-]?\s*)(без опыта|не требуется|\d+\s*[–—-]\s*\d+\s*(?:года|год|лет)|от\s+\d+\s*(?:года|лет)|более\s+\d+\s*лет)",
+        r"\b((?:minimum(?:\s+of)?|at least)\s+\d+\s+years?)\b",
         r"\b(\d+\+?\s*(?:years?|yrs?)\s+(?:of\s+)?experience)\b",
         r"\b(experience\s*[:—-]?\s*\d+\s*[–—-]\s*\d+\s*(?:years?|yrs?))\b",
     )

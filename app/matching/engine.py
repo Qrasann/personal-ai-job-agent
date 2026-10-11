@@ -137,7 +137,7 @@ def _required_experience_years(job: Job) -> int | None:
         r"(?:опыт|стаж)[^0-9\n]{0,30}(\d+)\s*[–—-]\s*\d+\s*(?:лет|года|год)",
         r"\b(\d+)\s*[–—-]\s*\d+\s*years?\b",
         r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(\d+)\+?\s*(?:лет|года|год)",
-        r"(?:at least|minimum of)\s+(\d+)\s+years?",
+        r"(?:at least|minimum(?:\s+of)?)\s+(\d+)\s+years?",
         r"\b(\d+)\+?\s+years?(?:\s+of)?\s+experience\b",
     )
     values = [
