@@ -38,6 +38,23 @@ per-profile market controls:
 Focus on useful, legally reachable vacancies in Georgia and Armenia, while
 preserving the separate Career-first and Relocation-first goals.
 
+The active candidate now adds selectable `AM` and a bounded Greenhouse Job
+Board API connector for Lineate. It runs only for profiles targeting AM or GE,
+filters by the profile's role queries and explicit posting location, and leaves
+work mode, salary, visa and relocation unknown without direct evidence. The
+current Lineate board shows an Infrastructure Engineer for its Georgian office
+and a Data Engineer in Yerevan; only the former matches the current
+DevOps/Infrastructure search. The full isolated PostgreSQL suite passes with
+240 tests and 68.22% branch coverage. This is a feature-branch candidate, not
+yet a main-branch release or a Telegram deployment; GitHub CI and owner
+acceptance remain pending.
+
+The owner has a near-term relocation objective. Prefer live vacancies with
+clear application deadlines and start timing, and record candidate eligibility
+only from vacancy or official-source evidence. Missing dates, visa support and
+relocation benefits remain unknown. The specific personal timing estimate is
+kept out of this public roadmap.
+
 - The owner confirmed the active Relocation-first target `GE`, the paused JOBS.GE
   status, and a completed live scan: EURES returned 16 vacancies and HR.ge 2.
   Continue checking result relevance and access conditions before treating
@@ -54,28 +71,42 @@ preserving the separate Career-first and Relocation-first goals.
   robots.txt, and neither board's recurring-reuse terms were confirmed. Keep
   request volume low and don't broaden collection without a clear source
   contract.
-- Build an Armenia source only after confirming a public API or obtaining
-  permission for automated access and reuse. The Unified Social Service lists
-  e-work.am and workforall.am as public vacancy platforms, but both search
-  pages timed out in the current check and no documented API/access terms were
-  found. Request a permitted feed and clarify foreign-candidate access through
-  `info@socservice.am`; Job.am and Staff.am have terms that constrain automated
-  collection or redistribution.
+- Defer bot integration of Armenia's government-listed e-work.am and
+  workforall.am: both search pages timed out in the current checks, and no
+  public API/feed or automated-reuse terms were found. Manual accessibility
+  also remains unverified. Do not
+  make cold outreach to government agencies a release prerequisite. The
+  official e-work registration requirements apply to registration with that
+  service; they do not establish a general ban on applying directly to
+  employers.
+- The Lineate feed uses Greenhouse's documented unauthenticated public GET API.
+  The selected-country scope prevents its other office listings from being
+  labeled as Armenia/Georgia jobs. Keep expanding the employer list only when
+  the employer's public ATS board and a relevant current role are verified.
+- Staff.am has listings in the candidate's DevOps/Infrastructure area and may
+  be useful for manual search. Its current terms prohibit automated scraping
+  without written permission. Job.am terms restrict unauthorized reuse and
+  redistribution. Do not add either as a bot collector unless the owner grants
+  access through a documented feed or permission.
 - The official Armenian `workpermit.am` portal provides an employer-side
   foreign-hiring/work-residence workflow and says EAEU citizens are exempt
   from work-permit documentation for the employment-contract period. It is
-  not yet verified as anonymous job discovery or a public feed. Confirm its
-  “How to find a job” flow and access terms. The FAQ question is visible but
-  the answer is not rendered; the official user guide describes an
-  employer-led vacancy and foreign-worker account flow. Ask the Unified Social
-  Service about an authorized e-work vacancy feed before building an adapter.
+  not yet verified as anonymous job discovery or a public feed. Its FAQ
+  question “How to find a job” is visible but the answer is not rendered; the
+  official user guide describes an employer-led vacancy and foreign-worker
+  account flow. Defer integration unless a relevant public feed or documented
+  authorized access route is identified; no agency email is needed to continue
+  the release.
 - Keep Armenia's EAEU work-permit exemption separate from residence paperwork:
   the official portal says its lawful-residence certificate cannot be printed
   without a Public Services Number.
 - Official e-work registration guidance requires a PSN or national eID online;
-  its in-person path for foreign nationals requires a residence card. Do not
-  assume either portal serves a foreign jobseeker before relocation.
-- Prefer employer career feeds or ATS APIs where available. Require a working
+  its in-person path for foreign nationals requires a residence card. These
+  are prerequisites for registering with that state employment service, not
+  proof that a foreign candidate cannot apply directly to an employer. Keep
+  portal access and individual legal eligibility as separate questions.
+- Prefer permitted employer career feeds, documented public APIs, and
+  owner-selected Telegram channels where available. Require a working
   posting URL, publication/expiry checks, location, language and eligibility
   evidence; do not mirror a whole job board.
 - Expand role aliases for English, Russian, Georgian and Armenian searches
@@ -96,6 +127,13 @@ preserving the separate Career-first and Relocation-first goals.
   to remove below-minimum vacancies.
 - Measure EURES success by parsed search/detail results per profile, not by
   response status alone; retain partial results and keep retries bounded.
+- After candidate deployment, verify `/targets relocation GE,AM`, `/sources`,
+  and `/scan` in Telegram. Confirm that the Lineate Infrastructure Engineer
+  appears only in the GE profile and carries no unsupported visa/relocation
+  claim; record `/scanstatus` and source warnings.
+- For near-term relocation decisions, keep opening status, application
+  deadline, expected start date and work-eligibility evidence separate. Add
+  these fields only when a source provides them; do not infer processing time.
 
 ## Later stages
 

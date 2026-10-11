@@ -94,6 +94,8 @@
   foreign nationals using the in-person service need a residence card. This
   does not establish whether anonymous vacancy browsing is possible, but it
   means neither portal is yet verified as a pre-move foreign-candidate service.
+  These are registration requirements for the state service; they do not
+  establish a general prohibition on applying directly to employers.
 - The Migration and Citizenship Service's [workpermit.am FAQ](https://workpermit.am/en/faq)
   displays “How to find a job using this Platform?”, but the answer is not
   present in the public page response. Its [official user guide](https://workpermit.am/files/Platform_User_Guide.pdf)
@@ -101,23 +103,48 @@
   then enters the selected foreign worker's information; the platform creates
   that worker's account afterward. This confirms the foreign-hire workflow, not
   anonymous vacancy discovery or an authorized feed.
-- Ask the Unified Social Service (public contact: `info@socservice.am`) whether
-  it offers a vacancy feed/API and permits a low-rate personal discovery
-  client. Do not add Armenia to the country catalog or build an adapter until
-  the public endpoint, reuse rules, and foreign-candidate access are confirmed.
+- Defer automated integration of the government portals. A cold email to the
+  Unified Social Service (`info@socservice.am`) is not a prerequisite for the
+  current release; revisit only if direct access becomes necessary and a
+  relevant feed or authorized route is plausible. No country adapter should
+  imply that an unverified portal is searchable by the bot.
 - [Staff.am](https://staff.am/jobs/devops-infrastructure) has public listings
   in the requested DevOps/Infrastructure area, but its [Terms of Use](https://staff.am/en/site/terms-of-use)
   prohibit automated agents scraping, stripping or mining data without express
-  written permission. No recurring collector without permission or an approved
-  feed.
+  written permission. Treat it as a manual search destination; no recurring
+  collector without permission or an approved feed.
 - [Job.am](https://job.am/jobs) publishes current local vacancies, but its
   [Terms of Service](https://job.am/terms) prohibit unauthorized reproduction,
-  publication and further distribution of its materials. Do not mirror vacancy
-  descriptions into the bot without permission or an approved API.
+  publication and further distribution of its materials. Treat it as a manual
+  search destination; do not mirror vacancy descriptions into the bot without
+  permission or an approved API.
 - For a supported adapter, prefer a documented public feed, a written source
   agreement, or employer career/ATS endpoints that the employer exposes for
   discovery. Preserve canonical links and collect only the fields needed for
   matching.
+
+### Lineate Greenhouse board — candidate integration, checked 2026-10-11
+
+- Greenhouse documents `GET https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs`
+  as its public Job Board API and says GET requests do not require
+  authentication. The candidate uses the documented `content=true` GET for the
+  Lineate board only; it does not submit applications or call private ATS APIs.
+- The [current Lineate board](https://job-boards.greenhouse.io/lineate) lists
+  an [Infrastructure Engineer opening for its Georgian office](https://job-boards.greenhouse.io/lineate/jobs/8018252).
+  Its description includes SRE/DevOps, Linux and cloud-infrastructure duties.
+  The country is mapped to GE from the explicit “Georgian office” location;
+  city is left unknown because the listing does not name one.
+- The same board lists data-engineering roles in Yerevan. They do not match the
+  current DevOps/Infrastructure title queries and are excluded by the adapter's
+  title filter. The feed is scoped to a profile's selected AM/GE market; it
+  does not make unmatched locations eligible.
+- The Infrastructure Engineer posting does not state visa sponsorship or
+  relocation assistance. Those fields remain unknown. No salary is inferred
+  from description text, and Greenhouse's `updated_at` value is not presented
+  as a publication date.
+- This is a candidate source, not proof of an individual right to work in
+  Georgia. Keep current local work-right requirements separate from source
+  discovery and match scoring.
 
 ### Armenia employer-side foreign-hiring route — checked 2026-10-11
 
@@ -129,9 +156,10 @@
   catalogue or a documented API/feed. Do not automate its authenticated
   workflow or treat registration as a jobseeker search interface.
 - The portal's FAQ includes “How to find a job using this Platform?”, but the
-  publicly rendered answer was not available in the checked page. Confirm the
-  candidate-facing flow and data-access terms with the Migration Service
-  (`workpermit@gov.am`) before considering integration.
+  publicly rendered answer was not available in the checked page. No public
+  search feed or API was identified. Defer integration; contacting the
+  Migration Service (`workpermit@gov.am`) is not a prerequisite for the
+  current release.
 - The official [employer/foreigner user guide](https://workpermit.am/files/Platform_User_Guide.pdf)
   explains that the employer creates the vacancy case and later enters the
   selected foreign worker's information, after which the worker receives an
@@ -150,9 +178,10 @@
   residence, but the portal says it cannot be printed without a Public Services
   Number. Do not present the work-permit exemption as automatic completion of
   residence registration.
-- No Armenia adapter or country option should be added until public discovery,
-  recurring-access permission, canonical job links, and candidate access before
-  relocation are confirmed.
+- Add an Armenia adapter only after finding a role-relevant public discovery
+  route with permitted recurring access, canonical job links, and candidate
+  access before relocation. Government registration prerequisites alone do not
+  prove direct employer applications are unavailable to foreign candidates.
 
 ### Georgia source review
 

@@ -28,11 +28,13 @@
   Telegram scan log confirmed a timeout recovered on retry with HTTP 200. The
   owner confirmed `/sources` displays JOBS.GE as paused and provided a completed
   `/scanstatus` report.
-- Armenia is not yet selectable and has no connected local adapter. The
-  official e-work portal's public access contract was not verified; Staff.am
+- On the v3.5.7 candidate, Armenia (`AM`) is selectable and Lineate's public
+  Greenhouse board is connected for selected AM/GE markets. Its current
+  DevOps/Infrastructure match is for a Georgian office; the Yerevan postings
+  on that board are data-engineering roles and do not match current queries.
+  The official e-work/workforall access contract remains unverified. Staff.am
   prohibits automated scraping without permission, and Job.am restricts
-  unauthorized reuse and redistribution. No recurring collector should be
-  added without an approved feed or written permission.
+  unauthorized reuse and redistribution. The candidate is not deployed yet.
 - The official Armenian `workpermit.am` portal describes employer-side
   foreign-hiring and work-residence processing, and states that EAEU citizens
   working in Armenia are exempt from work-permit documents. Its public UI has

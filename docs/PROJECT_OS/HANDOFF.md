@@ -3,15 +3,21 @@
 ## v3.5.7 source and vacancy realism review — 2026-10-11
 
 The active branch `feature/v3.5.7-international-market-coverage` starts from
-main commit `02f582e`. `main`, `VERSION`, the formal tag/Release, and
-Compose runtime remain v3.5.6. Main CI run `38139660265` passed after the
-release documentation sync. The app is up and PostgreSQL is healthy. The last
-scheduled scan started at 12:40:11 and `scan_all` completed at 12:42:28 UTC.
-The inspected tail shows Arbeitnow, Remote OK, EURES search/details and Job
-Bank search/details returning HTTP 200; no error line appeared in that tail.
-No new deployment or data/schema change was made.
-The isolated PostgreSQL suite on this documentation-only candidate passed:
-233 tests, 67.67% branch coverage; compileall and `git diff --check` passed.
+main commit `02f582e`. Its candidate `VERSION` is 3.5.7; stable `main`, the
+formal tag/Release, and Compose runtime remain v3.5.6. Main CI run `38139660265`
+passed after the release documentation sync. The app is up and PostgreSQL is
+healthy. The latest inspected app log tail ends with scheduled `scan_all`
+completing at 13:12:25 UTC; the visible Job Bank requests returned HTTP 200
+and there were no errors in that excerpt.
+
+The v3.5.7 candidate adds selectable country AM and a bounded public
+Greenhouse Job Board API adapter for Lineate. It scans only when the active
+profile selects Armenia or Georgia, filters by role query and explicit posting
+location, and does not infer salary, work mode, visa sponsorship or relocation
+support. Targeted source/country/preference tests pass: 20. The full isolated
+PostgreSQL suite passes: 240 tests, 68.22% branch coverage; compileall and
+`git diff --check` pass. GitHub CI, deployment and Telegram acceptance remain
+outstanding. No schema migration or deployment has been made.
 
 Official Armenian `workpermit.am` describes an employer-led vacancy and
 foreign-hiring/work-residence procedure and states that EAEU citizens working
@@ -25,12 +31,13 @@ cancel the work-permit exemption and should be handled as a separate residence
 step.
 The Unified Social Service's labor-market page explicitly lists e-work.am and
 workforall.am for vacancies, but their public search pages were not readable in
-the checks and no feed/reuse permission is confirmed. The listed
-`info@socservice.am` route is a way to ask for a permitted feed, not permission
-to collect. Georgia's current Labour Migration Law requires, for covered local
-paid work, an employment agreement, a right to work via the local employer, and
-the applicable immigration status. Country targeting does not establish
-individual eligibility.
+the checks and no feed/reuse permission is confirmed. Defer automated
+integration and do not make cold outreach to the agencies a release
+prerequisite. Official state-service registration requirements do not establish
+a general ban on direct applications to employers. Georgia's current Labour
+Migration Law requires, for covered local paid work, an employment agreement,
+a right to work via the local employer, and the applicable immigration status.
+Country targeting does not establish individual eligibility.
 
 The owner also showed `/job 580`: the full description contains 90,000 RUB,
 while structured salary stays unknown and `/jobs` displays “not specified.”
@@ -39,11 +46,14 @@ that value as a scoring input when structured salary exists; it is not a hard
 floor. This should be clarified or deliberately implemented as a separate
 tested change before the bot claims to filter below-minimum jobs.
 
-No agency contact was sent. The next owner action is to request confirmation
-from the Unified Social Service and Migration Service about pre-move foreign
-jobseeker access and an authorized public vacancy feed. Source references and
-constraints are in `docs/developer/INTERNATIONAL_SOURCES.md`. Personal
-citizenship details are not copied into public repository documents.
+No agency contact was sent, and none is required for this release. Keep
+e-work/workforall and workpermit.am out of automated discovery until a relevant
+public feed or authorized access route is identified. Staff.am and Job.am are
+manual search destinations under their current terms. Continue source work
+with permitted employer ATS feeds, documented APIs, and owner-selected
+Telegram channels. Source references and constraints are in
+`docs/developer/INTERNATIONAL_SOURCES.md`. Personal citizenship details are
+not copied into public repository documents.
 
 ## GitHub branches and release labels — 2026-10-11
 
@@ -167,14 +177,17 @@ cause is not yet established.
 lists each active profile's configured source plan. Georgia adapters are
 included only for profiles targeting GE. The owner subsequently ran the GE
 scan; the latest result and post-update source checks are recorded above.
-Armenia is not yet in
-the country catalog and has no connected adapter. The Unified Social Service
-lists e-work.am and workforall.am as vacancy platforms, but both public search
-pages timed out and no public API/feed or automated-access terms were verified.
-Official registration guidance leaves pre-move foreign-candidate access
-unclear. The next source step is to request a permitted feed from
-`info@socservice.am`. Staff.am prohibits automated scraping without permission;
-Job.am restricts unauthorized reuse and redistribution. See
+The candidate adds AM to the country catalog and connects Lineate's public
+Greenhouse board for AM/GE. Its current Infrastructure Engineer vacancy is
+listed for a Georgian office; no current Armenia vacancy matches the active
+DevOps/Infrastructure queries on that board. The Unified Social Service lists
+e-work.am and workforall.am, but both public search pages timed out and no
+public API/feed or automated-access terms were verified. Official registration
+requirements apply to the state service and do not establish a general ban on
+direct employer applications. Government outreach is deferred, not a release
+prerequisite. Staff.am prohibits automated scraping without permission;
+Job.am restricts unauthorized reuse and redistribution, so both remain manual
+search destinations. See
 `docs/developer/INTERNATIONAL_SOURCES.md` and the v3.5.7 plan in `ROADMAP.md`.
 
 The full isolated PostgreSQL suite passed: 224 tests, 66.33% branch coverage;

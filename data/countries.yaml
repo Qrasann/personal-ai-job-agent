@@ -6,6 +6,13 @@ countries:
     currencies: [CAD]
     local_sources: []
     query_languages: [en, fr]
+  AM:
+    name: Armenia
+    aliases: [Armenia, Армения, Հայաստան]
+    languages: [hy, en, ru]
+    currencies: [AMD, EUR, USD]
+    local_sources: []
+    query_languages: [en, ru, hy]
   AT: {name: Austria, aliases: [Austria, Österreich, Австрия], languages: [de], currencies: [EUR], local_sources: [], query_languages: [en, de]}
   BE: {name: Belgium, aliases: [Belgium, België, Belgique, Бельгия], languages: [nl, fr, de], currencies: [EUR], local_sources: [], query_languages: [en, nl, fr, de]}
   BG: {name: Bulgaria, aliases: [Bulgaria, България, Болгария], languages: [bg], currencies: [EUR], local_sources: [], query_languages: [en, bg]}
@@ -89,5 +96,5 @@ international_sources:
   - {id: remoteok, name: Remote OK, scope: remote, transport: api, capability: discovery}
   - {id: arbeitnow, name: Arbeitnow, scope: germany, transport: public_api, capability: discovery}
   - {id: lever, name: Lever company career pages, scope: global, transport: public_api, capability: discovery}
-  - {id: greenhouse, name: Greenhouse company career pages, scope: global, transport: public_api, capability: discovery}
+  - {id: greenhouse, name: Greenhouse · Lineate, scope: Armenia/Georgia, countries: [AM, GE], transport: public_api, capability: discovery}
   - {id: telegram, name: Telegram vacancy channels, scope: configured_channels, transport: bot_api, capability: discovery}

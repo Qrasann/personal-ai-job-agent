@@ -11,12 +11,13 @@
   `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- local Compose project `repo` runs source/runtime 3.5.6; app is polling and
-  PostgreSQL is healthy.
-- the startup dual-profile scan completed successfully after the latest update.
-  Arbeitnow, EURES, and HR.ge requests returned HTTP 200; no JOBS.GE request or
-  source failure appeared. Existing named PostgreSQL/storage volumes remain
-  attached.
+- local Compose project `repo` runs runtime 3.5.6; the checked-out feature
+  branch reports source `VERSION=3.5.7`. The app is polling and PostgreSQL is
+  healthy.
+- The latest inspected app log tail ends with the scheduled scan completing at
+  13:12:25 UTC; Job Bank detail requests returned HTTP 200 and no errors appear
+  in that tail. The candidate has not been deployed; the existing named
+  PostgreSQL/storage volumes remain attached.
 - Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
   `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
   Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
@@ -38,8 +39,9 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- latest full PostgreSQL-backed suite: 233 passed, 67.67% branch coverage
-  (55% gate).
+- latest full isolated PostgreSQL suite on the v3.5.7 candidate: 240 passed,
+  68.22% branch coverage (55% gate); compile and diff checks pass. GitHub CI
+  and owner Telegram acceptance remain pending.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
@@ -66,8 +68,9 @@
 ## Active development
 - `main` is stable; the active candidate is
   `feature/v3.5.7-international-market-coverage`, branched from `02f582e`.
-  v3.5.6 remains the latest formal release and includes the untagged
-  v3.5.2–v3.5.5 milestones.
+  Candidate `VERSION` is 3.5.7; v3.5.6 remains the latest version on `main`,
+  formal release and Compose runtime. The v3.5.2–v3.5.5 milestones remain
+  cumulative entries within v3.5.6.
 - Job Bank is the measured latency bottleneck at 99.5 seconds. Preserve its
   five-second request pacing while evaluating any optimization.
 
@@ -95,6 +98,10 @@
   LMIA status and explicit support evidence; Canada country selection.
 - public EURES discovery restricted to employer-flagged cross-border vacancies;
   its recruitment flag never implies visa or relocation support.
+- v3.5.7 candidate adds selectable Armenia (`AM`) and a public Greenhouse
+  adapter for Lineate, scoped to profiles targeting Armenia or Georgia and
+  filtered by role query and explicit listing location. Visa and relocation
+  stay unknown without direct evidence; the change has not yet been deployed.
 
 ## Verified in the current development environment
 - Parent feature baseline: 166 passed with isolated PostgreSQL 16, 62.57% branch coverage.
@@ -126,8 +133,9 @@
   a live scan; the follow-up pauses JOBS.GE after HTTP 410 and retries one
   transient Arbeitnow transport failure. A subsequent owner Telegram log
   confirms retry recovery; exact source timings remain pending `/scanstatus`.
-- The owner has completed the Telegram acceptance required for cumulative
-  release v3.5.6; no v3.5.7 source or runtime change has been made yet.
+- The owner completed Telegram acceptance for cumulative release v3.5.6.
+  The v3.5.7 feature candidate now has source changes; its full test suite,
+  CI, deployment and Telegram acceptance remain outstanding.
 
 ## Merge rule
 main remains the stable source until full CI and manual Telegram smoke tests pass.

@@ -10,12 +10,16 @@ vacancy matching.
 
 - **Source on `main`:** v3.5.6.
 - **Latest published GitHub Release/tag:** v3.5.6.
+- **Active candidate:** v3.5.7 on `feature/v3.5.7-international-market-coverage`;
+  it is not merged or released yet.
+- The candidate's full isolated PostgreSQL suite passes: 240 tests and 68.22%
+  branch coverage. GitHub CI and owner Telegram acceptance are pending.
 - Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included in
   v3.5.6; they were not published as separate releases or tags.
 - Owner acceptance for resume import and Recommendation v2 vacancy details
   completed in Telegram on 2026-10-11.
-- The production-style local Compose deployment was last verified on v3.5.6,
-  with PostgreSQL healthy and schema 4/4.
+- The checked-out candidate source reports v3.5.7; the production-style local
+  Compose image remains runtime v3.5.6, with PostgreSQL healthy and schema 4/4.
 
 ## Search profiles
 
@@ -27,9 +31,11 @@ vacancy matching.
   individual source fails.
 
 Configured public sources include HeadHunter, Remote OK, Arbeitnow, Job Bank
-Canada, and EURES. Georgia adapters (JOBS.GE and HR.ge) are included when
-Georgia is selected for a profile. Armenia does not yet have a connected local
-source; see the [roadmap](ROADMAP.md) and
+Canada, EURES, and Telegram ingestion. Georgia adapters (JOBS.GE and HR.ge) are
+included when Georgia is selected for a profile. The v3.5.7 candidate adds
+selectable Armenia and a public Greenhouse feed for Lineate when Armenia or
+Georgia is selected; it does not imply visa sponsorship or relocation support.
+See the [roadmap](ROADMAP.md) and
 [international source review](docs/developer/INTERNATIONAL_SOURCES.md).
 
 ## Safety and data handling

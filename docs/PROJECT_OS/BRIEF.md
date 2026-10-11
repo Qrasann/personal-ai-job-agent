@@ -13,15 +13,17 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current runtime
 
-- Source/runtime: `v3.5.6`, database schema `4/4`.
+- Checked-out feature source `VERSION=3.5.7`; running Compose image runtime
+  `3.5.6`, database schema `4/4`.
 - GitHub `main` contains source version `3.5.6`; PR #15 and PR #16 are merged.
   The deployed application code is `170ed4e`; PR #16's later commits only
   updated documentation. The merge is recorded at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
-- Branch map: `main` is the stable source at `02f582e`; the current
-  working branch is `feature/v3.5.7-international-market-coverage`, created
-  from that main commit. `feature/v3.5.6-eures-identity-market-targets` is
-  merged and inactive; `feature/v3.5.2-dual-search-modes` is an older branch.
+- Branch map: `main` is the stable source at `02f582e`; the current working
+  branch is `feature/v3.5.7-international-market-coverage`, created from that
+  main commit. Its candidate `VERSION` is `3.5.7`; `main` and the deployed
+  Compose app remain `3.5.6`. `feature/v3.5.6-eures-identity-market-targets`
+  is merged and inactive; `feature/v3.5.2-dual-search-modes` is an older branch.
 - Release map: `VERSION=3.5.6` and the latest formal GitHub tag/Release are
   v3.5.6. Changelog entries v3.5.2–v3.5.5 are cumulative milestones included
   in that release; do not backfill intermediate tags.
@@ -95,17 +97,27 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   Recommendation v2 with unsupported signals as `н/д`.
 - Published the cumulative v3.5.6 GitHub release after Telegram acceptance of
   TXT resume import and Recommendation v2 vacancy details.
+- Added Armenia (`AM`) to the country catalog and a Greenhouse public GET
+  adapter for Lineate. The source runs only for profiles selecting AM or GE,
+  matches active role queries, and requires explicit location evidence. It
+  keeps visa/relocation unknown absent an employer statement. This v3.5.7
+  candidate is not yet merged, released, or deployed.
 
 ## Verified
 
-- Latest full PostgreSQL-backed suite: `233 passed`, 67.67% branch coverage
-  (rerun on 2026-10-11; 55% gate).
+- Latest full isolated PostgreSQL suite on the v3.5.7 candidate: `240 passed`,
+  68.22% branch coverage (55% gate). Compilation and `git diff --check` pass;
+  GitHub CI and owner Telegram acceptance are pending.
+- Local Compose check: source tree `3.5.7`, runtime `3.5.6`, app up, PostgreSQL
+  healthy. The inspected app log tail ends with scheduled `scan_all` completing
+  at 13:12:25 UTC; no errors appear in that tail. Candidate code has not been
+  deployed to the bot.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
   evidence rules are covered.
-- Source-resilience targeted tests: `20 passed`; the full suite includes the
-  Arbeitnow retry and source-availability cases.
+- Greenhouse/country/preference targeted tests: `20 passed`; the full suite
+  includes the source adapter and availability regressions.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions passed for PR #16 and merge commit `874b372` (main run
   `38135649948`).
@@ -153,20 +165,29 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Continue v3.5.7 on `feature/v3.5.7-international-market-coverage`: confirm the
-public jobseeker path and allowed discovery access for Armenia's official
-e-work/workforall services. The government lists both portals, but their public
-search pages remain inaccessible in checks and no feed/reuse permission is
-confirmed. `workpermit.am` is employer-led; its FAQ answer is not rendered, and
-its guide does not verify anonymous job discovery. Do not add an adapter until
-the feed, access rules, and foreign-candidate path are confirmed. Validate
-candidate-relevant Georgia results under current work-right rules; country
+Treat relocation search as time-sensitive: prioritize currently open roles,
+clear application windows, realistic hiring/start timing, and explicit
+country-specific work eligibility. Keep unverified dates and support unknown.
+Do not copy the owner's personal relocation estimate into public repository
+files.
+
+Finish v3.5.7 on `feature/v3.5.7-international-market-coverage`: run the full
+isolated PostgreSQL suite and GitHub CI, then apply the candidate through the
+safe updater and verify the bot without disturbing the existing DB or volumes.
+Owner Telegram acceptance should use `/targets relocation GE,AM`, `/sources`,
+`/scan`, and `/scanstatus`; confirm the current Lineate Infrastructure Engineer
+appears only for GE and does not claim visa/relocation support. Do not make
+cold government emails a prerequisite. Keep e-work/workforall and
+`workpermit.am` out of automated collection until a relevant public feed or
+authorized route appears. Staff.am and Job.am remain manual search
+destinations under their current terms. Continue evaluating other permitted
+employer ATS/public APIs and owner-selected Telegram channels. Georgia country
 targeting alone does not establish legal eligibility. Do not store personal
-citizenship details in public project documents. Review the Telegram example
-where a 90,000 RUB internship appears despite a 100,000 RUB minimum: the
-minimum is currently a scoring input, not a hard filter, and the salary was
-only in description text. Resolve that semantics/UI issue in the appropriate
-salary stage. Monitor EURES and Job Bank without weakening source pacing.
+citizenship details in public documents. Track the 90,000 RUB internship that
+appeared despite the 100,000 RUB minimum: `/salary minimum` affects scoring,
+not hard filtering, and that amount appeared only in description text. Resolve
+that semantics/UI issue in a separate tested salary stage. Preserve EURES and
+Job Bank pacing.
 
 ## Open limitations
 
@@ -174,14 +195,22 @@ salary stage. Monitor EURES and Job Bank without weakening source pacing.
 - Georgia adapters run only when `GE` is selected for a search profile.
   JOBS.GE's configured homepage returned HTTP 410 and is paused; HR.ge returned
   two live vacancies in the owner’s scan. Its robots file allows `/` and links
-  a large sitemap, but recurring reuse permission remains unverified. Armenia
-  has no catalog entry or connected local source yet.
+  a large sitemap, but recurring reuse permission remains unverified. On the
+  v3.5.7 candidate Armenia is selectable and one Lineate Greenhouse board is
+  connected for explicit AM/GE locations; broader Armenian source coverage
+  remains open.
 - Armenia has two government-listed vacancy platforms (e-work.am and
   workforall.am), but their public pages timed out and no API/access terms were
-  verified. Request a permitted feed and confirm foreign-candidate access;
-  Staff.am prohibits automated scraping without permission, while Job.am
-  restricts unauthorized reuse and redistribution. See
-  `docs/developer/INTERNATIONAL_SOURCES.md`.
+  verified. Automated integration is deferred; no agency email is required for
+  this stage. Official registration prerequisites do not establish that
+  foreigners are barred from applying directly to employers. Staff.am and
+  Job.am remain manual search destinations unless their terms or an approved
+  feed permit automated reuse. See `docs/developer/INTERNATIONAL_SOURCES.md`.
+- The v3.5.7 candidate makes AM selectable and connects one current Lineate
+  Greenhouse board for explicit Armenia/Georgia locations. Its current
+  Infrastructure Engineer opening is for a Georgian office; current Yerevan
+  data-engineering roles do not match the profile's DevOps/Infrastructure
+  queries. Broader Armenia source coverage remains open.
 - Official Armenia `workpermit.am` enables employer-side processing for
   foreign hires and documents an EAEU work-permit exemption, but no anonymous
   vacancy feed/API is verified. Its FAQ question is visible but the answer is

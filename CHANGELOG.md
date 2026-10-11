@@ -3,6 +3,24 @@
 > The source tree on GitHub `main` and the latest formal release/tag are v3.5.6.
 > Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included
 > in v3.5.6; they were not published as individual releases or tags.
+> The active feature branch is preparing v3.5.7; `main` and the latest formal
+> release remain v3.5.6 until candidate checks and acceptance are complete.
+
+## v3.5.7 — Candidate: Armenia and Georgia ATS Discovery
+
+- Add Armenia (`AM`) to the selectable country catalog.
+- Connect a bounded discovery-only Greenhouse Job Board API adapter for
+  Lineate, scoped to selected Armenia/Georgia markets and matching role titles.
+- Keep work mode, salary, visa sponsorship and relocation unknown unless the
+  public posting explicitly provides evidence. No private API or application
+  submission is used.
+- Greenhouse's documented public GET endpoint requires no authentication.
+  Current Lineate listings include an Infrastructure Engineer role for its
+  Georgian office; current role fit and eligibility still require vacancy-level
+  matching and review.
+- Full isolated PostgreSQL suite: 240 passed; branch coverage 68.22% (55%
+  gate). Compilation and `git diff --check` pass. GitHub CI and owner Telegram
+  acceptance remain pending; this candidate is not merged, tagged, or released.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

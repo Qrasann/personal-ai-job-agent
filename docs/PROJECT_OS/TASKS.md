@@ -84,8 +84,10 @@
 - [x] Review JOBS.GE and HR.ge robots guidance and add conservative request
   bounds. Terms/reuse permission remains unverified; owner must inspect scan
   quality before treating the sources as useful.
-- [ ] Verify an Armenian public API or obtain permission before adding a
-  recurring local source; investigate the official e-work portal first.
+- [x] Review the official Armenian jobseeker registration guidance. Its PSN,
+  national eID, and residence-card requirements describe registration with the
+  state service; they do not establish a general ban on direct employer
+  applications.
 - [x] Check current official Armenian source candidates: the Unified Social
   Service lists e-work.am and workforall.am; both public search pages timed out,
   and no API/access terms were found. Online e-work registration requires PSN
@@ -98,15 +100,38 @@
   anonymous job feed is verified.
 - [x] Recheck the current Georgian Labour Migration Law: the new right-to-work
   process for covered foreign workers is in force from 2026-03-01.
-- [ ] Ask the Unified Social Service whether it offers an allowed public feed
-  and whether foreign candidates can use it before relocating.
-- [ ] Obtain confirmation from the Migration Service about any jobseeker flow
-  or authorized public listings/feed on workpermit.am.
-- [ ] Prefer permitted employer career/ATS feeds and verify location, language,
-  expiry and candidate eligibility evidence.
-- [ ] Add Armenian country selection only together with a tested local source.
+- [x] Review current Staff.am and Job.am terms. Keep them as manual search
+  destinations; do not automate collection or reuse without a permitted feed
+  or written permission.
+- [x] Defer cold outreach to the Unified Social Service and Migration Service:
+  it is not a prerequisite for this release, and no documented public feed or
+  API has been identified.
+- [x] Add Armenia (`AM`) to the supported country catalog without implying a
+  government-board integration or individual eligibility determination.
+- [x] Connect Greenhouse's public Job Board GET API for the Lineate board when
+  AM or GE is selected. Match active role queries and explicit locations;
+  leave visa/relocation support unknown without direct posting evidence.
+- [x] Add Greenhouse regressions for selected-country scoping, role matching,
+  explicit support evidence and API contract errors. Targeted source/country/
+  preference tests: 20 passed.
+- [ ] Evaluate permitted employer career/ATS feeds, documented public APIs,
+  and owner-selected Telegram channels for Armenia/Georgia. Verify role
+  relevance, location, language, expiry, access conditions, and eligibility
+  evidence before integration.
 - [ ] Keep visa sponsorship, work authorization, relocation support, salary
   and language evidence separate; unknown remains unknown.
+- [x] Run the full isolated PostgreSQL suite and compile checks for the v3.5.7
+  candidate: 240 passed, 68.22% branch coverage; `git diff --check` passed.
+- [ ] Push the candidate and confirm GitHub CI passes before merge or deploy.
+- [ ] After checks pass, apply with the safe updater and verify the running
+  Compose project, PostgreSQL health, attached volumes and application logs.
+- [ ] Owner Telegram acceptance after deployment: `/targets relocation GE,AM`,
+  `/sources`, `/scan`, and `/scanstatus`; confirm Lineate appears only for GE
+  under the current DevOps/Infrastructure queries and support claims remain
+  evidence-based.
+- [ ] For the time-sensitive relocation search, verify each useful opening's
+  active/closing status, application deadline, expected start timing, and work
+  eligibility from public evidence; leave missing details unknown.
 
 ## Follow-up — salary floor semantics
 - [ ] Decide whether `/salary minimum` should be a hard exclusion or a scoring

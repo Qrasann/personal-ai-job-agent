@@ -22,6 +22,7 @@ from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.adapters.arbeitnow import ArbeitnowSource
 from app.sources.adapters.jobbank import JobBankSource
 from app.sources.adapters.eures import EuresSource
+from app.sources.adapters.greenhouse import GreenhouseSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
@@ -259,6 +260,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(JobBankSource())
         if "eures" in source_ids:
             adapters.append(EuresSource())
+        if "greenhouse" in source_ids:
+            adapters.append(GreenhouseSource())
         if "jobs_ge" in source_ids:
             adapters.append(JobsGESource())
         if "hr_ge" in source_ids:

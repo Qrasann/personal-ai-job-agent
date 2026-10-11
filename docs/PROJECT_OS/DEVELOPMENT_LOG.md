@@ -1,5 +1,38 @@
 # Development Log
 
+## 2026-10-11 — v3.5.7 Armenia and Lineate discovery candidate
+- Added `AM` to the supported country catalog and connected Lineate's public
+  Greenhouse Job Board GET API for profiles targeting Armenia or Georgia.
+- Scoped results to selected countries and active role queries. The current
+  board's Infrastructure Engineer posting is listed for a Georgian office;
+  Yerevan data-engineering titles do not match the current DevOps/Infrastructure
+  queries. Unknown visa/relocation evidence remains unknown.
+- Greenhouse documents that public job-board GET endpoints need no
+  authentication. The adapter uses `content=true`, does not submit applications,
+  and does not treat ATS update timestamps as publication dates.
+- Targeted Greenhouse, country-catalog, and preference tests: 20 passed. The
+  full isolated PostgreSQL suite passed: 240 tests, 68.22% branch coverage
+  (55% gate); compileall and `git diff --check` passed. GitHub CI and owner
+  Telegram acceptance remain pending. No schema migration, deployment,
+  `.env`, production database, or production Docker-volume change has been
+  made. `VERSION` is 3.5.7 only on the candidate branch; `main`, formal release,
+  and runtime remain 3.5.6.
+
+## 2026-10-11 — v3.5.7 Armenia source priorities clarified
+- Applied the owner's feedback: do not make cold emails to Armenian agencies a
+  release prerequisite. No email was sent.
+- Kept e-work.am/workforall.am and workpermit.am out of automated discovery
+  while no relevant public feed/API or authorized route is verified. Clarified
+  that state-service registration requirements do not establish a general ban
+  on direct applications to employers.
+- Recorded Staff.am and Job.am as manual search destinations under their
+  current terms; bot collection remains out of scope without permission or an
+  approved feed. Prioritize permitted employer ATS feeds, documented public
+  APIs, and owner-selected Telegram channels.
+- Documentation-only update. No app code, database, deployment, `.env`, or
+  Docker volume changed; v3.5.7 remains a feature-branch candidate, not a
+  release or tag.
+
 ## 2026-10-11 — v3.5.7 source and vacancy realism review
 - Started `feature/v3.5.7-international-market-coverage` from clean main
   commit `02f582e`; no application code or database changes yet.

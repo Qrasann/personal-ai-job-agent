@@ -18,7 +18,7 @@ class SourcePlan:
     availability_note: str | None = None
 
 
-IMPLEMENTED = {"hh", "remoteok", "arbeitnow", "jobbank", "eures", "telegram", "jobs_ge", "hr_ge"}
+IMPLEMENTED = {"hh", "remoteok", "arbeitnow", "jobbank", "eures", "greenhouse", "telegram", "jobs_ge", "hr_ge"}
 
 
 def build_source_plan(current_country: str | None, target_countries: list[str], *, include_international: bool = True) -> list[SourcePlan]:
@@ -37,6 +37,11 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
             )
     if include_international:
         for src in load_country_catalog().get("international_sources", []):
+            scoped_countries = {str(code).upper() for code in src.get("countries", [])}
+            if scoped_countries and not scoped_countries.intersection(
+                {str(code).upper() for code in codes if code}
+            ):
+                continue
             plans[src["id"]] = SourcePlan(
                 source_id=src["id"], name=src.get("name", src["id"]), scope=src.get("scope", "global"),
                 transport=src.get("transport", "unknown"), capability=src.get("capability", "discovery"),
@@ -50,6 +55,6 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
 def source_capabilities(source_id: str) -> SourceCapabilities:
     if source_id == "hh":
         return SourceCapabilities(True, False, False, False)
-    if source_id in {"remoteok", "arbeitnow", "jobbank", "eures", "telegram"}:
+    if source_id in {"remoteok", "arbeitnow", "jobbank", "eures", "greenhouse", "telegram"}:
         return SourceCapabilities(True, True, False, False)
     return SourceCapabilities(True, False, False, False)
