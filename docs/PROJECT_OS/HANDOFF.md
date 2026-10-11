@@ -14,8 +14,11 @@ and never replace existing facts.
 Migration 3 only adds `confidence` and `provenance` columns to `candidate_facts`;
 existing rows receive defaults and are preserved. Full isolated PostgreSQL
 suite: 217 passed, 65.15% branch coverage; unit suite: 214 passed, 3 skipped.
-Source `VERSION` is 3.5.5. Publish and apply with the safe tracked-branch update,
-then verify schema 3/3, healthy PostgreSQL, polling and unchanged named volumes.
+Commit `8131e2e` is published and applied with the safe tracked-branch update.
+Compose reports runtime 3.5.5, schema 3/3, healthy PostgreSQL and active bot
+polling. Inspection confirmed the existing `repo_jobagent_v3_pg` and
+`repo_jobagent_v3_files` volumes remain attached. Startup logs showed an
+intermittent EURES SSL retry while other sources continued.
 Owner-driven Telegram acceptance for `/import` and the outstanding controls
 (`/salary`, `/blacklist`, `/scanstatus`, `/cancel`) remains pending before
 release tagging.

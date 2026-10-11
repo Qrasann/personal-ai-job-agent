@@ -14,6 +14,12 @@
 - Targeted importer/storage/Telegram tests: 14 passed. Full isolated PostgreSQL
   suite: 217 passed; branch coverage 65.15% (55% gate). Unit suite: 214 passed,
   3 skipped. Real Telegram acceptance remains owner-driven.
+- Published as `8131e2e` to `feature/v3.5.2-dual-search-modes` and applied with
+  `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`. Compose reports runtime
+  3.5.5, schema 3/3 and healthy PostgreSQL; the Telegram bot is polling. Mount
+  inspection confirmed `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain
+  attached. Startup EURES transport retry appeared while other public sources
+  continued. Real-chat `/import` and pending command acceptance remain unverified.
 
 ## 2026-10-11 — handle raw EURES SSL failures
 - New deployed logs showed that EURES still failed after the prior update. The

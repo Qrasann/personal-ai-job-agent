@@ -13,7 +13,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current runtime
 
-- Source release: `v3.5.5`, database schema `3/3` after deployment.
+- Source/runtime: `v3.5.5`, database schema `3/3`.
 - Active branch: `feature/v3.5.2-dual-search-modes`.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
@@ -43,7 +43,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Latest PostgreSQL-backed suite: `217 passed`, 65.15% branch coverage.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
-- Local Compose deployment is pending the published v3.5.5 update in this stage; prior runtime v3.5.4 had healthy PostgreSQL and EURES partial-result behavior.
+- Commit `8131e2e` is published and deployed to Compose project `repo`; app
+  reports 3.5.5, PostgreSQL is healthy, migration reports schema 3/3, and the
+  bot is polling. Existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
+  volumes remain attached. Startup logs show the expected intermittent EURES
+  SSL retry while other public sources continue.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 

@@ -8,6 +8,8 @@
 - [x] Add confidence/provenance to Candidate Facts through additive migration 3.
 - [x] Detect exact duplicates and flag overlaps without replacing existing facts.
 - [x] Full isolated PostgreSQL suite: 217 passed, 65.15% branch coverage.
+- [x] Publish commit `8131e2e` and deploy with `./job-agent update`; verify
+  runtime 3.5.5, schema 3/3, healthy PostgreSQL and unchanged named volumes.
 - [ ] Owner-driven real-chat acceptance for `/import` and existing controls before
   tagging.
 
