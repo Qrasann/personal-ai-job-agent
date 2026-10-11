@@ -18,10 +18,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   The deployed application code is `170ed4e`; PR #16's later commits only
   updated documentation. The merge is recorded at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
-- Branch map: `main` is the stable source and the local checkout. The
-  `feature/v3.5.6-eures-identity-market-targets` branch is merged and inactive;
-  `feature/v3.5.2-dual-search-modes` is an older remote branch and is not active.
-  Start new implementation work from `main` on a fresh v3.5.7 feature branch.
+- Branch map: `main` is the stable source at `02f582e`; the current
+  working branch is `feature/v3.5.7-international-market-coverage`, created
+  from that main commit. `feature/v3.5.6-eures-identity-market-targets` is
+  merged and inactive; `feature/v3.5.2-dual-search-modes` is an older branch.
 - Release map: `VERSION=3.5.6` and the latest formal GitHub tag/Release are
   v3.5.6. Changelog entries v3.5.2–v3.5.5 are cumulative milestones included
   in that release; do not backfill intermediate tags.
@@ -76,6 +76,15 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   workforall.am as vacancy platforms. Their public search pages timed out;
   API/access terms are unverified, and official registration rules do not yet
   establish pre-move foreign-candidate access.
+- Checked the official Armenian `workpermit.am` foreign-hiring portal: it
+  documents an employer registration/vacancy/work-residence workflow and says
+  EAEU citizens working in Armenia are exempt from work-permit documentation.
+  The FAQ lists a job-finding question, but its answer and anonymous/public
+  feed access remain unverified. The current-country setting does not establish
+  citizenship, so EAEU eligibility must remain candidate-specific.
+- Rechecked Georgia's official Labour Migration Law: the foreign-worker right-
+  to-work requirement took effect 2026-03-01. Local paid work is employer-led;
+  check the subsequent D1/work-residence steps and limited remote-work rule.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
 - Merged release PR #15 and candidate PR #16 into GitHub `main`; CI passed and
   the owner supplied real-chat smoke checks for core commands and the updated
@@ -144,12 +153,15 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Continue the v3.5.7 International Market Coverage stage: verify a permitted
-Armenian public feed or request authorization, validate practical Georgia
-results, and keep visa/work eligibility evidence separate. Monitor EURES
-transport and measure Job Bank latency without weakening its five-second
-request pacing. The cumulative v3.5.6 release gate is closed after the owner's
-Telegram acceptance.
+Continue v3.5.7 on `feature/v3.5.7-international-market-coverage`: confirm the
+public jobseeker path and allowed discovery access for Armenia's official
+workpermit/e-work services, then validate candidate-relevant Georgia results
+under the 2026 work-right rules. Keep nationality-specific eligibility
+unknown until the candidate confirms it. Review the Telegram example where a
+90,000 RUB internship appears despite a 100,000 RUB minimum: the minimum is
+currently a scoring input, not a hard filter, and the salary was only in
+description text. Resolve that semantics/UI issue in the appropriate salary
+stage. Monitor EURES and Job Bank without weakening source pacing.
 
 ## Open limitations
 
@@ -165,6 +177,14 @@ Telegram acceptance.
   Staff.am prohibits automated scraping without permission, while Job.am
   restricts unauthorized reuse and redistribution. See
   `docs/developer/INTERNATIONAL_SOURCES.md`.
+- Official Armenia `workpermit.am` enables employer-side processing for
+  foreign hires and documents an EAEU work-permit exemption, but no anonymous
+  vacancy feed/API is verified. The portal's job-finding FAQ answer still needs
+  confirmation. User citizenship is unknown to the app.
+- Georgia's local-employment rule changed on 2026-03-01: a right to work is
+  required for covered foreign workers, with employer-led application and
+  follow-up visa/residence steps. The bot does not currently decide individual
+  legal eligibility.
 - Arbeitnow may contain no low-barrier role matches. A later owner-provided
   Telegram scan confirmed the deployed single retry recovered from a
   `ReadTimeout` with HTTP 200. Continue monitoring future runs.
@@ -172,6 +192,10 @@ Telegram acceptance.
   scan. Its five-second request pacing is intentional; any optimization must
   preserve the public crawl interval and be measured in a fresh Telegram scan.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
+- `/salary minimum` is not currently a hard filter, despite the Telegram label.
+  A detail view can mention a below-minimum amount in description text while
+  the structured salary and salary score remain unknown; see the next salary
+  semantics task in `ROADMAP.md`.
 - EURES returned 16 vacancies in the owner-provided follow-up scan, with no SSL
   error reported for that run. Monitor additional scheduled runs; do not claim
   the transport cause is permanently resolved yet.

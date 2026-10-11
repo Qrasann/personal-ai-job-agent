@@ -4,9 +4,9 @@
 - Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
-- `README.md` and `README.ru.md` now provide English and Russian entry points
-  on `main`. The merged feature branch is inactive; start future implementation
-  work from `main` on a new v3.5.7 feature branch.
+- `README.md` and `README.ru.md` provide English and Russian entry points on
+  `main`. The merged v3.5.6 feature branch is inactive. Current work is on
+  `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
 - Latest formal GitHub Release/tag: v3.5.6, pointing to release commit
   `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
   included in the release. Main CI run `38138941745` passed.
@@ -44,6 +44,15 @@
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
   connected public feeds; employer-only counts remain unknown in this app.
+- Official-source review found Armenia's `workpermit.am` employer-side
+  foreign-hiring process and EAEU permit exemption; no public discovery feed or
+  anonymous jobseeker flow is verified. Georgia's foreign-worker right-to-work
+  changes are in force from 2026-03-01.
+- Owner Telegram example showed a 90,000 RUB internship description although
+  the configured minimum is 100,000 RUB. The app currently treats minimum
+  salary as a scoring input, not a strict exclusion, and does not parse that
+  description amount into structured salary fields. The `/salary` wording is
+  misleading and needs a separate decision/test.
 - v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
   concurrent adapters; manual scans persist status/timings in `runtime_state`
   and expose `/scanstatus` and `/cancel`.
@@ -55,9 +64,10 @@
 - PR #16 merge commit: `874b37255e3bb223d2b49d83027f15b48acfe7c4`.
 
 ## Active development
-- `main` is the stable source; PR #16 is merged. v3.5.6 is the latest formal
-  tag/release and includes the untagged v3.5.2–v3.5.5 milestones. The next
-  implementation work starts on a new feature branch from `main` for v3.5.7.
+- `main` is stable; the active candidate is
+  `feature/v3.5.7-international-market-coverage`, branched from `02f582e`.
+  v3.5.6 remains the latest formal release and includes the untagged
+  v3.5.2–v3.5.5 milestones.
 - Job Bank is the measured latency bottleneck at 99.5 seconds. Preserve its
   five-second request pacing while evaluating any optimization.
 

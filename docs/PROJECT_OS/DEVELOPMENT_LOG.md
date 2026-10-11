@@ -1,5 +1,39 @@
 # Development Log
 
+## 2026-10-11 — v3.5.7 source and vacancy realism review
+- Started `feature/v3.5.7-international-market-coverage` from clean main
+  commit `02f582e`; no application code or database changes yet.
+- Checked official Armenian `workpermit.am`: it supports an employer-led
+  vacancy and foreign work/residence process and states EAEU workers are
+  exempt from work-permit documents for the employment-contract period. The
+  public FAQ lists a “How to find a job” question, but its answer and any
+  anonymous public feed/access rules were not confirmed. The Unified Social
+  Service says employers may also send vacancies in a prescribed format to
+  `info@socservice.am`; this is a contact route, not permission to collect.
+- Checked Georgia's current official Labour Migration Law. Its relevant
+  foreign-worker changes took effect 2026-03-01: local paid work requires an
+  employer-mediated right-to-work step, followed by the applicable D1/work
+  residence process. The law has a limited completely-remote/no-entry
+  exception to follow-up immigration documents; this does not establish
+  eligibility for local employment.
+- Reviewed the owner-provided `/job 580`: the description says 90,000 RUB,
+  but structured salary remains unknown and `/jobs` shows no salary. `/salary`
+  calls 100,000 RUB a filter minimum, while current code uses it only in
+  scoring when structured salary is available. Recorded this product mismatch
+  as a follow-up decision rather than silently changing scoring.
+- Compose status reported source/runtime 3.5.6 and PostgreSQL healthy. The
+  scheduled scan started at 12:40:11 and `scan_all` completed at 12:42:28 UTC.
+  The inspected tail shows Arbeitnow and Remote OK HTTP 200, plus EURES search
+  and detail responses and Job Bank search/detail responses returning HTTP 200;
+  no error line appeared in the inspected tail. A broader raw Docker log
+  command was denied by the local Docker socket sandbox, so inspection used the
+  project helper. No app or data change was attempted.
+- Verification on the documentation branch: isolated PostgreSQL suite
+  `233 passed`, 67.67% branch coverage; `python -m compileall -q app tests`
+  and `git diff --check` passed. No behavior changed.
+- References and remaining source-access questions are in
+  `docs/developer/INTERNATIONAL_SOURCES.md`. No contact was sent to any agency.
+
 ## 2026-10-11 — owner Telegram release acceptance
 - `/import` showed the accepted file-type/size prompt, rejected an unsupported
   ZIP, and detected two previously imported documents as duplicates. The owner

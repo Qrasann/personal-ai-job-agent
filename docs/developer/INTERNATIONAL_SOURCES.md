@@ -112,6 +112,31 @@
   discovery. Preserve canonical links and collect only the fields needed for
   matching.
 
+### Armenia employer-side foreign-hiring route — checked 2026-10-11
+
+- The Migration and Citizenship Service's [workpermit.am portal](https://workpermit.am/en/home)
+  is an official electronic system for employers to register vacancies and
+  process foreign hires through the employment-based residence procedure. Its
+  described flow starts with employer registration, vacancy submission and
+  government review; it is not yet verified as an anonymous public vacancy
+  catalogue or a documented API/feed. Do not automate its authenticated
+  workflow or treat registration as a jobseeker search interface.
+- The portal's FAQ includes “How to find a job using this Platform?”, but the
+  publicly rendered answer was not available in the checked page. Confirm the
+  candidate-facing flow and data-access terms with the Migration Service
+  (`workpermit@gov.am`) before considering integration.
+- The Unified Social Service says employers may post vacancies on e-work.am or
+  send them in a prescribed format to `info@socservice.am`. This makes an
+  authorized feed/referral request concrete, but does not itself grant the
+  bot access or permission to reuse vacancy data.
+- The official workpermit.am page says citizens of EAEU member states working
+  in Armenia are exempt from work-permit documentation for the employment
+  contract period. Candidate nationality is not established by the bot's
+  current country; do not infer this status from `RU` profile location.
+- No Armenia adapter or country option should be added until public discovery,
+  recurring-access permission, canonical job links, and candidate access before
+  relocation are confirmed.
+
 ### Georgia source review
 
 - A live GET of `https://jobs.ge/robots.txt` returned HTTP 410, so no crawl
@@ -143,6 +168,19 @@
 - Do not infer citizenship or work rights from a candidate's current country.
   Keep location, work authorization, visa sponsorship, relocation support,
   language and salary separate, and leave unsupported fields unknown.
+- Georgia's consolidated [Labour Migration Law](https://matsne.gov.ge/en/document/view/2806732)
+  now includes changes effective 2026-03-01: paid work for a local employer by
+  an alien without permanent residence requires a right to work obtained via
+  the local employer after an employment agreement. The subsequent visa or
+  work-residence steps depend on whether the worker is outside Georgia or
+  already there. The law has a separate exception from those follow-up
+  immigration-document steps for work performed completely remotely when the
+  worker need not enter Georgia; do not interpret that as a general right to
+  take local Georgian employment without checking the worker's case.
+- Georgia's [official work-residence guidance](https://sda.gov.ge/en/products/migration-residence-permits/)
+  also lists employer-turnover and minimum-income documentation. This is a
+  practical feasibility signal for local employment, not a bot-side legal
+  determination.
 - For current country-specific rules, consult the official
   [Armenian employment-based residence guidance](https://migration.mia.gov.am/en/acquiring-employment-based-residence-status),
   [Georgian residence permit guidance](https://sda.gov.ge/en/products/migration-residence-permits/)

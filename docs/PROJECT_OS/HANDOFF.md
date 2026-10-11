@@ -1,5 +1,42 @@
 # Handoff
 
+## v3.5.7 source and vacancy realism review — 2026-10-11
+
+The active branch `feature/v3.5.7-international-market-coverage` starts from
+main commit `02f582e`. `main`, `VERSION`, the formal tag/Release, and
+Compose runtime remain v3.5.6. Main CI run `38139660265` passed after the
+release documentation sync. The app is up and PostgreSQL is healthy. The last
+scheduled scan started at 12:40:11 and `scan_all` completed at 12:42:28 UTC.
+The inspected tail shows Arbeitnow, Remote OK, EURES search/details and Job
+Bank search/details returning HTTP 200; no error line appeared in that tail.
+No new deployment or data/schema change was made.
+The isolated PostgreSQL suite on this documentation-only candidate passed:
+233 tests, 67.67% branch coverage; compileall and `git diff --check` passed.
+
+Official Armenian `workpermit.am` describes an employer-led vacancy and
+foreign-hiring/work-residence procedure and states that EAEU citizens working
+in Armenia are exempt from work-permit documentation for the employment
+contract period. Its FAQ lists a “How to find a job” question, but the answer,
+anonymous listings, and feed/access permissions remain unverified. The
+Unified Social Service documents e-work vacancy posting and a prescribed-format
+email route; permission must still be requested. Georgia's official Labour
+Migration Law includes foreign-worker changes effective 2026-03-01: covered
+local paid work requires a right to work through the local employer and then
+the applicable immigration status. The bot cannot infer individual eligibility
+from `GE` selection or `RU` current-country settings.
+
+The owner also showed `/job 580`: the full description contains 90,000 RUB,
+while structured salary stays unknown and `/jobs` displays “not specified.”
+`/salary` calls 100,000 RUB a minimum “for filter,” but current matching uses
+that value as a scoring input when structured salary exists; it is not a hard
+floor. This should be clarified or deliberately implemented as a separate
+tested change before the bot claims to filter below-minimum jobs.
+
+No agency contact was sent. The next owner action, if wanted, is to ask the
+Unified Social Service / Migration Service about candidate access and an
+authorized public feed. Source references and constraints are in
+`docs/developer/INTERNATIONAL_SOURCES.md`.
+
 ## GitHub branches and release labels — 2026-10-11
 
 - `main` is the stable source branch at v3.5.6. PR #15 and

@@ -90,13 +90,28 @@
   Service lists e-work.am and workforall.am; both public search pages timed out,
   and no API/access terms were found. Online e-work registration requires PSN
   or national eID; the in-person foreign-citizen path requires a residence card.
+- [x] Review the official `workpermit.am` employer-side foreign-hiring flow and
+  EAEU exemption. It is not yet a verified anonymous job feed; its public
+  jobseeker FAQ answer still needs checking.
+- [x] Recheck the current Georgian Labour Migration Law: the new right-to-work
+  process for covered foreign workers is in force from 2026-03-01.
 - [ ] Ask the Unified Social Service whether it offers an allowed public feed
   and whether foreign candidates can use it before relocating.
+- [ ] Confirm the workpermit.am “How to find a job” workflow and whether any
+  public listings/feed may be accessed by a low-rate discovery client.
 - [ ] Prefer permitted employer career/ATS feeds and verify location, language,
   expiry and candidate eligibility evidence.
 - [ ] Add Armenian country selection only together with a tested local source.
 - [ ] Keep visa sponsorship, work authorization, relocation support, salary
   and language evidence separate; unknown remains unknown.
+
+## Follow-up — salary floor semantics
+- [ ] Decide whether `/salary minimum` should be a hard exclusion or a scoring
+  reference. Current implementation uses it as a scoring input, but Telegram
+  says “minimum for filter.” The owner's `/job 580` showed 90,000 RUB in the
+  description with structured salary unknown, so the existing scorer cannot
+  exclude it. Fix wording and/or behavior with tests before claiming a strict
+  floor.
 
 ## GitHub main synchronization
 - [x] Integrate GitHub `main` commit `375af5f` into the release branch without

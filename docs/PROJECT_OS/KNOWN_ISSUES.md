@@ -33,6 +33,19 @@
   prohibits automated scraping without permission, and Job.am restricts
   unauthorized reuse and redistribution. No recurring collector should be
   added without an approved feed or written permission.
+- The official Armenian `workpermit.am` portal describes employer-side
+  foreign-hiring and work-residence processing, and states that EAEU citizens
+  working in Armenia are exempt from work-permit documents. Its public UI has
+  a job-finding FAQ, but the answer and anonymous job-discovery/feed access are
+  unverified. Candidate nationality must not be inferred from profile country.
+- Georgia's Labour Migration Law changes effective 2026-03-01 require covered
+  foreign workers in local paid employment to obtain a right to work through
+  the employer and follow the applicable immigration procedure. Search target
+  `GE` does not establish individual work eligibility.
+- `/salary minimum` currently affects scoring when a structured salary exists;
+  it does not hard-filter. The Telegram text says “minimum for filter.” In the
+  owner-provided `/job 580`, 90,000 RUB appeared in the description while
+  structured salary stayed unknown, so the value was not used for scoring.
 - Job Bank Canada adds international TFW coverage, but an LMIA request or
   permission to apply does not establish sponsorship or candidate eligibility.
   Initial coverage is one page, six queries and twelve details per profile;

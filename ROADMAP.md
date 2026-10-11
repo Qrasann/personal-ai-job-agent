@@ -44,6 +44,11 @@ preserving the separate Career-first and Relocation-first goals.
   Georgia as validated recurring coverage. Georgia details remain capped and
   paced, scheduled results are cached for six hours, and `/scan` forces a fresh
   fetch.
+- Georgia's Labour Migration Law now has 2026-03-01 changes in effect: for
+  local paid work, an eligible foreign worker needs a right to work through a
+  local employer and then the applicable immigration status. Recheck the
+  candidate's case and current rules; selecting `GE` alone does not make a
+  local vacancy legally actionable.
 - Treat the Georgian adapters as limited personal discovery sources. JOBS.GE
   robots rules were unavailable (HTTP 410), HR.ge allows crawling in
   robots.txt, and neither board's recurring-reuse terms were confirmed. Keep
@@ -56,6 +61,12 @@ preserving the separate Career-first and Relocation-first goals.
   found. Request a permitted feed and clarify foreign-candidate access through
   `info@socservice.am`; Job.am and Staff.am have terms that constrain automated
   collection or redistribution.
+- The official Armenian `workpermit.am` portal provides an employer-side
+  foreign-hiring/work-residence workflow and says EAEU citizens are exempt
+  from work-permit documentation for the employment-contract period. It is
+  not yet verified as anonymous job discovery or a public feed. Confirm its
+  “How to find a job” flow and access terms, and ask the Unified Social Service
+  about an authorized e-work vacancy feed before building an adapter.
 - Official e-work registration guidance requires a PSN or national eID online;
   its in-person path for foreign nationals requires a residence card. Do not
   assume either portal serves a foreign jobseeker before relocation.
@@ -68,6 +79,12 @@ preserving the separate Career-first and Relocation-first goals.
 - Keep visa sponsorship, work authorization, relocation support, salary and
   language requirements as separate evidence fields. Never assume citizenship
   from the current country or turn missing evidence into a refusal.
+- `/salary minimum` currently contributes to scoring when salary is structured;
+  it is not a hard exclusion rule. The bot's “minimum for filter” wording is
+  misleading, and `/job 580` showed a 90,000 RUB amount only inside the
+  description while the structured salary remained unknown. Clarify this
+  behavior or implement a separately tested strict floor before relying on it
+  to remove below-minimum vacancies.
 - Measure EURES success by parsed search/detail results per profile, not by
   response status alone; retain partial results and keep retries bounded.
 
