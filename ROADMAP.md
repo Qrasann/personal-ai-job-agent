@@ -69,6 +69,9 @@ preserving the separate Career-first and Relocation-first goals.
   the answer is not rendered; the official user guide describes an
   employer-led vacancy and foreign-worker account flow. Ask the Unified Social
   Service about an authorized e-work vacancy feed before building an adapter.
+- Keep Armenia's EAEU work-permit exemption separate from residence paperwork:
+  the official portal says its lawful-residence certificate cannot be printed
+  without a Public Services Number.
 - Official e-work registration guidance requires a PSN or national eID online;
   its in-person path for foreign nationals requires a residence card. Do not
   assume either portal serves a foreign jobseeker before relocation.

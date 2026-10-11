@@ -186,8 +186,11 @@ salary stage. Monitor EURES and Job Bank without weakening source pacing.
   foreign hires and documents an EAEU work-permit exemption, but no anonymous
   vacancy feed/API is verified. Its FAQ question is visible but the answer is
   not rendered; the public guide documents employer-created vacancies and
-  employer entry of the selected foreign worker. The app has no citizenship
-  field and does not decide individual legal eligibility.
+  employer entry of the selected foreign worker. The portal says an EAEU
+  worker may register for a lawful-residence certificate, but printing it
+  requires a Public Services Number; this is separate from work-permit
+  exemption. The app has no citizenship field and does not decide individual
+  legal eligibility.
 - Under Georgia's current Labour Migration Law, covered local paid work requires
   an employment agreement, a right to work obtained through the local employer,
   and the applicable D1/work-residence/other status. Country targeting does not

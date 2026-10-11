@@ -19,6 +19,10 @@ in Armenia are exempt from work-permit documentation for the employment
 contract period. The FAQ displays “How to find a job using this Platform?” but
 its answer is absent from the public response; the official guide documents an
 employer-created vacancy and employer entry of the selected foreign worker.
+The portal separately says an EAEU worker may register for a lawful-residence
+certificate, but printing it requires a Public Services Number; this does not
+cancel the work-permit exemption and should be handled as a separate residence
+step.
 The Unified Social Service's labor-market page explicitly lists e-work.am and
 workforall.am for vacancies, but their public search pages were not readable in
 the checks and no feed/reuse permission is confirmed. The listed

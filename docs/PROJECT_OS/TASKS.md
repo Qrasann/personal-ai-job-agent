@@ -93,8 +93,9 @@
 - [x] Review the official `workpermit.am` employer-side foreign-hiring flow and
   EAEU exemption. Its FAQ lists a job-finding question, but the answer is not
   rendered; the official guide documents an employer-created vacancy and
-  employer entry of the selected foreign worker. No anonymous job feed is
-  verified.
+  employer entry of the selected foreign worker. The lawful-residence
+  certificate is separate and requires a Public Services Number to print. No
+  anonymous job feed is verified.
 - [x] Recheck the current Georgian Labour Migration Law: the new right-to-work
   process for covered foreign workers is in force from 2026-03-01.
 - [ ] Ask the Unified Social Service whether it offers an allowed public feed

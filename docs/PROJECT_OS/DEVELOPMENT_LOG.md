@@ -24,6 +24,10 @@
   says the employer enters the foreign worker's details before the worker's
   account is created. This supports the employer-side immigration workflow,
   not public vacancy discovery.
+- The portal separately says EAEU workers are exempt from permission documents
+  for the employment-contract period, while a certificate confirming lawful
+  residence cannot be printed without a Public Services Number. Keep work
+  authorization and residence registration distinct in future matching.
 - Checked Georgia's current official Labour Migration Law. Its relevant
   foreign-worker changes took effect 2026-03-01: local paid work requires an
   employer-mediated right-to-work step, followed by the applicable D1/work

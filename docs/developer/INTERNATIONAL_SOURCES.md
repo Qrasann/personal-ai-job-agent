@@ -145,6 +145,11 @@
   in Armenia are exempt from work-permit documentation for the employment
   contract period. Candidate nationality is not established by the bot's
   current country; do not infer this status from `RU` profile location.
+- The same page distinguishes the exemption from residence documentation:
+  EAEU citizens may register to receive a certificate confirming lawful
+  residence, but the portal says it cannot be printed without a Public Services
+  Number. Do not present the work-permit exemption as automatic completion of
+  residence registration.
 - No Armenia adapter or country option should be added until public discovery,
   recurring-access permission, canonical job links, and candidate access before
   relocation are confirmed.
