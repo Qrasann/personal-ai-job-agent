@@ -186,6 +186,22 @@ def render_job_details(payload: dict) -> str:
         f"Salary: {match.salary_score}/100",
         f"Relocation: {match.relocation_score}/100",
     ])
+    recommendation_scores = getattr(match, "recommendation_scores", None) or {}
+    if recommendation_scores:
+        labels = {
+            "growth": "Рост", "fast_exit": "Быстрый выход",
+            "interview_risk": "Риск интервью", "remote": "Удалёнка",
+            "security": "Безопасность", "infrastructure": "Инфраструктура",
+            "competition": "Конкуренция",
+        }
+        lines.extend(["", "🧭 <b>Recommendation v2</b>"])
+        for key, label in labels.items():
+            item = recommendation_scores.get(key) or {}
+            value = item.get("score")
+            display = f"{value}/100" if value is not None else "н/д"
+            evidence = str(item.get("evidence") or "")
+            lines.append(f"{html.escape(label)}: {display}" + (f" — {html.escape(_clip(evidence, 140))}" if evidence else ""))
+        lines.append("Конкуренция н/д означает, что публичный источник не дал числа кандидатов.")
     if match.reason:
         lines.extend(["", f"💡 {html.escape(_clip(repair_mojibake(match.reason), 450))}"])
     if warning:

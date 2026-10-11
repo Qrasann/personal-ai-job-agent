@@ -130,6 +130,7 @@ async def ingest_and_match(
                 geography_score=result.geography_score,
                 salary_score=result.salary_score,
                 relocation_score=result.relocation_score,
+                recommendation_scores=getattr(result, "recommendation_scores", {}),
                 total_score=result.total_score,
                 reason=result.reason,
             )
@@ -342,6 +343,7 @@ async def refresh_match_score(match, job, *, technical_text: str = ""):
         geography_score=result.geography_score,
         salary_score=result.salary_score,
         relocation_score=result.relocation_score,
+        recommendation_scores=getattr(result, "recommendation_scores", {}),
         total_score=result.total_score,
         reason=result.reason,
     )

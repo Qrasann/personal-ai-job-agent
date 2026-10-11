@@ -13,7 +13,7 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current runtime
 
-- Source/runtime: `v3.5.5`, database schema `3/3`.
+- Source/runtime: `v3.5.6`, database schema `4/4`.
 - Active branch: `feature/v3.5.2-dual-search-modes`.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
@@ -35,25 +35,24 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Added Job Bank Canada discovery with separate international eligibility, LMIA, and support evidence.
 - Added bounded EURES discovery using the employer cross-border recruitment flag without treating it as visa sponsorship.
 - Added explicit Telegram resume import for PDF/DOCX/TXT, plus fact confidence/provenance and overlap review.
+- Added persisted Recommendation v2 component breakdown with unknown values
+  left unset and displayed in vacancy details.
 - Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
 - Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
 
 ## Verified
 
-- Latest PostgreSQL-backed suite: `217 passed`, 65.15% branch coverage.
+- Latest PostgreSQL-backed suite: `220 passed`, 65.66% branch coverage.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
-- Commit `8131e2e` is published and deployed to Compose project `repo`; app
-  reports 3.5.5, PostgreSQL is healthy, migration reports schema 3/3, and the
-  bot is polling. Existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
-  volumes remain attached. Startup logs show the expected intermittent EURES
-  SSL retry while other public sources continue.
+- Commit `8131e2e` deployed v3.5.5/schema 3/3. Verify the v3.5.6 deployment
+  after its update before marking this stage complete.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 
 ## Current priority
 
-Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, and the new `/import` flow; record results before release tagging.
+Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, `/import`, and Recommendation v2 vacancy details; record results before release tagging.
 
 ## Open limitations
 

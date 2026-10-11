@@ -3,11 +3,12 @@ from app.database.models import CandidateFact, CandidateProfile, ResumeProfile, 
 
 
 def test_schema_versions_and_migrations_are_declared():
-    assert CURRENT_SCHEMA_VERSION == 3
-    assert [m.version for m in MIGRATIONS] == [1, 2, 3]
+    assert CURRENT_SCHEMA_VERSION == 4
+    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4]
     assert MIGRATIONS[0].name == "profile_storage_foundation"
     assert MIGRATIONS[1].name == "candidate_fact_experience_type"
     assert MIGRATIONS[2].name == "candidate_fact_confidence_provenance"
+    assert MIGRATIONS[3].name == "job_match_recommendation_scores"
 
 
 def test_foundation_models_have_soft_delete_metadata():

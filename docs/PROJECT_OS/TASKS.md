@@ -1,5 +1,17 @@
 # Tasks
 
+## v3.5.6 Recommendation Model v2
+- [x] Add persisted, explainable component scores for technical fit, growth,
+  fast-exit, interview risk, salary, remote, relocation, security,
+  infrastructure and competition.
+- [x] Leave unsupported signals unknown, including public candidate counts.
+- [x] Display component breakdown and evidence in vacancy details.
+- [x] Keep existing total score/notification thresholds stable pending labeled
+  outcomes; add additive JSONB migration 4.
+- [x] Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage.
+- [ ] Publish/deploy v3.5.6 and verify schema 4/4, runtime, polling and volumes.
+- [ ] Owner-driven real-chat acceptance before tagging.
+
 ## v3.5.5 Candidate Import & Profile Sync
 - [x] Extract text from PDF, DOCX and TXT with bounded input/resource limits.
 - [x] Add Telegram `/import` with explicit preview, cancel and save choices.

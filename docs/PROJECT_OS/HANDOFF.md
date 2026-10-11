@@ -1,5 +1,18 @@
 # Handoff
 
+## Current stage — v3.5.6 Recommendation Model v2 (2026-10-11)
+
+Each new or refreshed match stores a JSONB evidence breakdown for technical,
+growth, fast-exit, interview-risk, salary, remote, relocation, security,
+infrastructure and competition signals. Vacancy details show the components
+and evidence. Missing evidence stays `null`; public candidate counts and
+employer security signals are not fabricated. The old composite score and
+notification thresholds remain unchanged until labeled outcomes are available
+for calibration. Migration 4 adds only `job_matches.recommendation_scores`.
+Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage. Publish,
+deploy and verify schema 4/4 before marking the stage complete. Real-chat
+acceptance remains required before release tagging.
+
 ## Current stage — v3.5.5 Candidate Import & Profile Sync (2026-10-11)
 
 Implemented `/import` for PDF, DOCX and TXT. Uploads are read in memory and

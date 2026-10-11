@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-10-11 — v3.5.6 Recommendation Model v2
+- Added a persisted per-match JSON breakdown for technical, growth, fast-exit,
+  interview-risk, salary, remote, relocation, security, infrastructure and
+  competition signals; Telegram vacancy details show components and evidence.
+- New signals use explicit vacancy text and Candidate Facts. Missing salary,
+  support, security and competition evidence remains unknown. Negated growth or
+  immediate-start phrases do not count as positive evidence.
+- Added additive migration 4 for `job_matches.recommendation_scores`.
+- Kept the existing composite score and notification thresholds unchanged:
+  public feeds have no reliable competition metric, and no labeled outcomes
+  are available to calibrate a new composite safely.
+- Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage (55% gate).
+
 ## 2026-10-11 — v3.5.5 Candidate Import & Profile Sync
 - Added bounded in-memory extraction for PDF, DOCX and UTF-8/Windows-1251 TXT;
   scanned PDFs without a text layer are reported rather than OCR-guessed.

@@ -204,6 +204,7 @@ async def _repository_repost_flow(monkeypatch):
             geography_score=80,
             salary_score=60,
             relocation_score=50,
+            recommendation_scores={"competition": {"score": None, "evidence": "unknown"}},
             total_score=68,
             reason="first score",
             status="notified",
@@ -236,12 +237,14 @@ async def _repository_repost_flow(monkeypatch):
             geography_score=90,
             salary_score=80,
             relocation_score=60,
+            recommendation_scores={"technical": {"score": 90, "evidence": "rescored"}},
             total_score=86,
             reason="rescored",
             status="skipped",
         )
         assert updated.id == match.id
         assert updated.total_score == 86
+        assert updated.recommendation_scores == {"technical": {"score": 90, "evidence": "rescored"}}
         assert updated.status == "skipped"
 
         stored = await repo.get_match_for_user_job(user.id, job1.id)

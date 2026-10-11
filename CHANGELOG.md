@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.5.6
+
+Recommendation Model v2 evidence breakdown.
+
+- Store an explainable per-vacancy breakdown for technical fit, growth,
+  fast-start, interview risk, salary, remote, relocation, security,
+  infrastructure and competition.
+- Keep unsupported dimensions unknown (`null`), including competition counts
+  and employer security signals that public sources do not expose.
+- Show the breakdown in Telegram vacancy details. Existing total scoring and
+  notification thresholds remain unchanged pending labeled outcome data.
+- Additive PostgreSQL migration 4 stores recommendation dimensions as JSONB.
+- Full isolated PostgreSQL suite: 220 passed; branch coverage 65.66%.
+
 ## 3.5.5
 
 Candidate Import & Profile Sync.

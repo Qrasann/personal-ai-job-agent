@@ -39,7 +39,13 @@ Stable baseline on main.
 - [ ] Complete owner-driven real-chat acceptance before tagging.
 
 ## v3.5.6 — Recommendation Model v2
-Technical, growth, fast-exit, interview-risk, salary, remote, relocation, security, infrastructure and competition scores.
+- [x] Persist evidence-backed component breakdown per match and show it in
+  Telegram vacancy details.
+- [x] Keep unsupported values unknown; public competition counts and employer
+  security data remain unavailable.
+- [x] Preserve existing total score and thresholds until real outcome labels
+  support safe calibration.
+- [ ] Complete owner-driven real-chat acceptance before tagging.
 
 ## v3.5.7 — International / Remote / Relocation Intelligence
 Eligibility, visa/relocation intelligence, country-specific sources and salary normalization.

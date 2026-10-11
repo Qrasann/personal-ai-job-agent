@@ -144,6 +144,10 @@ def test_job_details_separates_source_data_from_agent_score():
         geography_score=95,
         salary_score=58,
         relocation_score=50,
+        recommendation_scores={
+            "growth": {"score": None, "evidence": "not provided"},
+            "competition": {"score": None, "evidence": "no public data"},
+        },
         reason="режим russia; техника 54",
     )
     payload = {
@@ -170,5 +174,8 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "Оценка Job Agent" in text
     assert "💰 175 000–300 000 ₽" in text
     assert "Technical: 54/100" in text
+    assert "Recommendation v2" in text
+    assert "Рост: н/д" in text
+    assert "Конкуренция н/д" in text
     assert "23.08.2026 10:38" in text
     assert "Открыть оригинал вакансии" in text

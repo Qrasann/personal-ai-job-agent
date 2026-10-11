@@ -174,6 +174,7 @@ class JobMatch(Base):
     geography_score: Mapped[int] = mapped_column(Integer, default=0)
     salary_score: Mapped[int] = mapped_column(Integer, default=0)
     relocation_score: Mapped[int] = mapped_column(Integer, default=0)
+    recommendation_scores: Mapped[dict] = mapped_column(JSON, default=dict)
     total_score: Mapped[int] = mapped_column(Integer, default=0)
     reason: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(32), default="new")
