@@ -23,6 +23,8 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Recently completed
 
+- Added bounded retries for EURES transport failures and made source alerts
+  report HTTP status / exception type instead of blank text.
 - Added `/parallelsearch on|off|status` and `/relocationroles`.
 - Each profile now discovers, scores, stores, and reports results independently.
 - Fixed concurrent `JobMatch` inserts with an atomic PostgreSQL upsert.
@@ -37,10 +39,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Verified
 
-- Latest v3.5.4 suite: `203 passed`, 64.39% branch coverage.
+- Latest PostgreSQL-backed suite: `206 passed`, 64.46% branch coverage.
+- Targeted EURES, Job Bank and source-error regressions: `23 passed`.
 - GitHub Actions run 110 passed.
-- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy and existing named volumes preserved.
-- Startup scan reached the EURES API successfully; earlier live checks also verified Arbeitnow and Job Bank.
+- Local Compose project `repo` runs v3.5.4 with PostgreSQL healthy and existing named volumes preserved; source-reliability changes are pending deployment.
+- Latest deployed scan logs confirm EURES transport failures and a `ReadTimeout`; a reported Job Bank alert had no exception text. Regression tests cover retries and HTTP status formatting.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 
 ## Current priority
@@ -52,6 +55,7 @@ Complete owner-driven real-chat acceptance for `/salary`, `/blacklist`, `/scanst
 - Source coverage remains the main Relocation-first bottleneck, especially Armenia and low-barrier legal work.
 - Arbeitnow currently improves Germany/Career coverage but may contain no low-barrier roles.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
+- EURES can still fail if repeated transport attempts time out; retry behavior is bounded and does not retry HTTP error responses.
 - The EURES cross-border flag is not proof of visa sponsorship, relocation support, or third-country work authorization.
 - Public applicant counts are unavailable in the connected candidate-facing feeds and remain unknown.
 - Dedicated Career Score and Relocation Score, affordability calculation, migration knowledge base, and application tracker are later phases—not completed features.

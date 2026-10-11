@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import httpx
+import pytest
 
 from app.geo.countries import normalize_country
 from app.sources.adapters.eures import EuresSource
@@ -104,3 +105,34 @@ def test_discover_uses_active_queries_and_enriches_bounded_results(monkeypatch):
     assert [call[0] for call in calls].count("post") == 2
     assert [call[0] for call in calls].count("get") == 1
     assert calls[0][2]["keywords"][0]["keyword"] == "DevOps"
+
+
+def test_discover_retries_transient_transport_failure(monkeypatch):
+    calls = []
+
+    async def post(self, url, json=None, **kwargs):
+        calls.append(url)
+        if len(calls) == 1:
+            raise httpx.ReadError("TLS record layer failure", request=httpx.Request("POST", url))
+        return httpx.Response(200, json={"jvs": []}, request=httpx.Request("POST", url))
+
+    async def no_wait(_):
+        return None
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr("app.sources.adapters.eures.asyncio.sleep", no_wait)
+    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps"])))
+    assert result == []
+    assert len(calls) == 2
+
+
+def test_request_does_not_retry_http_status_errors():
+    calls = []
+
+    async def request(url):
+        calls.append(url)
+        return httpx.Response(503, request=httpx.Request("GET", url))
+
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(EuresSource()._request_with_retry(request, "https://example.org"))
+    assert len(calls) == 1

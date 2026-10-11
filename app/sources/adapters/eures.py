@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 import uuid
 from datetime import datetime, timezone
@@ -24,6 +25,19 @@ class EuresSource(JobSource):
     portal_url = "https://eures.europa.eu/portal/jv-se/home?lang=en&pageCode=find_a_job"
     max_queries = 6
     max_details = 8
+    request_retries = 2
+
+    async def _request_with_retry(self, request, *args, **kwargs):
+        """Retry transient transport failures without masking HTTP responses."""
+        for attempt in range(self.request_retries + 1):
+            try:
+                response = await request(*args, **kwargs)
+                response.raise_for_status()
+                return response
+            except httpx.TransportError:
+                if attempt >= self.request_retries:
+                    raise
+                await asyncio.sleep(0.5 * (2 ** attempt))
 
     @staticmethod
     def request_payload(query: str, page: int = 1) -> dict:
@@ -151,13 +165,13 @@ class EuresSource(JobSource):
         found: dict[str, NormalizedJob] = {}
         async with httpx.AsyncClient(timeout=25, follow_redirects=True, headers=headers) as client:
             for query in queries[: self.max_queries]:
-                response = await client.post(self.search_endpoint, json=self.request_payload(query))
-                response.raise_for_status()
+                response = await self._request_with_retry(
+                    client.post, self.search_endpoint, json=self.request_payload(query)
+                )
                 for job in self.parse_search(response.json(), query):
                     found.setdefault(job.source_job_id, job)
             enriched = []
             for job in list(found.values())[: self.max_details]:
-                response = await client.get(job.raw["evidence_url"])
-                response.raise_for_status()
+                response = await self._request_with_retry(client.get, job.raw["evidence_url"])
                 enriched.append(self.enrich(job, response.json()))
             return enriched

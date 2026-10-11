@@ -6,6 +6,7 @@ import logging
 import time
 
 from aiogram import Bot
+import httpx
 
 from app.agents.llm import make_cover_letter, recruiter_reply
 from app.config import settings
@@ -197,6 +198,8 @@ async def ingest_and_match(
 
 
 def _error_text(exc: Exception) -> str:
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"HTTP {exc.response.status_code}"
     message = str(exc).strip()
     return message or type(exc).__name__
 
@@ -300,7 +303,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 error = _error_text(exc)
                 search_summary["sources"][adapter.source_id] = {"error": error, "duration_ms": duration_ms}
                 summary["sources"].setdefault(adapter.source_id, {"error": error, "duration_ms": duration_ms})
-                await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(str(exc))}")
+                await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(error)}")
     return summary
 
 

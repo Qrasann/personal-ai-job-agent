@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-10-11 — source error resilience
+- Inspected the running Compose project and latest logs after repeated Telegram
+  alerts. Confirmed EURES requests can fail with `httpx.ReadTimeout` and an SSL
+  record-layer error. Found that HTTP status exceptions could produce blank
+  Telegram text because the notification formatted `str(exc)` directly.
+- Added two bounded retries with short exponential backoff for EURES transport
+  errors only; HTTP status responses are not retried. Source alerts now use the
+  same normalized error text as the scan summary, including `HTTP <status>`.
+- Added regressions for a transient EURES transport failure, HTTP status
+  formatting and no-retry behavior for HTTP errors. Targeted tests: 23 passed.
+  Full isolated PostgreSQL suite: 206 passed, 64.46% branch coverage (55% gate).
+- The first full-suite attempt ran before `postgres-test` was started and had
+  three connection-refused integration failures; after starting only the
+  isolated test service, the complete suite passed (206 tests). Production Compose and its
+  PostgreSQL/storage volumes were not changed during verification.
+- Real-chat acceptance of `/salary`, `/blacklist`, `/scanstatus`, and `/cancel`
+  remains owner-driven and unverified. Source fix is pending commit/deployment.
+
 ## 2026-10-11 — public competition-signal audit
 - Reviewed the fields consumed from HH, Job Bank, EURES, Arbeitnow and RemoteOK.
 - HH documents response counters for employer-authorized vacancy data; the

@@ -1,5 +1,22 @@
 # Handoff
 
+## Current stage — source error resilience (2026-10-11)
+
+Latest runtime inspection found EURES transport failures (`ReadTimeout` and an
+SSL record-layer error) and a blank Job Bank Telegram alert. EURES now retries
+transport-level failures twice with short backoff; HTTP status responses are
+not retried. Source failure alerts share the normalized text saved in the scan
+summary, including HTTP status codes. Regression tests cover both behaviors.
+The isolated PostgreSQL suite passed: 206 tests, 64.46% branch coverage. The
+change is not yet deployed. After publishing the clean tracked branch, use
+`JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`; it fetches/pulls
+fast-forward-only and rebuilds the currently running service without removing
+the database or volumes. Then check `status` and recent `logs`.
+
+The BRIEF's owner-driven Telegram acceptance remains outstanding for
+`/salary`, `/blacklist`, `/scanstatus`, and `/cancel`; do not claim those real
+chat commands passed or tag releases until the owner records the results.
+
 ## Current deployment — v3.5.4 EURES discovery
 
 The working tree adds bounded EURES search for vacancies whose employer has
