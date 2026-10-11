@@ -5,11 +5,10 @@
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
 - The active feature branch is `feature/v3.5.7-international-market-coverage`,
-  candidate version 3.5.7. Code commit `678ddfc` adds minimum-experience
-  extraction and Windows/Databricks evidence; push CI `38150088881` and PR CI
-  `38150092577` passed. Latest branch commit `664c559` updates bilingual status
-  docs and passed push CI `38150288518` and PR CI `38150292566`. PR #18 is an
-  open draft against `main`; no merge or v3.5.7 tag/release has been made.
+  candidate version 3.5.7. Latest code commit `e978d07` recognizes singular
+  qualification headings used by Lineate; push CI `38151153964` and PR CI
+  `38151157085` passed. PR #18 is an open draft against `main`; no merge or
+  v3.5.7 tag/release has been made.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -18,11 +17,11 @@
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
 - Local Compose project `repo` runs source/runtime 3.5.7 with the candidate
-  deployed. Startup `scan_all` ran from 15:13:24 to 15:15:48 UTC and completed
-  successfully. HH's API returned 403 before its public web fallback worked;
-  the inspected scan logs show no source error, SSL failure, timeout or
-  traceback. The owner still needs to review the latest `/job 1091` card in
-  Telegram.
+  deployed. After `e978d07`, startup `scan_all` ran from 15:26:05 to 15:28:27
+  UTC and completed successfully. Greenhouse, EURES, HR.ge, and Job Bank
+  requests succeeded; HH's API returned 403 before its public web fallback
+  worked. No source error, SSL failure, timeout, or traceback appeared in the
+  inspected scan logs. The owner still needs to review `/job 1091` in Telegram.
 - Earlier candidate verification: the safe updater rebuilt the feature branch;
   read-only mount inspection
   confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
@@ -55,13 +54,13 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- Latest full isolated PostgreSQL suite: 247 passed, 68.36% branch coverage
-  (55% gate); compile and diff checks passed. Required-section commit
-  `7a6901d` passed push CI `38149543660` and PR CI `38149546515`; follow-up
-  `678ddfc` passed push CI `38150088881` and PR CI `38150092577`. Docs commit
-  `664c559` passed push CI `38150288518` and PR CI `38150292566`. The owner
-  confirmed `/job 1091` text is readable; review the recalculated score, years
-  requirement, and interview-risk evidence in Telegram.
+- Latest full isolated PostgreSQL suite: 248 passed, 68.36% branch coverage
+  (55% gate); compile and diff checks passed. Commit `e978d07` passed push CI
+  `38151153964` and PR CI `38151157085`. The owner reopened `/job 1091` and
+  found Technical 100 with interview risk `н/д`. Runtime inspection confirmed
+  the posting uses singular `Necessary Qualification`; the parser previously
+  handled only the plural heading. The singular form is fixed and deployed;
+  Telegram verification of the recalculated fields remains pending.
   The Job Bank `ConnectTimeout` remains covered by a one-retry transport
   regression; HTTP status errors remain unretried.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit

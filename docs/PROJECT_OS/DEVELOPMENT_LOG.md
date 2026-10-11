@@ -1,5 +1,26 @@
 # Development Log
 
+## 2026-10-11 — Lineate singular qualification heading
+- Owner's latest `/job 1091` card still showed Technical 100 and interview
+  risk `н/д`. Runtime inspection found that the saved Greenhouse description
+  says `Necessary Qualification` (singular), while the prior parser only
+  handled the plural form.
+- Commit `e978d07` recognizes singular and plural necessary/required/minimum/
+  essential qualification headings. Regression tests cover Greenhouse HTML
+  entity decoding, required technical skills, and interview-risk scoring.
+- Local suite: 245 passed, 3 PostgreSQL tests skipped. Full isolated
+  PostgreSQL suite: 248 passed, 68.36% branch coverage. Compile and
+  `git diff --check` passed. Push CI `38151153964` and PR CI `38151157085`
+  passed.
+- The safe updater deployed source/runtime 3.5.7 to Compose project `repo` at
+  18:25:57 Moscow time; PostgreSQL is healthy. Startup scan completed at
+  15:28:27 UTC. Greenhouse, EURES, HR.ge, and Job Bank requests in the
+  inspected log window returned HTTP 200. HH API 403 fell back to public web
+  search; no source errors, SSL errors, timeouts, or tracebacks appeared.
+- Owner Telegram review of the recalculated `/job 1091` score and interview
+  risk remains pending. Stable `main` and formal release/tag remain v3.5.6;
+  PR #18 is still a draft. No merge or v3.5.7 tag/release was made.
+
 ## 2026-10-11 — Lineate experience and technical evidence follow-up
 - The official Lineate posting lists 3+ years Linux system administration,
   2+ years production AWS, Windows administration, AWS Databricks familiarity,

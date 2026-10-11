@@ -1,6 +1,12 @@
 # Known Issues
 
 ## Resolved in the current development branch
+- Lineate's Greenhouse posting uses the singular `Necessary Qualification`
+  heading. The parser previously recognized only the plural form, leaving the
+  job on the fallback Technical score and interview risk `н/д`. Commit
+  `e978d07` recognizes singular and plural qualification headings and passed
+  regression tests, CI, and deployment. The owner should verify the recalculated
+  `/job 1091` card in Telegram.
 - Concurrent scheduled/manual scans could both observe a missing JobMatch and then race to insert the same `(job_id, profile_id, search_profile_id)`. `save_match` now uses an atomic PostgreSQL upsert and the fix passed a local scheduled/manual scan smoke test.
 - Relocation discovery initially used `relocation_queries` while matching scored only career `queries`, filtering otherwise relevant broad-role results. Matching now uses the active strategy's discovery queries.
 - Generic description text could be misread as a salary for non-HH sources. Notifications and details now use only structured salary values or explicit source salary/card text.

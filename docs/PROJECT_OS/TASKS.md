@@ -174,10 +174,20 @@
 - [x] Apply the candidate through the safe updater. Source/runtime 3.5.7 and
   PostgreSQL healthy. Startup scan completed at 15:15:48 UTC; inspected logs
   show no source error, SSL failure, timeout or traceback.
-- [ ] Owner to reopen `/job 1091` now and review the recalculated
-  technical score, experience signal and interview-risk evidence. The official
-  Lineate listing requires 3+ years Linux system administration, 2+ years AWS
-  production, Windows administration, Databricks familiarity and a 24/7 shift.
+- [x] Owner reopened `/job 1091` and reported Technical 100 and interview risk
+  `н/д` despite “Minimum 3 years.” Inspection found the saved posting's singular
+  `Necessary Qualification` heading, which the parser did not recognize.
+- [x] Recognize singular and plural necessary/required/minimum/essential
+  qualification headings. Regressions cover the real singular Greenhouse form,
+  Technical Score v2, and Recommendation v2 interview risk. Full isolated
+  PostgreSQL suite: 248 passed, 68.36% branch coverage; compile and diff checks
+  passed.
+- [x] Push code commit `e978d07`; push CI `38151153964` and PR CI `38151157085`
+  passed. Deploy through the safe updater; Compose source/runtime 3.5.7 and
+  PostgreSQL healthy. Startup scan completed at 15:28:27 UTC with no source
+  errors, SSL errors, timeouts, or tracebacks in the inspected logs.
+- [ ] Owner to reopen `/job 1091` and share the recalculated Technical score
+  and interview-risk line for final Telegram verification.
 - [x] Add one bounded retry for Job Bank `httpx.TransportError` only, preserve
   the existing five-second delay before each request and shared crawl lock, and
   leave HTTP status errors unretried. Regression tests cover recovery,

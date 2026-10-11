@@ -1,5 +1,37 @@
 # Handoff
 
+## v3.5.7 Lineate singular qualification heading — 2026-10-11
+
+The owner reopened `/job 1091` at 18:20 Moscow time. The card still showed
+Technical 100 and interview risk `н/д` even though it displayed “Minimum 3
+years.” Inspection of the saved public Greenhouse description identified the
+exact cause: it uses `Necessary Qualification` (singular), while the parser
+recognized only `Necessary Qualifications` (plural). The unqualified fallback
+therefore produced the technical score and no interview-risk evidence.
+
+Commit `e978d07` adds singular and plural English qualification headings. The
+regressions cover the singular Lineate text after Greenhouse HTML-entity
+decoding, Technical Score v2, and Recommendation v2 interview risk. Local
+tests: 245 passed, 3 PostgreSQL tests skipped; full isolated PostgreSQL suite:
+248 passed, 68.36% branch coverage. Compile and `git diff --check` passed.
+Push CI `38151153964` and PR CI `38151157085` passed.
+
+The safe updater deployed the candidate to Compose project `repo` at 18:25:57
+Moscow time. Source/runtime is 3.5.7 and PostgreSQL is healthy. Startup
+`scan_all` ran from 15:26:05 to 15:28:27 UTC and completed successfully.
+Greenhouse, EURES search/details, HR.ge, and Job Bank requests shown in the
+log window returned HTTP 200. HH API returned 403, then the ordinary public
+web fallback succeeded. The inspected scan logs contain no source errors,
+SSL failures, timeouts, or tracebacks.
+
+The owner should now reopen `/job 1091` and share the Technical score and
+interview-risk line to verify the live result. Salary, work mode, visa
+sponsorship, and relocation assistance remain unknown unless the posting
+provides explicit evidence. The active branch is
+`feature/v3.5.7-international-market-coverage`; PR #18 remains an unmerged
+draft against `main`. Stable `main`, the formal release, and latest tag remain
+v3.5.6. No schema migration, credential change, or volume change was made.
+
 ## v3.5.7 Lineate minimum experience and required signals — 2026-10-11
 
 The follow-up to the Lineate card review is committed as `678ddfc` and pushed
