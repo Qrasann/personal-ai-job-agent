@@ -171,15 +171,38 @@ class EuresSource(JobSource):
             return []
         headers = {"User-Agent": "JobAgentV3/3.5 (public job discovery)", "Accept": "application/json"}
         found: dict[str, NormalizedJob] = {}
+        transport_errors: list[Exception] = []
         async with httpx.AsyncClient(timeout=25, follow_redirects=True, headers=headers) as client:
-            for query in queries[: self.max_queries]:
-                response = await self._request_with_retry(
-                    client.post, self.search_endpoint, json=self.request_payload(query)
-                )
+            successful_searches = 0
+            for index, query in enumerate(queries[: self.max_queries], start=1):
+                try:
+                    response = await self._request_with_retry(
+                        client.post, self.search_endpoint, json=self.request_payload(query)
+                    )
+                except (httpx.TransportError, ssl.SSLError) as exc:
+                    transport_errors.append(exc)
+                    log.warning(
+                        "EURES search %s failed after retries (%s); continuing",
+                        index, type(exc).__name__,
+                    )
+                    continue
+                successful_searches += 1
                 for job in self.parse_search(response.json(), query):
                     found.setdefault(job.source_job_id, job)
+            if successful_searches == 0 and transport_errors:
+                raise transport_errors[-1]
             enriched = []
             for job in list(found.values())[: self.max_details]:
-                response = await self._request_with_retry(client.get, job.raw["evidence_url"])
+                try:
+                    response = await self._request_with_retry(client.get, job.raw["evidence_url"])
+                except (httpx.TransportError, ssl.SSLError) as exc:
+                    transport_errors.append(exc)
+                    log.warning(
+                        "EURES detail request failed after retries (%s); skipping vacancy",
+                        type(exc).__name__,
+                    )
+                    continue
                 enriched.append(self.enrich(job, response.json()))
+            if not enriched and transport_errors:
+                raise transport_errors[-1]
             return enriched

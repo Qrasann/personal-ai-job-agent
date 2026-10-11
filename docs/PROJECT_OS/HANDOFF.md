@@ -2,14 +2,14 @@
 
 ## Follow-up — raw EURES SSL error (2026-10-11)
 
-Post-deployment logs still showed EURES failures. The traceback ended in raw
-`ssl.SSLError`, which bypassed the previous `httpx.TransportError` retry
-handler. The handler now retries both exception classes (two retries with
-short backoff) and logs retry attempts by exception type. HTTP status errors
-remain non-retryable. Regression test and full suite pass (207 tests, 64.49%
-branch coverage). This follow-up is not deployed yet; after publishing, run
-`JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update` and inspect the next EURES
-scan for retry warnings and successful responses.
+The raw `ssl.SSLError` retry fix is published and deployed as `d5d78d3`; logs
+showed retry warnings and HTTP 200 responses after retries, but one profile
+still exhausted its attempts. A second follow-up now continues across failed
+queries/details and retains successful results; it still reports a source
+failure when all searches or all matching detail requests fail. The full suite
+passes (208 tests, 64.51% branch coverage). Partial-result handling is not yet
+deployed; after publishing, run `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent
+update` and inspect the next EURES scan.
 
 ## Current stage — source error resilience (2026-10-11)
 

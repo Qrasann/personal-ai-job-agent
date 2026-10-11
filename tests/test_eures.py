@@ -155,3 +155,33 @@ def test_request_retries_raw_ssl_error(monkeypatch):
     response = asyncio.run(EuresSource()._request_with_retry(request, "https://example.org"))
     assert response.status_code == 200
     assert len(calls) == 2
+
+
+def test_discover_keeps_successful_queries_when_another_exhausts_retries(monkeypatch):
+    posts = []
+    gets = []
+
+    async def post(self, url, json=None, **kwargs):
+        query = json["keywords"][0]["keyword"]
+        posts.append(query)
+        if query == "DevOps":
+            raise ssl.SSLError("record layer failure")
+        return httpx.Response(
+            200, json={"jvs": [search_row(id="cloud", title="Cloud Engineer")]},
+            request=httpx.Request("POST", url),
+        )
+
+    async def get(self, url, **kwargs):
+        gets.append(url)
+        return httpx.Response(200, json=details(title="Cloud Engineer"), request=httpx.Request("GET", url))
+
+    async def no_wait(_):
+        return None
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    monkeypatch.setattr("app.sources.adapters.eures.asyncio.sleep", no_wait)
+    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps", "Cloud"])))
+    assert [job.title for job in result] == ["Cloud Engineer"]
+    assert posts == ["DevOps"] * 3 + ["Cloud"]
+    assert len(gets) == 1

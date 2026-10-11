@@ -9,8 +9,17 @@
   by exception type without including request URLs. HTTP status failures remain
   non-retryable. Added a regression for the exact bare `ssl.SSLError` path.
 - Targeted source tests: 24 passed. Full isolated PostgreSQL suite: 207 passed,
-  64.49% branch coverage (55% gate). This follow-up still needs deployment and
-  a new runtime-log check.
+  64.49% branch coverage (55% gate). Published as `d5d78d3` and deployed;
+  runtime logs then recorded retry warnings and successful HTTP 200 retries,
+  while one profile still exhausted retries.
+
+## 2026-10-11 — retain partial EURES results
+- Updated EURES discovery to continue after a query or detail request exhausts
+  retries, retaining results from successful requests. If every search fails,
+  or every matching detail fails, the source still reports an error.
+- Added a regression proving one failed query does not discard a successful
+  query's vacancy. Targeted source tests: 25 passed. Full isolated PostgreSQL
+  suite: 208 passed, 64.51% branch coverage. This change awaits deployment.
 
 ## 2026-10-11 — source error resilience
 - Inspected the running Compose project and latest logs after repeated Telegram

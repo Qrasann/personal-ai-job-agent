@@ -46,7 +46,11 @@
   attached.
 - [x] Extend EURES retries to raw `ssl.SSLError`; add a regression test and
   rerun the full suite (207 passed, 64.49% branch coverage).
-- [ ] Publish and deploy the raw SSL fix; verify the next EURES scan logs.
+- [x] Publish/deploy raw SSL retry as `d5d78d3`; runtime showed retry recovery
+  on successful requests and one profile exhausting its retry budget.
+- [x] Preserve successful EURES query/detail results if another exhausts
+  retries; validate with a regression and the full suite (208 passed, 64.51%).
+- [ ] Publish/deploy partial-result handling and verify the next EURES scan.
 
 ## v3.5.4 Multi-Source International Discovery
 - [x] Add bounded EURES discovery for the employer's cross-border recruitment
