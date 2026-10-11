@@ -165,9 +165,13 @@ def _matches_skill(text: str, spec: SkillSpec) -> bool:
 _REQUIRED_HEADINGS = (
     "требования к кандидатам",
     "обязательные требования",
+    "necessary qualification",
     "necessary qualifications",
+    "required qualification",
     "required qualifications",
+    "minimum qualification",
     "minimum qualifications",
+    "essential qualification",
     "essential qualifications",
     "требования",
     "что мы ожидаем",

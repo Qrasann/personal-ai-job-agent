@@ -57,13 +57,13 @@ def test_negated_growth_and_fast_start_phrases_are_not_positive_evidence():
     assert result.recommendation_scores["fast_exit"]["score"] is None
 
 
-def test_interview_risk_uses_necessary_qualifications_section():
+def test_interview_risk_uses_singular_necessary_qualification_section():
     job = Job(
         fingerprint="rec-necessary-qualifications",
         title="Infrastructure Engineer",
         company="Example",
         description=(
-            "Necessary Qualifications:\n"
+            "Necessary Qualification:\n"
             "Minimum 3 years of Linux system administration experience.\n"
             "Minimum 2 years of AWS production experience.\n"
             "Preferred:\nTerraform."

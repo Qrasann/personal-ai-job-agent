@@ -6,6 +6,7 @@ import pytest
 from app.sources.adapters.greenhouse import GreenhouseSource
 from app.sources.base import SourceContext
 from app.sources.registry import build_source_plan, source_capabilities
+from app.matching.fact_comparison import extract_requirement_importance
 
 
 def listing(job_id, title, location, content="", url=None):
@@ -106,6 +107,28 @@ def test_greenhouse_cleans_html_entities_in_posting_content():
 
     assert job.description == "Linux\nWe offer visa sponsorship."
     assert job.visa_sponsorship is True
+
+
+def test_greenhouse_preserves_lineate_singular_qualification_heading():
+    job = GreenhouseSource.parse_payload(
+        {
+            "jobs": [
+                listing(
+                    5,
+                    "Infrastructure Engineer",
+                    "Georgian office",
+                    "&lt;h3&gt;Necessary Qualification:&lt;/h3&gt;"
+                    "&lt;ul&gt;&lt;li&gt;Minimum 3 years of Linux system administration experience.&lt;/li&gt;"
+                    "&lt;li&gt;Minimum 2 years of AWS production experience.&lt;/li&gt;&lt;/ul&gt;",
+                )
+            ]
+        },
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )[0]
+
+    importance = extract_requirement_importance(job.description)
+    assert importance["Linux"] == "required"
+    assert importance["AWS"] == "required"
 
 
 def test_greenhouse_discovery_uses_the_public_board_api(monkeypatch):

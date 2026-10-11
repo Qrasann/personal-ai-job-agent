@@ -79,8 +79,8 @@ Docker
     assert score_technical_v2(text, facts) == 15
 
 
-def test_necessary_qualifications_are_scored_as_required_requirements():
-    text = """Necessary Qualifications:
+def test_necessary_qualification_is_scored_as_required_requirements():
+    text = """Necessary Qualification:
 Minimum 3 years of hands-on Linux system administration experience.
 Minimum 2 years of hands-on experience with AWS in a production environment.
 Working familiarity with AWS Databricks.
@@ -101,6 +101,13 @@ Terraform or Ansible.
         text,
         [_fact("Linux", "commercial"), _fact("Terraform", "commercial", fact_id=2)],
     ) < 100
+
+    # Greenhouse retains this singular heading in the current Lineate posting;
+    # older pages using the plural form must continue to classify identically.
+    plural_heading = text.replace(
+        "Necessary Qualification:", "Necessary Qualifications:"
+    )
+    assert extract_requirement_importance(plural_heading) == importance
 
 
 def test_missing_preferred_requirement_only_reduces_small_bonus_lane():
