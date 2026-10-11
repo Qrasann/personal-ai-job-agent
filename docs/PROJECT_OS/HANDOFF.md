@@ -11,9 +11,10 @@
   it is not the active branch for new changes.
 - The merged `feature/v3.5.6-eures-identity-market-targets` branch is inactive.
   Create the next implementation branch from `main` for v3.5.7.
-- Latest formal GitHub Release/tag: v3.5.6. Changelog entries v3.5.2–v3.5.5
-  are cumulative source milestones included in that release; no intermediate
-  tags were backfilled.
+- Latest formal GitHub Release/tag: v3.5.6 on release commit `50afdab`. Main CI
+  run `38138941745` passed. Changelog entries v3.5.2–v3.5.5 are cumulative
+  milestones included in the release; no intermediate tags were backfilled.
+- Bilingual release notes: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
 - README.md and README.ru.md provide English and Russian entry points on `main`.
 
 ## Owner Telegram acceptance — 2026-10-11

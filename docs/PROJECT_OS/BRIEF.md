@@ -27,6 +27,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   in that release; do not backfill intermediate tags.
 - GitHub CI passed for merge commit `874b372` (run `38135649948`); the PR #16
   push and PR checks also passed (runs `38135381779` and `38135384930`).
+- The cumulative v3.5.6 tag points to release commit `50afdab`; main CI run
+  `38138941745` passed. The bilingual release is published at
+  https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.

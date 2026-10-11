@@ -7,8 +7,10 @@
 - `README.md` and `README.ru.md` now provide English and Russian entry points
   on `main`. The merged feature branch is inactive; start future implementation
   work from `main` on a new v3.5.7 feature branch.
-- Latest formal GitHub Release/tag: v3.5.6. Changelog entries v3.5.2–v3.5.5
-  are cumulative milestones included in the v3.5.6 release.
+- Latest formal GitHub Release/tag: v3.5.6, pointing to release commit
+  `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
+  included in the release. Main CI run `38138941745` passed.
+- Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
 - local Compose project `repo` runs source/runtime 3.5.6; app is polling and
   PostgreSQL is healthy.
 - the startup dual-profile scan completed successfully after the latest update.
@@ -47,7 +49,8 @@
   and expose `/scanstatus` and `/cancel`.
 
 ## Stable baseline
-- GitHub `main` and the cumulative formal release: v3.5.6.
+- GitHub `main` and the cumulative formal release: v3.5.6; tag target
+  `50afdab`.
 - PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
 - PR #16 merge commit: `874b37255e3bb223d2b49d83027f15b48acfe7c4`.
 

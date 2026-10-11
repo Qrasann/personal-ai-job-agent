@@ -13,8 +13,11 @@
 - The supplied application log tail shows scheduled `scan_all` completed at
   12:12:59 UTC and Telegram handled the follow-up update successfully.
 - These checks close the final owner-acceptance gate for cumulative v3.5.6;
-  publication is recorded after its tag and bilingual GitHub Release are
-  created.
+- Created and pushed annotated tag `v3.5.6` on release commit `50afdab` after
+  main CI run `38138941745` passed. Published the bilingual GitHub Release:
+  https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
+- No application code or database schema changed during release publication;
+  the running Compose app remains source/runtime 3.5.6.
 
 ## 2026-10-11 — merge source/language candidate into main
 - Merged PR #16 into `main` at `874b37255e3bb223d2b49d83027f15b48acfe7c4`.

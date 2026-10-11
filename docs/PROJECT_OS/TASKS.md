@@ -72,6 +72,8 @@
   dimensions unknown.
 - [x] Prepare one cumulative v3.5.6 release; keep v3.5.2–v3.5.5 as untagged
   milestones included in it rather than creating retroactive tags.
+- [x] Push annotated tag `v3.5.6` on CI-verified commit `50afdab` and publish
+  the bilingual GitHub Release after CI run `38138941745` passed.
 - [ ] Monitor later scheduled EURES scans; the first clean run does not prove
   the underlying TLS cause is permanently resolved.
 - [ ] Evaluate whether Job Bank pacing can avoid idle time while retaining at
