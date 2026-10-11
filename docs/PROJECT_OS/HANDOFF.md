@@ -9,9 +9,10 @@ and evidence. Missing evidence stays `null`; public candidate counts and
 employer security signals are not fabricated. The old composite score and
 notification thresholds remain unchanged until labeled outcomes are available
 for calibration. Migration 4 adds only `job_matches.recommendation_scores`.
-Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage. Publish,
-deploy and verify schema 4/4 before marking the stage complete. Real-chat
-acceptance remains required before release tagging.
+Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage. Commit
+`496c920` is published and deployed; runtime reports 3.5.6, schema 4/4, healthy
+PostgreSQL and active polling. Existing PostgreSQL and storage volumes remain
+attached. Real-chat acceptance remains required before release tagging.
 
 ## Current stage — v3.5.5 Candidate Import & Profile Sync (2026-10-11)
 

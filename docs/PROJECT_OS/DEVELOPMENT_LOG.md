@@ -12,6 +12,10 @@
   public feeds have no reliable competition metric, and no labeled outcomes
   are available to calibrate a new composite safely.
 - Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage (55% gate).
+- Published as `496c920` to `feature/v3.5.2-dual-search-modes` and applied via
+  `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`. Runtime reports 3.5.6,
+  schema 4/4, healthy PostgreSQL and active Telegram polling. Mount inspection
+  confirmed `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
 
 ## 2026-10-11 — v3.5.5 Candidate Import & Profile Sync
 - Added bounded in-memory extraction for PDF, DOCX and UTF-8/Windows-1251 TXT;

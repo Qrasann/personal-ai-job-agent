@@ -9,7 +9,8 @@
 - [x] Keep existing total score/notification thresholds stable pending labeled
   outcomes; add additive JSONB migration 4.
 - [x] Full isolated PostgreSQL suite: 220 passed, 65.66% branch coverage.
-- [ ] Publish/deploy v3.5.6 and verify schema 4/4, runtime, polling and volumes.
+- [x] Publish `496c920`, deploy v3.5.6 and verify schema 4/4, polling and
+  unchanged named volumes.
 - [ ] Owner-driven real-chat acceptance before tagging.
 
 ## v3.5.5 Candidate Import & Profile Sync

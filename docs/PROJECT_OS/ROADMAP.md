@@ -45,6 +45,7 @@ Stable baseline on main.
   security data remain unavailable.
 - [x] Preserve existing total score and thresholds until real outcome labels
   support safe calibration.
+- [x] Publish and deploy v3.5.6; verify schema 4/4, polling and named volumes.
 - [ ] Complete owner-driven real-chat acceptance before tagging.
 
 ## v3.5.7 — International / Remote / Relocation Intelligence

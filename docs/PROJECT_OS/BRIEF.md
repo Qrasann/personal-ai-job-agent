@@ -45,8 +45,11 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Latest PostgreSQL-backed suite: `220 passed`, 65.66% branch coverage.
 - Targeted EURES, Job Bank and source-error regressions: `25 passed`.
 - GitHub Actions run 110 passed.
-- Commit `8131e2e` deployed v3.5.5/schema 3/3. Verify the v3.5.6 deployment
-  after its update before marking this stage complete.
+- Commit `496c920` is published and deployed; Compose reports source/runtime
+  3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
+  confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
+  volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
+  and RemoteOK; no startup errors were present in the inspected log tail.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 
