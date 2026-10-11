@@ -4,8 +4,7 @@
 
 Candidate commit `6fa3406` is published on
 `feature/v3.5.6-eures-identity-market-targets` as [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16).
-Handoff documentation is at `e43072c`; push and PR CI passed for that branch
-head. GitHub `main` remains at `6294c2a`;
+The application and handoff changes passed push and PR CI. GitHub `main` remains at `6294c2a`;
 the candidate and deployed app still report source/runtime v3.5.6. The latest
 published GitHub release is v3.5.1; do not tag v3.5.6 until owner acceptance is
 recorded.
