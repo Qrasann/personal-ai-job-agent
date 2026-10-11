@@ -6,7 +6,7 @@ Repository state is the source of truth. Chat history is supporting context only
 
 Read in this order:
 1. CURRENT_STATE.md
-2. ROADMAP.md
+2. [Canonical project roadmap](../../ROADMAP.md)
 3. ARCHITECTURE.md
 4. TASKS.md
 5. DECISIONS.md

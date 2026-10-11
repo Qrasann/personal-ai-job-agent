@@ -35,7 +35,9 @@ Recommendation Model v2 evidence breakdown.
   Add one retry for transient Arbeitnow transport failures with a 15-second
   timeout. Verification: 233 isolated PostgreSQL tests passed, push/PR CI
   passed, and the safe updater confirmed runtime 3.5.6 with a successful
-  startup scan. Owner Telegram `/sources` and fresh `/scan` checks remain.
+  startup scan. The owner confirmed `/sources` shows JOBS.GE paused and a fresh
+  GE scan returned EURES 16 and HR.ge 2. `/scanstatus` measured Job Bank at
+  99.5 seconds of a 162-second scan; its five-second request pacing remains.
 
 ## v3.5.5 — Candidate Import & Profile Sync
 

@@ -25,8 +25,9 @@
   transient `ReadTimeout`. JOBS.GE is paused in the source plan; HR.ge remains
   enabled while recurring reuse permission is unverified. The deployed
   follow-up adds one bounded retry for Arbeitnow transport failures. A later
-  Telegram scan log confirmed a timeout recovered on retry with HTTP 200.
-  Owner confirmation of the updated `/sources` presentation remains pending.
+  Telegram scan log confirmed a timeout recovered on retry with HTTP 200. The
+  owner confirmed `/sources` displays JOBS.GE as paused and provided a completed
+  `/scanstatus` report.
 - Armenia is not yet selectable and has no connected local adapter. The
   official e-work portal's public access contract was not verified; Staff.am
   prohibits automated scraping without permission, and Job.am restricts
@@ -35,9 +36,10 @@
 - Job Bank Canada adds international TFW coverage, but an LMIA request or
   permission to apply does not establish sponsorship or candidate eligibility.
   Initial coverage is one page, six queries and twelve details per profile;
-  the five-second crawl delay adds up to about 90 seconds plus network time.
+  the five-second request pacing adds up to about 90 seconds plus network time.
   Decimal CAD/hour salaries are preserved as source text; structured salary
   normalization and display are pending. A Telegram update took 162.7 seconds
-  with twelve Job Bank detail calls visible; request-level `/scanstatus`
-  timings are needed before changing any crawl bounds.
+  with twelve Job Bank detail calls visible; `/scanstatus` measured Job Bank at
+  99.5 seconds. Preserve the five-second request interval while evaluating a
+  safe pacing improvement; do not increase request volume or parallelize calls.
 - Full CI is required before merge; live Telegram polling and dual-profile scan smoke tests passed on the local deployment.

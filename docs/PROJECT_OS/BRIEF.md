@@ -16,17 +16,19 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Source/runtime: `v3.5.6`, database schema `4/4`.
 - GitHub `main`: `6294c2a` (`v3.5.6`). Deployed application commit `170ed4e`
   is on candidate branch `feature/v3.5.6-eures-identity-market-targets`.
-- GitHub PR #16 is open on `main`. Candidate branch tip is `2166e0c`; the
-  deployed application code is `170ed4e`. Latest push CI `38129983586` passed;
-  current PR details are at
+- GitHub PR #16 is open on `main`; deployed application code is `170ed4e`.
+  Later commits on the candidate branch update documentation. Current PR
+  details are at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Branch map: `main` is the stable source; `feature/v3.5.6-eures-identity-market-targets`
   is the active PR #16 branch and is where current changes are pushed. The
   remote `feature/v3.5.2-dual-search-modes` branch remains from earlier work
   but is not the active development branch.
-- Release map: the source `VERSION` on `main` is v3.5.6, while the latest
-  published GitHub tag/Release is v3.5.1. Changelog entries v3.5.2–v3.5.6 are
-  untagged source milestones; v3.5.6 still awaits owner Telegram acceptance.
+- Release map: `VERSION=3.5.6` identifies source on `main`; the latest formal
+  GitHub tag/Release is v3.5.1. Changelog entries v3.5.2–v3.5.6 are cumulative
+  source milestones, not separate published releases. Publish one cumulative
+  v3.5.6 release after Telegram acceptance; do not backfill tags for the
+  intermediate milestones.
 - Local release directory: `~/job-agent-release-v352`.
 - Docker Compose project: `repo`.
 - Career-first and Relocation-first SearchProfiles are enabled independently.
@@ -105,9 +107,9 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   Relocation-first received a `ReadTimeout`, the single retry returned HTTP
   200, and the supplied log excerpt shows EURES, HR.ge, Job Bank, and HH
   requests succeeding. JOBS.GE was not requested. Telegram handled the update
-  in 162.7 seconds; Job Bank's five-second public crawl delay and twelve detail
-  requests account for a substantial part, but exact per-source timing needs
-  `/scanstatus` to measure.
+  in 162.7 seconds. The later `/scanstatus` attributed 99.5 seconds to Job
+  Bank, 17.1 to Arbeitnow, 14.5 to EURES, 13.0 to HR.ge, 7.6 to HH, and 1.5
+  to RemoteOK. Job Bank's five-second request pacing remains in place.
 - EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
 - Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
 - GitHub PR #15 is merged. PR #16 contains the current EURES/market/docs update;
@@ -124,14 +126,19 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Runtime status after update: source/runtime `3.5.6`, app polling, PostgreSQL
   healthy. The existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   volumes remain attached.
+- Owner confirmed `/sources` marks JOBS.GE temporarily paused after HTTP 410
+  and shared `/scanstatus`: the GE scan completed from 09:47:54 to 09:50:36
+  UTC. EURES returned 16 vacancies, HR.ge 2, Job Bank 12, Arbeitnow 2, HH 209,
+  and Remote OK 3. A later app-log tail shows `scan_all` completed and Telegram
+  updates were handled in 117–677 ms; no errors appear in that excerpt.
 
 ## Current priority
 
-Have the owner confirm the updated `/sources` view shows JOBS.GE as paused and
-share `/scanstatus` for the 162.7-second scan, so source timings can guide any
-latency work without weakening public-site crawl limits. The live scan already
-verified Arbeitnow recovery after a timeout. Continue `/import` preview/save
-and Recommendation v2 detail acceptance before tagging v3.5.6.
+Complete end-to-end Telegram acceptance for `/import` (preview, then cancel or
+confirm save) and inspect a vacancy's Recommendation v2 details. These are the
+remaining gates for the cumulative v3.5.6 tag. Source health and timing are now
+verified: JOBS.GE is paused, EURES returned 16 vacancies, and Job Bank took
+99.5 seconds. Keep its five-second request pacing while evaluating latency.
 
 ## Open limitations
 
@@ -150,13 +157,13 @@ and Recommendation v2 detail acceptance before tagging v3.5.6.
 - Arbeitnow may contain no low-barrier role matches. A later owner-provided
   Telegram scan confirmed the deployed single retry recovered from a
   `ReadTimeout` with HTTP 200. Continue monitoring future runs.
-- A later scan update took 162.7 seconds. Supplied logs show twelve Job Bank
-  detail requests spaced around the public crawl delay; exact source-level
-  timings are still needed before considering latency changes.
+- The latest `/scanstatus` reports Job Bank at 99.5 seconds of a 162-second
+  scan. Its five-second request pacing is intentional; any optimization must
+  preserve the public crawl interval and be measured in a fresh Telegram scan.
 - HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
-- EURES's compressed-response TLS failure did not recur in the first complete
-  post-update scan using identity encoding. Monitor additional runs; do not
-  claim the root cause is permanently resolved yet.
+- EURES returned 16 vacancies in the owner-provided follow-up scan, with no SSL
+  error reported for that run. Monitor additional scheduled runs; do not claim
+  the transport cause is permanently resolved yet.
 - The EURES cross-border flag is not proof of visa sponsorship, relocation support, or third-country work authorization.
 - Public applicant counts are unavailable in the connected candidate-facing feeds and remain unknown.
 - Dedicated Career Score and Relocation Score, affordability calculation, migration knowledge base, and application tracker are later phases—not completed features.

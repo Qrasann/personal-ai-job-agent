@@ -10,3 +10,8 @@
 8. Structured relocation flags are preferred; conservative text heuristics fill missing work-permit/package/support signals.
 9. Repository + tests + PROJECT_OS must be sufficient for another developer or AI to continue.
 10. Never fabricate candidate experience or silently auto-apply externally.
+11. Supersedes decision 1 (2026-10-11): `main` now contains source version
+    v3.5.6. `VERSION` identifies source metadata; only a Git tag/Release marks
+    a formal publication. Treat v3.5.2–v3.5.6 as cumulative untagged source
+    milestones and publish one tested cumulative v3.5.6 release after the
+    remaining Telegram acceptance. Do not backfill intermediate tags.

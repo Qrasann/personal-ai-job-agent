@@ -3,8 +3,8 @@
 ## Latest state
 - stable GitHub `main`: `6294c2a` (source version 3.5.6). PR #15 is merged.
 - active candidate branch: `feature/v3.5.6-eures-identity-market-targets`;
-  branch tip `2166e0c` is published as PR #16; deployed application code is
-  `170ed4e`. Latest push CI `38129983586` passed.
+  it is published as PR #16; deployed application code is `170ed4e`. The
+  branch has subsequent handoff/documentation commits. Latest CI checks passed.
 - GitHub Releases and tags currently end at v3.5.1. Source version v3.5.6 and
   changelog entries v3.5.2–v3.5.6 do not imply those versions were formally
   published as releases.
@@ -17,7 +17,12 @@
 - Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
   `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
   Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
-  Request-level timing is pending `/scanstatus`.
+  `/scanstatus` attributes 99.5 seconds to Job Bank, 17.1 to Arbeitnow, 14.5
+  to EURES, 13.0 to HR.ge, 7.6 to HH, and 1.5 to Remote OK.
+- Owner confirmed `/sources` marks JOBS.GE paused after HTTP 410. The completed
+  scan returned HH 209, Remote OK 3, Arbeitnow 2, Job Bank 12, EURES 16, and
+  HR.ge 2. Later log tail shows scheduled `scan_all` completed and Telegram
+  updates were handled within 117–677 ms, with no errors in the excerpt.
 - local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
   healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
   preserved.
@@ -39,11 +44,13 @@
 - PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
 
 ## Active development
-- target: owner confirms `/sources` shows JOBS.GE paused and shares `/scanstatus`
-  so the 162.7-second scan can be attributed by source. Then complete `/import`
-  preview/save and Recommendation v2 vacancy detail acceptance before release
-  tagging. Core command entry points and `/status`/`/version` were already
-  smoke-tested.
+- PR #16 carries the active candidate and bilingual README; `main` remains the
+  stable source until acceptance and merge. GitHub tags/releases stop at
+  v3.5.1 while `VERSION=3.5.6`; the v3.5.2–v3.5.6 changelog entries are
+  cumulative source milestones. Publish one v3.5.6 release after the owner
+  checks `/import` preview/save and Recommendation v2 vacancy details.
+- Job Bank is the measured latency bottleneck at 99.5 seconds. Preserve its
+  five-second request pacing while evaluating any optimization.
 
 ## Implemented on active branch
 - enable/disable implemented job sources;

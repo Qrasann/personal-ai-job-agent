@@ -8,7 +8,7 @@ vacancy matching.
 
 ## Project status
 
-- **Source on `main`:** v3.5.6 (`6294c2a`).
+- **Source on `main`:** v3.5.6.
 - **Latest published GitHub Release/tag:** v3.5.1.
 - **Changelog entries v3.5.2–v3.5.6:** source milestones, not published GitHub
   Releases or tags. The v3.5.6 release awaits end-to-end Telegram acceptance

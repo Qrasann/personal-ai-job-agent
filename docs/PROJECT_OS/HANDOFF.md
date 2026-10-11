@@ -5,40 +5,36 @@
 - `main` is the stable source branch at `6294c2a`, with `VERSION` set to
   v3.5.6. It does not yet contain the open PR #16 changes.
 - Active development is on
-  `feature/v3.5.6-eures-identity-market-targets`; its current tip is `2166e0c`
-  and it targets `main` through [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16).
-  Application commit `170ed4e` is deployed to the local Compose project; later
-  commits on the branch only update handoff documentation.
+  `feature/v3.5.6-eures-identity-market-targets`, which targets `main` through
+  [PR #16](https://github.com/Qrasann/personal-ai-job-agent/pull/16).
+  Application commit `170ed4e` is deployed to the local Compose project;
+  subsequent branch commits record handoff and language/release documentation.
 - `feature/v3.5.2-dual-search-modes` remains on the remote from earlier work;
   it is not the active branch for new changes.
 - GitHub Releases and version tags currently stop at v3.5.1. The v3.5.2–v3.5.6
-  changelog entries record source milestones, not formal releases. Keep the
-  v3.5.6 release pending until resume-import and Recommendation v2 Telegram
-  acceptance is complete.
+  changelog entries are cumulative source milestones, not formal releases.
+  Publish one cumulative v3.5.6 release after resume-import and Recommendation
+  v2 Telegram acceptance; do not backfill tags for intermediate milestones.
 - README.md and README.ru.md provide English and Russian entry points on the
   active candidate branch. `main` remains English-only until PR #16 is merged.
 
 ## Owner Telegram scan and source-resilience follow-up — 2026-10-11
 
-Post-deployment live verification is now available: the owner supplied a fresh
-Telegram log excerpt. Arbeitnow's Relocation-first request timed out, the
-adapter logged `retry 1/1`, and the next request returned HTTP 200. EURES
-search/detail, HR.ge listing/details, Job Bank search/details, and HH fallback
-requests shown in the excerpt returned success; JOBS.GE was not requested.
-The Telegram update completed in 162.7 seconds. Twelve Job Bank detail calls
-are visible, spaced about 6.4 seconds apart, so its five-second crawl delay is
-a material contributor; the excerpt does not include `/scanstatus` source
-timings and cannot attribute the full duration precisely. Next ask the owner
-for `/sources` (to verify paused-state presentation) and `/scanstatus` (to
-measure where scan time is spent). Do not reduce public crawl limits without
-that evidence.
+Post-deployment logs confirmed Arbeitnow's Relocation-first retry recovered
+from `ReadTimeout` with HTTP 200; EURES, HR.ge, Job Bank, and HH requests shown
+also succeeded. JOBS.GE was not requested. The 162.7-second Telegram update is
+now attributed by `/scanstatus`: Job Bank took 99.5 seconds, Arbeitnow 17.1,
+EURES 14.5, HR.ge 13.0, HH 7.6, and Remote OK 1.5. Keep the current Job Bank
+request pacing until a safe optimization is verified against its source rules.
 
-The owner ran `/targets relocation GE`, `/sources`, and `/scan`. The scan
-returned EURES 16, HR.ge 2, and JOBS.GE error; Telegram reported Arbeitnow
-`ReadTimeout` and JOBS.GE HTTP 410. The configured JOBS.GE homepage itself
-returned 410, so the source is now marked temporarily unavailable and remains
-visible in `/sources` with that reason. Arbeitnow now has a 15-second timeout
-and one retry for transport failures; HTTP status errors are not retried.
+The owner ran `/targets relocation GE`, `/sources`, `/scan`, and `/scanstatus`.
+`/sources` visibly marks JOBS.GE temporarily paused after HTTP 410; HR.ge remains
+enabled for GE. The completed scan returned HH 209, Remote OK 3, Arbeitnow 2,
+Job Bank 12, EURES 16, and HR.ge 2. Source timings were HH 7.6s, Remote OK
+1.5s, Arbeitnow 17.1s, Job Bank 99.5s, EURES 14.5s, and HR.ge 13.0s. The scan
+ran from 09:47:54 to 09:50:36 UTC. The prior log's 162.7-second Telegram
+update is consistent with the scan duration; Job Bank is the main measured
+latency contributor.
 
 The candidate adds regressions for transient timeout recovery, retry
 exhaustion, non-retry of HTTP status failures, and the paused source-plan state.
@@ -51,9 +47,11 @@ the startup scan completed. Arbeitnow, EURES, and HR.ge requests returned HTTP
 `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached. No schema
 change was made.
 
-The owner still needs to confirm `/sources` shows JOBS.GE paused in Telegram.
-The later manual scan has now exercised and verified Arbeitnow retry recovery.
-Keep `.env`, the database, and existing Compose volumes untouched.
+The manual scan exercised and verified Arbeitnow retry recovery. A later log
+tail showed scheduled `scan_all` completed and Telegram updates were handled in
+117–677 ms, with no errors in that excerpt. Keep Job Bank's five-second
+request pacing until a measured optimization is tested. Keep `.env`, the
+database, and existing Compose volumes untouched.
 
 Prior Georgia guardrail commits are published on PR #16 at `0110173`,
 following adapter change `2963705`. Push CI `38127150025` and PR CI
@@ -78,6 +76,12 @@ reuse terms remain unresolved; do not treat the boards as validated recurring
 sources until access conditions are reviewed. The prior
 `/import` preview/save and Recommendation v2 detail acceptance remains a
 separate gate before release tagging.
+
+The release map is intentional: `VERSION=3.5.6` describes source code, while
+the latest formal GitHub release/tag remains v3.5.1. Entries v3.5.2–v3.5.6 in
+the changelog are cumulative milestones. Once `/import` preview/save and a
+vacancy's Recommendation v2 details are accepted in Telegram, publish one
+cumulative v3.5.6 tag/release. Do not backfill intermediate tags.
 
 ## v3.5.6 candidate update — PR #16 (2026-10-11)
 

@@ -17,26 +17,30 @@ per-profile market controls:
 - `/targets GE` applies the market to all active profiles. Use
   `/targets relocation GE` or `/targets career GE` to set one profile.
 - `/sources` shows the source plan for each active profile.
-- After the bot update, verify both profiles and inspect live scan logs. A
-  source returning HTTP 200 headers is not healthy until its response body is
-  read and vacancies are parsed.
+- The owner verified the updated `/sources`, `/scanstatus`, and live scan in
+  Telegram. EURES returned 16 parsed vacancies; the supplied later log tail
+  shows a successful scheduled scan and responsive command handling. Continue
+  monitoring scheduled EURES runs; one success does not establish permanent
+  transport stability.
 - The owner completed a Relocation-first GE scan: EURES returned 16 jobs,
   HR.ge returned 2, JOBS.GE returned HTTP 410, and Arbeitnow reported a
   transient read timeout. The candidate pauses JOBS.GE and retries one
-  transient Arbeitnow transport failure. The updated runtime has a clean
-  startup scan; confirm `/sources` and a fresh `/scan` in Telegram before
-  considering Georgia coverage accepted.
+  transient Arbeitnow transport failure. The owner confirmed the paused state
+  in `/sources`; the fresh `/scan` and `/scanstatus` completed. Job Bank took
+  99.5 seconds of the 162-second scan. Keep its five-second request pacing
+  while evaluating latency improvements.
 
 ## Next — v3.5.7 International Market Coverage
 
 Focus on useful, legally reachable vacancies in Georgia and Armenia, while
 preserving the separate Career-first and Relocation-first goals.
 
-- Confirm the active profile targets and source enablement through `/targets`
-  and `/sources`; test the Georgian adapters through a live scan, starting
-  with Relocation-first, and assess latency and result quality. Georgia detail
-  requests are capped and paced, scheduled results are cached for six hours,
-  and `/scan` forces a fresh fetch.
+- The owner confirmed the active Relocation-first target `GE`, the paused JOBS.GE
+  status, and a completed live scan: EURES returned 16 vacancies and HR.ge 2.
+  Continue checking result relevance and access conditions before treating
+  Georgia as validated recurring coverage. Georgia details remain capped and
+  paced, scheduled results are cached for six hours, and `/scan` forces a fresh
+  fetch.
 - Treat the Georgian adapters as limited personal discovery sources. JOBS.GE
   robots rules were unavailable (HTTP 410), HR.ge allows crawling in
   robots.txt, and neither board's recurring-reuse terms were confirmed. Keep
@@ -81,5 +85,9 @@ preserving the separate Career-first and Relocation-first goals.
 - Publish a GitHub Release only for the tested version tag and include its test
   results, migration status and any owner acceptance still required.
 - Keep `VERSION`, `CHANGELOG.md`, README status and the release tag aligned.
+- Treat `VERSION` as the source-tree version and a Git tag/Release as the formal
+  publication marker. When several cumulative milestones were never tagged,
+  publish one tested cumulative release; do not create retroactive tags that
+  imply separate releases were accepted.
 - Never enable auto-apply, private HeadHunter actions or destructive database
   operations as part of a release.

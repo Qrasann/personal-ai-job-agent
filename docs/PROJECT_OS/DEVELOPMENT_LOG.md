@@ -1,5 +1,32 @@
 # Development Log
 
+## 2026-10-11 — Telegram source dashboard and GitHub release map
+- Owner confirmed `/sources` displays JOBS.GE as paused after its configured
+  endpoint returned HTTP 410; HR.ge remains available for the selected GE
+  market. The completed `/scanstatus` covered 09:47:54–09:50:36 UTC.
+- Source counts were HH 209, Remote OK 3, Arbeitnow 2, Job Bank 12, EURES 16,
+  and HR.ge 2. Discovery timings were HH 7.6s, Remote OK 1.5s, Arbeitnow
+  17.1s, Job Bank 99.5s, EURES 14.5s, and HR.ge 13.0s. Job Bank is the largest
+  measured contributor; keep its five-second request pacing while evaluating
+  any safe improvement.
+- The owner's later log tail shows scheduled `scan_all` completed and Telegram
+  updates were handled within 117–677 ms; no errors appear in that excerpt.
+- Clarified the current GitHub model: `main` is stable at source version 3.5.6;
+  PR #16 carries the current market/source/docs candidate; the latest formal
+  GitHub release/tag is v3.5.1. Changelog entries v3.5.2–v3.5.6 are cumulative
+  source milestones. The intended next formal release is one cumulative v3.5.6
+  tag after `/import` preview/save and Recommendation v2 detail acceptance;
+  intermediate tags will not be backfilled.
+- README and README.ru.md on the candidate branch are aligned bilingual entry
+  points. `main` remains English-only until PR #16 is merged. No release tag or
+  main-branch merge was created during this stage.
+- Removed the duplicate stale PROJECT_OS roadmap; the root `ROADMAP.md` is now
+  the single maintained plan and the PROJECT_OS entry links to it.
+- Verification after the documentation update: isolated PostgreSQL suite
+  `233 passed`, 67.67% branch coverage (55% gate); unit-only suite
+  `230 passed, 3 skipped`; `git diff --check` passed. No application code,
+  schema, runtime, `.env`, or Docker volume was changed.
+
 ## 2026-10-11 — Armenia public-source access audit
 - The Armenian Unified Social Service's current labor-market page identifies
   e-work.am and workforall.am as its vacancy platforms. The official e-work

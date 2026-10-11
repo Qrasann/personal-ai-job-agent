@@ -59,13 +59,18 @@
   recovered from `ReadTimeout` with HTTP 200; EURES, HR.ge, Job Bank, and HH
   requests in the excerpt succeeded; JOBS.GE was not requested. Telegram
   handled the update in 162.7 seconds.
-- [ ] Owner confirms `/sources` visibly marks JOBS.GE paused and shares
-  `/scanstatus` for source-level timing. Keep the Job Bank crawl delay intact
-  until measured timings identify a safe optimization.
+- [x] Owner confirmed `/sources` visibly marks JOBS.GE paused and shared
+  `/scanstatus`: completed GE scan returned HH 209, Remote OK 3, Arbeitnow 2,
+  Job Bank 12, EURES 16, and HR.ge 2. Timings: HH 7.6s, Remote OK 1.5s,
+  Arbeitnow 17.1s, Job Bank 99.5s, EURES 14.5s, HR.ge 13.0s. Keep Job Bank's
+  five-second request interval while evaluating latency.
 - [ ] Owner completes `/import` file preview/save and Recommendation v2 vacancy
   detail checks before any v3.5.6 release tag.
 - [ ] Monitor later scheduled EURES scans; the first clean run does not prove
   the underlying TLS cause is permanently resolved.
+- [ ] Evaluate whether Job Bank pacing can avoid idle time while retaining at
+  least five seconds between request starts and no overlapping requests; verify
+  the effect with a fresh Telegram `/scan` before changing the runtime.
 
 ## v3.5.7 International Market Coverage — planned
 - [x] Review JOBS.GE and HR.ge robots guidance and add conservative request
