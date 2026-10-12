@@ -2,18 +2,17 @@
 
 Last updated: 2026-10-12 (Europe/Moscow)
 
-**Current checkpoint — 2026-10-12.** The cumulative v3.5.7 candidate was
-published as `8da96f8`; push and PR CI passed, and Compose `repo` is running
-source/runtime 3.5.7 with healthy PostgreSQL. Its first startup scan exposed a
-real EURES persistence defect: a source location padded with long whitespace
-exceeded the `jobs.city` 256-character limit, so that vacancy was not saved.
-The current two-file fix collapses source whitespace and preserves a genuinely
-overlong value as raw evidence while leaving city unknown. It passed the full
-isolated PostgreSQL suite: **429 passed, 73.24% branch coverage** (55% gate),
-plus 13 targeted EURES tests, `compileall`, and `git diff --check`. The fix is
-not yet published or deployed. Next: update PROJECT_OS, commit/push to PR #18,
-pass CI, update Compose without removing data, and verify a clean startup scan
-with the existing named volumes. See the newest entry in `HANDOFF.md`.
+**Current checkpoint — 2026-10-12.** The EURES padded-location fix is published
+as `159d510` on draft PR #18; push CI `38281187340` and PR CI `38281192380`
+passed. Full isolated PostgreSQL validation: **429 passed, 73.24% branch
+coverage**; 13 targeted EURES tests, `compileall`, secret scan, and diff checks
+also pass. Compose `repo` now runs the fixed source/runtime 3.5.7 with healthy
+PostgreSQL and the unchanged `repo_jobagent_v3_pg` / `repo_jobagent_v3_files`
+volumes. The post-update startup scan reached EURES search/details with HTTP
+200 and completed successfully at 17:04:14 UTC; its log window contains no
+database/source error, traceback, or repeated city-width failure. Continue the
+open practical Relocation-first coverage and latest scoped-command Telegram
+acceptance; do not merge/tag/release v3.5.7 yet. See `HANDOFF.md`.
 
 ## Mission
 

@@ -110,9 +110,11 @@
   whitespace; preserve genuinely overlong source text as raw evidence and
   keep city unknown. Full isolated PostgreSQL suite: 429 passed, 73.24% branch
   coverage; targeted EURES suite: 13 passed; compile and diff checks passed.
-- [ ] Publish the EURES follow-up to PR #18, pass both CI runs, safely update
-  Compose `repo`, and verify a fresh startup scan has no city-width insertion
-  error while the existing named volumes remain attached.
+- [x] Publish EURES follow-up `159d510` to PR #18; push CI `38281187340` and
+  PR CI `38281192380` passed. Safely update Compose `repo`, verify healthy
+  runtime 3.5.7 and unchanged named volumes. The fresh startup scan completed
+  at 17:04:14 UTC after EURES HTTP 200 responses with no database/source error,
+  traceback, or repeated city-width insertion failure in the log window.
 - [x] Add profile-specific `/jobs career|relocation [below]` lists using each
   enabled profile's own threshold; retain independent scores through detail
   and comparison buttons and explicit `/job`/`/compare` scope arguments.

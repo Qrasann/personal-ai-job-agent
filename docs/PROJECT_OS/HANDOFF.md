@@ -25,10 +25,17 @@ Verification: full isolated PostgreSQL suite **429 passed**, branch coverage
 **73.24%**; targeted EURES suite **13 passed**; `compileall` and
 `git diff --check` pass. No schema or data migration is required.
 
-Next: commit and push this fix with the four PROJECT_OS updates, wait for both
-CI runs, apply through `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`, and
-verify the same named volumes, healthy runtime, and a fresh startup scan with
-no city-width database error. Do not merge/tag/release PR #18 in this stage.
+Published as `159d510`. Push CI `38281187340` and PR CI `38281192380`
+passed. The safe updater rebuilt/restarted only the running application;
+PostgreSQL remained healthy and the same `repo_jobagent_v3_pg` and
+`repo_jobagent_v3_files` volumes stayed attached. The fresh startup scan
+reached EURES searches/details with HTTP 200 and completed successfully at
+17:04:14 UTC. Its complete filtered log window contains no database/source
+error, traceback, or repeated city-width failure. Source/runtime remain 3.5.7.
+
+Next: keep PR #18 draft and continue practical Relocation-first coverage and
+owner acceptance of the latest profile-scoped Telegram commands. Do not
+merge, tag, or release v3.5.7 in this stage.
 
 ## Resumed verification checkpoint — 2026-10-12
 

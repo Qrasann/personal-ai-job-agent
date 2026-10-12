@@ -13,8 +13,13 @@
   unknown. Country, visa, and relocation semantics are unchanged.
 - Added regressions for padded and genuinely overlong source locations. Full
   isolated PostgreSQL suite: 429 passed, 73.24% branch coverage. Targeted
-  EURES suite: 13 passed. Compilation and diff checks pass. Publication, CI,
-  safe runtime update, and post-update scan verification remain next.
+  EURES suite: 13 passed. Compilation, secret, and diff checks pass.
+- Published as `159d510`; push CI `38281187340` and PR CI `38281192380`
+  passed. The safe updater preserved both existing named volumes. Runtime is
+  3.5.7, PostgreSQL is healthy, and the fresh startup scan completed at
+  17:04:14 UTC after successful EURES search/detail responses. No database or
+  source error, traceback, or repeated city-width failure appears in that log
+  window.
 
 ## 2026-10-12 — Owner shutdown checkpoint
 - Stopped at the completed independent-review stage at the owner's request;
