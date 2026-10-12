@@ -93,8 +93,9 @@
   as the technical-risk index (`100 − requirement coverage`) and leave
   nontechnical conditions unscored. Targeted suite: 37 passed; full isolated
   PostgreSQL suite: 442 passed; compileall, secret scan and diff check passed.
-  Wording follow-up awaits rebuild; Telegram `/job 1273` confirmation remains
-  open.
+  Risk formula commit `a3a2494` and curly-apostrophe test commit `e382ddb` are
+  applied in Compose 3.5.7; startup scan completed after an isolated source
+  error. Telegram `/job 1273` confirmation remains open.
 - [x] Keep the candidate's current self-assessed general English at B1 and
   retain B2 only as a technical-reading estimate in the fresh-profile defaults.
   Add regression coverage; do not overwrite facts on existing profiles.

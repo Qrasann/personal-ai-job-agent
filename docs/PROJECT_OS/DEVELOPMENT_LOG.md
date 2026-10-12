@@ -54,7 +54,11 @@ direction from the number. The evidence now gives that formula and says the
 index is unavailable when no technical requirements were extracted. It does
 not assess education or language. Targeted recommendation tests: **5 passed**;
 full isolated PostgreSQL suite: **442 passed**; compileall, secret scan, and
-diff check passed. This wording follow-up is pending rebuild.
+diff check passed. The runtime checkpoint is recorded below.
+Committed locally as `a3a2494`; added explicit curly-apostrophe regression in
+`e382ddb`. Rebuilt Compose `repo` at 00:17 Moscow Oct 13, preserving named
+volumes. Source/runtime remain 3.5.7, PostgreSQL is healthy, and startup
+`scan_all` completed at 21:19:29 UTC after an isolated `ConnectError`.
 
 ## 2026-10-12 — Separate current English level from technical reading
 

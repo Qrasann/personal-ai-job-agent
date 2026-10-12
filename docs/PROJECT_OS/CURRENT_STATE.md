@@ -8,13 +8,12 @@
   fallback. The risk evidence names its technical-only scope; education and
   language requirements remain unscored. Targeted suite: 37 passed; full unit
   suite: 439 passed / 3 skipped; isolated PostgreSQL suite: 442 passed;
-  compileall, secret scan and diff check passed. Commit `b42d47c` is local.
-  Compose `repo` was rebuilt at 00:14 Moscow on Oct 13; app and PostgreSQL
-  report healthy; startup `scan_all` completed at 21:15:52 UTC after one
-  isolated `ConnectError`. Follow-up clarifies technical-risk formula
-  (`100 − coverage`); targeted recommendation tests: 5 passed, full isolated
-  suite: 442 passed. This wording change awaits rebuild and owner Telegram
-  verification.
+  compileall, secret scan and diff check passed. Parser fix is `b42d47c`, risk
+  formula clarification is `a3a2494`, and the curly-apostrophe regression is
+  `e382ddb`. Targeted recommendation tests: 5 passed; full isolated suite:
+  442 passed. Compose `repo` was rebuilt at 00:17 Moscow on Oct 13; startup
+  `scan_all` completed at 21:19:29 UTC after one isolated `ConnectError`.
+  Owner Telegram verification remains pending.
 - **2026-10-12 — Candidate English profile default:** corrected the AI
   job-bot bootstrap profile to use B1 as the current general self-assessment
   and retain B2 only for technical reading. Existing persisted profile facts

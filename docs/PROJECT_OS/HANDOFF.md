@@ -22,11 +22,12 @@ to verify with the employer and are not added to the technical score.
 
 Verification: targeted tests **37 passed**; full unit suite **439 passed, 3
 skipped**; isolated PostgreSQL suite **442 passed**; compileall, secret scan,
-and `git diff --check` passed. Committed locally as `b42d47c`. Compose `repo`
-was rebuilt at 00:14 Moscow on Oct 13, preserving the named volumes; source
-and runtime report 3.5.7, PostgreSQL is healthy, and startup `scan_all`
-completed at 21:15:52 UTC after one isolated `ConnectError`. The inspected
-startup log shows Himalayas HTTP 200 and HH public-web fallback after API 403.
+and `git diff --check` passed. Parser commit: `b42d47c`; risk formula commit:
+`a3a2494`; curly-apostrophe regression: `e382ddb`. Compose `repo` was
+rebuilt at 00:17 Moscow on Oct 13, preserving named volumes; source/runtime
+report 3.5.7, PostgreSQL is healthy, and startup `scan_all` completed at
+21:19:29 UTC after one isolated `ConnectError`. The inspected startup log
+shows Himalayas HTTP 200 and HH public-web fallback after API 403.
 Ask the owner to reopen `/job 1273` and verify
 technical interview-risk is populated while nontechnical conditions remain
 separate. Do not apply or send any application.
@@ -36,8 +37,7 @@ The evidence text was subsequently clarified to match the score direction:
 technical skills are extracted, the index remains unknown and says so. The
 wording follow-up passes 5 targeted recommendation tests and the full isolated
 PostgreSQL suite (**442 passed**), plus compileall, secret scan and diff check.
-It is not yet in the running image; rebuild before asking the owner to verify
-the Telegram card.
+It is in the running image. Ask the owner to verify the Telegram card.
 
 ## Candidate English bootstrap default — 2026-10-12
 
