@@ -1,5 +1,15 @@
 # Development Log
 
+## 2026-10-12 — AI job-bot GE/AM bootstrap defaults
+
+Updated the private-use bootstrap profile so a fresh AI job-bot setup selects
+Georgia and Armenia in parallel and starts Relocation-first discovery with
+bounded warehouse, production, hotel, kitchen, cleaning, construction and
+customer-support queries. This does not overwrite existing database settings,
+change the 65-point threshold, alter ranking, or infer work eligibility.
+Added a configuration regression. Existing source restrictions, unknown legal
+evidence and manual-only application flow remain unchanged.
+
 ## 2026-10-12 — EURES padded location persistence guard
 - Published the accumulated v3.5.7 candidate as `8da96f8`; push CI
   `38280187127` and PR CI `38280191809` passed. Updated Compose `repo` without

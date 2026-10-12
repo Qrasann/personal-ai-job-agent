@@ -87,6 +87,10 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Align the AI job-bot's bootstrap profile with the owner's current
+  equal-priority GE/AM plan and add bounded lower-barrier Relocation-first
+  role queries. Existing persisted user settings remain unchanged; add a
+  configuration regression.
 - [x] Audit bounded employer support evidence across preferences,
   recommendations, and source adapters. Preserve unknown values, distinguish
   separate support components, and prevent role requirements or guidance from

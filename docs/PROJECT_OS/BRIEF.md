@@ -14,6 +14,10 @@ database/source error, traceback, or repeated city-width failure. Continue the
 open practical Relocation-first coverage and latest scoped-command Telegram
 acceptance; do not merge/tag/release v3.5.7 yet. See `HANDOFF.md`.
 
+The AI job-bot bootstrap profile now defaults to equal-priority `GE` and `AM`
+and bounded lower-barrier Relocation-first queries. This affects only fresh
+profile initialization; persisted user settings are preserved.
+
 ## Mission
 
 Continue the existing Personal AI Job Agent. Maintain two independent tracks:

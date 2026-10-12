@@ -1,16 +1,24 @@
 geography:
   current_country: RU
-  target_countries: []
+  target_countries: [GE, AM]
   remote_worldwide: true
   remote_regions: [EMEA]
   relocation_enabled: true
-  relocation_countries: []
+  relocation_countries: [GE, AM]
 
 search:
   queries:
     - DevOps Engineer
     - Infrastructure Engineer
     - Linux Administrator
+  relocation_queries:
+    - warehouse worker
+    - production worker
+    - hotel staff
+    - kitchen assistant
+    - cleaner
+    - construction worker
+    - customer support
   notify_min_score: 65
   modes:
     local_ru: true

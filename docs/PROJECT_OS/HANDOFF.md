@@ -1,5 +1,30 @@
 # Handoff
 
+## AI job-bot GE/AM bootstrap defaults — 2026-10-12
+
+The current unpublished follow-up aligns fresh AI job-bot profiles with the
+owner's equal-priority Georgia and Armenia plan. `data/profile.yaml` now sets
+both `target_countries` and `relocation_countries` to `GE, AM`, and defines
+bounded lower-barrier Relocation-first queries for warehouse, production,
+hotel, kitchen, cleaning, construction and customer support roles. This is
+bootstrap configuration only; existing persisted search settings are not
+rewritten. Career-first queries, the score threshold of 65, score ordering,
+source access limits and evidence rules remain as before.
+
+Added `tests/test_profile_defaults.py` and updated `BRIEF.md`, `TASKS.md`, and
+`DEVELOPMENT_LOG.md` so this stage can be handed off with its rationale.
+Verification: local suite **427 passed, 3 skipped**; full suite against the
+isolated PostgreSQL test database **430 passed**; `compileall` and
+`git diff --check` passed. Test PostgreSQL is separate from the personal
+runtime database.
+
+The stage is verified and is being recorded in the current feature branch.
+Production Compose `repo` was left running without a rebuild; named data
+volumes were not changed. The stage consists of `data/profile.yaml`,
+`tests/test_profile_defaults.py`, and the four PROJECT_OS documents. Continue
+v3.5.7 coverage and Telegram acceptance from this point. Do not merge/tag/
+release PR #18 at this point.
+
 ## EURES padded-location production follow-up — 2026-10-12
 
 The cumulative v3.5.7 candidate is published at `8da96f8` on
