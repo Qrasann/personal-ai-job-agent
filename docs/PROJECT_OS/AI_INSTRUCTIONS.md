@@ -2,7 +2,7 @@
 
 When continuing this project:
 - repository state is authoritative;
-- read CURRENT_STATE, ROADMAP and TASKS first;
+- read AGENTS.md and BRIEF.md first, then relevant ROADMAP/TASKS/code;
 - preserve main as stable;
 - prefer small tested changes;
 - never expose .env, Telegram tokens or API secrets;

@@ -20,6 +20,34 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — HH recovery/summary completion and context reconciliation
+
+Resumed clean c829a5f on feature/v3.5.7-international-market-coverage. Read-only
+Compose check confirms the previous startup scan completed at 21:53:38 UTC /
+00:53:38 Moscow, with HH isolated and PostgreSQL healthy. Draft PR #18 remains
+open at remote f9ed986; its Python/Docker/secret CI passed, covering only that
+remote commit. No push, production deployment, merge or release was performed.
+
+Fixed follow-up regressions: skipped HH now displays quietly as `пропущен`,
+not zero live vacancies; mixed-profile results display `частично` with their
+successful counts. HH probes serialize across concurrent scans, invalidate
+stale HH caches immediately on ConnectError, and genuinely retry after cooldown
+rather than returning the old anonymous-hour cache. Aggregate recovery cannot
+raise KeyError after an earlier skipped/error result. Per-profile evidence is
+preserved; other provider errors retain their existing alert path.
+
+Targeted HH/cache/Telegram tests: 49 passed. Shared candidate full unit suite:
+486 passed / 3 skipped; isolated PostgreSQL: 489 passed; compileall, secret scan
+and diff check passed. Prepared independent source-expiry parser tests are also
+present in this shared worktree and will be committed with their separate
+card-rendering stage. New changes are not deployed; running build is c829a5f.
+
+Compact BRIEF/HANDOFF/CURRENT_STATE replace accumulated startup snapshots;
+exact prior files are preserved in PROJECT_OS/history with c829a5f anchors.
+Aligned reading order with AGENTS.md and corrected stale runtime/CI/salary
+wording claims. Historical AI job-bot's original search→evaluate→CV→application
+→conversation pipeline remains the roadmap origin; latest approval gates apply.
+
 ## 2026-10-13 — Silently skip HH ConnectError and retry periodically
 
 The owner clarified that a HeadHunter `ConnectError` warning must not be sent

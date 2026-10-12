@@ -87,6 +87,13 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Complete the HH cooldown follow-up: accurate quiet skipped/partial
+  /scan and persisted /scanstatus, shared serialized probes, HH cache
+  invalidation on ConnectError, and aggregate recovery retaining successful
+  counts. Targeted tests 49 passed; full shared-candidate suite 486 passed /
+  3 skipped; isolated PostgreSQL 489 passed; compileall/secret/diff checks pass.
+  Runtime remains c829a5f (healthy; startup completed 21:53:38 UTC), without
+  the follow-up. Do not deploy without owner approval.
 - [x] On HH public `ConnectError`, skip without Telegram notification and
   continue other sources. Suppress duplicate attempts across search profiles
   for 15 minutes, then probe HH again on a later scan. Non-HH source errors
@@ -97,7 +104,8 @@
   is up and PostgreSQL healthy. The startup scan is in progress; the inspected
   initial window shows HH's ordinary web fallback and other providers returning
   HTTP 200. This run did not reproduce `ConnectError`, so the silent failure
-  path is verified by regression tests, not live Telegram. Commit remains open.
+  path is verified by regression tests. Commit c829a5f; startup scan completed
+  at 21:53:38 UTC and reproduced one locally logged HH connection failure.
 - [x] Add jobs.ss.ge as a selected-Georgia manual-search destination after
   confirming that it exposes broad vacancy listings but no verified reusable
   public API or automated-collection permission. Keep it link-only. Targeted
@@ -467,12 +475,11 @@
   eligibility from public evidence; leave missing details unknown.
 
 ## Follow-up — salary floor semantics
-- [ ] Decide whether `/salary minimum` should be a hard exclusion or a scoring
-  reference. Current implementation uses it as a scoring input, but Telegram
-  says “minimum for filter.” The owner's `/job 580` showed 90,000 RUB in the
-  description with structured salary unknown, so the existing scorer cannot
-  exclude it. Fix wording and/or behavior with tests before claiming a strict
-  floor.
+- [x] Clarify current assessment-reference behavior: Telegram now says
+  `Месячный минимум для оценки` and does not promise a hard salary filter.
+  This wording was already implemented before the current resume.
+- [ ] A strict salary floor remains a separate owner decision; preserve current
+  scoring and unknown structured-salary behavior until then.
 
 ## GitHub main synchronization
 - [x] Integrate GitHub `main` commit `375af5f` into the release branch without

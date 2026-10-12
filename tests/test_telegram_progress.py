@@ -1,8 +1,10 @@
 import asyncio
+import json
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 from aiogram.enums import MessageEntityType
+import pytest
 
 from app.telegram import handlers
 from app.telegram.multicommand import (
@@ -269,6 +271,85 @@ def test_scan_status_renders_persisted_source_timing(monkeypatch):
     assert "completed" in rendered
     assert "2026-10-11 10:01 UTC" in rendered
     assert "jobbank: 2 вакансий (12.0 с)" in rendered
+
+
+@pytest.mark.parametrize("skip_reason", ["ConnectError", "connection cooldown"])
+def test_scan_and_persisted_status_show_quiet_source_skip(monkeypatch, skip_reason):
+    stored = "{}"
+    summary = {
+        "sources": {
+            "hh": {"skipped": skip_reason, "duration_ms": 2000},
+            "remoteok": {"found": 0, "cache": False, "duration_ms": 1000},
+            "jobbank": {"error": "ReadTimeout", "duration_ms": 3000},
+        }
+    }
+
+    async def set_state(user_id, key, value):
+        nonlocal stored
+        assert (user_id, key) == (7, "scan_dashboard")
+        stored = value
+
+    monkeypatch.setattr(handlers, "_ACTIVE_SCAN_TASKS", {})
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "scan_for_user", AsyncMock(return_value=summary))
+    monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(side_effect=lambda *a: stored))
+    monkeypatch.setattr(handlers.repo, "set_state", set_state)
+
+    scan_message = IncomingMessage("/scan")
+    status_message = IncomingMessage("/scanstatus")
+
+    async def scenario():
+        await handlers.scan(scan_message, bot=object())
+        await handlers.scan_status(status_message)
+
+    asyncio.run(scenario())
+
+    completed = scan_message.progress.edits[-1][0]
+    persisted = status_message.answers[0][0]
+    for rendered in (completed, persisted):
+        assert "• hh: пропущен" in rendered
+        assert "hh: 0" not in rendered
+        assert skip_reason not in rendered
+        assert "• jobbank: ошибка" in rendered
+    assert "remoteok: 0 (live, 1.0 с)" in completed
+    assert "remoteok: 0 вакансий (1.0 с)" in persisted
+    assert json.loads(stored)["summary"] == summary
+    assert len(scan_message.answers) == 1
+    assert handlers._ACTIVE_SCAN_TASKS == {}
+
+
+def test_scan_and_status_keep_successful_count_for_partial_source(monkeypatch):
+    summary = {
+        "sources": {
+            "hh": {"found": 4, "cache": False, "duration_ms": 1000, "partial": True},
+            "remoteok": {"found": 2, "cache": True, "duration_ms": 0},
+        }
+    }
+    state = json.dumps({"status": "completed", "summary": summary})
+    monkeypatch.setattr(handlers, "_ACTIVE_SCAN_TASKS", {})
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "scan_for_user", AsyncMock(return_value=summary))
+    monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(return_value=state))
+    monkeypatch.setattr(handlers.repo, "set_state", AsyncMock())
+    scan_message = IncomingMessage("/scan")
+    status_message = IncomingMessage("/scanstatus")
+
+    async def scenario():
+        await handlers.scan(scan_message, bot=object())
+        await handlers.scan_status(status_message)
+
+    asyncio.run(scenario())
+
+    completed = scan_message.progress.edits[-1][0]
+    persisted = status_message.answers[0][0]
+    assert "hh: 4 (live, 1.0 с) · частично" in completed
+    assert "hh: 4 вакансий (1.0 с) · частично" in persisted
+    assert "remoteok: 2 (кэш, 0.0 с)" in completed
+    assert "remoteok: 2 вакансий (0.0 с)" in persisted
+    for rendered in (completed, persisted):
+        assert rendered.count("частично") == 1
+        assert "hh: ошибка" not in rendered
+        assert "hh: пропущен" not in rendered
 
 
 def test_cancel_stops_only_the_active_manual_scan(monkeypatch):

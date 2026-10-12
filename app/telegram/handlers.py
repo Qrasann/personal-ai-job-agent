@@ -895,11 +895,15 @@ async def scan(message: Message, bot: Bot) -> None:
                 source_bits.append(
                     f"• {html.escape(source_id)}: ошибка"
                 )
+            elif "skipped" in info:
+                source_bits.append(f"• {html.escape(source_id)}: пропущен")
             else:
                 freshness = "кэш" if info.get("cache") else "live"
+                partial_label = " · частично" if info.get("partial") else ""
                 source_bits.append(
                     f"• {html.escape(source_id)}: "
                     f"{int(info.get('found', 0))} ({freshness}, {int(info.get('duration_ms', 0)) / 1000:.1f} с)"
+                    + partial_label
                 )
 
         details = (
@@ -972,8 +976,11 @@ async def scan_status(message: Message) -> None:
     for name, info in (summary.get("sources") or {}).items():
         if info.get("error"):
             sources.append(f"• {html.escape(name)}: ошибка ({int(info.get('duration_ms', 0)) / 1000:.1f} с)")
+        elif "skipped" in info:
+            sources.append(f"• {html.escape(name)}: пропущен")
         else:
-            sources.append(f"• {html.escape(name)}: {int(info.get('found', 0))} вакансий ({int(info.get('duration_ms', 0)) / 1000:.1f} с)")
+            partial_label = " · частично" if info.get("partial") else ""
+            sources.append(f"• {html.escape(name)}: {int(info.get('found', 0))} вакансий ({int(info.get('duration_ms', 0)) / 1000:.1f} с)" + partial_label)
     await message.answer(
         f"📊 Сканирование: <b>{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
         f"Начато: {html.escape(str(state.get('started_at', '—')))}\n"

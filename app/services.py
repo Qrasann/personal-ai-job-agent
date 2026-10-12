@@ -49,10 +49,50 @@ DISCOVERY_CONCURRENCY = 3
 DISCOVERY_TIMEOUT_SECONDS = 180
 HH_CONNECT_RECHECK_SECONDS = 15 * 60
 _HH_CONNECT_RETRY_AFTER = 0.0
+_HH_DISCOVERY_LOCK = asyncio.Lock()
 # v3 forces one refresh after switching from the ignored API filter to RSS.
 REMOTIVE_STATE_KEY = "source_cache.remotive.v3"
 _REMOTIVE_PAYLOAD_CACHE: tuple[float, dict] | None = None
 _REMOTIVE_PAYLOAD_LOCK = asyncio.Lock()
+
+
+async def _discover_hh(adapter: HHSource, context: SourceContext) -> list[NormalizedJob] | None:
+    """Serialize outage probes and discard stale HH results after connection failure."""
+    global _HH_CONNECT_RETRY_AFTER
+    async with _HH_DISCOVERY_LOCK:
+        if time.monotonic() < _HH_CONNECT_RETRY_AFTER:
+            return None
+        try:
+            jobs = await adapter.discover(context)
+        except httpx.ConnectError:
+            _HH_CONNECT_RETRY_AFTER = time.monotonic() + HH_CONNECT_RECHECK_SECONDS
+            for key in list(_DISCOVERY_CACHE):
+                if key[0] == "hh":
+                    del _DISCOVERY_CACHE[key]
+            log.warning("source hh connection failed; skipping for %d seconds", HH_CONNECT_RECHECK_SECONDS)
+            raise
+        _HH_CONNECT_RETRY_AFTER = 0.0
+        return jobs
+
+
+def _aggregate_source(sources: dict, source_id: str, info: dict) -> None:
+    """Keep successful counts visible when another profile fails or skips."""
+    previous = sources.get(source_id)
+    if previous is None:
+        sources[source_id] = dict(info)
+        return
+    duration = max(previous.get("duration_ms", 0), info.get("duration_ms", 0))
+    if "found" in info:
+        sources[source_id] = {
+            "found": previous.get("found", 0) + info["found"],
+            "cache": bool(previous.get("cache", True) and info.get("cache", False)),
+            "duration_ms": duration,
+            "partial": bool(previous.get("partial") or "found" not in previous),
+        }
+    elif "found" in previous:
+        previous.update(partial=True, duration_ms=duration)
+    else:
+        previous["duration_ms"] = duration
 
 
 def _cache_ttl(source_id: str) -> int:
@@ -306,7 +346,6 @@ def _error_text(exc: Exception) -> str:
 
 
 async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False) -> dict:
-    global _HH_CONNECT_RETRY_AFTER
     summary = {"sources": {}, "searches": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     async def emit_progress(text: str) -> None:
         if not progress_callback:
@@ -374,7 +413,6 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
         semaphore = asyncio.Semaphore(DISCOVERY_CONCURRENCY)
 
         async def discover(adapter):
-            global _HH_CONNECT_RETRY_AFTER
             if adapter.source_id == "hh" and time.monotonic() < _HH_CONNECT_RETRY_AFTER:
                 return adapter, [], False, None, 0, True
             cache_key = (
@@ -402,6 +440,12 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                         jobs, source_cache_hit, fetched_mono = await asyncio.wait_for(
                             _discover_remotive(adapter, context), timeout=DISCOVERY_TIMEOUT_SECONDS
                         )
+                    elif adapter.source_id == "hh":
+                        jobs = await asyncio.wait_for(_discover_hh(adapter, context), timeout=DISCOVERY_TIMEOUT_SECONDS)
+                        if jobs is None:
+                            return adapter, [], False, None, int((time.monotonic() - started) * 1000), True
+                        source_cache_hit = False
+                        fetched_mono = time.monotonic()
                     else:
                         jobs = await asyncio.wait_for(adapter.discover(context), timeout=DISCOVERY_TIMEOUT_SECONDS)
                         source_cache_hit = False
@@ -409,8 +453,6 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 # A context-specific projection must expire with its provider
                 # response, including when that response came from disk.
                 _DISCOVERY_CACHE[cache_key] = (fetched_mono, jobs)
-                if adapter.source_id == "hh":
-                    _HH_CONNECT_RETRY_AFTER = 0.0
                 return adapter, jobs, source_cache_hit, None, int((time.monotonic() - started) * 1000), False
             except Exception as exc:
                 return adapter, [], False, exc, int((time.monotonic() - started) * 1000), False
@@ -421,19 +463,18 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
         discovered = await asyncio.gather(*(discover(adapter) for adapter in adapters))
         for adapter, jobs, cache_hit, discovery_error, duration_ms, skipped in discovered:
             if skipped:
-                search_summary["sources"][adapter.source_id] = {"skipped": "connection cooldown", "duration_ms": 0}
-                summary["sources"].setdefault(adapter.source_id, {"skipped": "connection cooldown", "duration_ms": 0})
+                info = {"skipped": "connection cooldown", "duration_ms": duration_ms}
+                search_summary["sources"][adapter.source_id] = info
+                _aggregate_source(summary["sources"], adapter.source_id, info)
                 continue
             try:
                 if discovery_error:
                     raise discovery_error
                 jobs = [job for job in jobs if vacancy_allowed(job, settings_map, current_country=user.current_country)]
                 jobs.sort(key=lambda job: job_priority(job, settings_map, current_country=user.current_country), reverse=True)
-                search_summary["sources"][adapter.source_id] = {"found": len(jobs), "cache": cache_hit, "duration_ms": duration_ms}
-                aggregate = summary["sources"].setdefault(adapter.source_id, {"found": 0, "cache": True, "duration_ms": 0})
-                aggregate["found"] += len(jobs)
-                aggregate["cache"] = bool(aggregate["cache"] and cache_hit)
-                aggregate["duration_ms"] = max(aggregate["duration_ms"], duration_ms)
+                info = {"found": len(jobs), "cache": cache_hit, "duration_ms": duration_ms}
+                search_summary["sources"][adapter.source_id] = info
+                _aggregate_source(summary["sources"], adapter.source_id, info)
                 cache_label = " (кэш)" if cache_hit else ""
                 await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · {duration_ms / 1000:.1f} с")
                 for index, job in enumerate(jobs, start=1):
@@ -450,19 +491,16 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                     and adapter.source_id == "hh"
                     and isinstance(exc, httpx.ConnectError)
                 )
-                if silent_hh_connect_error:
-                    _HH_CONNECT_RETRY_AFTER = time.monotonic() + HH_CONNECT_RECHECK_SECONDS
-                    log.warning("source hh connection failed; skipping for %d seconds", HH_CONNECT_RECHECK_SECONDS)
-                else:
+                if not silent_hh_connect_error:
                     log.exception("source %s failed for search %s", adapter.source_id, search.id)
                 error = _error_text(exc)
                 if silent_hh_connect_error:
-                    search_summary["sources"][adapter.source_id] = {"skipped": "ConnectError", "duration_ms": duration_ms}
-                    summary["sources"].setdefault(adapter.source_id, {"skipped": "ConnectError", "duration_ms": duration_ms})
+                    info = {"skipped": "ConnectError", "duration_ms": duration_ms}
                 else:
-                    search_summary["sources"][adapter.source_id] = {"error": error, "duration_ms": duration_ms}
-                    summary["sources"].setdefault(adapter.source_id, {"error": error, "duration_ms": duration_ms})
+                    info = {"error": error, "duration_ms": duration_ms}
                     await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(error)}")
+                search_summary["sources"][adapter.source_id] = info
+                _aggregate_source(summary["sources"], adapter.source_id, info)
     return summary
 
 

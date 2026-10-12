@@ -1,5 +1,12 @@
 # Known Issues
 
+Current-state correction (2026-10-13): HH selected-market discovery was
+implemented in 61fe39d; older current-country-only notes below are historical.
+HH ConnectError is a silent skip with cooldown; the pending local follow-up
+corrects summary rendering and cache/concurrency recovery. Salary wording now
+says assessment minimum, not hard filtering. Current runtime/remaining work is
+in BRIEF.md; old deployed/uncommitted claims below are historical checkpoints.
+
 ## Current candidate follow-up — 2026-10-12
 - Scoped `/jobs career|relocation [below]` now separates the two profile scores
   and thresholds. Cards and comparison callbacks preserve the selected profile.

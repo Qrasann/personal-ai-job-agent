@@ -21,6 +21,8 @@ def configure_scan(monkeypatch, sources, priorities=None):
 
     monkeypatch.setattr(services, "_user_context", context)
     monkeypatch.setattr(services, "_DISCOVERY_CACHE", {})
+    monkeypatch.setattr(services, "_HH_CONNECT_RETRY_AFTER", 0.0)
+    monkeypatch.setattr(services, "_HH_DISCOVERY_LOCK", asyncio.Lock())
     monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
     monkeypatch.setattr(services, "build_source_plan", lambda *a, **k: [
         SimpleNamespace(source_id=name, implemented=True) for name in sources
@@ -150,3 +152,105 @@ def test_hh_connect_error_is_silent_and_rechecked_after_cooldown(monkeypatch):
     asyncio.run(asyncio.sleep(0.06))
     asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
     assert calls.count("hh") == 1
+
+
+def test_hh_failure_invalidates_old_cache_so_next_scheduled_scan_probes(monkeypatch):
+    calls = []
+
+    class HH:
+        source_id = name = "hh"
+
+        async def discover(self, context):
+            calls.append("hh")
+            if len(calls) == 2:
+                raise httpx.ConnectError("offline")
+            return []
+
+    configure_scan(monkeypatch, {"hh": lambda *a: HH()})
+    alerts = AsyncMock()
+    monkeypatch.setattr(services, "notify_chat", alerts)
+    asyncio.run(services.scan_for_user(object(), 7))
+    assert any(key[0] == "hh" for key in services._DISCOVERY_CACHE)
+
+    asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    assert not any(key[0] == "hh" for key in services._DISCOVERY_CACHE)
+    monkeypatch.setattr(services, "_HH_CONNECT_RETRY_AFTER", 0.0)
+    summary = asyncio.run(services.scan_for_user(object(), 7))
+    assert calls == ["hh", "hh", "hh"]
+    assert summary["sources"]["hh"]["cache"] is False
+    alerts.assert_not_awaited()
+
+
+def test_concurrent_hh_failure_uses_one_probe_and_keeps_other_sources(monkeypatch):
+    calls = []
+
+    class Source:
+        def __init__(self, name):
+            self.source_id = self.name = name
+
+        async def discover(self, context):
+            calls.append(self.source_id)
+            if self.source_id == "hh":
+                await asyncio.sleep(0)
+                raise httpx.ConnectError("offline")
+            return []
+
+    configure_scan(monkeypatch, {
+        "hh": lambda *a: Source("hh"),
+        "remoteok": lambda: Source("remoteok"),
+    })
+    alerts = AsyncMock()
+    monkeypatch.setattr(services, "notify_chat", alerts)
+
+    async def concurrent_scans():
+        return await asyncio.gather(
+            services.scan_for_user(object(), 7, force_refresh=True),
+            services.scan_for_user(object(), 7, force_refresh=True),
+        )
+
+    summaries = asyncio.run(concurrent_scans())
+    assert calls.count("hh") == 1
+    assert calls.count("remoteok") == 2
+    assert all("skipped" in result["sources"]["hh"] for result in summaries)
+    assert all(result["sources"]["remoteok"]["found"] == 0 for result in summaries)
+    alerts.assert_not_awaited()
+
+
+def test_hh_recovery_between_profiles_retains_count_and_marks_partial(monkeypatch):
+    calls = []
+
+    class HH:
+        source_id = name = "hh"
+
+        async def discover(self, context):
+            calls.append("hh")
+            if len(calls) == 1:
+                raise httpx.ConnectError("offline")
+            return [NormalizedJob(source="hh", source_job_id="1", title="DevOps")]
+
+    configure_scan(monkeypatch, {"hh": lambda *a: HH()})
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={"queries": ["DevOps"]}))
+        return user, profile, searches
+
+    async def progress(text):
+        # Simulate a long scan where the cooldown expires before profile 2.
+        if "Relocation-first" in text:
+            monkeypatch.setattr(services, "_HH_CONNECT_RETRY_AFTER", 0.0)
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={"processed": 1}))
+    alerts = AsyncMock()
+    monkeypatch.setattr(services, "notify_chat", alerts)
+    summary = asyncio.run(services.scan_for_user(object(), 7, progress, force_refresh=True))
+
+    assert summary["sources"]["hh"]["found"] == 1
+    assert summary["sources"]["hh"]["partial"] is True
+    assert "skipped" not in summary["sources"]["hh"]
+    assert "skipped" in summary["searches"]["11"]["sources"]["hh"]
+    assert summary["searches"]["12"]["sources"]["hh"]["found"] == 1
+    assert summary["processed"] == 1
+    alerts.assert_not_awaited()

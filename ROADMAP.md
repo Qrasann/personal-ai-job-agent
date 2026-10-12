@@ -2,6 +2,17 @@
 
 Last reviewed: 2026-10-13
 
+Latest verified checkpoint: resumed clean `c829a5f`. Its startup scan completed
+at 21:53:38 UTC / 00:53:38 Moscow; Compose app and PostgreSQL are healthy.
+The local follow-up corrects HH skipped/partial summaries, serializes outage
+probes, invalidates stale HH caches and preserves counts on source recovery.
+Local candidate checks: 486 unit tests passed / 3 skipped, 489 PostgreSQL tests
+passed; compileall, secret scan and diff check passed. These changes are not
+deployed. Draft PR #18 remains at `f9ed986` with passing CI for that remote
+commit; later local work has no remote CI. Owner Telegram acceptance remains
+separate. See compact PROJECT_OS/BRIEF.md and HANDOFF.md for current state;
+the detailed milestones below retain historical evidence.
+
 ## Progress at a glance
 
 | Stage | Status | Completion criteria |
@@ -11,7 +22,7 @@ Last reviewed: 2026-10-13
 | v3.6 — candidate and vacancy fit | Next | Evidence-based required-skill, language, work-eligibility and salary comparisons; personal affordability remains private. |
 | v3.7 — application workspace | Planned | Tailored CVs and manually confirmed application stages. |
 | v3.8 — recruiter and interview support | Planned | Grounded drafts and practice from confirmed facts and requirements. |
-| v4.x — productization | Optional later | Dashboard/multi-user scope only after the personal workflow is useful. |
+| v4.x — agent and productization | Planned after personal workflow | Safe automation, multi-user/dashboard scope and monetization preparation after v3.5.7–v3.8 obligations. |
 
 The current v3.5.7 stage adds `/jobs career`, `/jobs relocation`, and
 `/jobs relocation below`. Each scoped list keeps its profile's own threshold
