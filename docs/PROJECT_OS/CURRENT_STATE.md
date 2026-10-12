@@ -1,6 +1,15 @@
 # Current State
 
 ## Latest state
+- **2026-10-12 — HeadHunter destination search:** commit `61fe39d` adds
+  country-scoped public HH searches across the current and selected markets.
+  Verified from HH's public area catalog: RU `113`, GE `28`; Armenia is not
+  listed and no area is guessed. Per-profile role queries and bounds are
+  preserved, cross-area duplicates are removed, and country metadata follows
+  the area-scoped request. Local tests: 430 passed, 3 skipped; isolated
+  PostgreSQL: 433 passed; compileall, secret scan, and diff check pass. Runtime
+  rebuild and Telegram acceptance remain pending. The preceding bootstrap
+  defaults are commit `00f1f0d`.
 - **2026-10-12 — Independent vacancy review:** Added scoped `/jobs
   career|relocation [below]`, `/job <id> career|relocation` and
   `/compare <id> career|relocation`. Each direction retains its own scores and
@@ -16,8 +25,8 @@
   window and `scan_all` completed at 01:37:50 Moscow. Telegram acceptance of
   the new commands remains pending. The
   roadmap identifies v3.5.7 as the active international-coverage stage.
-  Useful lower-barrier AM/GE coverage remains open; HH currently ignores
-  target-country areas. No score inflation, threshold reduction or publication.
+  Useful lower-barrier AM/GE coverage remains open. No score inflation,
+  threshold reduction or publication.
 - **2026-10-12 Moscow — Remotive remote-source stage:** the active local
   worktree adds the official Remotive Devops public feed, shared
   across profiles and active users with a once-per-24-hour cache persisted in

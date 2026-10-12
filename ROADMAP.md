@@ -23,9 +23,11 @@ Senior/Lead/Principal, experience and management requirements still apply.
 Still open in v3.5.7: useful local AM/GE employer coverage and live acceptance
 of the latest commands. Recent completed scans found no Relocation-first
 Good/Stretch results. Unknown eligibility remains unknown and the threshold
-stays at 65. HH currently searches the current-country area rather than the
-selected destinations; investigate bounded destination discovery next. An
-enabled source or HTTP 200 is not evidence of a usable opportunity.
+stays at 65. Local commit `61fe39d` adds bounded HH searches for official
+catalog areas RU `113` and GE `28`; Armenia is absent from HH's public catalog
+and remains the responsibility of other sources. Runtime/Telegram acceptance
+of this follow-up is pending. An enabled source or HTTP 200 is not evidence of
+a usable opportunity.
 
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.
