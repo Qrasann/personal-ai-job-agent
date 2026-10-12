@@ -43,6 +43,11 @@ content is not treated as verified employer eligibility or incorporated into
 the technical-only score. Telegram confirmation of `/job 1273` after rebuild
 remains pending.
 
+Compose `repo` was rebuilt at 00:14 Moscow on Oct 13 with both existing named
+volumes preserved. Source/runtime report 3.5.7, PostgreSQL is healthy, and
+startup `scan_all` completed at 21:15:52 UTC. One isolated HTTP `ConnectError`
+occurred during discovery; the scheduled scan completed successfully.
+
 ## 2026-10-12 — Separate current English level from technical reading
 
 Updated the candidate bootstrap template to store general English as B1 and

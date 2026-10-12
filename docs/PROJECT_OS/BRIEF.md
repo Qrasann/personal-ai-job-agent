@@ -10,8 +10,9 @@ the risk evidence explicitly says technical requirements only. Targeted tests:
 **37 passed**; full suite: **439 passed, 3 skipped**; isolated PostgreSQL:
 **442 passed**; compileall, secret scan and diff check passed. Commit `b42d47c`
 is local. Compose `repo` was rebuilt at 00:14 Moscow on Oct 13; app and
-PostgreSQL are healthy, startup scan has begun, and Telegram `/job 1273`
-confirmation remains next. Do not interpret technical fit as a full interview
+PostgreSQL are healthy, and startup `scan_all` completed at 21:15:52 UTC after
+one isolated `ConnectError`. Telegram `/job 1273` confirmation remains next.
+Do not interpret technical fit as a full interview
 probability or include unsupported education/language judgments.
 
 **Current checkpoint — 2026-10-12.** Reviewed the official Emerging Travel

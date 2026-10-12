@@ -10,8 +10,8 @@
   suite: 439 passed / 3 skipped; isolated PostgreSQL suite: 442 passed;
   compileall, secret scan and diff check passed. Commit `b42d47c` is local.
   Compose `repo` was rebuilt at 00:14 Moscow on Oct 13; app and PostgreSQL
-  report healthy, startup scan is running, and owner Telegram verification is
-  still pending.
+  report healthy; startup `scan_all` completed at 21:15:52 UTC after one
+  isolated `ConnectError`. Owner Telegram verification remains pending.
 - **2026-10-12 — Candidate English profile default:** corrected the AI
   job-bot bootstrap profile to use B1 as the current general self-assessment
   and retain B2 only for technical reading. Existing persisted profile facts
