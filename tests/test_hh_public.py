@@ -244,6 +244,79 @@ def test_hh_web_parser_keeps_card_text_for_seniority_signals():
 def test_hh_default_web_search_uses_three_pages():
     assert Settings.model_fields["hh_web_max_pages"].default == 3
 
+
+def test_hh_public_api_retries_one_transient_transport_failure(monkeypatch):
+    import httpx
+    from types import SimpleNamespace
+    from app.providers import hh as hh_provider
+
+    class FlakyClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def request(self, *_args, **_kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise httpx.ConnectError("temporary TLS/connect failure")
+            return SimpleNamespace(status_code=200, json=lambda: {"items": []})
+
+    client = FlakyClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(hh_provider.asyncio, "sleep", no_sleep)
+
+    result = asyncio.run(hh_provider.HHClient().search("DevOps"))
+
+    assert result == {"items": []}
+    assert client.calls == 2
+
+
+def test_hh_public_web_search_retries_one_transient_transport_failure(monkeypatch):
+    import httpx
+    from types import SimpleNamespace
+    from app.providers import hh as hh_provider
+
+    class FlakyClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def get(self, *_args, **_kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise httpx.ConnectError("temporary TLS/connect failure")
+            return SimpleNamespace(
+                status_code=200,
+                text='<div data-qa="vacancy-serp__vacancy"></div>',
+                url="https://hh.ru/search/vacancy",
+            )
+
+    client = FlakyClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(hh_provider.asyncio, "sleep", no_sleep)
+
+    html = asyncio.run(hh_provider.HHClient().search_web("DevOps"))
+
+    assert "vacancy-serp" in html
+    assert client.calls == 2
+
+
 class FakeHH403Paged:
     def __init__(self):
         self.api_calls = []

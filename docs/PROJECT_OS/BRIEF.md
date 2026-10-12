@@ -2,6 +2,23 @@
 
 Last updated: 2026-10-13 (Europe/Moscow)
 
+**Current checkpoint — 2026-10-13, HH transient-network resilience.** The
+owner noted recent Yandex data-center outages as a possible cause of HH
+connection failures. The latest Compose log confirms `source hh failed` on a
+TLS `httpx.ConnectError` during ordinary public `hh.ru` search; it does not
+prove Yandex caused that connection failure. Yandex has officially confirmed
+damage to two data centers and the public status dashboard reports unavailable
+zones. Added one bounded retry for transport errors on HH's public API and web
+search only. HTTP responses (including 403) and CAPTCHA checks are not retried;
+private applicant requests are unchanged. Targeted tests: **13 passed**; full
+local suite: **441 passed, 3 skipped**; isolated PostgreSQL suite: **444
+passed**; compileall, secret scan and diff check passed. Changes are being
+committed locally; the Compose app currently runs v3.5.7 from the previous
+build, PostgreSQL is healthy, and the source/runtime logs identify HH public
+search as the failing stage. Rebuild and verify its retry behavior next, then
+ask the owner to recheck `/jobs relocation`, `/jobs relocation below`, and
+`/job 1273` on the current bot. Do not infer eligibility or apply.
+
 **Current checkpoint — 2026-10-13.** Review of the Canonical Himalayas listing
 found a common requirements-heading gap that left technical requirements and
 interview-risk unknown. The parser now handles `What we are looking for`,

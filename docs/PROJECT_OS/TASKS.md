@@ -87,6 +87,15 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Add one bounded retry for transient transport failures in the public HH
+  API and web-search requests. This directly addresses the observed TLS
+  `ConnectError`; it does not assume Yandex is the cause. Do not retry HTTP
+  errors/CAPTCHA or change private applicant endpoints. Targeted HH tests: 13
+  passed; full local suite: 441 passed, 3 skipped; isolated PostgreSQL: 444
+  passed; compileall, secret scan and diff check passed.
+- [ ] Rebuild Compose `repo`, verify startup scan and a subsequent HH scan; the
+  current container is still from the previous source build. Preserve named
+  volumes.
 - [x] Recognize common remote-board requirement headings (`What we are
   looking for`, `What you'll bring`, `Nice-to-have skills`) so existing
   technical requirement coverage is not left unknown; label interview-risk

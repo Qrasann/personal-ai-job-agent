@@ -1,5 +1,32 @@
 # Handoff
 
+## Public HeadHunter transient-network retry — 2026-10-13
+
+The owner asked whether intermittent HH failures could be related to recent
+Yandex data-center outages. The latest local Compose log pinpoints
+`source hh failed` in public `hh.ru` vacancy search, failing while establishing
+TLS with `httpx.ConnectError`. Yandex's own Oct 9 announcement confirms damage
+and shutdown of its Sasovo data center and partial loss at Kaluga; this makes a
+network disruption plausible but does not establish that HH depends on those
+facilities ([Yandex update](https://www.yandex.com/company/news/2026-10-09),
+[Yandex Cloud status](https://status.yandex.cloud/ru/)). The observed request
+was a public-web search failure; an earlier
+HH API 403 correctly fell back to public search.
+
+The current code retries a public API/web search exactly once on
+`httpx.TransportError`. HTTP responses (403 included), CAPTCHA challenges and
+private applicant methods are not retried. Regression tests cover transient
+failure recovery in both public paths. Verification: targeted **13 passed**;
+full local **441 passed, 3 skipped**; isolated PostgreSQL **444 passed**;
+compileall, secret scan and `git diff --check` passed. This source change is
+not yet in the running Compose container. Next: commit, safely rebuild project
+`repo` without altering volumes, inspect startup and next scan logs, then ask
+the owner to verify `/jobs relocation`, `/jobs relocation below`, and
+`/job 1273` in Telegram. Preserve both search directions and the 65 threshold.
+No publication or application action is authorized.
+
+## Previous active stage — 2026-10-13
+
 ## Himalayas requirement-section parsing — 2026-10-13
 
 The owner previously shared `/job 1273` for Canonical's Associate Linux

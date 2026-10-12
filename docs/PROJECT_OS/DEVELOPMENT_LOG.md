@@ -1242,3 +1242,24 @@ features in v3.5.6; no retroactive tags are planned. Open v3.5.7 work remains
 useful Relocation-first coverage and live acceptance. The owner export was
 handled separately outside Git; no private candidate information was copied
 into this repository.
+# 2026-10-13 — Retry transient public HeadHunter search failures
+
+The owner suggested that a recent `ConnectError` could coincide with Yandex
+data-center outages. The current Compose log confirms the failure arose during
+TLS connection setup for `hh.ru` public-web search. Yandex's Oct 9 statement
+confirms damage to its Sasovo and Kaluga data centers; this establishes a
+plausible network context but does not prove a direct HH/Yandex dependency.
+References: [Yandex's data-center update](https://www.yandex.com/company/news/2026-10-09)
+and [Yandex Cloud status dashboard](https://status.yandex.cloud/ru/).
+
+Added one retry after `httpx.TransportError` for the public HH API search and
+public web-search request paths. HTTP status responses, including the API's
+403 fallback trigger, and CAPTCHA detection are untouched. No private
+applicant endpoint behavior changed. Regressions exercise each transport path.
+
+Verification: 13 targeted tests; full local suite 441 passed / 3 skipped;
+isolated PostgreSQL suite 444 passed; compileall, secret scan and
+`git diff --check` passed. The deployed Compose app still runs the prior 3.5.7
+image until rebuild; PostgreSQL is healthy and volumes remain untouched.
+Rebuild, inspect startup scan logs, then leave owner Telegram acceptance of
+the relocation lists and Canonical technical-risk card open.

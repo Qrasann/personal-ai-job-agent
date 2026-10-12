@@ -1,6 +1,11 @@
-from urllib.parse import urlparse
+import asyncio
+import logging
 import httpx
+from urllib.parse import urlparse
+
 from app.config import settings
+
+log = logging.getLogger(__name__)
 
 
 class HHError(RuntimeError):
@@ -22,6 +27,7 @@ class HHPrivateAPIUnavailable(HHError):
 class HHClient:
     base_url = "https://api.hh.ru"
     web_base_url = "https://hh.ru"
+    public_search_retries = 1
 
     def __init__(self) -> None:
         self.headers = {
@@ -43,11 +49,31 @@ class HHClient:
                 "а отклик/чаты выполняются вручную через сайт HH."
             )
 
+    async def _public_search_request(self, request, *args, **kwargs):
+        """Retry one public search request on transient transport failures only."""
+        for attempt in range(self.public_search_retries + 1):
+            try:
+                return await request(*args, **kwargs)
+            except httpx.TransportError as exc:
+                if attempt >= self.public_search_retries:
+                    raise
+                log.warning(
+                    "HH public-search transport failure (%s); retry %s/%s",
+                    type(exc).__name__, attempt + 1, self.public_search_retries,
+                )
+                await asyncio.sleep(0.5)
+
     async def _request(self, method: str, url: str, **kwargs) -> httpx.Response:
         if url.startswith("/"):
             url = self.base_url + url
         async with httpx.AsyncClient(timeout=30, follow_redirects=False) as client:
-            response = await client.request(method, url, headers=self.headers, **kwargs)
+            request = client.request
+            if method.upper() == "GET" and url == f"{self.base_url}/vacancies":
+                response = await self._public_search_request(
+                    request, method, url, headers=self.headers, **kwargs
+                )
+            else:
+                response = await request(method, url, headers=self.headers, **kwargs)
         if response.status_code >= 400:
             try:
                 body = response.json()
@@ -100,7 +126,12 @@ class HHClient:
             "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.7",
         }
         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-            response = await client.get(f"{self.web_base_url}/search/vacancy", params=params, headers=headers)
+            response = await self._public_search_request(
+                client.get,
+                f"{self.web_base_url}/search/vacancy",
+                params=params,
+                headers=headers,
+            )
         text_body = response.text
         folded = text_body.casefold()
         final_url = str(response.url).casefold()
