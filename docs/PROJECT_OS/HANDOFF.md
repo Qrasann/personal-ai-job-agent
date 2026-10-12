@@ -1,5 +1,26 @@
 # Handoff
 
+## Current in-progress stage — quiet HH ConnectError handling
+
+The owner requested that repeated HeadHunter `ConnectError` warnings stop
+arriving in Telegram while other sources continue to scan. Source-level HH
+`ConnectError` is now recorded as skipped and does not call `notify_chat`. A
+15-minute process-local cooldown suppresses redundant HH attempts across the
+two profile scans; a later scan retries after expiry. Other HH transport
+failures retain their bounded retry, and errors from other adapters still send
+the existing warning. Regression coverage verifies the no-alert path, one HH
+attempt across two profiles, and a new attempt after cooldown expiry. Targeted
+tests: **18 passed**; unit suite: **444 passed, 3 skipped**; isolated
+PostgreSQL: **447 passed**; compileall, secret scan and diff check passed.
+Compose `repo` rebuilt at 00:52 Moscow; runtime 3.5.7 is up and PostgreSQL
+healthy. The startup scan is still running. Its inspected initial log window
+shows HH public-web fallback and successful requests from other providers;
+this run did not reproduce a `ConnectError`, so runtime Telegram silence is
+covered by regression tests rather than a live failure. Next: inspect scan
+completion if available, commit, then continue the roadmap. Keep the prior
+manual `jobs.ss.ge` link stage and its pending owner `/sources` confirmation
+documented. Do not push, merge, or release.
+
 ## Current in-progress stage — Georgian manual vacancy portal
 
 Added `jobs.ss.ge` to the Georgia manual-source catalog so the owner can
@@ -9,8 +30,8 @@ verified; it is not enabled in scan execution or source toggles. The listing
 site is primarily Georgian-language, so each posting's language and eligibility
 conditions need manual review. Targeted source tests: **5 passed**; full suite:
 **443 passed, 3 skipped**; isolated PostgreSQL suite: **446 passed**;
-compileall, secret scan and diff check passed. Compose rebuild and Telegram
-`/sources` confirmation remain pending.
+compileall, secret scan and diff check passed. Compose `repo` was rebuilt at
+00:47 Moscow; owner Telegram `/sources` confirmation remains pending.
 
 ## Current in-progress change — skip HH ConnectError
 

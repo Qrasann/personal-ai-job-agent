@@ -6,11 +6,12 @@ Automated extraction remains off because a reusable API/permission was not
 verified. Targeted source tests pass; full validation and deployed Telegram
 confirmation remain open.
 
-Latest operational improvement in progress: public HH `ConnectError` is now
-skipped immediately so a failing HH request does not consume a retry before
-other sources finish. Other transport errors keep their existing bounded
-retry; verification and deployment are pending. This changes source resilience,
-not the matching/ranking roadmap.
+Latest operational improvement in progress: public HH `ConnectError` is
+silently skipped in Telegram, other sources continue, and a 15-minute
+cooldown ensures HH is periodically probed without duplicate profile attempts.
+Other provider errors remain visible; HH's other transport errors retain their
+bounded retry. Tests pass; Compose rebuild/runtime verification and commit are
+pending. This changes source resilience, not the matching/ranking roadmap.
 
 The canonical roadmap is maintained at the repository root:
 [ROADMAP.md](../../ROADMAP.md).

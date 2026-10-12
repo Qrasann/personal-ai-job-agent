@@ -20,6 +20,26 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Silently skip HH ConnectError and retry periodically
+
+The owner clarified that a HeadHunter `ConnectError` warning must not be sent
+to Telegram. Scan-level source handling now logs it locally, records it as a
+skipped source, and continues other adapters without a chat alert. A
+process-local 15-minute cooldown prevents the second search profile from
+repeating the failed request and lets the next scheduled/manual scan probe HH
+again after the cooldown. Other provider errors still generate their existing
+warning. The HH-only bounded retry behavior for other transport errors remains
+unchanged. Regression coverage checks silence, cross-profile cooldown, and
+recheck after expiry. Targeted suite: **18 passed**; local suite: **444 passed,
+3 skipped**; isolated PostgreSQL suite: **447 passed**; compileall, secret scan
+and diff check passed. Compose `repo` rebuilt at 00:52 Moscow; runtime 3.5.7
+is up and PostgreSQL healthy. The startup scan reproduced one HH
+`ConnectError`: the app logged a single cooldown warning, sent no source-error
+chat notification, and proceeded with the next profile and other providers.
+Himalayas, Remote OK, Arbeitnow, Job Bank, EURES, Greenhouse, Lever and HR.ge
+returned successful responses in the inspected window. The full startup scan
+had not completed at this log check. Commit remains pending; no publication.
+
 ## 2026-10-13 — Add Georgian lower-barrier manual job portal
 
 The local-market audit found `jobs.ss.ge`, a Georgian-language vacancy board

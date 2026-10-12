@@ -47,6 +47,8 @@ REMOTIVE_CACHE_TTL_SECONDS = 24 * 60 * 60
 LEVER_CACHE_TTL_SECONDS = 6 * 60 * 60
 DISCOVERY_CONCURRENCY = 3
 DISCOVERY_TIMEOUT_SECONDS = 180
+HH_CONNECT_RECHECK_SECONDS = 15 * 60
+_HH_CONNECT_RETRY_AFTER = 0.0
 # v3 forces one refresh after switching from the ignored API filter to RSS.
 REMOTIVE_STATE_KEY = "source_cache.remotive.v3"
 _REMOTIVE_PAYLOAD_CACHE: tuple[float, dict] | None = None
@@ -304,6 +306,7 @@ def _error_text(exc: Exception) -> str:
 
 
 async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False) -> dict:
+    global _HH_CONNECT_RETRY_AFTER
     summary = {"sources": {}, "searches": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     async def emit_progress(text: str) -> None:
         if not progress_callback:
@@ -371,6 +374,9 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
         semaphore = asyncio.Semaphore(DISCOVERY_CONCURRENCY)
 
         async def discover(adapter):
+            global _HH_CONNECT_RETRY_AFTER
+            if adapter.source_id == "hh" and time.monotonic() < _HH_CONNECT_RETRY_AFTER:
+                return adapter, [], False, None, 0, True
             cache_key = (
                 adapter.source_id,
                 tuple(sorted(str(x).casefold() for x in queries)),
@@ -388,7 +394,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 and (not force_refresh or adapter.source_id in {"himalayas", "remotive"})
             )
             if cache_hit:
-                return adapter, cached[1], True, None, 0
+                return adapter, cached[1], True, None, 0, False
             started = time.monotonic()
             try:
                 async with semaphore:
@@ -403,15 +409,21 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 # A context-specific projection must expire with its provider
                 # response, including when that response came from disk.
                 _DISCOVERY_CACHE[cache_key] = (fetched_mono, jobs)
-                return adapter, jobs, source_cache_hit, None, int((time.monotonic() - started) * 1000)
+                if adapter.source_id == "hh":
+                    _HH_CONNECT_RETRY_AFTER = 0.0
+                return adapter, jobs, source_cache_hit, None, int((time.monotonic() - started) * 1000), False
             except Exception as exc:
-                return adapter, [], False, exc, int((time.monotonic() - started) * 1000)
+                return adapter, [], False, exc, int((time.monotonic() - started) * 1000), False
 
         for adapter in adapters:
             await emit_progress(f"⏳ {search.name} · {adapter.name}: подготовка поиска…")
 
         discovered = await asyncio.gather(*(discover(adapter) for adapter in adapters))
-        for adapter, jobs, cache_hit, discovery_error, duration_ms in discovered:
+        for adapter, jobs, cache_hit, discovery_error, duration_ms, skipped in discovered:
+            if skipped:
+                search_summary["sources"][adapter.source_id] = {"skipped": "connection cooldown", "duration_ms": 0}
+                summary["sources"].setdefault(adapter.source_id, {"skipped": "connection cooldown", "duration_ms": 0})
+                continue
             try:
                 if discovery_error:
                     raise discovery_error
@@ -433,11 +445,24 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                     if index % 5 == 0 or index == len(jobs):
                         await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
             except Exception as exc:
-                log.exception("source %s failed for search %s", adapter.source_id, search.id)
+                silent_hh_connect_error = (
+                    discovery_error is exc
+                    and adapter.source_id == "hh"
+                    and isinstance(exc, httpx.ConnectError)
+                )
+                if silent_hh_connect_error:
+                    _HH_CONNECT_RETRY_AFTER = time.monotonic() + HH_CONNECT_RECHECK_SECONDS
+                    log.warning("source hh connection failed; skipping for %d seconds", HH_CONNECT_RECHECK_SECONDS)
+                else:
+                    log.exception("source %s failed for search %s", adapter.source_id, search.id)
                 error = _error_text(exc)
-                search_summary["sources"][adapter.source_id] = {"error": error, "duration_ms": duration_ms}
-                summary["sources"].setdefault(adapter.source_id, {"error": error, "duration_ms": duration_ms})
-                await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(error)}")
+                if silent_hh_connect_error:
+                    search_summary["sources"][adapter.source_id] = {"skipped": "ConnectError", "duration_ms": duration_ms}
+                    summary["sources"].setdefault(adapter.source_id, {"skipped": "ConnectError", "duration_ms": duration_ms})
+                else:
+                    search_summary["sources"][adapter.source_id] = {"error": error, "duration_ms": duration_ms}
+                    summary["sources"].setdefault(adapter.source_id, {"error": error, "duration_ms": duration_ms})
+                    await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(error)}")
     return summary
 
 

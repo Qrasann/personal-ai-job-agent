@@ -2,16 +2,31 @@
 
 Last updated: 2026-10-13 (Europe/Moscow)
 
+**Latest active change — quiet HH outage handling.** Public HH
+`httpx.ConnectError` now becomes a silent source skip in Telegram. The bot
+allows other providers to finish and probes HH again after a 15-minute
+cooldown (the normal scheduled scan interval), including once for both profiles
+combined. Other HH transport errors keep their bounded retry; non-HH provider
+errors keep their existing Telegram warning. Regression test proves no HH
+alert, no duplicate per-profile request during cooldown, and recheck after
+expiry. Targeted suite: **18 passed**; full suite: **444 passed, 3 skipped**;
+isolated PostgreSQL suite: **447 passed**; compileall, secret scan and diff
+check passed. Commit is pending. Compose `repo` rebuilt at 00:52 Moscow,
+runtime 3.5.7 is up, and PostgreSQL is healthy. The startup scan is running;
+the inspected initial log window shows HH's ordinary web fallback and other
+providers returning HTTP 200. This run did not reproduce HH `ConnectError`, so
+Telegram silence is verified by regression tests rather than a live failure.
+
 **Latest discovery checkpoint — Georgia manual job search.** Added a
 market-scoped `jobs.ss.ge` link-only entry to `/sources`. It provides a broad
 Georgian vacancy catalog including lower-barrier roles, but a reusable public
 API and permission for automated collection were not verified. It is excluded
 from adapters and scan execution. Targeted source tests: **5 passed**; full
 suite: **443 passed, 3 skipped**; isolated PostgreSQL suite: **446 passed**;
-compileall, secret scan and diff check passed. Compose rebuild and Telegram
-rendering check remain pending.
+compileall, secret scan and diff check passed. Compose `repo` was rebuilt at
+00:47 Moscow; owner Telegram `/sources` rendering confirmation remains pending.
 
-**Latest checkpoint — HH connection-error handling, 2026-10-13.** The owner
+**Previous checkpoint — HH connection-error handling, 2026-10-13.** The owner
 asked to skip HeadHunter immediately when public search raises `httpx.ConnectError`
 and continue other sources. HH now raises that error without retrying; scan-level
 isolation records the HH failure while unrelated adapters continue. Other

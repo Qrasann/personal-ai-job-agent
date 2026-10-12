@@ -87,12 +87,24 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] On HH public `ConnectError`, skip without Telegram notification and
+  continue other sources. Suppress duplicate attempts across search profiles
+  for 15 minutes, then probe HH again on a later scan. Non-HH source errors
+  retain existing alerts. Regression test covers silent skip, profile cooldown,
+  and retry after expiry. Targeted tests: 18 passed; unit suite: 444 passed,
+  3 skipped; isolated PostgreSQL suite: 447 passed; compileall, secret scan
+  and diff check pass. Compose `repo` rebuilt at 00:52 Moscow; runtime 3.5.7
+  is up and PostgreSQL healthy. The startup scan is in progress; the inspected
+  initial window shows HH's ordinary web fallback and other providers returning
+  HTTP 200. This run did not reproduce `ConnectError`, so the silent failure
+  path is verified by regression tests, not live Telegram. Commit remains open.
 - [x] Add jobs.ss.ge as a selected-Georgia manual-search destination after
   confirming that it exposes broad vacancy listings but no verified reusable
   public API or automated-collection permission. Keep it link-only. Targeted
   source tests: 5 passed; full suite: 443 passed, 3 skipped; isolated
   PostgreSQL suite: 446 passed; compileall, secret scan and diff check passed.
-  Rebuild and Telegram check remain pending.
+  Compose was rebuilt at 00:47 Moscow; owner `/sources`
+  rendering confirmation remains pending.
 - [x] Skip HH immediately on public-search `httpx.ConnectError`; let source
   isolation finish other feeds. Keep the single retry for other transient
   transport errors. Targeted tests: 15 passed; full suite: 443 passed, 3

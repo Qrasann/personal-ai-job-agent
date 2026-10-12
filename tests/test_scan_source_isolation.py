@@ -2,6 +2,8 @@ import asyncio
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import httpx
+
 from app import services
 from app.domain.jobs import NormalizedJob
 
@@ -104,3 +106,47 @@ def test_ingestion_respects_source_priority_when_discovery_finishes_out_of_order
     assert discovered == ["hh", "arbeitnow", "remoteok"]
     assert matched == ["remoteok", "arbeitnow", "hh"]
     assert summary["processed"] == 3
+
+
+def test_hh_connect_error_is_silent_and_rechecked_after_cooldown(monkeypatch):
+    calls = []
+    alerts = AsyncMock()
+
+    class Source:
+        def __init__(self, name, *args):
+            self.source_id = self.name = name
+
+        async def discover(self, context):
+            calls.append(self.source_id)
+            if self.source_id == "hh":
+                raise httpx.ConnectError("temporary connection failure")
+            return []
+
+    configure_scan(monkeypatch, {
+        "hh": lambda *a: Source("hh"),
+        "remoteok": lambda: Source("remoteok"),
+    })
+    monkeypatch.setattr(services, "_HH_CONNECT_RETRY_AFTER", 0.0)
+    monkeypatch.setattr(services, "notify_chat", alerts)
+    monkeypatch.setattr(services, "HH_CONNECT_RECHECK_SECONDS", 0.05)
+
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={"queries": ["DevOps"]}))
+        return user, profile, searches
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert calls.count("hh") == 1
+    assert calls.count("remoteok") == 2
+    assert alerts.await_count == 0
+    assert summary["sources"]["hh"]["skipped"] == "ConnectError"
+    assert summary["searches"]["12"]["sources"]["hh"]["skipped"] == "connection cooldown"
+
+    calls.clear()
+    asyncio.run(asyncio.sleep(0.06))
+    asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    assert calls.count("hh") == 1
