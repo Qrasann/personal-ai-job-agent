@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+from app.domain.job_text import clean_html_text
 from app.matching.fact_comparison import (
     compare_facts,
     extract_requirement_importance,
@@ -44,6 +45,26 @@ def test_extracts_canonical_devops_requirements_without_duplicates():
     assert "Grafana" in skills
     assert "GitLab CI" in skills
     assert len(skills) == len(set(skills))
+
+
+def test_recognizes_common_remote_job_board_requirement_headings():
+    text = clean_html_text(
+        """
+        &lt;h3&gt;What we are looking for in you&lt;/h3&gt;
+        &lt;ul&gt;
+        &lt;li&gt;Experience with Linux troubleshooting&lt;/li&gt;
+        &lt;li&gt;Bash scripting and networking&lt;/li&gt;
+        &lt;/ul&gt;
+        &lt;h3&gt;Nice-to-have skills&lt;/h3&gt;
+        &lt;p&gt;Kubernetes&lt;/p&gt;
+        """
+    )
+
+    importance = extract_requirement_importance(text)
+
+    assert importance["Linux"] == "required"
+    assert importance["Bash"] == "required"
+    assert importance["Kubernetes"] == "preferred"
 
 
 def test_comparison_preserves_candidate_fact_experience_types():

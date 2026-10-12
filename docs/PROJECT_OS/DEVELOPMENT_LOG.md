@@ -20,6 +20,29 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Recognize remote-board requirement sections
+
+Reviewing the Himalayas Canonical Associate Linux Support Engineer card
+showed that the source's `What we are looking for in you` heading was not
+recognized. The technical requirement score and interview-risk dimension
+therefore fell back to unknown despite visible Linux and Bash requirements.
+The deterministic section parser now recognizes common `What we are looking
+for`, `What you'll bring`, and `Nice-to-have skills` headings, including
+curly apostrophes. The interview-risk evidence now states explicitly that its
+coverage is for technical requirements only; non-technical education and
+language conditions remain outside that score.
+
+Regression coverage uses escaped HTML like the source payload and a score-level
+case with required and preferred skills. Targeted tests: **37 passed**; full
+unit suite: **439 passed, 3 skipped**; isolated PostgreSQL suite: **442
+passed**. `compileall`, secret scan, and `git diff --check` passed. The live
+Himalayas page currently lists the Canonical role's deadline as Nov 19, 2026,
+claims all-country hiring scope, and separately states a bachelor's degree or
+an alternative narrative plus strong written and spoken English; this source
+content is not treated as verified employer eligibility or incorporated into
+the technical-only score. Telegram confirmation of `/job 1273` after rebuild
+remains pending.
+
 ## 2026-10-12 — Separate current English level from technical reading
 
 Updated the candidate bootstrap template to store general English as B1 and

@@ -56,6 +56,13 @@ commit `432d44c`; the B1/general and B2/technical-reading distinction is
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.
 
+The 2026-10-13 review of Canonical's Himalayas card found an unrecognized
+required-skills heading. Parsing now recognizes common remote-board requirement
+sections, and the interview-risk dimension describes technical requirement
+coverage explicitly. Education and language evidence remain separate and
+unscored. Full unit and isolated PostgreSQL suites pass; rebuild and live card
+confirmation remain before closing this small result-quality item.
+
 ## Latest release — v3.5.6
 
 The `main` branch and latest formal GitHub tag/release are v3.5.6. Changelog

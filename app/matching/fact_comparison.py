@@ -178,6 +178,10 @@ _REQUIRED_HEADINGS = (
     "мы ожидаем",
     "необходимо",
     "requirements",
+    "what we are looking for",
+    "what we are looking for in you",
+    "what you'll bring",
+    "what you bring",
     "must have",
     "must-have",
     "required",
@@ -194,6 +198,8 @@ _PREFERRED_HEADINGS = (
     "желательные требования",
     "nice to have",
     "nice-to-have",
+    "nice to have skills",
+    "nice-to-have skills",
     "preferred",
     "preferred qualifications",
     "bonus",
@@ -227,6 +233,9 @@ def _match_section_heading(
     line: str,
     headings: tuple[str, ...],
 ) -> tuple[bool, str]:
+    # Preserve common typographic apostrophes used by job boards while
+    # matching against the canonical ASCII heading variants.
+    line = line.replace("’", "'").replace("‘", "'")
     for heading in headings:
         match = re.match(
             rf"^\s*{re.escape(heading)}\s*(?:[:.\-–—]\s*(.*))?\s*$",

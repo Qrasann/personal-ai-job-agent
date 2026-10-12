@@ -1,6 +1,15 @@
 # Current State
 
 ## Latest state
+- **2026-10-13 — Himalayas requirement-section parsing:** Job Agent now
+  recognizes common `What we are looking for`, `What you'll bring`, and
+  `Nice-to-have skills` sections (including typographic apostrophes). This
+  fixes the Canonical `/job 1273` technical requirement/interview-risk
+  fallback. The risk evidence names its technical-only scope; education and
+  language requirements remain unscored. Targeted suite: 37 passed; full unit
+  suite: 439 passed / 3 skipped; isolated PostgreSQL suite: 442 passed;
+  compileall, secret scan and diff check passed. Rebuild is next, followed by
+  owner Telegram verification.
 - **2026-10-12 — Candidate English profile default:** corrected the AI
   job-bot bootstrap profile to use B1 as the current general self-assessment
   and retain B2 only for technical reading. Existing persisted profile facts

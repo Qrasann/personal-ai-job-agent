@@ -82,4 +82,31 @@ def test_interview_risk_uses_singular_necessary_qualification_in_encoded_html():
     assert result.recommendation_scores["interview_risk"]["score"] is not None
     assert result.technical_score == 42
     assert result.recommendation_scores["interview_risk"]["score"] == 58
-    assert "явное покрытие обязательных требований" in result.recommendation_scores["interview_risk"]["evidence"]
+    assert "покрытие технических обязательных требований" in result.recommendation_scores["interview_risk"]["evidence"]
+
+
+def test_himalayas_style_required_heading_produces_technical_only_interview_signal():
+    job = Job(
+        fingerprint="rec-himalayas-requirements",
+        title="Associate Linux Support Engineer",
+        company="Canonical",
+        description=(
+            "What we are looking for in you\n"
+            "Experience with Linux troubleshooting\n"
+            "Knowledge of Bash and networking\n"
+            "Nice-to-have skills\nKubernetes"
+        ),
+        country="",
+        work_mode="remote",
+    )
+    facts = [
+        CandidateFact(profile_id=1, value="Commercial Linux system administration"),
+        CandidateFact(profile_id=1, value="Bash scripting", experience_type="commercial"),
+    ]
+
+    result = score_job(job, _search(), facts, [])
+
+    assert result.recommendation_scores["interview_risk"]["score"] == 55
+    assert result.recommendation_scores["interview_risk"]["evidence"] == (
+        "покрытие технических обязательных требований; fit=good"
+    )

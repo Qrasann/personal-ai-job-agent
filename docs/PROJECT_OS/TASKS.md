@@ -87,6 +87,13 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Recognize common remote-board requirement headings (`What we are
+  looking for`, `What you'll bring`, `Nice-to-have skills`) so existing
+  technical requirement coverage is not left unknown; label interview-risk
+  evidence as technical-only. Targeted suite 37 passed, local suite 439/3
+  skipped, isolated PostgreSQL suite 442 passed; compileall, secret scan and
+  diff check passed. Telegram `/job 1273` confirmation after rebuild remains
+  open.
 - [x] Keep the candidate's current self-assessed general English at B1 and
   retain B2 only as a technical-reading estimate in the fresh-profile defaults.
   Add regression coverage; do not overwrite facts on existing profiles.

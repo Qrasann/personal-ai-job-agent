@@ -1,5 +1,33 @@
 # Handoff
 
+## Himalayas requirement-section parsing — 2026-10-13
+
+The owner previously shared `/job 1273` for Canonical's Associate Linux
+Support Engineer. Checking the live Himalayas listing showed requirement
+sections headed `What we are looking for in you`, along with a separate
+`Nice-to-have skills` section. The parser recognized neither structure, so
+technical requirement coverage and the interview-risk dimension were shown as
+unknown. The parser now classifies common `What we are looking for`,
+`What you'll bring`, and `Nice-to-have skills` headings; ASCII and curly
+apostrophes are accepted. A regression mirrors the escaped-HTML source shape,
+and a score-level test verifies required versus preferred classification.
+
+The interview-risk evidence is now explicitly labelled as technical
+requirements coverage. It does not assess education, general English,
+communication, background checks, or every other interview condition. The
+Himalayas listing currently says all-country scope and a Nov 19, 2026 apply
+deadline; its own text also requests either a bachelor's degree or a compelling
+alternative path and strong written/verbal English. Those are source claims
+to verify with the employer and are not added to the technical score.
+
+Verification: targeted tests **37 passed**; full unit suite **439 passed, 3
+skipped**; isolated PostgreSQL suite **442 passed**; compileall, secret scan,
+and `git diff --check` passed. The running Compose app is on source/runtime
+3.5.7 with healthy PostgreSQL; rebuild the app after commit, preserving both
+named volumes, then ask the owner to reopen `/job 1273` and verify technical
+interview-risk is populated while nontechnical conditions remain separate.
+Do not apply or send any application.
+
 ## Candidate English bootstrap default — 2026-10-12
 
 The tracked fresh-profile template previously said `english: B2`, which
