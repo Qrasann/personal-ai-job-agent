@@ -65,7 +65,8 @@ candidate:
     - DevOps Engineer
     - Infrastructure Engineer
     - Linux Administrator
-  english: B2
+  english: B1 # Current self-assessed general working English level.
+  technical_reading_english: B2 # Historical technical-reading estimate only; not a speaking/interview score.
   hh_resume_id: null
   facts:
     - More than two years of system administration experience with Windows and Linux.

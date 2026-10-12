@@ -1,5 +1,17 @@
 # Handoff
 
+## Candidate English bootstrap default — 2026-10-12
+
+The tracked fresh-profile template previously said `english: B2`, which
+collapsed the owner's current general self-assessment (B1) with a separate
+technical-reading estimate (B2). The current work changes the default to
+`english: B1` and records `technical_reading_english: B2`. Bootstrap currently
+does not use these language fields to rewrite an existing profile, and its
+candidate facts continue to be inserted only when none exist. A regression
+asserts the split. Targeted tests: 3 passed; full suite: 437 passed, 3 skipped;
+compileall, secret scan and diff check pass. Commit this small correction.
+The existing Telegram/runtime user profile remains intact.
+
 ## Emerging Travel Group official AM/GE lead — 2026-10-12
 
 The current Emerging Travel Group careers page lists a remote Junior DevOps

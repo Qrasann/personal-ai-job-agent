@@ -87,6 +87,9 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Keep the candidate's current self-assessed general English at B1 and
+  retain B2 only as a technical-reading estimate in the fresh-profile defaults.
+  Add regression coverage; do not overwrite facts on existing profiles.
 - [x] Check the official Emerging Travel Group Junior DevOps listing and
   Workable's documented public jobs endpoint. The role currently names AM/GE,
   remote, 1.5+ years commercial DevOps, six months Kubernetes, and English

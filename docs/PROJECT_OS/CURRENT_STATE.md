@@ -1,6 +1,12 @@
 # Current State
 
 ## Latest state
+- **2026-10-12 — Candidate English profile default:** corrected the AI
+  job-bot bootstrap profile to use B1 as the current general self-assessment
+  and retain B2 only for technical reading. Existing persisted profile facts
+  are not overwritten by bootstrap. Targeted bootstrap tests: 3 passed; full
+  suite: 437 passed, 3 skipped; compileall, secret scan, and diff check pass.
+  Local commit remains pending.
 - **2026-10-12 — ETG official AM/GE lead:** the official Emerging Travel Group
   site currently lists a remote Junior DevOps Engineer opening with Armenia
   and Georgia among available locations. It requires 1.5+ years commercial

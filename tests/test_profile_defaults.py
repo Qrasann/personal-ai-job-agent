@@ -10,6 +10,8 @@ def test_ai_job_bot_defaults_keep_georgia_and_armenia_parallel():
     geography = config["geography"]
     assert geography["target_countries"] == ["GE", "AM"]
     assert geography["relocation_countries"] == ["GE", "AM"]
+    assert config["candidate"]["english"] == "B1"
+    assert config["candidate"]["technical_reading_english"] == "B2"
     assert config["search"]["relocation_queries"] == [
         "warehouse worker",
         "production worker",

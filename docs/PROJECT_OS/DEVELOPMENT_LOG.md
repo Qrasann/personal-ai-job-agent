@@ -20,6 +20,15 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-12 — Separate current English level from technical reading
+
+Updated the candidate bootstrap template to store general English as B1 and
+retain B2 as a technical-reading estimate, matching the owner's current
+self-assessment and earlier distinction. Bootstrap does not consume either
+language key to overwrite persisted candidate data. Added a configuration
+regression. Targeted tests: 3 passed; full suite: 437 passed, 3 skipped;
+compileall, secret scan, and diff check passed. The commit is pending.
+
 ## 2026-10-12 — Emerging Travel Group manual AM/GE lead
 
 Reviewed the official Emerging Travel Group posting for Junior DevOps
