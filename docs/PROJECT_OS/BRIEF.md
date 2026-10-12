@@ -35,8 +35,8 @@ citizen's individual hiring, visa, or right-to-work eligibility. Local commit
 
 Both this lead and the English bootstrap correction are committed locally:
 `432d44c` (ETG manual lead) and `8ca977f` (English distinction). Current
-branch is 13 commits ahead of its configured upstream and remains local;
-no publication is authorized. The last verified container rebuild predates
+branch remains local and unpublished; no publication is authorized. The last
+verified container rebuild predates
 this checkpoint; a fresh Docker status check is still needed because sandbox
 access to the Docker socket was denied.
 
