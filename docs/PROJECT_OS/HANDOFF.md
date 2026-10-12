@@ -9,7 +9,7 @@ technical-reading estimate (B2). The current work changes the default to
 does not use these language fields to rewrite an existing profile, and its
 candidate facts continue to be inserted only when none exist. A regression
 asserts the split. Targeted tests: 3 passed; full suite: 437 passed, 3 skipped;
-compileall, secret scan and diff check pass. Commit this small correction.
+compileall, secret scan and diff check pass. Committed locally as `8ca977f`.
 The existing Telegram/runtime user profile remains intact.
 
 ## Emerging Travel Group official AM/GE lead — 2026-10-12
@@ -30,7 +30,8 @@ for both selected markets; it does not enter toggles or scans. Targeted tests:
 5 passed; full unit suite: 437 passed, 3 skipped; compileall, secret scan, and
 diff check passed. Compose `repo` rebuilt at 21:37 Moscow, PostgreSQL stayed
 healthy, and startup scan completed at 21:38:46 UTC. One isolated HH search
-logged a transient `ConnectError`; scheduler scan completed. Commit is pending.
+logged a transient `ConnectError`; scheduler scan completed. Commit:
+`432d44c`.
 
 The Telegram `/jobs relocation` output shared at 21:13 Moscow time showed a
 Tyumen onsite job, but it predates the 21:26 rebuild that introduced the

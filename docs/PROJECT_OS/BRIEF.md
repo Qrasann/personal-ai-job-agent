@@ -1,6 +1,6 @@
 # Codex Brief
 
-Last updated: 2026-10-12 (Europe/Moscow)
+Last updated: 2026-10-13 (Europe/Moscow)
 
 **Current checkpoint — 2026-10-12.** Reviewed the official Emerging Travel
 Group Junior DevOps opening: it names Armenia and Georgia as available remote
@@ -18,14 +18,21 @@ PostgreSQL stayed healthy and startup scan completed at 21:38:46 UTC. The scan
 logged one transient HeadHunter `ConnectError` for search 2 and completed
 successfully with source isolation. The role is not evidence of a Russian
 citizen's individual hiring, visa, or right-to-work eligibility. Local commit
-is pending; Telegram post-filter list confirmation remains pending.
+`432d44c`; Telegram post-filter list confirmation remains pending.
+
+Both this lead and the English bootstrap correction are committed locally:
+`432d44c` (ETG manual lead) and `8ca977f` (English distinction). Current
+branch is nine commits ahead of its configured upstream and remains local;
+no publication is authorized. The last verified container rebuild predates
+this checkpoint; a fresh Docker status check is still needed because sandbox
+access to the Docker socket was denied.
 
 The AI job-bot bootstrap profile now records general self-assessed English as
 B1 and keeps B2 only as a technical-reading estimate. Bootstrap does not use
 either language field to overwrite persisted candidate data. A regression
 test covers the distinction. Targeted bootstrap tests: **3 passed**; full suite:
 **437 passed, 3 skipped**; compileall, secret scan, and diff check pass. The
-follow-up commit is pending.
+follow-up commit is `8ca977f`.
 
 **Current checkpoint — 2026-10-12.** A fresh Telegram check confirmed
 `/sources`, `/jobs relocation`, and `/jobs relocation below` render correctly.

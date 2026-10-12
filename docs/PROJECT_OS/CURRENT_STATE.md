@@ -6,7 +6,7 @@
   and retain B2 only for technical reading. Existing persisted profile facts
   are not overwritten by bootstrap. Targeted bootstrap tests: 3 passed; full
   suite: 437 passed, 3 skipped; compileall, secret scan, and diff check pass.
-  Local commit remains pending.
+  Local commit: `8ca977f`.
 - **2026-10-12 — ETG official AM/GE lead:** the official Emerging Travel Group
   site currently lists a remote Junior DevOps Engineer opening with Armenia
   and Georgia among available locations. It requires 1.5+ years commercial
@@ -20,6 +20,7 @@
   transient `ConnectError`; the scheduler scan completed. The `/jobs
   relocation` output shared at 21:13 Moscow predates the 21:26 rebuild with
   the domestic-onsite filter; recheck it on the current runtime.
+  Local commit: `432d44c`.
 - **2026-10-12 — Relocation-first current-country onsite filter:** owner-confirmed
   Telegram output showed Russian onsite vacancies in `/jobs relocation` and
   `/jobs relocation below`. Relocation-first now drops vacancies whose explicit

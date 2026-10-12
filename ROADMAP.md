@@ -1,6 +1,6 @@
 # Roadmap
 
-Last reviewed: 2026-10-12
+Last reviewed: 2026-10-13
 
 ## Progress at a glance
 
@@ -49,7 +49,9 @@ lists Armenia and Georgia as available remote locations and English B1+ as its
 minimum stated language level. It is now a direct manual source link for both
 markets. Workable's documented public endpoint returned HTTP 403, so the bot
 does not scan it. The 21:13 Telegram output predates the 21:26 filter rebuild;
-post-rebuild list acceptance is still needed.
+post-rebuild list acceptance is still needed. ETG's link-only entry is local
+commit `432d44c`; the B1/general and B2/technical-reading distinction is
+`8ca977f`. The branch is nine commits ahead of upstream and unpublished.
 
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.

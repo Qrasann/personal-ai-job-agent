@@ -27,7 +27,8 @@ retain B2 as a technical-reading estimate, matching the owner's current
 self-assessment and earlier distinction. Bootstrap does not consume either
 language key to overwrite persisted candidate data. Added a configuration
 regression. Targeted tests: 3 passed; full suite: 437 passed, 3 skipped;
-compileall, secret scan, and diff check passed. The commit is pending.
+compileall, secret scan, and diff check passed. Committed locally as
+`8ca977f`.
 
 ## 2026-10-12 — Emerging Travel Group manual AM/GE lead
 
@@ -47,7 +48,7 @@ a transient isolated `ConnectError`; the scheduler scan completed.
 The owner's 21:13 Telegram list with a Tyumen onsite result preceded the 21:26
 runtime rebuild containing the current-country Relocation-first filter. The
 owner should confirm `/sources`, `/jobs relocation`, and `/jobs relocation
-below` on the current runtime. The local commit is pending.
+below` on the current runtime. Committed locally as `432d44c`.
 
 ## 2026-10-12 — AM/GE manual source discovery links
 

@@ -95,6 +95,8 @@
   remote, 1.5+ years commercial DevOps, six months Kubernetes, and English
   B1+; endpoint returned 403. Add the employer's official posting as a
   link-only manual source and do not scrape or infer legal eligibility.
+- [x] Commit the English distinction and ETG manual lead as `8ca977f` and
+  `432d44c`; synchronize PROJECT_OS and private context to current Git state.
 - [ ] After rebuild, owner verifies `/sources`, `/jobs relocation`, and
   `/jobs relocation below`; the supplied 21:13 Telegram lists predate the
   21:26 rebuild of the domestic-onsite filter.
