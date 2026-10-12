@@ -25,9 +25,9 @@ of the latest commands. Recent completed scans found no Relocation-first
 Good/Stretch results. Unknown eligibility remains unknown and the threshold
 stays at 65. Local commit `61fe39d` adds bounded HH searches for official
 catalog areas RU `113` and GE `28`; Armenia is absent from HH's public catalog
-and remains the responsibility of other sources. Runtime/Telegram acceptance
-of this follow-up is pending. An enabled source or HTTP 200 is not evidence of
-a usable opportunity.
+and remains the responsibility of other sources. Runtime check is complete;
+owner Telegram acceptance remains pending. An enabled source or HTTP 200 is not
+evidence of a usable opportunity.
 
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.

@@ -11,8 +11,10 @@ sources remain responsible for AM listings.
 
 Local suite: **430 passed, 3 skipped**. Full isolated PostgreSQL suite:
 **433 passed**. `compileall`, secret scan, and `git diff --check` passed. The
-change is committed locally as `552cb72`; runtime rebuild and Telegram
-acceptance remain pending.
+change is committed as `61fe39d`. Compose was rebuilt from the branch; HH's
+public-web fallback returned HTTP 200 for areas 28 and 113, and startup
+`scan_all` completed at 17:56:41 UTC with PostgreSQL healthy. Owner Telegram
+acceptance remains pending.
 
 ## 2026-10-12 — AI job-bot GE/AM bootstrap defaults
 

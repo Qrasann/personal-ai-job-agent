@@ -7,9 +7,10 @@
   listed and no area is guessed. Per-profile role queries and bounds are
   preserved, cross-area duplicates are removed, and country metadata follows
   the area-scoped request. Local tests: 430 passed, 3 skipped; isolated
-  PostgreSQL: 433 passed; compileall, secret scan, and diff check pass. Runtime
-  rebuild and Telegram acceptance remain pending. The preceding bootstrap
-  defaults are commit `00f1f0d`.
+  PostgreSQL: 433 passed; compileall, secret scan, and diff check pass. Compose
+  was rebuilt; startup scan completed at 17:56:41 UTC, HH public-web fallback
+  returned HTTP 200 for areas 28 and 113, and PostgreSQL is healthy. Telegram
+  acceptance remains pending. Bootstrap defaults are commit `00f1f0d`.
 - **2026-10-12 — Independent vacancy review:** Added scoped `/jobs
   career|relocation [below]`, `/job <id> career|relocation` and
   `/compare <id> career|relocation`. Each direction retains its own scores and

@@ -14,10 +14,12 @@ sources.
 
 Verification: local suite **430 passed, 3 skipped**; isolated PostgreSQL suite
 **433 passed**; `compileall`, secret scan, and `git diff --check` passed. The
-test database is isolated. This HH change has not been pushed or deployed;
-Telegram/runtime acceptance remains pending. Keep PR #18 draft and preserve
-the existing Compose volumes when a later user-authorized runtime update is
-performed. No application actions or private HH endpoints were used.
+test database is isolated. Rebuilt the local Compose app from this branch;
+runtime reports 3.5.7, PostgreSQL remains healthy, and startup `scan_all`
+completed at 17:56:41 UTC. Logs show HH's public-web fallback using area `28`
+for Georgia and area `113` for Russia; both returned HTTP 200. This change has
+not been pushed or published; owner Telegram acceptance remains pending. Keep
+PR #18 draft. No application actions or private HH endpoints were used.
 
 ## AI job-bot GE/AM bootstrap defaults — 2026-10-12
 

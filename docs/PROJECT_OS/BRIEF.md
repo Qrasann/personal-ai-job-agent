@@ -9,8 +9,10 @@ searches each represented current/target market independently, deduplicates
 results, and attributes country only to the scoped request; Armenia is left to
 other sources. Verification: local suite **429 passed, 3 skipped**; isolated
 PostgreSQL suite **433 passed**; compileall, secret scan, and diff checks pass.
-This HH follow-up is committed locally as `552cb72`; it has not been deployed or
-published, and Telegram acceptance is pending. The EURES padded-location fix is published
+This HH follow-up is committed locally as `61fe39d`; Compose was rebuilt from
+the branch and its startup scan completed at 17:56:41 UTC. Logs show successful
+public-web HH requests for both `area=28` and `area=113`; PostgreSQL is healthy.
+Telegram acceptance remains pending; no publication was made. The EURES padded-location fix is published
 as `159d510` on draft PR #18; push CI `38281187340` and PR CI `38281192380`
 passed. Full isolated PostgreSQL validation: **429 passed, 73.24% branch
 coverage**; 13 targeted EURES tests, `compileall`, secret scan, and diff checks
