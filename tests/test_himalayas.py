@@ -180,6 +180,38 @@ def test_himalayas_discovery_queries_selected_markets_with_a_bounded_request_cou
     assert all("ignored fifth query" not in str(kwargs) for _, kwargs in calls)
 
 
+def test_himalayas_remote_plan_searches_selected_support_for_both_markets(monkeypatch):
+    calls = []
+
+    async def get(self, url, **kwargs):
+        params = kwargs["params"]
+        calls.append(params)
+        rows = []
+        if params["q"] == "customer support":
+            market = params["country"]
+            rows = [listing(f"support-{market}", "Customer Support Representative", [market])]
+        return httpx.Response(200, json={"jobs": rows}, request=httpx.Request("GET", url))
+
+    async def no_wait(_delay):
+        return None
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    monkeypatch.setattr(asyncio, "sleep", no_wait)
+    selected = ["warehouse worker", "production worker", "hotel staff", "kitchen assistant",
+                "cleaner", "construction worker", "customer support"]
+    context = SourceContext(user_id=1, current_country="RU", target_countries=["GE", "AM"], queries=selected.copy())
+    jobs = asyncio.run(HimalayasSource().discover(context))
+
+    assert len(calls) == 8
+    assert calls[:2] == [
+        {"sort": "recent", "page": 1, "q": "customer support", "country": "GE"},
+        {"sort": "recent", "page": 1, "q": "customer support", "country": "AM"},
+    ]
+    assert {job.country for job in jobs} == {"GE", "AM"}
+    assert all(job.visa_sponsorship is None and job.relocation is None for job in jobs)
+    assert context.queries == selected
+
+
 def test_himalayas_keeps_successes_when_one_market_request_fails(monkeypatch):
     async def get(self, url, **kwargs):
         if kwargs["params"].get("country") == "AM":

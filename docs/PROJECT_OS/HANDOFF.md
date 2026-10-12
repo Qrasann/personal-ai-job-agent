@@ -5,7 +5,7 @@ Updated: 2026-10-13 (Europe/Moscow)
 ## Current source and runtime
 
 - Source 3.5.7 on `feature/v3.5.7-international-market-coverage`.
-- Latest completed local stage `5c4b959` (HH recovery); obtain current HEAD with `git rev-parse --short HEAD`
+- Latest completed local stages `5c4b959` (HH recovery), `c516a77` (expiry); obtain current HEAD with `git rev-parse --short HEAD`
   and inspect `git status --short`. Resumed clean; preserve in-flight stages.
 - Runtime remains the c829a5f Compose `repo` build from 00:52 Moscow. App up,
   PostgreSQL healthy; startup scan completed at 21:53:38 UTC / 00:53:38 Moscow.
@@ -40,12 +40,19 @@ Targeted expiry/service/card suite 76 passed; full shared candidate unit 563
 passed / 3 skipped, PostgreSQL 566 passed; compileall/secret/diff checks passed.
 Prepared independent remote-query/source modules are included in those totals.
 
+Remote query planning is now implemented for Himalayas only. It chooses up to
+four supplied queries with support/IT roles ahead of physical-work roles, stable
+inside each group. Original preferences and all parse-time role matching stay
+intact; no EURES or scoring changes. Both AM and GE are covered by the request
+regression. Targeted 73 passed; full shared worktree unit 568 passed / 3 skipped,
+PostgreSQL 571 passed; compileall/secret/diff pass. SmartRecruiters tests are
+present but its catalog/service integration is the next independent stage.
+
 ## Next concrete work
 
-1. Fix Himalayas first-four query planning so selected customer-support roles
-   are searched for both AM/GE, without altering stored role preferences.
-2. Evaluate/connect permitted relevant public employer feeds, respecting all
-   owner exclusions and active profile role queries.
+1. Wire verified GE-scoped SmartRecruiters/Devexperts source, catalog, cache
+   and service integration; respect role queries and all owner exclusions.
+2. Continue AM/GE relevance/curated aliases and source-evidence acceptance.
 3. Keep owner-only post-filter Telegram acceptance pending separately. Do not
    close v3.5.7 or move versions based on HTTP 200/automated tests alone.
 

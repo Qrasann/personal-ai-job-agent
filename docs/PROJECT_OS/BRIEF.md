@@ -19,7 +19,8 @@ salary, visa, relocation and candidate experience remain unknown.
 
 - Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
 - Resumed from clean `c829a5f`; HH recovery/summary follow-up committed as
-  `5c4b959`. Later stages stay local until explicit publication approval.
+  `5c4b959`, source listing-expiry/card stage `c516a77`. Later stages stay local
+  until explicit publication approval.
   Read `git status` and `git log -3` before continuing; never reset user work.
 - Compose `repo` still runs the previously authorized c829a5f build. App up,
   PostgreSQL healthy. Startup scan completed 2026-10-12 21:53:38 UTC
@@ -35,15 +36,19 @@ salary, visa, relocation and candidate experience remain unknown.
   and cards display its UTC listing-expiry/expired/unknown state. Future expiry
   does not prove hiring or an employer application deadline; no score/filter
   change or schema migration. Cached cards reassess expiry at display time.
-- Checks: expiry/parser/service/card targeted suite 76 passed; shared candidate
-  full unit 563 passed / 3 skipped, PostgreSQL 566 passed; compileall, secret
-  scan and diff check pass. Includes prepared independent query/source tests.
+- Himalayas now uses a bounded remote-role query plan: selected support roles
+  precede physical-work queries, keeping original text/group order, max four
+  queries and existing market/cache bounds. Both GE/AM are searched; no new
+  roles, preference/score/threshold change. Career query order is preserved.
+- Checks: remote planner/source/cache targeted 73 passed; shared candidate unit
+  568 passed / 3 skipped, PostgreSQL 571 passed; compileall/secret/diff pass.
+  Includes the independently prepared, not-yet-wired SmartRecruiters tests.
 
 ## Current priority
 
 Complete v3.5.7 practical relevance and source coverage before v3.6.
-Next implementation: ensure the bounded remote query plan includes selected
-support roles, then connect verified relevant public employer feeds. Preserve score
+Next implementation: connect the verified GE-scoped Devexperts public Posting
+API, using only each profile's selected role queries and truthful scope. Preserve score
 rules and owner exclusions. Owner post-filter Telegram acceptance remains
 pending and does not block independent safe implementation.
 

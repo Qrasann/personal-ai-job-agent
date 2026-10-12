@@ -20,6 +20,23 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Bounded remote support query coverage
+
+Himalayas previously truncated the default Relocation-first seven roles to
+four requests, omitting selected customer support. Added stable conservative
+remote-role planning for this remote-only source. Supplied support/IT roles get
+request slots before physical-work roles; no query text is invented, stored
+settings changed, or role/score promoted. Query budget remains four with the
+same markets and daily cache. Parser still matches the original complete role
+list. AM and GE request/result regression passes; career order is preserved.
+Live read-only primary API probes during research returned support listings for
+both country filters, not proof of candidate hiring or work eligibility.
+
+Targeted planner/source/cache 73 passed; full shared candidate unit 568 passed
+/ 3 skipped, isolated PostgreSQL 571 passed; compileall/secret/diff pass.
+Prepared SmartRecruiters module tests are included but not wired yet. Runtime
+remains c829a5f; no deploy/publication/outreach. Next connect that curated feed.
+
 ## 2026-10-13 — Source listing expiry in vacancy cards
 
 Himalayas public API documents expiryDate; its primary references differ on

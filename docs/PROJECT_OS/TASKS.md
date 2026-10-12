@@ -87,6 +87,12 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Plan bounded Himalayas queries so selected support roles no longer
+  disappear behind the first four physical-work queries. Keep supplied query
+  text, within-group order, max four, market/cache bounds, full parse-time role
+  matching and owner preferences/scores. Regression covers customer support
+  for both GE/AM. Targeted 73 passed; shared worktree unit 568 / 3 skipped,
+  PostgreSQL 571 passed; compileall/secret/diff pass. Not deployed.
 - [x] Preserve Himalayas `expiryDate` as source listing-expiry evidence in
   existing source-ref JSON and display UTC expiry/expired/unknown on /job.
   Reassess cached dates at render time; future expiry never confirms employer

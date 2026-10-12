@@ -12,6 +12,7 @@ from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.vacancy_availability import listing_expiry_metadata, source_datetime
 from app.geo.countries import normalize_country
 from app.sources.base import JobSource, SourceContext
+from app.sources.query_plan import remote_discovery_queries
 
 
 log = logging.getLogger(__name__)
@@ -183,8 +184,7 @@ class HimalayasSource(JobSource):
         return [current] if current else [None]
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
-        queries = list(dict.fromkeys(str(query).strip() for query in (context.queries or []) if str(query).strip()))
-        queries = queries[: self.max_queries]
+        queries = remote_discovery_queries(context.queries, limit=self.max_queries)
         markets = self._markets(context)
         headers = {"User-Agent": self.user_agent, "Accept": "application/json"}
         unique_rows: dict[str, dict] = {}

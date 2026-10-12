@@ -2,19 +2,14 @@
 
 Last reviewed: 2026-10-13
 
-Latest verified checkpoint: local HH recovery `5c4b959` followed by source
-listing-expiry evidence/cards. Targeted expiry tests 76 passed; shared worktree
-unit 563 passed / 3 skipped and PostgreSQL 566 passed; safety checks pass. No
-new runtime deployment. Resumed clean `c829a5f`. Its startup scan completed
-at 21:53:38 UTC / 00:53:38 Moscow; Compose app and PostgreSQL are healthy.
-The local follow-up corrects HH skipped/partial summaries, serializes outage
-probes, invalidates stale HH caches and preserves counts on source recovery.
-Local candidate checks: 486 unit tests passed / 3 skipped, 489 PostgreSQL tests
-passed; compileall, secret scan and diff check passed. These changes are not
-deployed. Draft PR #18 remains at `f9ed986` with passing CI for that remote
-commit; later local work has no remote CI. Owner Telegram acceptance remains
-separate. See compact PROJECT_OS/BRIEF.md and HANDOFF.md for current state;
-the detailed milestones below retain historical evidence.
+Latest local work: HH recovery/summary completion (`5c4b959`), source listing
+expiry/card evidence (`c516a77`), and bounded Himalayas query coverage for selected
+support roles in AM/GE. Latest targeted planner/source/cache suite 73 passed;
+shared candidate unit 568 passed / 3 skipped, PostgreSQL 571 passed; safety
+checks pass. New work is not deployed. Compose remains healthy at c829a5f,
+whose startup scan completed 21:53:38 UTC / 00:53:38 Moscow. Draft PR #18 remains
+at remote f9ed986 with passing CI for that commit only. Owner Telegram acceptance
+stays pending separately. Detailed milestones below retain historical evidence.
 
 ## Progress at a glance
 

@@ -25,6 +25,12 @@
 
 ## Himalayas — implemented in the v3.5.7 candidate
 
+- Bounded remote query planning prioritizes supplied support/IT roles before
+  physical-work queries. This includes the default selected customer-support
+  role previously omitted by first-four truncation. It keeps original text and
+  stable order within groups, never adds roles, and retains the four-query,
+  three-market, daily-cache bounds. Country eligibility remains separate.
+
 - Source `expiryDate` is now preserved in bounded `raw.availability` metadata
   and displayed as UTC listing expiry on /job. Primary references describe
   epoch seconds/milliseconds and timezone-aware ISO; invalid/ambiguous values
