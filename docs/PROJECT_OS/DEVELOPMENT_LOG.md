@@ -31,9 +31,12 @@ bounded retry. HTTP status behavior, CAPTCHA handling, and private applicant
 methods are unchanged. Regression tests cover API and ordinary public-web
 search; targeted suite passes **15 tests**. Full suite, isolated PostgreSQL
 suite, compileall, secret scan and diff check pass (**443 passed, 3 skipped**;
-PostgreSQL **446 passed**). Current Compose logs show the other enabled
-sources returning successful HTTP responses, but those logs predate this code
-change. Commit, rebuild and runtime verification remain pending.
+PostgreSQL **446 passed**). Committed as `5a815b5`. Compose `repo` rebuilt at
+00:43 Moscow; runtime 3.5.7 and PostgreSQL remained healthy. Startup `scan_all`
+completed at 21:44:48 UTC / 00:44:48 Moscow. Live logs show HH
+`ConnectError` skipped without retry while Himalayas, Remote OK, Arbeitnow, Job
+Bank, EURES, Greenhouse, Lever and HR.ge continued successfully. No other
+source errors were visible in this scan.
 
 ## 2026-10-13 — Recognize remote-board requirement sections
 

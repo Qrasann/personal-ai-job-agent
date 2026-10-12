@@ -9,9 +9,14 @@ source isolation already collects that failure and continues with other
 adapters. Other transient transport errors retain one retry. Tests cover both
 HH public paths; targeted suite: **15 passed**, full suite: **443 passed, 3
 skipped**, isolated PostgreSQL suite: **446 passed**; compileall, secret scan
-and diff check passed. Current Compose logs show successful responses from
-other active sources but predate this code. Runtime rebuild/log verification
-and commit remain to be done.
+and diff check passed. Commit `5a815b5` is applied. Compose `repo` rebuilt at
+00:43 Moscow; runtime 3.5.7 and PostgreSQL are healthy. Startup `scan_all`
+completed at 21:44:48 UTC / 00:44:48 Moscow. Live logs show HH
+`ConnectError` skipped immediately while the other enabled sources continued
+successfully. No other source errors were visible in this scan. The next
+roadmap work remains practical Relocation-first source coverage and owner
+verification of the latest scoped listings; do not lower the 65 threshold or
+infer legal eligibility.
 Current worktree changes are in `app/providers/hh.py`,
 `tests/test_hh_public.py`, and these PROJECT_OS documents. Do not claim the new
 behavior is live until rebuilt and verified. Yandex outage causality remains

@@ -91,7 +91,10 @@
   isolation finish other feeds. Keep the single retry for other transient
   transport errors. Targeted tests: 15 passed; full suite: 443 passed, 3
   skipped; isolated PostgreSQL suite: 446 passed; compileall, secret scan and
-  diff check passed. Commit, rebuild and runtime verification remain pending.
+  diff check passed. Commit `5a815b5` rebuilt Compose `repo` at 00:43 Moscow;
+  startup scan completed at 21:44:48 UTC with PostgreSQL healthy. Runtime logs
+  show HH skipped on `ConnectError` while Himalayas, Remote OK, Arbeitnow,
+  Job Bank, EURES, Greenhouse, Lever and HR.ge continued successfully.
 - [x] Add one bounded retry for transient transport failures in the public HH
   API and web-search requests. This directly addresses the observed TLS
   `ConnectError`; it does not assume Yandex is the cause. Do not retry HTTP

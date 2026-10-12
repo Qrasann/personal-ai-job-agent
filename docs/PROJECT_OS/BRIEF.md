@@ -9,9 +9,12 @@ isolation records the HH failure while unrelated adapters continue. Other
 transient transport errors retain one bounded retry. Targeted HH suite: **15
 passed**; full suite: **443 passed, 3 skipped**; isolated PostgreSQL suite:
 **446 passed**. Compileall, secret scan and diff check passed. The current
-Compose logs show successful requests from the other enabled sources but
-predate this code change; deployed verification and commit remain pending. No
-causality between HH and Yandex datacenters is established.
+change is committed as `5a815b5` and rebuilt in Compose `repo` at 00:43
+Moscow. The startup scan completed at 21:44:48 UTC / 00:44:48 Moscow with
+runtime 3.5.7 and PostgreSQL healthy. Live logs show HH `ConnectError` skipped
+immediately; Himalayas, Remote OK, Arbeitnow, Job Bank, EURES, Greenhouse,
+Lever and HR.ge continued successfully, and `scan_all` completed. No causality
+between HH and Yandex datacenters is established.
 
 **Current checkpoint — 2026-10-13, HH transient-network resilience.** The
 owner noted recent Yandex data-center outages as a possible cause of HH
