@@ -6,10 +6,13 @@ Last updated: 2026-10-13 (Europe/Moscow)
 found a common requirements-heading gap that left technical requirements and
 interview-risk unknown. The parser now handles `What we are looking for`,
 `What you'll bring`, and `Nice-to-have skills`, including curly apostrophes;
-the risk evidence explicitly says technical requirements only. Targeted tests:
+the risk evidence explicitly gives the index formula: 100 minus technical
+required-skill coverage. Nontechnical conditions remain unscored. Targeted tests:
 **37 passed**; full suite: **439 passed, 3 skipped**; isolated PostgreSQL:
-**442 passed**; compileall, secret scan and diff check passed. Commit `b42d47c`
-is local. Compose `repo` was rebuilt at 00:14 Moscow on Oct 13; app and
+**442 passed**; compileall, secret scan and diff check passed. The latest
+recommendation wording regression passes 5 targeted tests; its rebuild is
+pending. Commit `b42d47c` is local. Compose `repo` was rebuilt at 00:14 Moscow
+on Oct 13; app and
 PostgreSQL are healthy, and startup `scan_all` completed at 21:15:52 UTC after
 one isolated `ConnectError`. Telegram `/job 1273` confirmation remains next.
 Do not interpret technical fit as a full interview

@@ -31,6 +31,14 @@ Ask the owner to reopen `/job 1273` and verify
 technical interview-risk is populated while nontechnical conditions remain
 separate. Do not apply or send any application.
 
+The evidence text was subsequently clarified to match the score direction:
+`interview_risk = 100 − technical required-skill coverage`. If no required
+technical skills are extracted, the index remains unknown and says so. The
+wording follow-up passes 5 targeted recommendation tests and the full isolated
+PostgreSQL suite (**442 passed**), plus compileall, secret scan and diff check.
+It is not yet in the running image; rebuild before asking the owner to verify
+the Telegram card.
+
 ## Candidate English bootstrap default — 2026-10-12
 
 The tracked fresh-profile template previously said `english: B2`, which

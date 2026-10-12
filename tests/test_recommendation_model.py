@@ -82,7 +82,7 @@ def test_interview_risk_uses_singular_necessary_qualification_in_encoded_html():
     assert result.recommendation_scores["interview_risk"]["score"] is not None
     assert result.technical_score == 42
     assert result.recommendation_scores["interview_risk"]["score"] == 58
-    assert "покрытие технических обязательных требований" in result.recommendation_scores["interview_risk"]["evidence"]
+    assert "индекс тех. риска: 100 − покрытие обязательных тех. требований" in result.recommendation_scores["interview_risk"]["evidence"]
 
 
 def test_himalayas_style_required_heading_produces_technical_only_interview_signal():
@@ -108,5 +108,5 @@ def test_himalayas_style_required_heading_produces_technical_only_interview_sign
 
     assert result.recommendation_scores["interview_risk"]["score"] == 55
     assert result.recommendation_scores["interview_risk"]["evidence"] == (
-        "покрытие технических обязательных требований; fit=good"
+        "индекс тех. риска: 100 − покрытие обязательных тех. требований; fit=good"
     )

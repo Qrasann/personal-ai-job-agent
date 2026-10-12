@@ -90,9 +90,10 @@
 - [x] Recognize common remote-board requirement headings (`What we are
   looking for`, `What you'll bring`, `Nice-to-have skills`) so existing
   technical requirement coverage is not left unknown; label interview-risk
-  evidence as technical-only. Targeted suite 37 passed, local suite 439/3
-  skipped, isolated PostgreSQL suite 442 passed; compileall, secret scan and
-  diff check passed. Telegram `/job 1273` confirmation after rebuild remains
+  as the technical-risk index (`100 − requirement coverage`) and leave
+  nontechnical conditions unscored. Targeted suite: 37 passed; full isolated
+  PostgreSQL suite: 442 passed; compileall, secret scan and diff check passed.
+  Wording follow-up awaits rebuild; Telegram `/job 1273` confirmation remains
   open.
 - [x] Keep the candidate's current self-assessed general English at B1 and
   retain B2 only as a technical-reading estimate in the fresh-profile defaults.

@@ -116,7 +116,7 @@ def build_recommendation_breakdown(
         "growth": _score(100 if growth_hit else None, growth_hit or "в описании нет явных условий развития"),
         "fast_exit": _score(100 if fast_hit else 0 if fast_block else None, fast_hit or fast_block or "срок выхода не указан"),
         "interview_risk": _score(100 - required_technical if required_technical is not None else None,
-                                  f"покрытие технических обязательных требований; fit={fit}" if required_technical is not None else "нет извлечённых технических обязательных требований"),
+                                  f"индекс тех. риска: 100 − покрытие обязательных тех. требований; fit={fit}" if required_technical is not None else "технические обязательные требования не извлечены; индекс риска н/д"),
         "salary": _score(salary_score if job.salary_from is not None or job.salary_to is not None else None,
                          "зарплата указана структурированными полями" if job.salary_from is not None or job.salary_to is not None else "зарплата не указана"),
         "remote": _score(remote_score, signals.remote_reason or "remote-сигнал не указан"),

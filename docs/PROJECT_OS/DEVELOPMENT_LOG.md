@@ -48,6 +48,14 @@ volumes preserved. Source/runtime report 3.5.7, PostgreSQL is healthy, and
 startup `scan_all` completed at 21:15:52 UTC. One isolated HTTP `ConnectError`
 occurred during discovery; the scheduled scan completed successfully.
 
+A final wording check found that the displayed interview-risk value is `100 −
+technical requirement coverage`, so “coverage” alone described the opposite
+direction from the number. The evidence now gives that formula and says the
+index is unavailable when no technical requirements were extracted. It does
+not assess education or language. Targeted recommendation tests: **5 passed**;
+full isolated PostgreSQL suite: **442 passed**; compileall, secret scan, and
+diff check passed. This wording follow-up is pending rebuild.
+
 ## 2026-10-12 — Separate current English level from technical reading
 
 Updated the candidate bootstrap template to store general English as B1 and
