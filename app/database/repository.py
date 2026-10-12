@@ -359,20 +359,28 @@ async def latest_matches(
     *,
     include_filtered: bool = False,
     min_score: int | None = None,
+    max_score: int | None = None,
+    search_profile_id: int | None = None,
 ) -> list[tuple[JobMatch, Job]]:
-    """Latest useful matches, suppressing stale low-score rows and reposts in UI."""
+    """Highest-scoring useful matches, with recent matches first on score ties."""
     async with SessionLocal() as session:
         stmt = (
             select(JobMatch, Job)
             .join(Job, Job.id == JobMatch.job_id)
             .where(JobMatch.user_id == user_id)
-            .order_by(JobMatch.created_at.desc())
+            .order_by(JobMatch.total_score.desc(), JobMatch.created_at.desc())
             .limit(max(limit * 8, 40))
         )
-        if not include_filtered:
+        if include_filtered:
+            stmt = stmt.where(JobMatch.status != "duplicate")
+        else:
             stmt = stmt.where(JobMatch.status.notin_(["filtered", "duplicate"]))
         if min_score is not None:
             stmt = stmt.where(JobMatch.total_score >= int(min_score))
+        if max_score is not None:
+            stmt = stmt.where(JobMatch.total_score <= int(max_score))
+        if search_profile_id is not None:
+            stmt = stmt.where(JobMatch.search_profile_id == search_profile_id)
         rows = list((await session.execute(stmt)).all())
 
     out: list[tuple[JobMatch, Job]] = []
@@ -491,13 +499,18 @@ async def get_match(match_id: int) -> JobMatch | None:
         return await session.get(JobMatch, match_id)
 
 
-async def get_match_for_user_job(user_id: int, job_id: int) -> JobMatch | None:
+async def get_match_for_user_job(
+    user_id: int, job_id: int, *, search_profile_id: int | None = None
+) -> JobMatch | None:
     async with SessionLocal() as session:
-        return await session.scalar(
+        stmt = (
             select(JobMatch)
             .where(JobMatch.user_id == user_id, JobMatch.job_id == job_id)
             .order_by(JobMatch.created_at.desc())
         )
+        if search_profile_id is not None:
+            stmt = stmt.where(JobMatch.search_profile_id == search_profile_id)
+        return await session.scalar(stmt)
 
 
 async def get_resume(resume_id: int) -> ResumeProfile | None:

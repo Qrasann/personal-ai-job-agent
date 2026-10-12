@@ -1,6 +1,34 @@
 # Roadmap
 
-Last reviewed: 2026-10-11
+Last reviewed: 2026-10-12
+
+## Progress at a glance
+
+| Stage | Status | Completion criteria |
+| --- | --- | --- |
+| v3.5.6 — core personal workflow | Completed baseline | Independent profiles, candidate facts, manual resume import, review queues and scan status are implemented. |
+| v3.5.7 — international coverage and relevance | **In progress: independent result review** | Useful GE/AM and remote leads, correct restrictions, profile-specific scores and broader lower-barrier coverage. |
+| v3.6 — candidate and vacancy fit | Next | Evidence-based required-skill, language, work-eligibility and salary comparisons; personal affordability remains private. |
+| v3.7 — application workspace | Planned | Tailored CVs and manually confirmed application stages. |
+| v3.8 — recruiter and interview support | Planned | Grounded drafts and practice from confirmed facts and requirements. |
+| v4.x — productization | Optional later | Dashboard/multi-user scope only after the personal workflow is useful. |
+
+The current v3.5.7 stage adds `/jobs career`, `/jobs relocation`, and
+`/jobs relocation below`. Each scoped list keeps its profile's own threshold
+and scores; opening a card retains that profile. The shared `/jobs` list still
+orders highest rating first. Ordinary `hotel staff` and `warehouse staff`
+titles no longer trigger the engineering `Staff` seniority exclusion; explicit
+Senior/Lead/Principal, experience and management requirements still apply.
+
+Still open in v3.5.7: useful local AM/GE employer coverage and live acceptance
+of the latest commands. Recent completed scans found no Relocation-first
+Good/Stretch results. Unknown eligibility remains unknown and the threshold
+stays at 65. HH currently searches the current-country area rather than the
+selected destinations; investigate bounded destination discovery next. An
+enabled source or HTTP 200 is not evidence of a usable opportunity.
+
+The candidate is local and unpublished. The personal departure timetable,
+finances and legal-route decisions are kept in the separate private roadmap.
 
 ## Latest release — v3.5.6
 
@@ -38,6 +66,21 @@ per-profile market controls:
 Focus on useful, legally reachable vacancies in Georgia and Armenia, while
 preserving the separate Career-first and Relocation-first goals.
 
+Remotive uses its official category RSS feed after its API ignored tested
+category filters. The latest checked RSS response had channel metadata and no
+job items; it is cached for 24 hours across profiles and restarts. Empty source
+results remain distinct from a failed request. `/jobs below` and the scoped
+commands above expose existing nonzero results for manual review, without
+changing scores, thresholds or automatic notifications. Current verification
+and runtime acceptance are recorded in `docs/PROJECT_OS/BRIEF.md` and
+`HANDOFF.md`.
+
+Next priority is practical Relocation-first coverage and relevance. Broaden
+legally reachable work sources beyond technical remote feeds, then evaluate
+results with explicit evidence. Keep Career-first independent, retain score
+order and owner exclusions, and do not infer visa, hiring eligibility, housing,
+or relocation support from missing data.
+
 The active candidate adds selectable `AM` and a bounded Greenhouse Job Board
 API connector for Lineate. It runs only for profiles targeting AM or GE,
 filters by the profile's role queries and explicit posting location, and leaves
@@ -53,15 +96,63 @@ second path: Recommendation v2 scored the raw stored HTML while Technical
 scored the decoded text. The current candidate passes the same normalized
 description to both calculations. A regression expects Technical 42 and risk
 58 for the encoded Lineate-style posting. The latest full isolated PostgreSQL
-suite passes with 248 tests and 68.36% branch coverage. Commit `8a583c7` passed
-push CI `38151840822` and PR CI `38151843490`. Its Compose startup scan
-completed at 15:38:13 UTC without source errors, SSL failures, timeouts or
-tracebacks in the inspected logs. The owner confirmed `/job 1091` in Telegram
-at 18:42 Moscow time: Technical 42, interview risk 58, and `fit=good` from
-explicit required-skill coverage. This score is a matching-gap indicator, not
-a calibrated probability. Salary, work mode, visa sponsorship and relocation
-remain unknown without direct evidence. Candidate acceptance is complete; PR
-#18 remains draft and v3.5.7 is not merged or formally released.
+suite passes with 251 tests and 68.44% branch coverage. The local unit run
+passes 248 tests with three database-dependent tests skipped when the isolated
+PostgreSQL URL is not configured. Commit `8a583c7` passed push CI
+`38151840822` and PR CI `38151843490`. The owner confirmed `/job 1091` in
+Telegram at 18:42 Moscow time: Technical 42, interview risk 58, and `fit=good`
+from explicit required-skill coverage. This score is a matching-gap indicator,
+not a calibrated probability. Salary, work mode, visa sponsorship and
+relocation remain unknown without direct evidence.
+
+The active `3.5.7` worktree keeps verified Job Bank results when one search or
+detail request exhausts its bounded transport retry, while reporting a source
+error if all searches or all requested details fail. Requests remain
+serialized, with a minimum five-second interval between starts; a slow response
+no longer adds an unnecessary full delay. Both profiles give explicitly
+remote vacancies earlier processing priority, without changing Match Score or
+interpreting unknown remote scope as worldwide eligibility. The current full
+verification passes 266 local tests (3 database-dependent tests skipped) and
+all 269 tests against isolated PostgreSQL at 69.70% branch coverage.
+
+The owner accepted the Himalayas remote-scope detail card in Telegram at 20:56
+Moscow time by opening `/job 1273` (Canonical Associate Linux Support
+Engineer). It says the source marks the vacancy worldwide and reminds the user
+that the employer must confirm hiring from their country. Salary is absent.
+Earlier Telegram checks covered `/sources`, `/scan`, `/scanstatus` and `/jobs`;
+20 cached Himalayas jobs were shown with source links at the top of `/jobs`.
+
+The current uncommitted worktree adds a curated Collectly Lever Postings API
+source for selected AM/GE profiles. Lever's documented public feed returns a
+published remote Senior DevOps/DevSecOps role with a GMT-7 to GMT+4 timezone
+range; its source metadata says Belgrade/RS. The adapter keeps country,
+city-level hiring eligibility, salary (if not supplied), visa and relocation
+unknown, and never submits applications. The employer's hosted form states
+that onboarding requires one or two weeks in Yerevan with travel and lodging
+covered; this is a lead, not proof that the employer can hire or relocate a
+Russian citizen. The source runs only for selected AM/GE, only for explicit
+remote DevOps matches whose listed timezone range includes UTC+4, fetches at
+most 100 records, and caches results for six hours. Full local suite: 274
+passed, 3 database-dependent tests skipped; compilation and diff checks pass.
+
+The Compose `repo` bot was rebuilt from the current worktree at 21:04 Moscow
+time, with PostgreSQL healthy and the existing deployment volumes preserved.
+Startup `scan_all` completed successfully at 18:06:21 UTC (21:06:21 Moscow).
+Lever returned HTTP 200 for both independent profiles. EURES, Job Bank, HR.ge,
+Greenhouse, Himalayas, and HH public search also returned successful
+responses in the inspected window; HH API 403 recovered through public-web
+fallback. A detail-view regression confirms timezone scope is attributed to
+the source and does not establish country-level hiring. Targeted detail/Lever
+tests pass (16 tests); the full local suite passes (274 passed, 3 database
+tests skipped). The owner verified in Telegram that `/sources` lists Lever
+for both profiles and `/scan` found one live result in 9.6 seconds. The
+completed scan processed 266 jobs (37 Good, 33 Stretch, 196 filtered) and sent
+no new notifications; `/scanstatus` completed in 131 seconds. `/jobs` only
+shows ten latest matches and omits Collectly. A read-only runtime query found
+job #1333 saved as filtered with score 0 because Career-first explicitly
+excludes `senior devops`; this is expected behavior, not a source failure. The
+detail renderer's timezone and country-hiring caveat is covered by regressions.
+PR #18 remains an unmerged draft; v3.5.7 is not tagged or formally released.
 
 The [official Lineate posting](https://job-boards.greenhouse.io/lineate/jobs/8018252)
 identifies a Georgian office, requires 3+ years of Linux system administration
@@ -75,25 +166,35 @@ only from vacancy or official-source evidence. Missing dates, visa support and
 relocation benefits remain unknown. The specific personal timing estimate is
 kept out of this public roadmap.
 
-### Next work after candidate acceptance
+### Next work
 
-1. Audit public, employer-authorized career feeds for Armenia and Georgia,
-   starting with sources that have current DevOps/Infrastructure/SRE roles and
-   explicit city or country data. Record endpoint terms, update cadence,
-   locations, languages, vacancy expiry, and whether international applicants
-   are accepted. Keep manual-search-only sites out of automated collectors.
-2. Check the live Lineate posting and the next Career-first GE/AM scan for
-   validity and role fit. Treat the current single result as a useful lead,
-   not evidence of broad market coverage.
-3. Improve practical Relocation-first coverage with verified low-barrier roles
-   and lawful eligibility signals; do not broaden into unrelated vacancies or
-   infer work authorization from a country target.
-4. Review Job Bank latency separately, preserving its five-second pacing and
-   measuring source timings before changing crawl limits.
+1. Collectly was found as job #1333 but filtered by Career-first's explicit
+   `senior devops` exclusion. Keep that filter until the owner decides whether
+   to include senior roles. The timezone and country-hiring caveat is covered
+   by vacancy-detail regression tests; this is not a source failure.
+2. Continue auditing public, employer-authorized employer feeds in AM/GE.
+   Record API terms, refresh behavior, location/timezone limits, languages,
+   expiry, and evidence about international applicants. Keep boards that
+   prohibit automated extraction (including Staff.am absent written
+   permission) as manual-search destinations.
+3. Recheck Lineate and broaden Career-first employer coverage beyond its
+   current single Georgian infrastructure lead. Treat each live opening as a
+   useful lead, not proof of general market coverage.
+4. Improve practical Relocation-first coverage with verified lower-barrier
+   roles and lawful eligibility evidence. For remote roles, confirm that the
+   employer can hire from the destination country; timezone or worldwide
+   labels alone do not establish that. The latest scan produced 74 processed
+   and no Good/Stretch; a remote match scoring 54 was filtered by the current
+   65-point threshold. The manual exploration view is now available through
+   `/jobs relocation below`, preserving its independent scores and
+   notifications. Keep local roles as a separate route.
+5. Continue measuring Job Bank latency and preserve its five-second pacing.
 
 PR #18 remains a draft awaiting the owner's decision to promote it for merge.
-Telegram acceptance and source-policy review are complete; do not create a
-release tag until the PR is merged and release checks are complete.
+The Himalayas detail-card acceptance is complete. Collectly was discovered but
+filtered by Career-first's explicit `senior devops` exclusion; the owner should
+decide before changing it. Do not create a release tag until the PR is merged,
+the complete candidate is tested, and owner acceptance is recorded.
 
 The owner first checked `/targets relocation GE,AM`, `/sources`, `/scan`, and
 `/scanstatus`. Greenhouse · Lineate was enabled and returned HTTP 200, but no

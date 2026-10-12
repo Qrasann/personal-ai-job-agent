@@ -1,17 +1,74 @@
 # Current State
 
 ## Latest state
+- **2026-10-12 — Independent vacancy review:** Added scoped `/jobs
+  career|relocation [below]`, `/job <id> career|relocation` and
+  `/compare <id> career|relocation`. Each direction retains its own scores and
+  thresholds, including through detail/comparison callbacks; the card names
+  the profile. User ownership is checked together with job and profile ids.
+  Fixed `hotel staff` being treated as Senior solely because of `staff`;
+  technical Staff roles, explicit Senior/Lead/Principal, experience, management
+  and user exclusions remain restricted. Full unit suite: 319 passed, 3
+  database-dependent tests skipped; all 3 repository integration tests passed
+  against isolated PostgreSQL. Compilation and diff checks passed. Local
+  rebuild completed at 01:36 Moscow; source/runtime report 3.5.7, app is up
+  and PostgreSQL healthy. Startup source requests succeeded in the inspected
+  window and `scan_all` completed at 01:37:50 Moscow. Telegram acceptance of
+  the new commands remains pending. The
+  roadmap identifies v3.5.7 as the active international-coverage stage.
+  Useful lower-barrier AM/GE coverage remains open; HH currently ignores
+  target-country areas. No score inflation, threshold reduction or publication.
+- **2026-10-12 Moscow — Remotive remote-source stage:** the active local
+  worktree adds the official Remotive Devops public feed, shared
+  across profiles and active users with a once-per-24-hour cache persisted in
+  the existing `runtime_state` table. It preserves source location scope,
+  rejects clear country-only mismatches, links back to Remotive, and does not
+  infer numeric salary, visa, relocation, or country eligibility. The `/jobs`
+  renderer shows Remotive attribution, including when a canonical vacancy also
+  appears on Himalayas. The API ignored the tested category filters and
+  returned a broad response, so the worktree uses the official category RSS
+  feed at `https://remotive.com/remote-jobs/devops/feed` and a v3 cache key.
+  Targeted Remotive/cache tests: 17 passed; full local suite: 286 passed, 3
+  database-dependent tests skipped; all 3 repository PostgreSQL integration
+  tests passed; `compileall` and `git diff --check` passed. Added `/jobs below`
+  for manual review of nonzero results below the configured threshold; it
+  leaves scores, notifications, threshold, and descending priority unchanged,
+  and states that legal work/relocation eligibility needs confirmation. The RSS
+  endpoint returned HTTP 200 but no `<item>` entries, so both profiles parsed
+  0 jobs. That valid empty response is cached for 24 hours. Compose `repo` was
+  rebuilt at 01:15 Moscow; source/runtime report 3.5.7, PostgreSQL is healthy,
+  and the app is polling. The startup scan began immediately after the scheduler
+  grace fix. Telegram acceptance of `/jobs below` is pending. No
+  commit, push, tag, release, or merge was made. Keep the next stage focused on useful
+  Relocation-first results while retaining score order,
+  the 65-point threshold, independent profiles, and evidence-based eligibility.
 - Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
   merged. Deployed application code is `170ed4e`; later commits in PR #16
   updated documentation. Merge CI run `38135649948` passed.
 - The active feature branch is `feature/v3.5.7-international-market-coverage`,
-  candidate version 3.5.7. Latest code commit `8a583c7` makes Recommendation v2
-  use the same decoded vacancy text as Technical Score; push CI `38151840822`
-  and PR CI `38151843490` passed. PR #18 is an open draft against `main`; no
-  merge or v3.5.7 tag/release has been made. The owner confirmed the Telegram
-  result at 18:42 Moscow time: `/job 1091` showed Technical 42 and interview
-  risk 58 with mandatory-skill coverage and `fit=good`. This is a matching-gap
-  indicator, not a calibrated probability.
+  candidate version 3.5.7. HEAD is `d445c87`; uncommitted changes include
+  Job Bank partial-result resilience and minimum-interval pacing, plus
+  explicitly remote-work priority in both independent search profiles, a
+  bounded Himalayas remote API adapter, a curated Collectly Lever public feed,
+  salary-period display, source attribution, and explicit geography guidance
+  in remote vacancy details.
+  The owner verified `/sources`, `/scan`, `/scanstatus`, and `/jobs`: Himalayas
+  returned 20 cached remote jobs and placed them first with source links;
+  Job Bank returned 12 in 71.2 seconds and EURES 16 in 34.1 seconds. Full
+  local suite before the new Lever connector: 267 passed, 3 skipped; isolated
+  PostgreSQL suite: 270 passed; compile and diff checks passed. The owner
+  verified `/job 1273` at 20:56 Moscow time: worldwide scope is attributed to
+  Himalayas and the card says the employer must confirm hiring from the user's
+  country; the vacancy has no salary.
+  The earlier Recommendation v2 code commit `8a583c7` passed push CI
+  `38151840822` and PR CI `38151843490`. PR #18 is an open draft against
+  `main`; no merge or v3.5.7 tag/release has been made. The owner confirmed the
+  Telegram result at 18:42 Moscow time: `/job 1091` showed Technical 42 and
+  interview risk 58 with mandatory-skill coverage and `fit=good`. This is a
+  matching-gap indicator, not a calibrated probability.
+- Latest published PR #18 checks are green for Python, secret scan, and Docker
+  build in runs `38152993495` and `38152990522`. They cover the published PR
+  head, not the current uncommitted Job Bank and remote-priority changes.
 - `README.md` and `README.ru.md` provide English and Russian entry points on
   `main`. The merged v3.5.6 feature branch is inactive. Current work is on
   `feature/v3.5.7-international-market-coverage`, based on main `02f582e`.
@@ -19,13 +76,67 @@
   `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
   included in the release. Main CI run `38138941745` passed.
 - Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- Local Compose project `repo` runs source/runtime 3.5.7 with the candidate
-  deployed. After `8a583c7`, startup `scan_all` ran from 15:35:45 to 15:38:13
-  UTC and completed successfully. EURES, Greenhouse, HR.ge, Job Bank, Arbeitnow,
-  and Remote OK returned successfully; HH's API returned 403 before its public
-  web fallback worked. The five-minute error scan found no source error, SSL
-  failure, timeout, or traceback in the inspected window. Telegram handled the
-  owner's `/job 1091` check in 607 ms, confirming the expected score and risk.
+- Local Compose project `repo` reports runtime 3.5.7; the app is up and
+  PostgreSQL is healthy. After adding the curated Collectly Lever connector,
+  it was rebuilt from the current worktree at 21:04 Moscow time. Startup
+  `scan_all` completed successfully at 18:06:21 UTC (21:06:21 Moscow). Lever
+  returned HTTP 200 for both independent profiles; Himalayas GE/AM, EURES, Job
+  Bank, HR.ge, Greenhouse, and HH public search also returned successful
+  responses in the inspected log window. HH API 403 recovered through its
+  ordinary public-web fallback. Existing PostgreSQL remained healthy and
+  attached; the rebuild reused the existing service and volumes.
+- The owner verified `/sources`, `/scan`, and `/scanstatus` in Telegram at
+  21:11–21:14 Moscow time. Lever is enabled for Career-first and Relocation-
+  first and returned 1 live vacancy in 9.6 seconds. The manual scan completed
+  at 18:14:01 UTC (21:14:01 Moscow): 266 processed, 37 Good, 33 Stretch, 196
+  filtered, 0 new notifications. Job Bank returned 12 in 71.4 seconds; EURES
+  returned 16 in 55.2 seconds; no source error is visible in the supplied log
+  excerpt. A read-only lookup found Collectly as job #1333, but the Career-first
+  profile saved it as `filtered` with score 0 because `senior devops` is in that
+  profile's explicit exclusions. This is a profile filter, not a Lever failure;
+  do not change the exclusion without the owner's choice. `/jobs` only shows ten
+  latest useful matches, so its omission was expected for this filtered row.
+- At 21:20 Moscow time the owner supplied `/review` and `/stretch` results.
+  Their first cards were remote CloudCops (88, Good) and Sporty Group (72,
+  Stretch); the latter's posting says applicants must be based in Europe, Asia,
+  or LATAM. This confirms remote opportunities are visible in both queues, but
+  source-batch ordering is verified by regression tests rather than those queue
+  displays. The same scan reported Relocation-first 74 processed, 0 Good, and
+  0 Stretch. The profile's configured threshold is 65; saved lower-barrier and
+  remote matches remain below it (an inspected remote result scored 54 and was
+  filtered). This is a scoring/visibility limitation, not a source outage.
+- The owner clarified that higher-rated vacancies should have higher priority.
+  `/review`, `/stretch`, and `/saved` already sorted descending by score, but
+  `/jobs` used creation time. `/jobs` now sorts score descending, breaks ties
+  by recency, and labels the list “Совпадения по рейтингу”. The threshold stays
+  at 65; below-threshold jobs will not be promoted ahead of higher-rated jobs.
+  A PostgreSQL regression covers an older 86-point result versus a newer
+  72-point result.
+- At 23:27 Moscow time, the owner confirmed the live `/jobs` list is now
+  descending: CloudCops 88, SIL International 84, Canonical 82, followed by
+  results at 78 and below. The supplied scheduled-scan log completed at
+  20:25:14 UTC (23:25:14 Moscow). Its visible EURES, Job Bank, Arbeitnow,
+  Remote OK and Greenhouse requests returned HTTP 200; no source error appears
+  in the supplied excerpt.
+- GitHub was checked directly: latest formal Release/tag is v3.5.6; the visible
+  tags are v3.5.0, v3.5.1, and v3.5.6. Changelog milestones v3.5.2–v3.5.5
+  have no separate tags/releases. PR #18 remains open and draft against `main`.
+  The active local branch is still `feature/v3.5.7-international-market-coverage`
+  (`VERSION=3.5.7`) with uncommitted changes; no commit, tag, or publication
+  was made.
+- Latest full verification for this worktree: 267 passed, 3 DB tests skipped
+  locally before Lever; after the Lever adapter, 274 passed and 3 DB tests
+  skipped locally, including the timezone-detail regression. `compileall` and
+  `git diff --check` passed. PostgreSQL tests were not rerun because this
+  change adds a read-only source adapter and does not change persistence or
+  schema.
+- After the score-ordering change, the local suite passes 274 tests with 3
+  database tests skipped; the isolated PostgreSQL suite passes all 277 tests.
+  `compileall` and `git diff --check` pass. Compose `repo` was rebuilt at 21:38
+  Moscow time; source/runtime versions both report 3.5.7 and PostgreSQL is
+  healthy. Startup scan completed at 18:40:25 UTC (21:40:25 Moscow); the
+  inspected source requests succeeded, with HH API 403 recovering through its
+  ordinary public-web fallback.
 - Earlier candidate verification: the safe updater rebuilt the feature branch;
   read-only mount inspection
   confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
@@ -58,8 +169,10 @@
   minimum remains connected to scoring.
 - Telegram `/blacklist` supports case-insensitive add/remove/clear across active
   Career-first and Relocation-first profiles.
-- Latest full isolated PostgreSQL suite: 248 passed, 68.36% branch coverage
-  (55% gate); compile and diff checks passed. The owner reopened `/job 1091`
+- Latest full isolated PostgreSQL suite: 257 passed, 68.59% branch coverage
+  (55% gate); the local suite passes 254 with three database tests skipped;
+  targeted Job Bank and preference tests pass 34.
+  Compile and diff checks passed. The owner reopened `/job 1091`
   after the singular-heading fix and reported Technical 42 with interview risk
   `н/д`. Recommendation v2 was independently scoring the raw stored HTML while
   Technical used decoded text. Commit `8a583c7` passes the same normalized
@@ -68,8 +181,15 @@
   `38151843490` passed; deployment, startup scan, and Telegram acceptance are
   complete. The owner confirmed Technical 42 and risk 58; the score is not a
   calibrated probability.
-  The Job Bank `ConnectTimeout` remains covered by a one-retry transport
-  regression; HTTP status errors remain unretried.
+  Job Bank now continues across individual search/detail transport failures and
+  preserves successfully verified vacancies; it keeps the one-retry budget,
+  five-second minimum spacing between serialized request starts. The full database-backed suite
+  covers partial recovery and all-detail failure. The owner supplied a fresh
+  Telegram `/scan` and `/scanstatus` at 19:33–19:36 Moscow time: Job Bank
+  returned 12 vacancies in 100.7 seconds, and the supplied log excerpt shows
+  detail requests returning HTTP 200 without a Job Bank warning. This confirms
+  a healthy normal run; no transport failure occurred to exercise partial
+  recovery live.
 - PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
   CI run `38135649948` passed.
 - Public competition-data audit found no per-vacancy applicant counts in the
@@ -99,10 +219,11 @@
   Candidate `VERSION` and local Compose runtime are 3.5.7; v3.5.6 remains the
   latest version on `main` and the formal release. The v3.5.2–v3.5.5
   milestones remain cumulative entries within v3.5.6.
-- Job Bank previously took 99.5 seconds; the latest scan failed its
-  Relocation-first request with `ConnectTimeout` after 29.2 seconds. Preserve
-  its five-second request pacing and evaluate a bounded transport retry as a
-  separate tested reliability change.
+- Job Bank previously took 99.5 seconds; a Relocation-first scan lost the
+  source after a `ConnectTimeout` at 29.2 seconds. The candidate now retains
+  unaffected results and enforces a five-second minimum between request starts
+  without an unnecessary extra delay after slow responses. Evaluate actual
+  latency in Telegram; do not parallelize or increase request volume.
 
 ## Implemented on active branch
 - enable/disable implemented job sources;
@@ -118,6 +239,9 @@
 - explicit `career_first`, `relocation_first` and `balanced` strategies;
 - separate career and relocation discovery query lists, combined only in balanced mode;
 - conservative relocation ordering: evidence raises priority, missing evidence remains unknown;
+- explicitly remote vacancies receive a processing-priority bonus in both
+  independent search profiles; this does not alter Match Score or assert that
+  unknown geographic scope means worldwide eligibility;
 - Telegram strategy selector and `/relocationroles` command.
 - opt-in `/parallelsearch on|off|status` for independent Career-first and Relocation-first SearchProfiles;
 - per-profile discovery, filtering, ordering, counters and matching in one scan;

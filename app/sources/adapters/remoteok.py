@@ -55,7 +55,9 @@ class RemoteOKSource(JobSource):
                     url=str(row.get("url") or row.get("apply_url") or ""),
                     country=str(row.get("location") or "") or None,
                     work_mode="remote",
-                    remote_scope="worldwide/unspecified",
+                    # RemoteOK marks work as remote but does not state which
+                    # countries the employer can hire from.
+                    remote_scope="unspecified",
                     salary_from=row.get("salary_min"),
                     salary_to=row.get("salary_max"),
                     salary_currency="USD" if row.get("salary_min") or row.get("salary_max") else None,

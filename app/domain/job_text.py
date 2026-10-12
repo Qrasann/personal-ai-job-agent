@@ -78,6 +78,7 @@ def format_salary(
     currency: str | None,
     *,
     fallback_text: str = "",
+    period: str | None = None,
 ) -> str:
     low = salary_from if salary_from and salary_from > 0 else None
     high = salary_to if salary_to and salary_to > 0 else None
@@ -110,12 +111,27 @@ def format_salary(
 
     suffix = f" {symbol}" if symbol else ""
     if low and high:
-        return f"{money(low)}–{money(high)}{suffix}"
-    if low:
-        return f"от {money(low)}{suffix}"
-    if high:
-        return f"до {money(high)}{suffix}"
-    return "не указана"
+        formatted = f"{money(low)}–{money(high)}{suffix}"
+    elif low:
+        formatted = f"от {money(low)}{suffix}"
+    elif high:
+        formatted = f"до {money(high)}{suffix}"
+    else:
+        return "не указана"
+
+    period_suffix = {
+        "hourly": "в час",
+        "weekly": "в неделю",
+        "fortnightly": "за 2 недели",
+        "monthly": "в месяц",
+        "annual": "в год",
+        "per-year": "в год",
+        "yearly": "в год",
+        "per-month": "в месяц",
+        "per-week": "в неделю",
+        "per-hour": "в час",
+    }.get((period or "").strip().casefold())
+    return f"{formatted} {period_suffix}" if period_suffix else formatted
 
 
 def extract_experience(value: str) -> str:

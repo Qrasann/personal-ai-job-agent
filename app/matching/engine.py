@@ -176,7 +176,11 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
         r"\bsenior\b",
         r"\blead\b",
         r"\bprincipal\b",
-        r"\bstaff\b",
+        # Staff is an engineering level only when it qualifies a technical
+        # role. Lower-barrier titles such as "hotel staff" mean employees,
+        # not senior engineers, and must retain their normal fit evaluation.
+        r"\bstaff(?:[\s-]+level)?[\s:/-]+(?:[\w+#./-]+\s+){0,4}(?:engineer|developer|scientist|researcher|programmer|devops|sre)\b",
+        r"\b(?:engineer|developer|scientist|researcher|programmer|devops|sre)[\s,(/:\-–—]+staff\b",
         r"\bhead\b",
         r"\barchitect\b",
         r"\bстарш(?:ий|ая|ее)\b",
@@ -447,7 +451,17 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         salary = 58 if not (job.salary_from or job.salary_to) else 72
     else:
         observed = job.salary_to or job.salary_from or 0
-        salary = 100 if observed >= int(minimum) else max(0, int(observed / int(minimum) * 100)) if minimum else 60
+        period = (getattr(job, "salary_period", None) or "monthly").strip().casefold()
+        if period in {"annual", "yearly", "per-year"}:
+            # Profile minimums are monthly. Preserve the source's annual
+            # amount in storage/display and compare its monthly equivalent.
+            observed /= 12
+        if period not in {"monthly", "per-month", "annual", "yearly", "per-year"}:
+            # Hourly/weekly pay needs contracted hours or weeks; do not
+            # invent those to claim that a monthly minimum has been met.
+            salary = 58
+        else:
+            salary = 100 if observed >= int(minimum) else max(0, int(observed / int(minimum) * 100)) if minimum else 60
 
     relocation_enabled = "relocation" in enabled
     if signals.relocation_blocked:

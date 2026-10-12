@@ -1,6 +1,21 @@
 # Codex Brief
 
-Last updated: 2026-10-11 (Europe/Moscow)
+Last updated: 2026-10-12 (Europe/Moscow)
+
+**Resumed verification — 2026-10-12.** The saved candidate now also fixes
+support-evidence false positives, annual salary comparisons, stale scan
+dashboard timestamps, source-isolated discovery failures, Remotive cache-age
+renewal, and Himalayas timezone detail display. Validation: local suite
+**424 passed, 3 PostgreSQL tests skipped**; full isolated PostgreSQL suite
+**427 passed, 73.22% branch coverage** (55% gate); `compileall` and
+`git diff --check` pass. The source/runtime version is 3.5.7. Production app
+and PostgreSQL are currently stopped (`Exited (0)`); do not claim the current
+worktree is deployed yet. PR #18 is open as a draft at `d445c87`; this
+worktree's changes remain unpublished. Preserve its existing changes and
+named volumes. Next: finish the candidate audit, publish to the existing
+feature branch, verify CI, then rebuild/start Compose `repo` and check the
+same volumes and startup scan. See the newest entry at the top of
+`HANDOFF.md`.
 
 ## Mission
 
@@ -13,22 +28,94 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current runtime
 
-- Checked-out feature source and running Compose image runtime are `3.5.7`;
-  database schema remains `4/4`.
+- **Latest stage (Oct 12): independent results and correct Staff handling.**
+  `/jobs career`, `/jobs relocation` and `/jobs relocation below` query only
+  the requested enabled search profile and its own threshold. The list-to-card
+  and comparison-button paths retain `search_profile_id`; cards name the
+  selected profile. Legacy command/callback formats remain supported. Ordinary
+  Hotel/Kitchen/Warehouse Staff no longer trigger the technical Staff seniority
+  exclusion; actual Staff technical roles and explicit seniority, experience,
+  management and owner exclusions retain their restrictions. Scores and the
+  default threshold of 65 are unchanged. Full local suite: 319 passed, 3
+  database tests skipped; all 3 isolated PostgreSQL repository tests passed.
+  Compilation and diff checks pass. Compose `repo` was rebuilt at 01:36
+  Moscow: source/runtime 3.5.7, app up and PostgreSQL healthy; startup scan
+  completed successfully at 01:37:50 Moscow. Telegram acceptance
+  of the new scoped commands remains pending. Next:
+  bounded discovery for selected HH destinations or verified AM/GE employer
+  feeds; no assumption that this correction alone produces Good/Stretch.
+  `ROADMAP.md` now has a stage/status overview; the private relocation roadmap
+  has its own progress and a current official-law review. No publication.
+- **Latest candidate stage (Oct 12 Moscow):** Added the official Remotive
+  Devops RSS feed with required provider attribution, a shared persisted
+  24-hour cache, country-scope handling, and Remotive links in `/jobs`. The API
+  ignored tested category filters and returned a broad feed, so the adapter
+  now uses the documented category feed and cache key v3. Targeted Remotive and
+  cache tests: 17 passed; full local suite: 286 passed, 3 database tests
+  skipped; all 3 repository PostgreSQL integration tests passed. Compilation
+  and `git diff --check` passed. Added `/jobs below` for descending manual
+  review of nonzero results below the configured threshold; scores,
+  notifications, and the threshold stay unchanged, and unknown work/relocation
+  eligibility is explicit. The Remotive RSS request returned HTTP 200 but no
+  job items, so both profiles correctly found 0 Remotive jobs. The provider
+  response is cached for 24 hours; recheck after expiry. Compose `repo` was
+  rebuilt at 01:15 Moscow Oct 12; source/runtime report 3.5.7, PostgreSQL is
+  healthy, and the app is polling. The startup scan began immediately, and
+  Telegram acceptance of `/jobs below` is pending. Keep 3.5.7 local and
+  unpublished; next,
+  improve practical Relocation-first source coverage without changing the
+  65-point threshold or score ordering.
+- Checked-out feature source is `3.5.7` on `d445c87`; the worktree has
+  uncommitted changes. Compose project `repo` also reports runtime `3.5.7`
+  with schema `4/4`. The current worktree, including the Collectly Lever
+  source, passed 274 local tests (3 database tests skipped), `compileall`, and
+  `git diff --check`. The image was rebuilt at 21:04 Moscow time and PostgreSQL
+  is healthy; startup `scan_all` completed successfully at 18:06:21 UTC
+  (21:06:21 Moscow). Lever returned HTTP 200 for both profiles; Himalayas,
+  EURES, Job Bank, HR.ge, Greenhouse and HH public search also returned
+  successful responses in the inspected log window. HH's API 403 recovered
+  through its public-web fallback. Previous mount inspection confirmed the
+  named data volumes remain attached. The owner accepted the Himalayas
+  `/job 1273` geography card at 20:56. Collectly job #1333 was found in the
+  runtime database as filtered by the Career-first `senior devops` exclusion;
+  this is expected profile behavior, not a missing source result.
+- At 21:11–21:14 Moscow time the owner confirmed `/sources` lists Lever for
+  both profiles, then ran `/scan` and `/scanstatus`: Lever returned 1 live
+  vacancy in 9.6s; the scan completed in 131s with no source error in the
+  supplied log excerpt. Job Bank returned 12 in 71.4s and EURES 16 in 55.2s.
+  A read-only lookup found Collectly as job #1333, filtered at score 0 because
+  Career-first explicitly excludes `senior devops`; this is expected profile
+  behavior, not a source failure. Do not change that exclusion without the
+  owner's choice. At 21:20 the owner showed remote CloudCops (Good, 88) and
+  Sporty Group (Stretch, 72) at the top of `/review` and `/stretch`.
+- The same scan reported Relocation-first 74 processed, 0 Good, 0 Stretch.
+  That profile has broad lower-barrier queries and a 65-point threshold; an
+  inspected remote result scored 54 and was filtered. Treat this as a
+  relocation-result visibility issue, not an adapter outage. The owner
+  confirmed higher-rated results must remain first; keep `/jobs` sorted by
+  score, retain the 65-point threshold, and do not promote lower-scoring
+  results into a higher-priority queue. Continue source-coverage and relevance
+  work without score inflation or changing owner exclusions.
+- GitHub check on 2026-10-11: latest formal tag/release v3.5.6; visible tags
+  are v3.5.0, v3.5.1, and v3.5.6. v3.5.2–v3.5.5 are cumulative changelog
+  milestones, not separately tagged releases. PR #18 is open/draft. Local
+  branch `feature/v3.5.7-international-market-coverage` remains at
+  `d445c87`/`VERSION=3.5.7` with uncommitted changes; no publication action.
 - GitHub `main` contains source version `3.5.6`; PR #15 and PR #16 are merged.
   The deployed application code is `170ed4e`; PR #16's later commits only
   updated documentation. The merge is recorded at
   https://github.com/Qrasann/personal-ai-job-agent/pull/16.
 - Branch map: `main` is the stable source at `02f582e`; the current working
   branch is `feature/v3.5.7-international-market-coverage`, currently at
-  code commit `8a583c7` with later documentation commits, created from that
-  main commit. Its candidate `VERSION` is
+  `d445c87` with uncommitted local work, created from that main commit. Its
+  candidate `VERSION` is
   `3.5.7`; `main` remains `3.5.6`, while local Compose project `repo` runs
   candidate 3.5.7. `feature/v3.5.6-eures-identity-market-targets`
   is merged and inactive; `feature/v3.5.2-dual-search-modes` is an older branch.
-- Release map: `VERSION=3.5.6` and the latest formal GitHub tag/Release are
-  v3.5.6. Changelog entries v3.5.2–v3.5.5 are cumulative milestones included
-  in that release; do not backfill intermediate tags.
+- Version map: the stable source on GitHub `main` is v3.5.6; the checked-out
+  feature branch and runtime report v3.5.7. The latest formal GitHub tag and
+  Release are v3.5.6. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
+  included in that release; do not backfill intermediate tags.
 - GitHub CI passed for merge commit `874b372` (run `38135649948`); the PR #16
   push and PR checks also passed (runs `38135381779` and `38135384930`).
 - The cumulative v3.5.6 tag points to release commit `50afdab`; main CI run
@@ -53,9 +140,41 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 - Added safe tracked-branch updates through `./job-agent update`.
 - Added Job Bank Canada discovery with separate international eligibility, LMIA, and support evidence.
 - Added bounded EURES discovery using the employer cross-border recruitment flag without treating it as visa sponsorship.
+- Job Bank preserves verified results after individual transport failures and
+  now enforces a five-second minimum between serialized request starts without
+  an unnecessary full wait after slow responses. The owner verified 12 live
+  results in 71.2s on the post-update scan, compared with 100.7s previously;
+  no source failure appeared in the supplied log excerpt.
 - Added explicit Telegram resume import for PDF/DOCX/TXT, plus fact confidence/provenance and overlap review.
 - Added persisted Recommendation v2 component breakdown with unknown values
   left unset and displayed in vacancy details.
+- Both independent search profiles now process vacancies explicitly marked
+  remote earlier within each source batch. This does not alter Match Score,
+  raise score thresholds, or establish that the employer allows work from the
+  target country; unknown remote scope remains unknown.
+- The current v3.5.7 worktree adds Himalayas' documented public remote-job
+  API. It searches up to four active-profile queries across at most three
+  selected markets, one page of 20 jobs per query/market, and caches results
+  for 24 hours. Cards link to and attribute Himalayas; salary includes its pay
+  period. The provider's location limits are preserved and missing limits stay
+  unknown. The owner verified the source in Telegram and accepted `/job 1273`:
+  worldwide is presented as the provider's claim, with employer confirmation
+  required for country-level hiring.
+- Added a curated Lever Postings API adapter for Collectly's published remote
+  DevOps role. It is enabled only for selected AM/GE profiles and only while
+  the role states a timezone band covering UTC+4. The job source's Belgrade/RS
+  metadata is preserved separately while normalized country, salary, visa,
+  and relocation remain unknown unless supported by the current posting.
+  Current local suite: 274 passed, 3 database tests skipped; source-specific
+  regression tests and compilation pass. Compose has been rebuilt. The owner
+  later verified `/sources`, `/scan`, and `/scanstatus`; Lever returned one
+  result. The saved Collectly match is filtered by the explicit Career-first
+  exclusion, so no review-queue detail card is expected unless that filter is
+  changed.
+- Job Bank preserves verified results after individual transport failures and
+  enforces a five-second minimum between serialized request starts without an
+  extra full wait after a slow response. The owner compared live timings in
+  Telegram `/scanstatus`: 71.2s for 12 results, down from 100.7s previously.
 - Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
 - Set EURES `Accept-Encoding: identity` after reproducing TLS body-read failure
   with the default compressed response and reading the complete 50-result JSON
@@ -143,13 +262,24 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   UTC without source errors, SSL failures, timeouts, or tracebacks in the
   inspected five-minute window. The owner later confirmed Technical 42 and risk
   58 in Telegram; see the acceptance record above.
+- The uncommitted candidate now prioritizes explicit remote work inside each
+  source batch in both independent profiles. This changes processing order
+  only; geographic eligibility stays separate and unknown scope is not treated
+  as worldwide. The local suite passes 266 tests with 3 PostgreSQL tests
+  skipped; the isolated PostgreSQL suite passes all 269 tests at 69.70% branch
+  coverage. Job Bank enforces minimum five-second spacing between request
+  starts without adding a full delay after slow responses. The candidate was
+  rebuilt into local Compose at 20:33 Moscow time; startup scan completed, and
+  Himalayas returned HTTP 200 for GE and AM. Telegram acceptance is pending.
 
 ## Verified
 
-- Latest full isolated PostgreSQL suite: `248 passed`, 68.36% branch coverage
-  (55% gate), including encoded Greenhouse HTML and the Recommendation v2
-  interview-risk path. Compilation and `git diff --check` pass. Latest code
-  commit `8a583c7` passed push CI `38151840822` and PR CI `38151843490`.
+- Latest full isolated PostgreSQL suite: `269 passed`, 69.70% branch coverage
+  (55% gate), including encoded Greenhouse HTML, Recommendation v2 interview
+  risk, remote priority, Job Bank pacing, and Himalayas regressions. Compilation and
+  `git diff --check` pass. The currently published code commit `8a583c7` passed
+  push CI `38151840822` and PR CI `38151843490`; those checks do not include the
+  current uncommitted changes.
 - Local Compose check: source/runtime `3.5.7`, app polling, PostgreSQL healthy.
   Mount inspection confirms `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
   remain attached. The startup scan completed at 13:31:05 UTC; EURES returned
@@ -163,6 +293,12 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   API returned 403 before its ordinary public web fallback succeeded; the
   five-minute error scan found no source failure, SSL error, timeout or
   traceback.
+- The owner supplied a fresh Telegram `/scan` and `/scanstatus` at 19:33–19:36
+  Moscow time: Job Bank returned 12 vacancies in 100.7 seconds; EURES 16,
+  HR.ge 2, HH 209, Remote OK 3, Arbeitnow 2 and Greenhouse 1. The supplied log
+  excerpt shows Job Bank details, EURES and HR.ge returning HTTP 200, without a
+  Job Bank warning or source error. This confirms a normal live run; it did not
+  exercise the partial-transport-failure path covered by regressions.
 - Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
   passes. Compilation and `git diff --check` passed. The six-detail cap,
   per-request timeout, inter-request delay, partial-failure behavior and salary
@@ -231,17 +367,26 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
 
 ## Current priority
 
-Treat relocation search as time-sensitive: prioritize currently open roles,
-clear application windows, realistic hiring/start timing, and explicit
-country-specific work eligibility. Keep unverified dates and support unknown.
+Treat relocation search as time-sensitive. The Relocation-first profile now
+processes explicitly remote vacancies earlier within each source batch; verify
+that the posting permits work from the intended country before treating it as a
+usable route. Keep local roles visible and verify open status, application
+window, start timing, and country-specific work eligibility. Missing evidence
+remains unknown.
+Order visible vacancy lists by match score descending, using recency to break
+ties. The owner confirmed that higher-rated vacancies should receive higher
+priority; keep the 65-point notification threshold and do not promote
+below-threshold roles ahead of higher-scoring results.
 Do not copy the owner's personal relocation estimate into public repository
 files.
 
-Continue v3.5.7 on `feature/v3.5.7-international-market-coverage`. The bounded
-Job Bank retry is fully tested, pushed and deployed. `main` and the latest
-formal tag/release remain v3.5.6; PR #18 remains draft. The next product stage
-is permitted source coverage for relevant Georgia/Armenia openings, followed
-by verification of each live role's location, timing and eligibility evidence.
+Continue v3.5.7 on `feature/v3.5.7-international-market-coverage`. The owner
+confirmed the Collectly Lever source through Telegram `/sources`, `/scan`, and
+`/scanstatus`; next locate its result through `/review` or `/stretch` and
+verify the `/job <id>` card's timezone and country-hiring caveat. `main` and
+the latest formal tag/release remain v3.5.6; PR #18 remains a draft, and
+current changes are not published. Continue auditing permitted remote and
+Armenia/Georgia employer feeds after this card check.
 The owner completed the Career-first GE/AM source check: Greenhouse returned
 one Lineate Infrastructure Engineer vacancy for Georgia and sent one new
 notification. `/job 1091` now displays a readable description and keeps

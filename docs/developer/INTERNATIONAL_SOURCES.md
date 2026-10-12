@@ -23,6 +23,64 @@
   https://github.com/rorar/EURES-API-Documentation. The European Commission's
   official portal and its vacancy record remain the data source.
 
+## Himalayas — implemented in the v3.5.7 candidate
+
+- Official API reference: https://himalayas.app/docs/remote-jobs-api and
+  https://himalayas.app/api. The provider documents a public JSON search API
+  with role, ISO country and worldwide filters; no authentication is required.
+- The provider limits each request to 20 jobs, applies an unspecified rate
+  limit, and refreshes its data once per day. The adapter uses at most four
+  active-profile role queries and three selected markets, requests one recent
+  page per query/market, serializes calls with a short delay, and keeps a
+  24-hour discovery cache. It does not paginate or mirror the whole board.
+- The API says an empty locationRestrictions array means worldwide. Explicit
+  country limits are retained only when they match the selected target market;
+  an absent restrictions field stays unknown. A worldwide label does not
+  establish candidate work authorization, employer payroll, or tax handling.
+- Salary values retain their stated currency and pay period; Telegram labels
+  hourly, weekly, fortnightly, monthly and annual amounts explicitly. The
+  adapter links to the Himalayas listing and displays Himalayas attribution, as
+  required by the provider. It does not submit applications.
+- API responses have been inspected through the official live browse endpoint.
+  The rebuilt startup scan made filtered GE and AM requests and both returned
+  HTTP 200; Telegram confirmation of parsed result counts and card rendering is
+  still pending. The candidate has parser, request-bound, daily-cache,
+  market-scope, source-attribution and unknown-eligibility regressions.
+
+## Remotive — implemented in the v3.5.7 candidate
+
+- Official public category RSS feed: https://remotive.com/remote-jobs/devops/feed.
+  The [RSS feed documentation](https://github.com/remotive-com/remote-jobs-feed)
+  lists category-specific feeds and shows the expected RSS/XML fields. The
+  [public API documentation](https://github.com/remotive-com/remote-jobs-api)
+  and terms say developers may share listings, must link to Remotive and show
+  attribution, must not submit listings to third-party job websites, and may
+  not display jobs to collect signups or email addresses.
+- The API's documented filters returned the same 18-job general feed for
+  `category=devops`, `category=Devops`, and `category=software-development` in
+  the Oct 12 runtime check. The adapter now uses the official Devops category
+  RSS feed and parses at most 250 entries, with one shared refresh every 24
+  hours. A single response is shared between Career-first,
+  Relocation-first, and active users; the existing `runtime_state` table keeps
+  the response across app restarts. `/scan` does not force a Remotive refresh.
+  The 2026-10-12 runtime check returned a valid RSS document with channel
+  metadata but no job entries; both profiles correctly parsed zero. This is
+  currently an empty-provider response, not evidence that the source has jobs.
+- Every vacancy uses the Remotive-hosted source URL and the `/jobs` list displays
+  Remotive by name, including when the same canonical posting also appears on
+  Himalayas. The source performs discovery only; it does not apply or message.
+- `candidate_required_location` stays visible as remote scope. Explicit country
+  lists that exclude the selected market and clear `Only` restrictions without
+  a selected-country match are filtered. Region labels are not converted into
+  country eligibility, and missing location stays `unknown`. Remote scope does
+  not establish work authorization, employer hiring eligibility, visa
+  sponsorship, payroll/tax availability, or relocation support.
+- Salary is preserved as source text and is not parsed into a numeric salary.
+  Response parsing is limited to the documented Devops category and
+  the profile's role queries. The adapter is covered for malformed payloads,
+  source URLs, country scope, daily caching across profiles and restarts,
+  attribution, and disabled application capabilities.
+
 ## Job Bank Canada — implemented on 2026-10-10
 
 - Official entrypoint: https://www.jobbank.gc.ca/findajob/foreign-candidates
@@ -46,9 +104,17 @@
   structured salary remains unknown until decimal/period-aware normalization.
 - Public robots.txt specifies a five-second crawl delay. Requests are serialized
   across scheduled/manual scans in one process. Existing discovery cache applies.
+- A single transport retry remains bounded. Request starts are separated by
+  at least five seconds, including retries; a slow response consumes the
+  interval so it does not incur an extra full delay. If one search
+  query or vacancy detail exhausts its retries, discovery continues with the
+  remaining work and keeps successfully verified vacancies. The source reports
+  an error when every search fails or every requested detail fails; HTTP status
+  errors are not treated as transport retries and remain visible failures.
 - Initial bounded coverage: first page, at most six queries and twelve details
-  per profile. Broad first queries can consume the detail budget. Healthy
-  requests add up to about 90 seconds per uncached profile, plus network time.
+  per profile. Broad first queries can consume the detail budget. For 18 fast
+  requests, the minimum start interval can account for about 85 seconds before
+  network time; slow responses consume part or all of that interval.
 - No automatic apply or messages. The source respects profile source controls,
   relocation mode and existing country/geography filters. Canada is now in the
   country catalog. No database migration is needed.
@@ -133,6 +199,16 @@
   by Relokatz. Its automated-access and reuse terms have not been verified;
   treat it as a manual-search candidate until those terms and a permitted feed
   are checked.
+- [LeverX Careers](https://career.leverx.com/vacancies) currently lists DevOps
+  roles for Georgia, including [Middle DevOps Engineer](https://career.leverx.com/vacancies/middle-devops-engineer)
+  (hybrid/remote) and [Senior DevOps Engineer](https://career.leverx.com/vacancies/devops-engineer)
+  (Georgia/Albania, hybrid/remote). The postings request English B2+; they do
+  not state salary, visa sponsorship, or relocation support. The portal says
+  candidate CVs should be submitted through its own career site and warns that
+  legitimate HR contacts use `@leverx.com`. No documented public feed/API or
+  automated-reuse permission was found in this review, so keep it a manual
+  search destination. Remote/work-mode labels do not prove hiring eligibility
+  for a Russian citizen from a selected country.
 - For a supported adapter, prefer a documented public feed, a written source
   agreement, or employer career/ATS endpoints that the employer exposes for
   discovery. Preserve canonical links and collect only the fields needed for
@@ -160,6 +236,42 @@
 - This is a candidate source, not proof of an individual right to work in
   Georgia. Keep current local work-right requirements separate from source
   discovery and match scoring.
+
+### Collectly Lever Postings API — candidate integration, checked 2026-10-11
+
+- Lever's official [Postings API support page](https://hire.lever.co/developer/support)
+  describes the API as publicly accessible for published job postings. Lever's
+  [official API documentation](https://github.com/lever/postings-api) documents
+  JSON GET requests, `skip`/`limit` pagination, and hosted application links;
+  the authenticated Lever Data API and application-submission endpoints are
+  not used.
+- The employer-hosted [Collectly Engineering board](https://jobs.lever.co/CollectlyInc/?team=Engineering)
+  currently publishes [Senior DevOps/DevSecOps Engineer](https://jobs.lever.co/CollectlyInc/3240d98f-b916-46d4-a89e-3ae4aa988338).
+  A read-only GET to `https://api.lever.co/v0/postings/CollectlyInc?mode=json`
+  returned the public board and the same current posting. It states remote
+  work from GMT-7 to GMT+4, infrastructure-as-code, CI/CD, cloud, monitoring,
+  security, and fluency in English. It asks for a Bachelor's degree or
+  equivalent experience and does not specify a minimum number of years.
+- The Lever record labels its posting location Belgrade and country RS. Since
+  the role is remote with an explicit timezone band that includes UTC+4, the
+  adapter can surface it for selected AM/GE searches. It deliberately leaves
+  normalized country/city and country-of-hire eligibility unknown; the source
+  office is not treated as the only possible hiring country, and timezone fit
+  does not establish payroll, tax, immigration, or work-right eligibility.
+- The employer's hosted application form states that new hires must attend
+  one or two weeks of onboarding in Yerevan and that the employer covers travel
+  and accommodation. This is a useful potential relocation lead, but it does
+  not prove that a Russian citizen can be hired or settle in Armenia. Salary
+  is not stated, and no expiry/deadline is provided in the inspected public
+  board record. The source API's `createdAt` is retained as metadata, not shown
+  as a publication date.
+- The candidate collector is limited to Collectly's public board, one page of
+  at most 100 records, explicitly remote DevOps matches, and a timezone range
+  covering UTC+4. It runs only when AM or GE is selected and uses a six-hour
+  application cache. No general Lever-site crawling, applicant-form scraping,
+  or automated application is enabled. The API documentation does not state a
+  public-feed request limit; the bounded request and cache are conservative
+  local policy, not a claimed vendor quota.
 
 ### Armenia employer-side foreign-hiring route — checked 2026-10-11
 

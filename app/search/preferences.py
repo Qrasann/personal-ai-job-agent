@@ -4,10 +4,12 @@ import re
 from typing import Any
 
 from app.domain.jobs import NormalizedJob
+from app.domain.support_evidence import SUPPORT_KEYS, support_evidence
 
 POLICY_VALUES = ("any", "prefer", "require", "exclude")
 SEARCH_STRATEGIES = ("career_first", "relocation_first", "balanced")
 DEFAULT_PRIORITY = 50
+REMOTE_WORK_PRIORITY_BONUS = 30
 
 
 def _dict(value: Any) -> dict:
@@ -106,17 +108,33 @@ def _signals(job: NormalizedJob) -> dict[str, bool]:
     if job.source == "jobbank":
         # Explicit adapter evidence outranks incidental permit/LMIA terminology.
         support = (job.raw or {}).get("support_signals") or {}
-        return {key: support.get(key) is True for key in (
-            "relocation", "visa_sponsorship", "work_permit", "relocation_package", "immigration_support"
-        )}
-    text = _norm_text(" ".join([job.title or "", job.description or "", str(job.raw or "")]))
-    return {
-        "relocation": job.relocation is True or bool(re.search(r"\brelocat(?:e|ion)\b|релокац|переезд", text)),
-        "visa_sponsorship": job.visa_sponsorship is True or bool(re.search(r"visa sponsorship|sponsor(?:ing)? visa|визов|рабоч(?:ая|ую) виз", text)),
-        "work_permit": bool(re.search(r"work permit|right to work|разрешени.{0,12}на работу", text)),
-        "relocation_package": bool(re.search(r"relocation package|relocation assistance|релокационн.{0,12}пакет|оплачива.{0,12}переезд", text)),
-        "immigration_support": bool(re.search(r"immigration support|immigration assistance|visa support|помощ.{0,12}(?:виз|иммиграц|переезд)", text)),
-    }
+        return {key: support.get(key) is True for key in SUPPORT_KEYS}
+    # Metadata key names (including null/false values) are not posting evidence.
+    evidence = support_evidence("\n".join((job.title or "", job.description or "")))
+    for key in ("relocation", "visa_sponsorship"):
+        value = getattr(job, key)
+        if value is not None and evidence[key] is not False:
+            evidence[key] = value
+    return {key: evidence[key] is True for key in SUPPORT_KEYS}
+
+
+def _is_remote_job(job: NormalizedJob) -> bool:
+    mode = _norm_text(job.work_mode)
+    scope = _norm_text(job.remote_scope)
+    non_remote = r"\b(?:onsite|on-site|office only|no remote|not remote|не удаленн\w*|не дистанционн\w*)\b"
+    if re.search(non_remote, mode):
+        return False
+    remote_mode = bool(
+        re.search(
+            r"\bremote\b|удаленн\w*|дистанционн\w*|telework|work from home|home office|\bwfh\b",
+            mode,
+        )
+    )
+    # A populated remote_scope is itself a remote-work signal. Values such as
+    # "unspecified" describe unknown geographic eligibility, not worldwide
+    # eligibility; they can still be prioritized for the user to inspect.
+    remote_scope = bool(scope and scope not in {"unknown", "none", "n/a"})
+    return remote_mode or remote_scope
 
 
 def _policy(settings: dict | None, key: str) -> str:
@@ -172,6 +190,8 @@ def job_priority(job: NormalizedJob, settings: dict | None, *, current_country: 
     if local_city and _norm_text(job.city) == local_city:
         score += 15
     strategy = search_strategy(cfg)
+    if _is_remote_job(job):
+        score += REMOTE_WORK_PRIORITY_BONUS
     for key, present in _signals(job).items():
         if present:
             policy = _policy(cfg, key)

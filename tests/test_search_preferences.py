@@ -1,5 +1,7 @@
 from dataclasses import replace
 
+import pytest
+
 from app.domain.jobs import NormalizedJob
 from app.search.preferences import discovery_queries, job_priority, search_strategy, source_enabled, vacancy_allowed
 
@@ -81,3 +83,96 @@ def test_relocation_strategy_prioritizes_evidence_but_not_unknown_as_false():
     )
     assert vacancy_allowed(unknown, cfg, current_country="RU")
     assert job_priority(supported, cfg, current_country="RU") > job_priority(unknown, cfg, current_country="RU")
+
+
+def test_relocation_strategy_prioritizes_remote_work_without_claiming_scope():
+    cfg = {"search_strategy": "relocation_first", "target_countries": ["GE", "AM"]}
+    remote = make_job(country="GE", city="Tbilisi", work_mode="remote", remote_scope="unspecified")
+    onsite = make_job(country="GE", city="Tbilisi", work_mode="onsite")
+
+    assert job_priority(remote, cfg, current_country="RU") > job_priority(onsite, cfg, current_country="RU")
+    assert vacancy_allowed(remote, cfg, current_country="RU")
+    assert remote.remote_scope == "unspecified"
+
+
+def test_remote_priority_applies_to_both_profiles_and_explicit_remote_modes():
+    remote = make_job(work_mode="Удалённо")
+    office = make_job(work_mode="Офис")
+    relocation = {"search_strategy": "relocation_first"}
+    career = {"search_strategy": "career_first"}
+    balanced = {"search_strategy": "balanced"}
+
+    assert job_priority(remote, relocation) > job_priority(office, relocation)
+    assert job_priority(remote, career) > job_priority(office, career)
+    assert job_priority(remote, balanced) > job_priority(office, balanced)
+    not_remote = make_job(work_mode="not remote")
+    assert job_priority(not_remote, relocation) == job_priority(office, relocation)
+    assert job_priority(not_remote, career) == job_priority(office, career)
+
+
+def test_remote_scope_can_signal_remote_work_but_unknown_scope_cannot():
+    relocation = {"search_strategy": "relocation_first"}
+    remote_scope = make_job(work_mode=None, remote_scope="unspecified")
+    unknown = make_job(work_mode=None, remote_scope="unknown")
+
+    assert job_priority(remote_scope, relocation) > job_priority(unknown, relocation)
+
+
+@pytest.mark.parametrize("key", ["visa_sponsorship", "relocation", "relocation_package"])
+def test_explicit_support_denial_never_satisfies_require_or_prefer(key):
+    denied = make_job(description="We do not provide visa sponsorship or relocation assistance.")
+    unknown = make_job()
+    assert not vacancy_allowed(denied, {"relocation_preferences": {key: "require"}})
+    assert vacancy_allowed(denied, {"relocation_preferences": {key: "exclude"}})
+    preferred = {"search_strategy": "relocation_first", "relocation_preferences": {key: "prefer"}}
+    assert job_priority(denied, preferred) == job_priority(unknown, preferred)
+
+
+@pytest.mark.parametrize("description", [
+    "Must already have the right to work in Germany.",
+    "A valid work permit is required.",
+    "You must obtain a work permit.",
+])
+def test_authorization_prerequisite_is_not_employer_permit_assistance(description):
+    item = make_job(description=description)
+    assert not vacancy_allowed(item, {"relocation_preferences": {"work_permit": "require"}})
+    assert vacancy_allowed(item, {})
+
+
+@pytest.mark.parametrize("raw", [
+    {"relocation": None},
+    {"visa_sponsorship": False, "work_permit": None},
+    {"visa_sponsorship": True, "relocation": "unknown"},
+    {"navigation": "Visa sponsorship and relocation assistance are provided."},
+])
+def test_raw_metadata_is_not_support_prose(raw):
+    item = make_job(raw=raw)
+    assert not vacancy_allowed(item, {"relocation_preferences": {"relocation": "require"}})
+    assert not vacancy_allowed(item, {"relocation_preferences": {"visa_sponsorship": "require"}})
+
+
+def test_explicit_denial_overrides_a_stale_positive_normalized_flag():
+    item = make_job(
+        relocation=True, visa_sponsorship=True,
+        description="No visa sponsorship. Relocation assistance is not provided.",
+    )
+    assert not vacancy_allowed(item, {"relocation_preferences": {"visa_sponsorship": "require"}})
+    assert not vacancy_allowed(item, {"relocation_preferences": {"relocation": "require"}})
+
+
+@pytest.mark.parametrize("description, offered, denied", [
+    (
+        "We do not provide relocation assistance, but we offer visa sponsorship.",
+        "visa_sponsorship", "relocation",
+    ),
+    (
+        "We do not provide visa sponsorship, but we offer relocation assistance.",
+        "relocation", "visa_sponsorship",
+    ),
+])
+def test_mixed_support_policies_remain_independent(description, offered, denied):
+    item = make_job(description=description)
+    assert vacancy_allowed(item, {"relocation_preferences": {offered: "require", denied: "exclude"}})
+    assert not vacancy_allowed(item, {"relocation_preferences": {denied: "require"}})
+    assert job_priority(item, {"relocation_preferences": {offered: "prefer"}}) > job_priority(item, {})
+    assert job_priority(item, {"relocation_preferences": {denied: "prefer"}}) == job_priority(item, {})

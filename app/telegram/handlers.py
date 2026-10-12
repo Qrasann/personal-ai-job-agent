@@ -42,12 +42,13 @@ _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
 _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
 
 
-async def _save_scan_dashboard(user_id: int, **values) -> None:
+async def _save_scan_dashboard(user_id: int, *, reset: bool = False, **values) -> None:
     current = {}
-    try:
-        current = json.loads(await repo.get_state(user_id, "scan_dashboard", "{}"))
-    except (TypeError, ValueError):
-        pass
+    if not reset:
+        try:
+            current = json.loads(await repo.get_state(user_id, "scan_dashboard", "{}"))
+        except (TypeError, ValueError):
+            pass
     current.update(values)
     await repo.set_state(user_id, "scan_dashboard", json.dumps(current, ensure_ascii=False))
 
@@ -70,6 +71,23 @@ async def _first_search(user_id: int):
         return None, None
     searches = await repo.list_search_profiles(profile.id)
     return profile, searches[0] if searches else None
+
+
+async def _search_for_scope(user_id: int, scope: str):
+    profile = await repo.active_profile(user_id)
+    searches = await repo.list_search_profiles(profile.id) if profile else []
+    search = next((item for item in searches if item.kind == scope), None)
+    if not search and scope == "career" and len(searches) == 1:
+        legacy = searches[0]
+        if legacy.kind == "employment" and (legacy.settings or {}).get("search_strategy") != "relocation_first":
+            search = legacy
+    return search
+
+
+def _missing_search_scope(scope: str) -> str:
+    if scope == "relocation":
+        return "❌ Профиль Relocation-first не активен. Включи его командой /parallelsearch on."
+    return "❌ Профиль Career-first не найден среди активных поисков."
 
 @router.message(MultiCommandFilter())
 async def multi_command(message: Message, bot: Bot) -> None:
@@ -106,7 +124,9 @@ def _main_menu_text() -> str:
         "/review — разобрать Good-вакансии\n"
         "/stretch — разобрать Stretch-вакансии\n"
         "/saved — сохранённые вакансии\n"
-        "/jobs — последние совпадения\n\n"
+        "/jobs — совпадения по рейтингу\n"
+        "/jobs career|relocation — отдельное направление\n"
+        "/jobs relocation below — ручной просмотр ниже порога\n\n"
         "⚙️ <b>Настройки поиска</b>\n"
         "/roles — текущие роли\n"
         "/role DevOps Engineer — выбрать основную роль\n"
@@ -250,7 +270,7 @@ async def salary_command(message: Message) -> None:
             return ", ".join(f"{currency} {amount:,}".replace(",", " ") for currency, amount in sorted(values.items())) or "не задана"
         await message.answer(
             "💰 Зарплатные ориентиры\n"
-            f"Текущая: {show('current')}\nЖелаемая: {show('desired')}\nМинимум для фильтра: {show('minimum')}\n\n"
+            f"Текущая: {show('current')}\nЖелаемая: {show('desired')}\nМесячный минимум для оценки: {show('minimum')}\n\n"
             "Формат: /salary current|desired|minimum USD 3000; очистить: /salary desired USD clear"
         )
         return
@@ -854,7 +874,7 @@ async def scan(message: Message, bot: Bot) -> None:
     heartbeat_task = asyncio.create_task(heartbeat())
 
     try:
-        await _save_scan_dashboard(user.id, status="running", stage=stage, started_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
+        await _save_scan_dashboard(user.id, reset=True, status="running", stage=stage, started_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
         summary = await scan_for_user(bot, user.id, progress_callback=update_progress, force_refresh=True)
         heartbeat_task.cancel()
         try:
@@ -1075,13 +1095,71 @@ async def jobs(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
-    _, search = await _first_search(user.id)
-    threshold = int(((search.settings or {}) if search else {}).get("notify_min_score", 65))
-    rows = await repo.latest_matches(user.id, 10, min_score=threshold)
-    if not rows:
-        await message.answer("Пока совпадений нет. Запусти /scan.")
+    options = [value.casefold() for value in (message.text or "").split()[1:]]
+    scopes = [value for value in options if value in {"career", "relocation"}]
+    if (
+        any(value not in {"career", "relocation", "below"} for value in options)
+        or len(options) != len(set(options))
+        or len(scopes) > 1
+    ):
+        await message.answer("Использование: /jobs [career|relocation] [below]; карточка: /job <id>")
         return
-    await message.answer(render_jobs_list(rows), parse_mode="HTML", reply_markup=jobs_keyboard(rows))
+    scope = scopes[0] if scopes else None
+    show_below = "below" in options
+    if scope:
+        search = await _search_for_scope(user.id, scope)
+        if not search:
+            await message.answer(_missing_search_scope(scope))
+            return
+    else:
+        _, search = await _first_search(user.id)
+    threshold = int(((search.settings or {}) if search else {}).get("notify_min_score", 65))
+    search_filter = {"search_profile_id": search.id} if scope else {}
+    if show_below:
+        rows = await repo.latest_matches(
+            user.id,
+            10,
+            include_filtered=True,
+            min_score=1,
+            max_score=threshold - 1,
+            **search_filter,
+        )
+    else:
+        rows = await repo.latest_matches(user.id, 10, min_score=threshold, **search_filter)
+    if not rows:
+        if show_below:
+            await message.answer(
+                f"Ниже порога {threshold} пока нет вакансий с ненулевым рейтингом для ручного просмотра."
+            )
+        else:
+            if scope:
+                label = "Career-first" if scope == "career" else "Relocation-first"
+                await message.answer(
+                    f"В {label} пока нет совпадений от {threshold}/100. Запусти /scan.\n"
+                    f"Результаты ниже порога: /jobs {scope} below"
+                )
+            else:
+                await message.answer("Пока совпадений нет. Запусти /scan.")
+        return
+    source_links = {}
+    for _, job in rows:
+        refs = []
+        for source_id, source_name in (("himalayas", "Himalayas"), ("remotive", "Remotive")):
+            ref = await repo.source_ref(job.id, source_id)
+            if ref and ref.url:
+                refs.append((ref.url, source_name))
+        if refs:
+            source_links[job.id] = refs
+    await message.answer(
+        render_jobs_list(
+            rows,
+            source_links=source_links,
+            below_threshold=threshold if show_below else None,
+            search_scope=scope,
+        ),
+        parse_mode="HTML",
+        reply_markup=jobs_keyboard(rows, **search_filter),
+    )
 
 
 @router.message(Command("job"))
@@ -1090,12 +1168,24 @@ async def job_details(message: Message) -> None:
     if not user:
         return
 
-    parts = (message.text or "").split(maxsplit=1)
-    if len(parts) != 2 or not parts[1].strip().isdigit():
+    parts = (message.text or "").split()
+    if (
+        len(parts) not in {2, 3}
+        or not parts[1].isdigit()
+        or (len(parts) == 3 and parts[2].casefold() not in {"career", "relocation"})
+    ):
         await message.answer(
-            "Использование: /job <id>, например /job 25"
+            "Использование: /job <id> [career|relocation], например /job 25"
         )
         return
+    search_filter = {}
+    if len(parts) == 3:
+        scope = parts[2].casefold()
+        search = await _search_for_scope(user.id, scope)
+        if not search:
+            await message.answer(_missing_search_scope(scope))
+            return
+        search_filter = {"search_profile_id": search.id}
 
     progress = await message.answer(
         "⏳ Загружаю полное описание вакансии…"
@@ -1105,13 +1195,17 @@ async def job_details(message: Message) -> None:
         payload = await get_vacancy_details(
             user.id,
             int(parts[1].strip()),
+            **search_filter,
         )
+        selected_id = getattr(payload.get("match"), "search_profile_id", None)
+        if selected_id is not None:
+            search_filter = {"search_profile_id": selected_id}
         await progress.edit_text(
             render_job_details(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
             reply_markup=vacancy_details_keyboard(
-                payload["job"].id
+                payload["job"].id, **search_filter,
             ),
         )
     except Exception as exc:
@@ -1126,12 +1220,24 @@ async def compare_job(message: Message) -> None:
     if not user:
         return
 
-    parts = (message.text or "").split(maxsplit=1)
-    if len(parts) != 2 or not parts[1].strip().isdigit():
+    parts = (message.text or "").split()
+    if (
+        len(parts) not in {2, 3}
+        or not parts[1].isdigit()
+        or (len(parts) == 3 and parts[2].casefold() not in {"career", "relocation"})
+    ):
         await message.answer(
-            "Использование: /compare <id>, например /compare 24"
+            "Использование: /compare <id> [career|relocation], например /compare 24"
         )
         return
+    search_filter = {}
+    if len(parts) == 3:
+        scope = parts[2].casefold()
+        search = await _search_for_scope(user.id, scope)
+        if not search:
+            await message.answer(_missing_search_scope(scope))
+            return
+        search_filter = {"search_profile_id": search.id}
 
     progress = await message.answer(
         "⏳ Сравниваю требования вакансии с Candidate Facts…"
@@ -1141,6 +1247,7 @@ async def compare_job(message: Message) -> None:
         payload = await get_vacancy_comparison(
             user.id,
             int(parts[1].strip()),
+            **search_filter,
         )
         await progress.edit_text(
             render_fact_comparison(payload),
@@ -1378,18 +1485,22 @@ async def details_callback(callback: CallbackQuery) -> None:
     user = await repo.get_user_by_chat(callback.message.chat.id)
     if not user:
         return
-    raw_id = callback.data.split(":", 1)[1]
-    if not raw_id.isdigit():
+    identifiers = callback.data.split(":")[1:]
+    if len(identifiers) not in {1, 2} or not all(value.isdigit() for value in identifiers):
         await callback.answer("Некорректный ID вакансии", show_alert=True)
         return
     await callback.answer("Загружаю подробности…")
     try:
-        payload = await get_vacancy_details(user.id, int(raw_id))
+        search_filter = {"search_profile_id": int(identifiers[1])} if len(identifiers) == 2 else {}
+        payload = await get_vacancy_details(user.id, int(identifiers[0]), **search_filter)
+        selected_id = getattr(payload.get("match"), "search_profile_id", None)
+        if selected_id is not None:
+            search_filter = {"search_profile_id": selected_id}
         await callback.message.answer(
             render_job_details(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
-            reply_markup=vacancy_details_keyboard(payload["job"].id),
+            reply_markup=vacancy_details_keyboard(payload["job"].id, **search_filter),
         )
     except Exception as exc:
         await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
@@ -1401,8 +1512,8 @@ async def compare_callback(callback: CallbackQuery) -> None:
     if not user:
         return
 
-    raw_id = callback.data.split(":", 1)[1]
-    if not raw_id.isdigit():
+    identifiers = callback.data.split(":")[1:]
+    if len(identifiers) not in {1, 2} or not all(value.isdigit() for value in identifiers):
         await callback.answer(
             "Некорректный ID вакансии",
             show_alert=True,
@@ -1412,9 +1523,11 @@ async def compare_callback(callback: CallbackQuery) -> None:
     await callback.answer("Сравниваю с профилем…")
 
     try:
+        search_filter = {"search_profile_id": int(identifiers[1])} if len(identifiers) == 2 else {}
         payload = await get_vacancy_comparison(
             user.id,
-            int(raw_id),
+            int(identifiers[0]),
+            **search_filter,
         )
         await callback.message.answer(
             render_fact_comparison(payload),

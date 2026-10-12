@@ -4,7 +4,12 @@ import pytest
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.methods import GetMe
 
-from app.main import wait_for_telegram
+from app.main import (
+    STARTUP_SCAN_MISFIRE_GRACE_SECONDS,
+    _schedule_jobs,
+    wait_for_telegram,
+)
+from app.services import scan_all
 
 
 class FakeBot:
@@ -26,6 +31,27 @@ class FakeBot:
             raise self.final_error
 
         return object()
+
+
+def test_startup_scan_allows_short_scheduler_startup_delay(monkeypatch):
+    class FakeScheduler:
+        def __init__(self):
+            self.jobs = []
+
+        def add_job(self, function, trigger, **kwargs):
+            self.jobs.append((function, trigger, kwargs))
+
+    scheduler = FakeScheduler()
+    monkeypatch.setattr("app.main.settings.hh_private_api_enabled", False)
+
+    _schedule_jobs(scheduler, object())
+
+    function, trigger, options = scheduler.jobs[0]
+    assert function is scan_all
+    assert trigger == "interval"
+    assert options["next_run_time"] is not None
+    assert options["misfire_grace_time"] == STARTUP_SCAN_MISFIRE_GRACE_SECONDS
+    assert STARTUP_SCAN_MISFIRE_GRACE_SECONDS >= 60
 
 
 def test_wait_for_telegram_retries_network_errors_with_capped_backoff():

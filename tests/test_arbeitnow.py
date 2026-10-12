@@ -5,6 +5,7 @@ import pytest
 
 from app.sources.adapters.arbeitnow import ArbeitnowSource
 from app.sources.base import SourceContext
+from app.search.preferences import vacancy_allowed
 
 
 def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
@@ -145,3 +146,23 @@ def test_arbeitnow_surfaces_error_after_one_retry(monkeypatch):
 
     assert len(calls) == 2
     assert delays == [0.5]
+
+
+@pytest.mark.parametrize("description, visa, relocation", [
+    ("We do not provide visa sponsorship or relocation assistance.", False, False),
+    ("No visa sponsorship or relocation assistance is provided.", False, False),
+    ("Visa sponsorship and relocation assistance are not available.", False, False),
+    ("We provide visa sponsorship and relocation assistance.", True, True),
+    ("Must already have the right to work in Germany.", None, None),
+    ("Visa sponsorship and relocation assistance may be available.", None, None),
+    ("We provide visa sponsorship guidance.", None, None),
+])
+def test_arbeitnow_preserves_unknown_and_refused_support(description, visa, relocation):
+    payload = {"data": [{
+        "slug": "role-1", "title": "DevOps Engineer", "description": description,
+        "remote": False, "relocation": True, "visa_sponsorship": True,
+    }]}
+    item = ArbeitnowSource.parse_payload(payload, SourceContext(user_id=1, queries=[]))[0]
+    assert item.visa_sponsorship is visa
+    assert item.relocation is relocation
+    assert vacancy_allowed(item, {"relocation_preferences": {"visa_sponsorship": "require"}}) is (visa is True)

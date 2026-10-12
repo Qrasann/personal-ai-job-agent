@@ -94,7 +94,9 @@ international_sources:
   - {id: jobbank, name: Job Bank Canada, scope: canada, transport: public_web, capability: discovery}
   - {id: eures, name: EURES, scope: eures, transport: public_api, capability: discovery}
   - {id: remoteok, name: Remote OK, scope: remote, transport: api, capability: discovery}
+  - {id: himalayas, name: Himalayas Remote Jobs, scope: remote, transport: public_api, capability: discovery}
+  - {id: remotive, name: Remotive Remote Jobs, scope: remote · DevOps/Sysadmin, transport: public_api, capability: discovery}
   - {id: arbeitnow, name: Arbeitnow, scope: germany, transport: public_api, capability: discovery}
-  - {id: lever, name: Lever company career pages, scope: global, transport: public_api, capability: discovery}
+  - {id: lever, name: Lever · Collectly (remote GMT-7 to GMT+4), scope: remote · selected AM/GE, countries: [AM, GE], transport: public_api, capability: discovery}
   - {id: greenhouse, name: Greenhouse · Lineate, scope: Armenia/Georgia, countries: [AM, GE], transport: public_api, capability: discovery}
   - {id: telegram, name: Telegram vacancy channels, scope: configured_channels, transport: bot_api, capability: discovery}

@@ -1,6 +1,39 @@
 # Known Issues
 
+## Current candidate follow-up — 2026-10-12
+- Scoped `/jobs career|relocation [below]` now separates the two profile scores
+  and thresholds. Cards and comparison callbacks preserve the selected profile.
+  These commands still need owner Telegram acceptance. Legacy `/job <id>`
+  chooses the latest profile match and now identifies that profile on the card;
+  use a scoped command or the new list buttons for a specific direction.
+- HH discovery currently uses `current_country` (`RU` → area 113), ignoring
+  selected destination areas. Broader selected-market discovery remains open;
+  do not relabel RU results as AM/GE.
+- Owner-confirmed `/sources` and `/scan` show Remotive enabled, but the scan
+  returned 0 jobs. A read-only probe found the cached API response held 18 jobs
+  across unrelated categories. Live API checks for `category=devops`, `Devops`,
+  and `software-development` all returned the same general feed. The official
+  feed documentation links the category-specific RSS endpoint
+  `https://remotive.com/remote-jobs/devops/feed`; the worktree now parses this
+  feed and bumps the persisted cache key to v3. After rebuild, the endpoint
+  returned HTTP 200 but only channel metadata and no `<item>` elements, so both
+  profiles parsed 0. This is a valid empty feed response, not a parser or
+  transport error. Recheck after the 24-hour cache expires and confirm `/jobs`
+  attribution if the feed returns a matching listing.
+- Remotive is a technical-role source and does not resolve the Relocation-first
+  gap. Recent scans have returned 0 Good/Stretch for that profile under the
+  existing 65-point threshold. `/jobs below` now shows nonzero matches
+  under the threshold in descending score order for manual review; it does not
+  turn them into Good/Stretch or notifications. Improve broad, legally reachable
+  source coverage and relevance without lowering the threshold, inflating
+  scores, changing explicit exclusions, or treating remote as worldwide
+  eligibility.
+
 ## Resolved in the current development branch
+- Ordinary `hotel staff` and `warehouse staff` were marked Senior by the broad
+  `staff` title pattern. Only Staff qualifying technical titles now invokes
+  that level; actual Senior/Lead/Principal, high experience, management and
+  user exclusions remain restricted. Fifteen regressions cover these cases.
 - Lineate's Greenhouse posting uses the singular `Necessary Qualification`
   heading. The parser previously recognized only the plural form, leaving the
   job on the fallback Technical score and interview risk `н/д`. Commit
@@ -27,6 +60,46 @@
 
 - work_permit, relocation_package and immigration_support are not separate Job columns yet; v3.5.2 infers them conservatively from vacancy text.
 - Source/country priority affects processing order, not Recommendation Model v2 score yet.
+- Both search profiles now give explicitly remote vacancies an extra
+  processing priority. This affects order within each source's discovered
+  batch; source processing still happens in source-priority order, and `/jobs`
+  keeps its match-score ordering. `remote_scope` is often unknown, so this does
+  not prove the employer permits work from the selected destination or any
+  country.
+- The Himalayas source in the uncommitted v3.5.7 candidate uses its public
+  API with at most four role queries, three markets and one 20-result page per
+  query/market. API rate limits are unspecified and provider data refreshes
+  daily; the app caches for 24 hours. The owner accepted `/job 1273` in Telegram
+  at 20:56 Moscow time: the card says the source marks the role worldwide while
+  country-level hiring remains to be confirmed. Missing location
+  restrictions remain unknown, while an empty list means worldwide according
+  to the provider. Neither case
+  establishes personal work authorization, payroll/tax availability, visa
+  sponsorship or relocation support. RemoteOK also has unknown hiring-country
+  scope even when its role is explicitly remote.
+- The candidate now has a curated Collectly Lever source. Its active remote
+  DevOps posting permits time zones through GMT+4 and the employer's hosted
+  form states that onboarding takes place in Yerevan with travel/accommodation
+  covered. The public posting lists Belgrade/RS; the adapter does not infer a
+  country of hire, sponsorship, salary, or a relocation package from the
+  temporary onboarding trip. The current worktree is rebuilt locally, and the
+  owner confirmed `/sources` lists Lever for both profiles; a manual scan
+  found one live Lever result in 9.6 seconds. The saved Collectly result is
+  job #1333, filtered at score 0 because the Career-first profile excludes
+  `senior devops`; this is expected profile behavior. The owner should decide
+  before that explicit filter is changed. Lever's public-feed request limit
+  and posting expiry are unspecified; the adapter is bounded to one page of
+  100 and locally cached for six hours.
+- The 2026-10-11 Telegram scan reported Relocation-first 74 processed and 0
+  Good/Stretch. The profile's 65-point threshold leaves some lower-scoring
+  remote and broad-role vacancies in `filtered`; an inspected remote match
+  scored 54. This is a visibility/scoring limitation rather than a source
+  outage. The owner confirmed that higher-rated vacancies must remain the
+  priority. Keep lists sorted by score descending, retain the 65-point
+  notification threshold, and do not promote lower-rated leads ahead of
+  higher-scoring results. Continue improving evidence-based Relocation-first
+  source coverage and relevance without inflating scores or changing owner
+  exclusions.
 - City priority exists in the preference engine but dedicated Telegram city-priority buttons are pending.
 - Country picker is limited to data/countries.yaml.
 - Only implemented adapters actually scan; future registered sources still need collectors.
@@ -66,11 +139,17 @@
   structured salary stayed unknown, so the value was not used for scoring.
 - Job Bank Canada adds international TFW coverage, but an LMIA request or
   permission to apply does not establish sponsorship or candidate eligibility.
-  Initial coverage is one page, six queries and twelve details per profile;
-  the five-second request pacing adds up to about 90 seconds plus network time.
+  Initial coverage is one page, six queries and twelve details per profile.
+  The candidate enforces a minimum five-second interval between request starts;
+  for 18 fast requests, that interval can account for about 85 seconds before
+  network time, while slow responses consume part or all of the interval.
   Decimal CAD/hour salaries are preserved as source text; structured salary
   normalization and display are pending. A Telegram update took 162.7 seconds
   with twelve Job Bank detail calls visible; `/scanstatus` measured Job Bank at
-  99.5 seconds. Preserve the five-second request interval while evaluating a
-  safe pacing improvement; do not increase request volume or parallelize calls.
+  99.5 seconds. The active v3.5.7 worktree now retains verified results and
+  continues after an individual search/detail transport failure; it still
+  reports a source error if all searches or all detail requests fail. HTTP
+  status errors remain visible source failures. The pacing change is now
+  applied to local Compose; compare live `/scanstatus` timing after the rebuild.
+  Do not increase request volume or parallelize calls.
 - Full CI is required before merge; live Telegram polling and dual-profile scan smoke tests passed on the local deployment.

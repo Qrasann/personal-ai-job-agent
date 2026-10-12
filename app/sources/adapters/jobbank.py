@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 
 import httpx
 from bs4 import BeautifulSoup
@@ -12,7 +13,22 @@ from app.sources.base import JobSource, SourceContext
 
 
 _REQUEST_LOCK = asyncio.Lock()
+_LAST_REQUEST_STARTED: float | None = None
 logger = logging.getLogger(__name__)
+
+
+def _monotonic() -> float:
+    return time.monotonic()
+
+
+async def _wait_for_request_slot(delay: float) -> None:
+    """Enforce a minimum interval between serialized request starts."""
+    global _LAST_REQUEST_STARTED
+    if _LAST_REQUEST_STARTED is not None:
+        remaining = delay - (_monotonic() - _LAST_REQUEST_STARTED)
+        if remaining > 0:
+            await asyncio.sleep(remaining)
+    _LAST_REQUEST_STARTED = _monotonic()
 
 
 class JobBankSource(JobSource):
@@ -29,9 +45,9 @@ class JobBankSource(JobSource):
         """Fetch one page, retrying a single transport failure within the crawl lock."""
         async with _REQUEST_LOCK:
             for attempt in range(2):
-                # Keep the source's existing crawl delay before every request,
-                # including a retry, and serialize requests across scan profiles.
-                await asyncio.sleep(self.request_delay)
+                # Keep starts at least five seconds apart across retries and
+                # scan profiles. A slow response already consumes the interval.
+                await _wait_for_request_slot(self.request_delay)
                 try:
                     response = await client.get(url, **kwargs)
                     response.raise_for_status()
@@ -115,21 +131,51 @@ class JobBankSource(JobSource):
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
         jobs = {}
+        search_transport_errors: list[httpx.TransportError] = []
+        successful_searches = 0
         async with httpx.AsyncClient(timeout=30, follow_redirects=True,
                                      headers={"User-Agent": "JobAgentV3/0.1 (public job discovery)"}) as client:
             for query in (context.queries or [])[:6]:
-                page = await self._fetch(
-                    client,
-                    f"{self.origin}/jobsearch/jobsearch",
-                    params={"fsrc": "32", "fglo": "1", "searchstring": query, "sort": "M"},
-                )
+                try:
+                    page = await self._fetch(
+                        client,
+                        f"{self.origin}/jobsearch/jobsearch",
+                        params={"fsrc": "32", "fglo": "1", "searchstring": query, "sort": "M"},
+                    )
+                except httpx.TransportError as exc:
+                    search_transport_errors.append(exc)
+                    logger.warning(
+                        "Job Bank search failed after retries (%s); continuing",
+                        type(exc).__name__,
+                    )
+                    continue
+                successful_searches += 1
                 for job in self.parse_search(page):
                     jobs.setdefault(job.source_job_id, job)
                 if len(jobs) >= self.max_details:
                     break
+            if not jobs:
+                if search_transport_errors and successful_searches == 0:
+                    raise search_transport_errors[-1]
+                return []
+
             result = []
+            detail_transport_errors: list[httpx.TransportError] = []
+            successful_details = 0
             for job in list(jobs.values())[:self.max_details]:
-                job = self.enrich(job, await self._fetch(client, job.url))
+                try:
+                    detail = await self._fetch(client, job.url)
+                except httpx.TransportError as exc:
+                    detail_transport_errors.append(exc)
+                    logger.warning(
+                        "Job Bank detail request failed after retries (%s); skipping vacancy",
+                        type(exc).__name__,
+                    )
+                    continue
+                successful_details += 1
+                job = self.enrich(job, detail)
                 if job.raw["international_candidates"] is not False:
                     result.append(job)
+            if successful_details == 0 and detail_transport_errors:
+                raise detail_transport_errors[-1]
             return result

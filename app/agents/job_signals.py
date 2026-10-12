@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.database.models import Job
+from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 
 
 @dataclass(slots=True)
@@ -14,6 +15,7 @@ class JobSignals:
     relocation_positive: bool = False
     relocation_blocked: bool = False
     relocation_reason: str = ""
+    support_components: dict[str, bool | None] = field(default_factory=dict)
 
 
 def analyze_job_signals(job: Job) -> JobSignals:
@@ -27,19 +29,16 @@ def analyze_job_signals(job: Job) -> JobSignals:
     if remote and country not in {"RU", "RUSSIA", "РОССИЯ"}:
         tracks.add("remote_international")
 
-    relocation_positive_terms = (
-        "visa sponsorship", "visa sponsor", "sponsorship available", "relocation assistance",
-        "relocation package", "relocation support", "work permit sponsorship",
-        "релокац", "помощь с переезд", "визовая поддержка", "рабочую визу",
+    support = support_evidence("\n".join((job.title or "", job.description or "")))
+    for key in ("visa_sponsorship", "relocation"):
+        value = getattr(job, key)
+        if value is not None and support[key] is not False:
+            support[key] = value
+    relocation_positive = any(value is True for value in support.values())
+    relocation_blocked = (
+        existing_work_authorization_required(job.description or "")
+        or (not relocation_positive and any(value is False for value in support.values()))
     )
-    relocation_block_terms = (
-        "no visa sponsorship", "without visa sponsorship", "sponsorship is not available",
-        "must already have the right to work", "must have the right to work",
-        "eu work permit required", "must be authorized to work", "no relocation",
-        "без релокации", "визу не спонсируем",
-    )
-    relocation_positive = job.visa_sponsorship is True or job.relocation is True or any(x in text for x in relocation_positive_terms)
-    relocation_blocked = any(x in text for x in relocation_block_terms)
     if relocation_positive:
         tracks.add("relocation")
 
@@ -72,6 +71,8 @@ def analyze_job_signals(job: Job) -> JobSignals:
         relocation_reason = "есть ограничение sponsorship/work authorization"
     elif relocation_positive:
         relocation_reason = "есть признаки relocation/visa support"
+        if any(value is False for value in support.values()):
+            relocation_reason += "; часть помощи явно не предоставляется"
 
     return JobSignals(
         tracks=tracks,
@@ -80,4 +81,5 @@ def analyze_job_signals(job: Job) -> JobSignals:
         relocation_positive=relocation_positive,
         relocation_blocked=relocation_blocked,
         relocation_reason=relocation_reason,
+        support_components=support,
     )

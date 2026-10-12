@@ -149,6 +149,118 @@ async def _repository_review_flow(monkeypatch):
         assert [item[0].id for item in saved] == [match.id]
         assert saved[0][1].id == job.id
 
+        below_job, _ = await repo.upsert_job(NormalizedJob(
+            source="integration",
+            source_job_id="job-below-threshold",
+            title="Warehouse Worker",
+            company="Manual Review Logistics",
+            description="Warehouse role in Georgia",
+            url="https://example.invalid/job-below-threshold",
+            country="GE",
+        ))
+        below_match = await repo.save_match(
+            job_id=below_job.id,
+            user_id=user.id,
+            profile_id=profile.id,
+            search_profile_id=search.id,
+            technical_score=40,
+            geography_score=85,
+            salary_score=58,
+            relocation_score=42,
+            total_score=54,
+            reason="below-threshold regression",
+            status="filtered",
+        )
+        lower_job, _ = await repo.upsert_job(NormalizedJob(
+            source="integration",
+            source_job_id="job-below-threshold-lower",
+            title="Kitchen Assistant",
+            company="Lower Score Catering",
+            description="Kitchen support role in Armenia",
+            url="https://example.invalid/job-below-threshold-lower",
+            country="AM",
+        ))
+        lower_match = await repo.save_match(
+            job_id=lower_job.id,
+            user_id=user.id,
+            profile_id=profile.id,
+            search_profile_id=search.id,
+            technical_score=30,
+            geography_score=85,
+            salary_score=58,
+            relocation_score=42,
+            total_score=41,
+            reason="lower-score regression",
+            status="filtered",
+        )
+        below_rows = await repo.latest_matches(
+            user.id,
+            10,
+            include_filtered=True,
+            min_score=1,
+            max_score=64,
+        )
+        assert [(item.id, listed_job.id) for item, listed_job in below_rows] == [
+            (below_match.id, below_job.id),
+            (lower_match.id, lower_job.id),
+        ]
+        above_rows = await repo.latest_matches(user.id, 10, min_score=65)
+        assert [(item.id, listed_job.id) for item, listed_job in above_rows] == [
+            (match.id, job.id)
+        ]
+
+        relocation = next(item for item in await repo.list_search_profiles(profile.id) if item.kind == "relocation")
+        relocation_matches = []
+        for listed_job, score in ((below_job, 62), (lower_job, 60)):
+            relocation_matches.append(await repo.save_match(
+                job_id=listed_job.id,
+                user_id=user.id,
+                profile_id=profile.id,
+                search_profile_id=relocation.id,
+                technical_score=40,
+                geography_score=85,
+                salary_score=58,
+                relocation_score=42,
+                total_score=score,
+                reason="independent relocation score",
+                status="filtered",
+            ))
+        scoped_rows = await repo.latest_matches(
+            user.id, 10, include_filtered=True, min_score=1, max_score=64,
+            search_profile_id=relocation.id,
+        )
+        assert [item.id for item, _ in scoped_rows] == [item.id for item in relocation_matches]
+        career_rows = await repo.latest_matches(
+            user.id, 10, include_filtered=True, min_score=1, max_score=64,
+            search_profile_id=search.id,
+        )
+        assert [item.id for item, _ in career_rows] == [below_match.id, lower_match.id]
+        assert (await repo.get_match_for_user_job(
+            user.id, below_job.id, search_profile_id=relocation.id,
+        )).id == relocation_matches[0].id
+        assert (await repo.get_match_for_user_job(
+            user.id, below_job.id, search_profile_id=search.id,
+        )).id == below_match.id
+        assert await repo.get_match_for_user_job(user.id, job.id, search_profile_id=relocation.id) is None
+        assert await repo.get_match_for_user_job(user.id + 100, below_job.id, search_profile_id=relocation.id) is None
+        assert await repo.latest_matches(user.id + 100, search_profile_id=relocation.id) == []
+
+        relocation_settings = {**relocation.settings, "target_countries": ["AM", "GE"], "notify_min_score": 71}
+        await repo.update_search_settings(relocation.id, relocation_settings)
+        await repo.configure_parallel_search_profiles(profile.id, enabled=False)
+        assert [item.kind for item in await repo.list_search_profiles(profile.id)] == ["career"]
+        for item in relocation_matches:
+            assert (await repo.get_match(item.id)).search_profile_id == relocation.id
+        await repo.configure_parallel_search_profiles(profile.id, enabled=True)
+        restored = next(item for item in await repo.list_search_profiles(profile.id) if item.kind == "relocation")
+        assert restored.id == relocation.id
+        assert restored.settings == relocation_settings
+        restored_matches = await repo.latest_matches(
+            user.id, include_filtered=True, min_score=1, max_score=70,
+            search_profile_id=restored.id,
+        )
+        assert [item.id for item, _ in restored_matches] == [item.id for item in relocation_matches]
+
         stored_match = await repo.get_match(match.id)
         assert stored_match is not None
         assert stored_match.status == "saved"
@@ -257,6 +369,33 @@ async def _repository_repost_flow(monkeypatch):
         latest = await repo.latest_matches(user.id, 10)
         assert len(latest) == 1
         assert latest[0][0].id == match.id
+
+        lower_scored_job, lower_created = await repo.upsert_job(
+            NormalizedJob(
+                source="integration-c",
+                source_job_id="job-c",
+                title="Linux Administrator",
+                company="Different Corp",
+                city="Tver",
+                country="RU",
+            )
+        )
+        assert lower_created is True
+        lower_match = await repo.save_match(
+            job_id=lower_scored_job.id,
+            user_id=user.id,
+            profile_id=profile.id,
+            search_profile_id=search.id,
+            technical_score=70,
+            geography_score=70,
+            salary_score=60,
+            relocation_score=50,
+            total_score=72,
+            reason="lower score but newer row",
+            status="notified",
+        )
+        ranked = await repo.latest_matches(user.id, 10)
+        assert [item[0].id for item in ranked] == [match.id, lower_match.id]
 
         ref = await repo.source_ref(job1.id, "integration-a")
         assert ref is not None

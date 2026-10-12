@@ -4,11 +4,29 @@
 > Changelog entries v3.5.2–v3.5.5 are cumulative source milestones included
 > in v3.5.6; they were not published as individual releases or tags.
 > The active feature branch contains the v3.5.7 candidate; `main` and the
-> latest formal release remain v3.5.6. Candidate checks and owner Telegram
-> acceptance are complete; PR #18 is still an unmerged draft.
+> latest formal release remain v3.5.6. The Lineate Telegram acceptance is
+> complete. The owner confirmed a Job Bank `/scan` with 12 vacancies and no
+> source error in the supplied excerpt. Remotive `/sources` and `/scan` are
+> owner-confirmed, but the first scan returned 0 and the API returned a general
+> feed for all tested category values. The worktree now uses Remotive's official
+> Devops RSS feed; the rebuilt endpoint returns HTTP 200 with zero items.
+> Recheck after its 24-hour cache window. `/jobs below` now exposes nonzero
+> below-threshold results for manual review without changing scores or alerts.
+> `/jobs below` is in the rebuilt local bot. Startup `scan_all` now has a
+> five-minute misfire grace after a 4-second startup delay skipped the previous
+> immediate scan. Local Compose was rebuilt at 01:36 Moscow Oct 12 with scoped
+> job-list/detail/comparison views and the ordinary Staff classification fix. PR #18
+> remains an unmerged draft.
 
 ## v3.5.7 — Candidate: Armenia and Georgia ATS Discovery
 
+- Add independent `/jobs career|relocation [below]` views and optional profile
+  scope for `/job` and `/compare`; preserve the chosen score through detail and
+  comparison callbacks, with user ownership checks and legacy compatibility.
+- Correct ordinary hotel/warehouse staff being classified as technical
+  Staff/Senior; retain explicit seniority, experience, management and exclusions.
+- Add a roadmap status overview. Current suite: 319 passed, 3 skipped locally;
+  all 3 isolated PostgreSQL repository integration tests passed.
 - Add Armenia (`AM`) to the selectable country catalog.
 - Connect a bounded discovery-only Greenhouse Job Board API adapter for
   Lineate, scoped to selected Armenia/Georgia markets and matching role titles.
@@ -32,19 +50,54 @@
 - Use the same decoded vacancy description for Technical Score v2 and
   Recommendation v2 interview-risk analysis. This fixes stored Greenhouse HTML
   rows where Technical had a score but interview risk stayed unknown.
-- Retry one Job Bank transport failure under the shared request lock, retaining
-  the five-second delay before each attempt; do not retry HTTP status errors.
-- Full isolated PostgreSQL suite: 248 passed; branch coverage 68.36% (55%
-  gate). Compilation and `git diff --check` pass. Latest code commit `8a583c7`
-  passed push CI `38151840822` and PR CI `38151843490`. Compose project `repo`
-  runs candidate 3.5.7; its startup scan completed at 15:38:13 UTC without a
-  source error, SSL error, timeout, or traceback in the inspected logs. The
-  owner confirmed `/job 1091` in Telegram at 18:42 Moscow time: Technical 42
-  and interview risk 58, with mandatory-skill coverage and `fit=good`. This is
-  a matching-gap indicator, not a calibrated probability. Salary, work mode,
-  visa sponsorship and relocation remain unknown without explicit evidence.
-  Candidate acceptance is complete; PR #18 remains unmerged and no v3.5.7 tag
-  or release has been published.
+- Retry Job Bank transport failures under the shared request lock; do not retry
+  HTTP status errors.
+  After an individual query or detail exhausts retries, continue discovery and
+  retain successfully verified vacancies. Report a source error if all search
+  queries or all detail requests fail.
+- Maintain at least five seconds between request starts, with no extra idle
+  delay when a slow response already consumes that interval. Requests remain
+  serialized across profiles.
+- Give vacancies explicitly marked remote a processing-priority bonus in both
+  independent search profiles. This changes processing order only; it does not
+  change Match Score or establish that a role can be performed from every
+  country. Unknown geographic scope remains unknown.
+- Add Himalayas' documented public search API. Search is bounded to four role
+  queries, three selected markets and 20 results per request; it uses a
+  24-hour in-process cache, stores source country restrictions and links back
+  to Himalayas. Salary periods are shown explicitly. Missing location limits
+  stay unknown; explicit worldwide availability is not treated as visa or
+  payroll eligibility.
+- Keep Himalayas attribution visible in /jobs and vacancy details. RemoteOK's
+  remote label no longer implies worldwide country eligibility when its source
+  provides no hiring-country limits.
+- Add Remotive's official public Devops RSS feed as a remote discovery source.
+  One response is shared across profiles and cached for 24 hours; each result
+  links to Remotive with visible source attribution. Filter clear country-only
+  exclusions for selected markets, keep regional/unknown scopes explicit, and
+  leave salary from free text unstructured.
+- Generalize `/jobs` source attribution to show both Himalayas and Remotive
+  links when a canonical vacancy is present in both feeds. Highest Match Score
+  remains the ordering rule; the 65-point threshold and score weights are
+  unchanged.
+- Latest verification for the current worktree: 283 local tests passed and
+  three database-dependent tests skipped; 285 passed with isolated PostgreSQL.
+  Compilation and `git diff --check` pass.
+- Rebuilt local Compose `repo` at 00:53 Moscow on Oct 12. Source/runtime report
+  3.5.7 and PostgreSQL is healthy. The category RSS returned HTTP 200 but no
+  entries, so the parsed Remotive count is 0. The API returned the same general
+  feed for all tested category values; the active worktree uses the official
+  Devops RSS feed and cache key v3. Owner-confirmed `/sources` and `/scan`
+  complete; `/jobs` attribution awaits a matching result.
+  Himalayas Telegram acceptance is complete.
+- The latest published PR #18 CI does not include this worktree. Current
+  changes remain uncommitted and unpublished; PR #18 is still a draft against
+  `main`. No v3.5.7 tag or release exists.
+- The owner confirmed `/job 1091` in Telegram at 18:42 Moscow time: Technical
+  42 and interview risk 58, with mandatory-skill coverage and `fit=good`. The
+  risk is a matching-gap indicator, not a calibrated probability. Salary,
+  work mode, visa sponsorship and relocation remain unknown without explicit
+  evidence.
 
 ## v3.5.6 — Recommendation Model v2, Candidate Import & Search Reliability
 

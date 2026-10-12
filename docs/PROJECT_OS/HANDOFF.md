@@ -1,5 +1,410 @@
 # Handoff
 
+## Resumed verification checkpoint — 2026-10-12
+
+The owner resumed the saved objective. The current candidate has completed
+local and isolated-PostgreSQL validation, but is not yet published or deployed
+from this worktree. No test/build process is pending. The isolated test
+PostgreSQL is healthy; production Compose `repo` app and PostgreSQL are
+stopped cleanly (`Exited (0)`).
+
+### New work and verification
+- Bounded employer support evidence now distinguishes offers, explicit
+  refusals, prerequisites, guidance, and unknown statements across the named
+  support components. Independent offers/refusals remain separate.
+- Annual salary scoring uses a monthly equivalent for monthly profile floors;
+  source amounts and periods remain intact. Vacancy salary text shows a known
+  pay period. Hourly and weekly amounts remain incomparable without work-hour
+  assumptions.
+- Technical Staff seniority no longer catches ordinary hotel/warehouse staff.
+- A new manual scan clears stale dashboard completion data; independent source
+  errors do not discard successful source results.
+- Remotive's persistent cache retains its original fetch time; Himalayas
+  timezone bounds appear as source-attributed details.
+- Full local suite: **424 passed, 3 skipped**. Full isolated PostgreSQL suite:
+  **427 passed, 73.22% branch coverage**. `compileall` and `git diff --check`
+  pass.
+- `VERSION` and source version are 3.5.7. Branch is
+  `feature/v3.5.7-international-market-coverage`, local HEAD `d445c87` with
+  unpublished worktree changes. PR #18 is OPEN/DRAFT at that commit.
+- The previous shutdown's mount inspection recorded `repo_jobagent_v3_pg`
+  and `repo_jobagent_v3_files`; verify those exact mounts again after restart.
+
+### Next steps
+1. Review the final diff and stage only intended source, tests, and public
+   PROJECT_OS files; keep `.env`, credentials, `.private/`, and external
+   private context outside Git.
+2. Commit and push to the already authorized current feature branch; update
+   PR #18's description and watch CI for the pushed head.
+3. Once CI passes, rebuild/start Compose project `repo` with the existing
+   volumes. Verify runtime 3.5.7, PostgreSQL health, unchanged mount names,
+   completed startup scan, and logs.
+4. Keep Telegram live acceptance of scoped commands pending until the owner
+   verifies them. Continue the open v3.5.7 relocation-source work afterward.
+
+## Previous shutdown checkpoint — 2026-10-12
+
+Before the owner powered off, the previously deployed runtime was 3.5.7 with
+the app and PostgreSQL healthy; that runtime stopped cleanly during shutdown.
+Its earlier test counts describe that earlier checkpoint, not the resumed
+candidate validation above.
+
+### Saved work
+- Independent `/jobs career`, `/jobs relocation` and `/jobs relocation below`
+  views; optional profile scopes for `/job` and `/compare`. Detail and
+  comparison buttons retain the selected profile and its own score/threshold.
+- Corrected the ordinary Hotel/Kitchen/Warehouse Staff seniority false
+  positive; technical Staff and explicit seniority, experience, management and
+  owner exclusions remain restricted.
+- Updated the public roadmap and the separate private relocation progress
+  file. The private file is still ignored by Git; keep personal facts there.
+- The current working tree also retains the earlier source adapters,
+  Job Bank resilience, remote priority and below-threshold review changes.
+  All tracked modifications and new untracked source/test files are saved.
+
+### Verification already completed
+- Full local pytest suite: **319 passed, 3 database tests skipped**.
+- Isolated PostgreSQL repository suite: **3 passed**, including profile-specific
+  scores for the same vacancy, ownership and scope-aware sorting/details.
+- `compileall` and `git diff --check` passed; the latter is checked again after
+  this documentation-only checkpoint. No tests or rebuild were restarted.
+- Compose rebuilt at 01:36 Moscow; startup `scan_all` completed successfully
+  at **01:37:50 Moscow**. Existing production PostgreSQL/storage volumes remain
+  in use; no data-removal operation was performed.
+
+### Remaining work and exact resume step
+1. After power-on, read this checkpoint and `BRIEF.md`; inspect `git status`
+   and run `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent status`. Start existing
+   services if needed, preserving the existing named volumes.
+2. Verify the new scoped commands and detail/comparison buttons in Telegram.
+   This acceptance is still pending; unit/integration tests do not substitute
+   for owner verification of the live UI.
+3. Continue v3.5.7 with bounded HH discovery for selected destinations after
+   verifying official area data, or permitted AM/GE employer feeds. Current
+   HH discovery only searches the current-country area. Useful Relocation-first
+   coverage remains open; do not inflate scores or lower the threshold of 65.
+4. Recheck Remotive only after its 24-hour persisted cache expires. Its last
+   category RSS response was a valid empty feed.
+
+Repository: `/home/roma/job-agent-release-v352`; branch
+`feature/v3.5.7-international-market-coverage`; HEAD `d445c87`.
+Changes are **uncommitted**, including new untracked adapter/test files. Do
+not reset/clean them or run the updater against the dirty worktree. No commit,
+push, merge, PR update, tag or release was made during these local steps.
+Private roadmap: `.private/relocation-roadmap.md` (ignored; never publish).
+
+## Current stage — independent vacancy review — 2026-10-12
+
+Added `/jobs career`, `/jobs relocation` and `/jobs relocation below`. Scope
+filters the actual SearchProfile id and uses that profile's threshold; it does
+not combine query lists or change scoring. Cards and comparison buttons retain
+the selected profile, and explicit `/job <id> career|relocation` and
+`/compare <id> career|relocation` are supported. Old commands/callbacks work.
+Default `/job <id>` still chooses the latest match; the card identifies its
+profile, while new list buttons preserve the match that produced the displayed
+score. Disabled/missing Relocation-first does not fall back to Career-first.
+
+Fixed the `staff` seniority false positive for ordinary Hotel/Kitchen/Warehouse
+Staff. Technical Staff roles and explicit Senior/Lead/Principal, experience,
+management and user exclusions still apply. Missing support remains unknown;
+even a correctly classified role can stay below 65. This alone does not prove
+Relocation-first coverage is solved.
+
+Verification: 319 passed, 3 database tests skipped locally; all 3 repository
+integration tests passed against isolated PostgreSQL, including two scores for
+one job, scope-specific sorting/details and user isolation. Compilation and
+diff checks passed. Compose `repo` was rebuilt at 01:36 Moscow: source/runtime
+3.5.7, app up and PostgreSQL healthy. Startup `scan_all` completed successfully
+at 01:37:50 Moscow. Telegram acceptance of the scoped
+commands is pending. Public roadmap now includes current-stage status;
+private route progress and official-law corrections remain in the ignored file.
+No publication action was made.
+
+Next: bounded HH discovery using verified areas for selected destinations or
+permitted AM/GE employer feeds. Current HH discovery uses the current-country
+area and does not search selected GE/AM. Keep profile queries, score ordering,
+threshold 65 and exclusions. A completed scan with zero useful relocation
+matches is a coverage/fit result, not proof of a hiring refusal.
+
+## Previous stage — below-threshold manual review — 2026-10-12 Moscow
+
+Added `/jobs below` to show nonzero scores from 1 through one point below the
+configured notification threshold for manual review. Normal `/jobs`,
+Good/Stretch queues, notifications, Match Score, and descending score priority
+stay unchanged. Duplicate matches and zero-score exclusions are omitted. The
+list explicitly says that work authorization and relocation support are not
+automatically confirmed.
+
+Verification: 286 local tests passed and 3 database-dependent tests were
+skipped; all 3 repository integration tests passed against the isolated
+PostgreSQL database. Compilation and `git diff --check` passed. Compose `repo`
+was rebuilt at 01:15 Moscow on Oct 12; source/runtime report 3.5.7, PostgreSQL
+is healthy, and the app is polling. The startup scan began immediately; on the
+previous rebuild it had been missed by 4 seconds, so `scan_all` now has a
+five-minute misfire grace. Telegram acceptance of `/jobs below` is pending;
+the owner's pasted scan at 00:39 preceded both rebuilds. No threshold or score
+was changed.
+
+Next: continue practical Relocation-first source coverage and relevance while
+keeping legal eligibility evidence separate and the 65-point threshold intact.
+The private relocation roadmap remains outside Git.
+
+## Previous stage — Remotive category RSS feed — 2026-10-12 Moscow
+
+Added Remotive's official public Devops feed as a discovery-only
+source. It fetches at most 250 results once per 24 hours, shares one response
+across active users and both search profiles, and persists the cache using the
+existing PostgreSQL `runtime_state` table. Each displayed listing links to
+Remotive and names the source, including duplicate/canonical results shared
+with Himalayas. Clear country-only mismatches are excluded for a selected
+market; region and unknown scopes stay explicit. Salary text remains
+unstructured, and the adapter does not apply or contact employers. Provider
+terms and the feed contract are documented in
+`docs/developer/INTERNATIONAL_SOURCES.md`.
+
+The first API-based implementation passed 28 targeted tests and a 282-pass
+local suite (3 database tests skipped); the earlier isolated PostgreSQL run
+passed 285 tests. Owner-confirmed scans showed 0 Remotive jobs. A read-only
+cache probe found 18 general-feed rows and no Devops rows. Three live API checks
+using `category=devops`, `Devops`, and `software-development` all returned the
+same general feed. The official Remotive documentation lists a category feed
+at `https://remotive.com/remote-jobs/devops/feed`, so the adapter now parses
+that RSS feed and uses a v3 cache key to bypass stale API results.
+
+Latest Remotive-stage verification: 17 Remotive/cache tests passed; the full
+local suite then passed 283 tests with 3 database tests skipped. The isolated
+PostgreSQL result predates the RSS-only change. Compose was rebuilt at 00:53
+Moscow on Oct 12; source/runtime report 3.5.7 and PostgreSQL is healthy. The
+RSS request returned HTTP 200 with
+channel metadata but no `<item>` entries, so both profiles currently parse
+zero Remotive jobs. Recheck after the daily cache expires; keep an empty feed
+distinct from a transport failure.
+
+Next: recheck the category feed after its cache window, then continue practical
+Relocation-first source-coverage and relevance. Preserve the separate career
+and relocation directions, the 65-point
+threshold, descending Match Score priority, and explicit unknowns for visa,
+employer eligibility, housing, and relocation support. Do not change owner
+exclusions or promote lower-rated roles ahead of higher-rated roles. The
+private relocation roadmap stays outside Git.
+
+The candidate remains local and uncommitted on
+`feature/v3.5.7-international-market-coverage`, `VERSION=3.5.7`; GitHub `main`
+and the latest formal release/tag remain v3.5.6, with draft PR #18 open. No
+publication action was made.
+
+## Latest owner clarification — score priority in `/jobs` — 2026-10-11
+
+The owner confirmed that higher-rated vacancies should receive higher
+priority. `/review`, `/stretch`, and `/saved` already order by score descending;
+`/jobs` previously ordered by creation time, which could put a 69-point result
+above an 84-point result. `/jobs` now orders by score descending and uses
+recency only to break ties; its heading says “Совпадения по рейтингу”. The
+notification threshold remains 65 and lower-scoring roles are not promoted.
+A PostgreSQL integration regression checks that a newer 72-point match stays
+below an older 86-point match. Relocation-first practical coverage remains an
+open task; investigate relevance and source coverage without inflating scores
+or changing exclusions. Local suite: 274 passed, 3 database tests skipped;
+isolated PostgreSQL suite: 277 passed. Compilation and `git diff --check` pass.
+Compose `repo` was rebuilt at 21:38 Moscow time; source/runtime versions both
+report 3.5.7 and PostgreSQL is healthy. The startup scan completed at 18:40:25
+UTC (21:40:25 Moscow); the inspected logs show HH public-web fallback after
+API 403 and successful requests from Himalayas, HR.ge, EURES, Job Bank,
+Greenhouse, Lever, Remote OK, and HH.
+At 23:27 Moscow time the owner confirmed the live `/jobs` order: 88, 84, 82,
+then 78 and below. The later scheduled scan completed at 20:25:14 UTC
+(23:25:14 Moscow); the visible EURES, Job Bank, Arbeitnow, Remote OK and
+Greenhouse requests returned HTTP 200, with no source error in the supplied
+excerpt.
+
+## Latest owner check — remote search and geography in details — 2026-10-11
+
+The owner ran `/sources`, `/scan`, `/scanstatus`, and `/jobs` at 20:42–20:44
+Moscow time. Himalayas returned 20 cached results and its remote roles appeared
+at the top of `/jobs` with source links. Career-first processed 191 jobs
+(37 Good, 33 Stretch); Relocation-first processed 67 (0 Good/Stretch). Job
+Bank returned 12 in 71.2 seconds, compared with the prior 100.7-second scan;
+EURES returned 16 in 34.1 seconds. The supplied 17:42–17:44 UTC log excerpt
+shows normal source responses, HH's public-web fallback after API 403, and no
+source exception or SSL failure.
+
+Reviewing the live card path found that `/jobs` said “remote” but `/job` did
+not show Himalayas' saved country scope. The detail card now displays whether
+the source says worldwide, names specific countries, or leaves hiring
+geography unspecified, with a reminder that hiring in the user's country must
+be confirmed. Regression coverage passed. Local suite: 267 passed, 3 skipped;
+isolated PostgreSQL suite: 270 passed; `compileall` and `git diff --check`
+passed. Compose `repo` was rebuilt at 20:51 Moscow; app is up, PostgreSQL is
+healthy, and its scheduled scan completed at 17:53:37 UTC (20:53:37 Moscow).
+The inspected logs show Himalayas requests for GE and AM, EURES, Job Bank,
+HR.ge, Greenhouse, and HH public-web fallback succeeding; no source exception,
+SSL failure, or timeout appeared. At 20:56 Moscow time, the owner opened
+`/job 1273` and accepted the new geography line: Himalayas' worldwide claim is
+attributed to the provider, and the employer must confirm hiring from the
+user's country. The vacancy has no salary. The Telegram update completed in
+567ms without an error.
+
+Work remains uncommitted on `feature/v3.5.7-international-market-coverage`
+(`VERSION=3.5.7`). GitHub `main` and the latest formal release/tag remain
+v3.5.6; draft PR #18 targets `main`. No publication action was taken.
+
+## Current follow-up — Collectly Lever source — 2026-10-11
+
+The owner accepted the Himalayas `/job 1273` geography card. The next roadmap
+stage now adds a narrowly scoped Collectly source through Lever's documented,
+public Postings API. An authorized read-only GET to the public Collectly board
+returned its current `Senior DevOps/DevSecOps Engineer` post. The listing is
+remote and says GMT-7 to GMT+4; the API lists Belgrade/RS. The adapter runs only
+for selected AM/GE, requires a remote post and a stated timezone range covering
+UTC+4, stores the Belgrade/RS metadata separately, and leaves normalized
+country, salary (when absent), visa, and relocation unknown. The hosted form
+states that required Yerevan onboarding lasts one or two weeks and travel and
+accommodation are covered. That is a possible lead, not proof that the
+employer can hire a Russian citizen in Armenia or Georgia.
+
+The source is bounded to one 100-record page and a six-hour local cache; it
+does not use Lever's authenticated data API or apply endpoint. Regressions
+cover timezone, remote mode, role matching, country ambiguity, salary metadata,
+malformed responses, and source registration. A detail-view regression now
+also checks that timezone scope carries a country-level hiring caveat. The
+targeted detail/Lever tests pass (16 tests); the full local suite passes (274
+passed, 3 database tests skipped). Compose `repo` was rebuilt at 21:04 Moscow time;
+PostgreSQL remained healthy. Startup `scan_all` completed successfully at
+18:06:21 UTC (21:06:21 Moscow). The inspected log window shows Lever returning
+HTTP 200 for both profiles, successful responses from the other queried
+sources, and HH recovery through its public-web fallback after API 403. No
+source exception appears in that startup scan window.
+
+At 21:11–21:14 Moscow time, the owner confirmed `/sources` lists Lever for both
+profiles and ran `/scan` plus `/scanstatus`. Lever returned 1 live result in
+9.6s; the complete scan finished at 18:14:01 UTC (21:14:01 Moscow) with 266
+processed, 37 Good, 33 Stretch, 196 filtered, and no new notifications. Job
+Bank returned 12 in 71.4s; EURES returned 16 in 55.2s. The supplied logs show
+Lever HTTP 200 for both profile requests, HH recovering through public web
+after API 403, and no source error. `/jobs` returned its latest ten rows and
+did not show Collectly. A read-only query of the saved match found Collectly
+job #1333 as `filtered`, score 0, with reason `senior devops` matched the
+Career-first profile's explicit exclusion list. This is expected filtering,
+not a missing adapter result; leave the exclusion unchanged unless the owner
+chooses otherwise. The tested detail renderer already attributes timezone
+scope and warns that it does not establish country-level hiring.
+
+At 21:20 Moscow time, the owner supplied `/review` and `/stretch` output. The
+first result in each was remote (CloudCops 88/Good and Sporty Group 72/Stretch).
+This confirms remote opportunities are visible in both review lanes; code
+regression tests cover processing priority within both profiles' source
+batches. The `/scan` reported Relocation-first 74 processed and 0 Good/Stretch.
+Its current queries include broad lower-barrier work, but its notification
+threshold is 65; an inspected remote result scored 54 and was filtered. This is
+a result-visibility/scoring issue, not source health. The owner later clarified
+that higher-rated vacancies must receive higher priority. Keep this threshold
+and do not place lower-rated leads ahead of higher-scoring jobs.
+
+The branch remains `feature/v3.5.7-international-market-coverage` at source
+version 3.5.7 with uncommitted local work. GitHub `main` and the latest formal
+tag/release remain v3.5.6; draft PR #18 targets `main`. No merge, tag, or
+release has been made. A current GitHub check shows visible tags v3.5.0,
+v3.5.1, and v3.5.6; v3.5.2–v3.5.5 are cumulative changelog milestones, with
+no separate tags/releases. Preserve the user's worktree and keep the private
+relocation roadmap outside Git.
+
+## Current stage — Himalayas remote-source candidate — 2026-10-11
+
+The active worktree is `feature/v3.5.7-international-market-coverage`, at
+`d445c87`, with `VERSION=3.5.7`. This stage adds Himalayas' documented public
+remote-jobs API, queried by each profile's active role queries and up to three
+selected markets. Requests are bounded to four queries, one 20-result page per
+query/market, serialized with a short delay, and cached for 24 hours. Telegram
+cards visibly attribute Himalayas and link to the source. Salary periods are
+shown when available. Missing country restrictions remain unknown; remote
+availability does not establish work authorization, payroll or tax eligibility.
+
+RemoteOK also no longer labels unspecified work geography as worldwide. The
+existing remote-work processing priority remains separate from match score and
+from country eligibility. The source and profile regressions pass (41 targeted
+tests). Full local/PostgreSQL suites, compilation, diff checks, Compose rebuild
+and startup-log inspection are complete; results are recorded below.
+
+The change is uncommitted and has not been published. GitHub `main` and its
+latest formal tag/release remain v3.5.6; candidate `VERSION` is 3.5.7. Draft PR
+#18 targets `main`, but its published green checks do not include this worktree.
+Verification passed: 266 local tests with 3 database tests skipped; 269 tests
+with isolated PostgreSQL; branch coverage 69.70% (55% CI minimum); compileall
+and `git diff --check`. Compose `repo` was rebuilt at 20:33 Moscow time. Its
+startup scan completed at 17:35:32 UTC (20:35:32 Moscow): Himalayas filtered
+requests for GE and AM returned HTTP 200; EURES and other shown sources also
+returned HTTP 200. HH API returned 403 and the ordinary public-search fallback
+succeeded. PostgreSQL is healthy and the original named volumes
+`repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain attached.
+
+The owner has completed `/sources`, `/scan`, `/scanstatus`, and `/jobs`; the
+remote results and attribution are visible. Telegram `/job 1273` acceptance
+is complete: the source's worldwide label is qualified by a country-level
+hiring confirmation reminder. The vacancy has no salary; no individual
+eligibility claim is inferred.
+
+## Current stage — Remote-work priority and Job Bank pacing — 2026-10-11
+
+The active branch remains `feature/v3.5.7-international-market-coverage`
+(`VERSION=3.5.7`, HEAD `d445c87`). The local change gives explicitly remote
+vacancies a processing-priority bonus inside source batches in both
+independent search profiles, while each profile retains its own role queries.
+Match Score and notification thresholds are unchanged. A remote label or
+`remote_scope=unspecified` does not establish worldwide eligibility.
+
+Job Bank now enforces at least five seconds between serialized request starts.
+If a response itself takes five seconds or longer, the next request starts
+without an extra full wait. Bounded transport retry and partial-result recovery
+remain in place; HTTP status errors are not retried.
+
+Regressions cover remote versus onsite across strategies, unknown scope, and
+negated remote labels. Job Bank regressions cover partial failure, start
+spacing after fast and slow responses, and concurrent callers. Targeted tests
+pass 34; the local suite passes 254 tests with 3 database tests skipped; the
+isolated PostgreSQL suite passes 257 with 68.59% branch coverage. Compilation
+and `git diff --check` pass. These changes are uncommitted and have not been
+applied to GitHub. They were rebuilt into local Compose at 17:09 UTC. The app
+reports 3.5.7 and PostgreSQL is healthy; the first inspected post-rebuild log
+only shows scheduler setup, so the live scan is still pending.
+
+Telegram acceptance remains needed after the candidate update: compare Job
+Bank timing using `/scanstatus`, confirm sources finish without errors, and
+review remote-first processing in both profiles. Remote scope and employer
+permission to work from the destination remain unknown unless the posting
+states them.
+
+GitHub `main` and the latest formal tag/release remain v3.5.6. Draft PR #18
+targets `main`. The latest published PR head has green Python, secret-scan, and
+Docker-build checks in runs `38152993495` and `38152990522`; those checks do not
+include the current uncommitted changes. No push, merge, tag, or release has
+been made. Keep the local gitignored relocation roadmap private.
+
+## Earlier stage — Job Bank partial-result resilience — 2026-10-11
+
+The active worktree is `feature/v3.5.7-international-market-coverage` at
+`d445c87`; the Job Bank code and documentation changes for this stage are
+currently uncommitted. The candidate and local Compose runtime both report
+3.5.7. GitHub `main` and its latest formal tag/release remain v3.5.6; PR #18
+is still an unmerged draft. No publication action has been taken.
+
+Job Bank now continues after an individual query or detail request exhausts
+the existing one transport retry, retaining details it did verify. If all
+searches or all fetched details fail, it still reports the source error. Its
+five-second request delay, serialized requests, query/detail limits and lack
+of HTTP-status retries are unchanged. Targeted tests pass (18); full isolated
+PostgreSQL suite passes (251, 68.44% branch coverage), and compilation passes.
+The rebuilt local service's startup scan completed at 16:25:19 UTC. The owner
+then supplied a fresh Telegram `/scan` and `/scanstatus` from 19:33–19:36 Moscow
+time: Job Bank returned 12 vacancies in 100.7 seconds; EURES 16, HR.ge 2, HH
+209, Remote OK 3, Arbeitnow 2 and Greenhouse 1. Supplied logs show the Job Bank
+detail, EURES and HR.ge requests returning HTTP 200, with no Job Bank warning
+or source failure in the excerpt. This confirms the source works in a normal
+run; it does not reproduce a transport failure, so regression tests remain the
+evidence for partial-failure recovery.
+
+A separate local, gitignored personal relocation plan was updated with current
+leads. Keep that file and its personal details out of repository history.
+
 ## Owner acceptance — Lineate Recommendation v2 — 2026-10-11
 
 At 18:42 Moscow time, the owner reopened `/job 1091` in Telegram and confirmed

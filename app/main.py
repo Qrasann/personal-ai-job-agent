@@ -19,6 +19,29 @@ logger = logging.getLogger(__name__)
 
 TELEGRAM_RETRY_INITIAL_SECONDS = 5.0
 TELEGRAM_RETRY_MAX_SECONDS = 60.0
+STARTUP_SCAN_MISFIRE_GRACE_SECONDS = 300
+
+
+def _schedule_jobs(scheduler: AsyncIOScheduler, bot: Bot) -> None:
+    scheduler.add_job(
+        scan_all,
+        "interval",
+        minutes=settings.search_interval_minutes,
+        args=[bot],
+        max_instances=1,
+        coalesce=True,
+        next_run_time=datetime.now(),
+        misfire_grace_time=STARTUP_SCAN_MISFIRE_GRACE_SECONDS,
+    )
+    if settings.hh_private_api_enabled and settings.hh_access_token:
+        scheduler.add_job(
+            scan_hh_chats,
+            "interval",
+            minutes=settings.hh_chat_interval_minutes,
+            args=[bot],
+            max_instances=1,
+            coalesce=True,
+        )
 
 
 async def wait_for_telegram(
@@ -71,9 +94,7 @@ async def main() -> None:
     dp.include_router(router)
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(scan_all, "interval", minutes=settings.search_interval_minutes, args=[bot], max_instances=1, coalesce=True, next_run_time=datetime.now())
-    if settings.hh_private_api_enabled and settings.hh_access_token:
-        scheduler.add_job(scan_hh_chats, "interval", minutes=settings.hh_chat_interval_minutes, args=[bot], max_instances=1, coalesce=True)
+    _schedule_jobs(scheduler, bot)
 
     try:
         await wait_for_telegram(bot)

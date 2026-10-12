@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import html
+import json
 import logging
 import time
+from datetime import UTC, datetime
 
 from aiogram import Bot
 import httpx
@@ -19,10 +21,13 @@ from app.matching.fact_comparison import compare_facts
 from app.providers.hh import HHClient, HHError
 from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
+from app.sources.adapters.himalayas import HimalayasSource
+from app.sources.adapters.remotive import RemotiveSource
 from app.sources.adapters.arbeitnow import ArbeitnowSource
 from app.sources.adapters.jobbank import JobBankSource
 from app.sources.adapters.eures import EuresSource
 from app.sources.adapters.greenhouse import GreenhouseSource
+from app.sources.adapters.lever import LeverSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
@@ -31,14 +36,34 @@ from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
 hh_client = HHClient()
-_DISCOVERY_CACHE: dict[tuple[str, tuple[str, ...]], tuple[float, list[NormalizedJob]]] = {}
+_DISCOVERY_CACHE: dict[
+    tuple[str, tuple[str, ...], str | None, tuple[str, ...]],
+    tuple[float, list[NormalizedJob]],
+] = {}
 CACHE_TTL_SECONDS = 600
 GEORGIA_CACHE_TTL_SECONDS = 6 * 60 * 60
+HIMALAYAS_CACHE_TTL_SECONDS = 24 * 60 * 60
+REMOTIVE_CACHE_TTL_SECONDS = 24 * 60 * 60
+LEVER_CACHE_TTL_SECONDS = 6 * 60 * 60
 DISCOVERY_CONCURRENCY = 3
 DISCOVERY_TIMEOUT_SECONDS = 180
+# v3 forces one refresh after switching from the ignored API filter to RSS.
+REMOTIVE_STATE_KEY = "source_cache.remotive.v3"
+_REMOTIVE_PAYLOAD_CACHE: tuple[float, dict] | None = None
+_REMOTIVE_PAYLOAD_LOCK = asyncio.Lock()
 
 
 def _cache_ttl(source_id: str) -> int:
+    if source_id == "himalayas":
+        # The provider refreshes this API daily; repeated scans add no freshness.
+        return HIMALAYAS_CACHE_TTL_SECONDS
+    if source_id == "remotive":
+        # Remotive recommends at most four requests per day; refresh once daily.
+        return REMOTIVE_CACHE_TTL_SECONDS
+    if source_id == "lever":
+        # The curated employer board is refreshed periodically; avoid polling
+        # it on every manual or scheduled scan.
+        return LEVER_CACHE_TTL_SECONDS
     if source_id in {"jobs_ge", "hr_ge"}:
         # Public Georgia boards are refreshed less often by scheduled scans.
         # A user-triggered /scan still explicitly requests a fresh discovery.
@@ -48,6 +73,72 @@ def _cache_ttl(source_id: str) -> int:
     if source_id == "hh" and not hh_client.private_api_available:
         return max(60, settings.hh_public_cache_minutes * 60)
     return CACHE_TTL_SECONDS
+
+
+def _fresh_remotive_payload(value: str, *, now: datetime) -> tuple[float, dict] | None:
+    """Return the persisted response's age and payload without renewing its TTL."""
+    try:
+        cached = json.loads(value)
+        fetched_at = datetime.fromisoformat(str(cached.get("fetched_at") or ""))
+        payload = cached.get("payload")
+        if fetched_at.tzinfo is None:
+            fetched_at = fetched_at.replace(tzinfo=UTC)
+        age = (now - fetched_at.astimezone(UTC)).total_seconds()
+        if age < 0 or age >= REMOTIVE_CACHE_TTL_SECONDS or not isinstance(payload, dict):
+            return None
+        return age, payload
+    except (AttributeError, TypeError, ValueError, json.JSONDecodeError):
+        return None
+
+
+async def _discover_remotive(
+    adapter: RemotiveSource, context: SourceContext
+) -> tuple[list[NormalizedJob], bool, float]:
+    """Share and persist Remotive's daily response across profiles and restarts."""
+    global _REMOTIVE_PAYLOAD_CACHE
+    async with _REMOTIVE_PAYLOAD_LOCK:
+        now_mono = time.monotonic()
+        in_memory = _REMOTIVE_PAYLOAD_CACHE
+        if in_memory and now_mono - in_memory[0] < REMOTIVE_CACHE_TTL_SECONDS:
+            return adapter.parse_payload(in_memory[1], context), True, in_memory[0]
+
+        cache_owner_id = context.user_id
+        try:
+            active_users = await repo.list_active_users()
+            active_ids = [int(user.id) for user in active_users]
+            if active_ids:
+                cache_owner_id = min(active_ids)
+        except Exception:
+            log.warning("could not determine shared Remotive cache owner", exc_info=True)
+
+        try:
+            stored = await repo.get_state(cache_owner_id, REMOTIVE_STATE_KEY, "")
+        except Exception:
+            log.warning("could not read persisted Remotive cache", exc_info=True)
+            stored = ""
+        persisted = _fresh_remotive_payload(stored, now=datetime.now(UTC))
+        if persisted is not None:
+            age, payload = persisted
+            # Reconstruct the original fetch time on the monotonic clock so
+            # restarting near expiry does not grant another full day.
+            fetched_mono = time.monotonic() - age
+            _REMOTIVE_PAYLOAD_CACHE = (fetched_mono, payload)
+            return adapter.parse_payload(payload, context), True, fetched_mono
+
+        payload = await adapter.fetch_payload()
+        fetched_at = datetime.now(UTC)
+        fetched_mono = time.monotonic()
+        _REMOTIVE_PAYLOAD_CACHE = (fetched_mono, payload)
+        try:
+            await repo.set_state(
+                cache_owner_id,
+                REMOTIVE_STATE_KEY,
+                json.dumps({"fetched_at": fetched_at.isoformat(), "payload": payload}, separators=(",", ":")),
+            )
+        except Exception:
+            # Keep the in-process throttle even if persistence is temporarily unavailable.
+            log.warning("could not persist Remotive cache", exc_info=True)
+        return adapter.parse_payload(payload, context), False, fetched_mono
 
 
 async def notify_chat(bot: Bot, chat_id: str | int, text: str, **kwargs) -> None:
@@ -171,6 +262,7 @@ async def ingest_and_match(
                 job.salary_from,
                 job.salary_to,
                 job.salary_currency,
+                period=job.salary_period,
                 fallback_text=str(
                     (normalized.raw or {}).get("salary_text")
                     or (normalized.raw or {}).get("card_text")
@@ -242,6 +334,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             source_ids.discard("hh")
         if not modes.get("remote_international", True):
             source_ids.discard("remoteok")
+            source_ids.discard("himalayas")
+            source_ids.discard("remotive")
         if not modes.get("relocation", True):
             source_ids.discard("jobbank")
             source_ids.discard("eures")
@@ -254,6 +348,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(HHSource(hh_client))
         if "remoteok" in source_ids:
             adapters.append(RemoteOKSource())
+        if "himalayas" in source_ids:
+            adapters.append(HimalayasSource())
+        if "remotive" in source_ids:
+            adapters.append(RemotiveSource())
         if "arbeitnow" in source_ids:
             adapters.append(ArbeitnowSource())
         if "jobbank" in source_ids:
@@ -262,6 +360,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(EuresSource())
         if "greenhouse" in source_ids:
             adapters.append(GreenhouseSource())
+        if "lever" in source_ids:
+            adapters.append(LeverSource())
         if "jobs_ge" in source_ids:
             adapters.append(JobsGESource())
         if "hr_ge" in source_ids:
@@ -271,17 +371,39 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
         semaphore = asyncio.Semaphore(DISCOVERY_CONCURRENCY)
 
         async def discover(adapter):
-            cache_key = (adapter.source_id, tuple(sorted(str(x).casefold() for x in queries)))
+            cache_key = (
+                adapter.source_id,
+                tuple(sorted(str(x).casefold() for x in queries)),
+                normalize_country(str(context.current_country or "")),
+                tuple(sorted(
+                    country
+                    for value in (context.target_countries or [])
+                    if (country := normalize_country(str(value or "")))
+                )),
+            )
             cached = _DISCOVERY_CACHE.get(cache_key)
-            cache_hit = bool(not force_refresh and cached and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id))
+            cache_hit = bool(
+                cached
+                and time.monotonic() - cached[0] < _cache_ttl(adapter.source_id)
+                and (not force_refresh or adapter.source_id in {"himalayas", "remotive"})
+            )
             if cache_hit:
                 return adapter, cached[1], True, None, 0
             started = time.monotonic()
             try:
                 async with semaphore:
-                    jobs = await asyncio.wait_for(adapter.discover(context), timeout=DISCOVERY_TIMEOUT_SECONDS)
-                _DISCOVERY_CACHE[cache_key] = (time.monotonic(), jobs)
-                return adapter, jobs, False, None, int((time.monotonic() - started) * 1000)
+                    if adapter.source_id == "remotive":
+                        jobs, source_cache_hit, fetched_mono = await asyncio.wait_for(
+                            _discover_remotive(adapter, context), timeout=DISCOVERY_TIMEOUT_SECONDS
+                        )
+                    else:
+                        jobs = await asyncio.wait_for(adapter.discover(context), timeout=DISCOVERY_TIMEOUT_SECONDS)
+                        source_cache_hit = False
+                        fetched_mono = time.monotonic()
+                # A context-specific projection must expire with its provider
+                # response, including when that response came from disk.
+                _DISCOVERY_CACHE[cache_key] = (fetched_mono, jobs)
+                return adapter, jobs, source_cache_hit, None, int((time.monotonic() - started) * 1000)
             except Exception as exc:
                 return adapter, [], False, exc, int((time.monotonic() - started) * 1000)
 
@@ -381,8 +503,12 @@ async def get_cached_hh_details(job_id: int) -> dict:
     return dict(details)
 
 
-async def get_vacancy_details(user_id: int, job_id: int) -> dict:
-    match = await repo.get_match_for_user_job(user_id, job_id)
+async def get_vacancy_details(
+    user_id: int, job_id: int, *, search_profile_id: int | None = None
+) -> dict:
+    match = await repo.get_match_for_user_job(
+        user_id, job_id, **({"search_profile_id": search_profile_id} if search_profile_id is not None else {})
+    )
     if not match:
         raise RuntimeError("Вакансия не найдена среди твоих совпадений")
     job = await repo.get_job(job_id)
@@ -390,7 +516,7 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
         raise RuntimeError("Вакансия не найдена")
 
     ref = None
-    for source_id in ("hh", "remoteok", "arbeitnow", "telegram", "jobs_ge", "hr_ge"):
+    for source_id in ("hh", "remoteok", "himalayas", "arbeitnow", "telegram", "jobs_ge", "hr_ge"):
         ref = await repo.source_ref(job.id, source_id)
         if ref:
             break
@@ -418,7 +544,19 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
     )
 
     raw = (ref.raw or {}) if ref else {}
+    if ref and ref.source_id == "himalayas":
+        timezone_restrictions = raw.get("timezone_restrictions")
+        if isinstance(timezone_restrictions, list):
+            known_timezones = [
+                value.strip()
+                for value in timezone_restrictions
+                if isinstance(value, str) and value.strip()
+            ]
+            if known_timezones:
+                details["timezone_restrictions"] = known_timezones
     fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or "")
+    searches = await repo.list_search_profiles(match.profile_id)
+    search = next((item for item in searches if item.id == match.search_profile_id), None)
 
     return {
         "job": job,
@@ -428,11 +566,16 @@ async def get_vacancy_details(user_id: int, job_id: int) -> dict:
         "details": details,
         "fallback_salary_text": fallback_salary_text,
         "warning": warning,
+        "search_profile_name": search.name if search else "",
     }
 
 
-async def get_vacancy_comparison(user_id: int, job_id: int) -> dict:
-    payload = await get_vacancy_details(user_id, job_id)
+async def get_vacancy_comparison(
+    user_id: int, job_id: int, *, search_profile_id: int | None = None
+) -> dict:
+    payload = await get_vacancy_details(
+        user_id, job_id, **({"search_profile_id": search_profile_id} if search_profile_id is not None else {})
+    )
 
     match = payload["match"]
     job = payload["job"]
@@ -465,7 +608,7 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
     cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
     refs = []
-    for source_id in ("hh", "remoteok", "arbeitnow", "telegram"):
+    for source_id in ("hh", "remoteok", "himalayas", "arbeitnow", "telegram"):
         ref = await repo.source_ref(job.id, source_id)
         if ref:
             refs.append(ref)

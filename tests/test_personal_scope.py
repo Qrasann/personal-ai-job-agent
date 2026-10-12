@@ -1,6 +1,7 @@
 from app.database.models import CandidateFact, Job, SearchProfile
 from app.matching.engine import score_job
 from app.agents.job_signals import analyze_job_signals
+import pytest
 
 
 def _search(modes=None):
@@ -48,6 +49,88 @@ def test_relocation_sponsorship_detected():
     result = score_job(job, _search(), _facts(), [])
     assert result.track == "relocation"
     assert result.relocation_score >= 90
+
+
+@pytest.mark.parametrize("description, blocked", [
+    ("We do not provide visa sponsorship or relocation assistance.", True),
+    ("Visa sponsorship is not available. No relocation assistance.", True),
+    ("Must already have the right to work in Germany.", True),
+    ("Visa sponsorship may be available.", False),
+    ("We provide visa sponsorship guidance.", False),
+])
+def test_matching_signal_does_not_promote_negated_or_unknown_support(description, blocked):
+    job = Job(fingerprint="support-conservative", title="DevOps Engineer", description=description, country="DE")
+    signals = analyze_job_signals(job)
+    assert signals.relocation_positive is False
+    assert "relocation" not in signals.tracks
+    assert signals.relocation_blocked is blocked
+
+
+def test_matching_signal_keeps_explicit_denial_over_stale_positive_flags():
+    job = Job(
+        fingerprint="support-stale", title="DevOps Engineer", country="DE",
+        description="No visa sponsorship. Relocation assistance is not available.",
+        visa_sponsorship=True, relocation=True,
+    )
+    signals = analyze_job_signals(job)
+    assert signals.relocation_positive is False
+    assert signals.relocation_blocked is True
+
+
+@pytest.mark.parametrize("description, offered, denied", [
+    (
+        "We do not provide relocation assistance, but we offer visa sponsorship.",
+        "visa_sponsorship", "relocation",
+    ),
+    (
+        "We do not provide visa sponsorship, but we offer relocation assistance.",
+        "relocation", "visa_sponsorship",
+    ),
+])
+def test_separate_support_offer_survives_another_component_refusal(description, offered, denied):
+    job = Job(
+        fingerprint="support-mixed", title="DevOps Engineer", company="ACME", country="DE",
+        description=f"Linux Docker. {description}",
+    )
+    signals = analyze_job_signals(job)
+    assert signals.support_components[offered] is True
+    assert signals.support_components[denied] is False
+    assert signals.support_components["work_permit"] is None
+    assert signals.relocation_positive is True
+    assert signals.relocation_blocked is False
+    assert "relocation" in signals.tracks
+    assert "часть помощи явно не предоставляется" in signals.relocation_reason
+    result = score_job(job, _search(), _facts(), [])
+    assert result.track == "relocation"
+    assert result.relocation_score >= 90
+    assert result.total_score > 40
+
+
+def test_authorization_prerequisite_still_blocks_a_separate_support_offer():
+    job = Job(
+        fingerprint="support-prerequisite", title="DevOps Engineer", company="ACME", country="DE",
+        description="Linux Docker. We offer relocation assistance. Must already have the right to work in Germany.",
+    )
+    signals = analyze_job_signals(job)
+    assert signals.support_components["relocation"] is True
+    assert signals.support_components["visa_sponsorship"] is None
+    assert signals.relocation_blocked is True
+    result = score_job(job, _search(), _facts(), [])
+    assert result.relocation_score == 5
+    assert result.total_score <= 40
+
+
+def test_same_component_refusal_still_wins_over_offer():
+    job = Job(
+        fingerprint="support-conflict", title="DevOps Engineer", company="ACME", country="DE",
+        description="Linux Docker. We offer visa sponsorship. Visa sponsorship is not available.",
+    )
+    signals = analyze_job_signals(job)
+    assert signals.support_components["visa_sponsorship"] is False
+    assert signals.relocation_positive is False
+    assert signals.relocation_blocked is True
+    result = score_job(job, _search(), _facts(), [])
+    assert result.relocation_score == 5
 
 
 def test_disabled_remote_mode_filters_remote_only_job():

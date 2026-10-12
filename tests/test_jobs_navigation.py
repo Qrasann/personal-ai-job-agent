@@ -2,6 +2,8 @@ import asyncio
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import pytest
+
 from app.telegram import handlers
 from app.telegram.ui import jobs_keyboard
 
@@ -40,7 +42,7 @@ def test_jobs_command_adds_details_keyboard(monkeypatch):
         (SimpleNamespace(total_score=82), _job(25, "DevOps Engineer")),
         (SimpleNamespace(total_score=78), _job(26, "Linux Engineer")),
     ]
-    message = SimpleNamespace(answer=AsyncMock())
+    message = SimpleNamespace(text="/jobs", answer=AsyncMock())
 
     monkeypatch.setattr(
         handlers,
@@ -57,11 +59,18 @@ def test_jobs_command_adds_details_keyboard(monkeypatch):
     )
     latest = AsyncMock(return_value=rows)
     monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+    source_ref = AsyncMock(side_effect=lambda job_id, source_id: (
+        SimpleNamespace(url="https://himalayas.app/jobs/25")
+        if job_id == 25 and source_id == "himalayas"
+        else None
+    ))
+    monkeypatch.setattr(handlers.repo, "source_ref", source_ref)
 
     asyncio.run(handlers.jobs(message))
 
     latest.assert_awaited_once_with(7, 10, min_score=65)
-    assert "Последние совпадения" in message.answer.await_args.args[0]
+    assert "Совпадения по рейтингу" in message.answer.await_args.args[0]
+    assert '<a href="https://himalayas.app/jobs/25">Himalayas</a>' in message.answer.await_args.args[0]
     keyboard = message.answer.await_args.kwargs["reply_markup"]
     callbacks = [
         button.callback_data
@@ -69,3 +78,203 @@ def test_jobs_command_adds_details_keyboard(monkeypatch):
         for button in row
     ]
     assert callbacks == ["details:25", "details:26"]
+
+
+def test_jobs_below_command_shows_filtered_matches_without_changing_threshold(monkeypatch):
+    rows = [(SimpleNamespace(total_score=64), _job(30, "Warehouse Worker"))]
+    message = SimpleNamespace(text="/jobs below", answer=AsyncMock())
+
+    monkeypatch.setattr(
+        handlers,
+        "_require_user",
+        AsyncMock(return_value=SimpleNamespace(id=7)),
+    )
+    monkeypatch.setattr(
+        handlers,
+        "_first_search",
+        AsyncMock(return_value=(
+            SimpleNamespace(id=3),
+            SimpleNamespace(settings={"notify_min_score": 65}),
+        )),
+    )
+    latest = AsyncMock(return_value=rows)
+    monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+    monkeypatch.setattr(handlers.repo, "source_ref", AsyncMock(return_value=None))
+
+    asyncio.run(handlers.jobs(message))
+
+    latest.assert_awaited_once_with(
+        7,
+        10,
+        include_filtered=True,
+        min_score=1,
+        max_score=64,
+    )
+    rendered = message.answer.await_args.args[0]
+    assert "Ниже порога 65" in rendered
+    assert "не подтверждены автоматически" in rendered
+    assert "#30 · 64/100" in rendered
+
+
+def _mock_profiles(monkeypatch):
+    searches = [
+        SimpleNamespace(id=3, kind="career", name="Career-first", settings={"notify_min_score": 65}),
+        SimpleNamespace(id=4, kind="relocation", name="Relocation-first", settings={"notify_min_score": 70}),
+    ]
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=2)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+    monkeypatch.setattr(handlers.repo, "source_ref", AsyncMock(return_value=None))
+    return searches
+
+
+@pytest.mark.parametrize("text", ["/jobs relocation below", "/jobs below relocation"])
+def test_jobs_relocation_uses_its_own_threshold_and_scope(monkeypatch, text):
+    searches = _mock_profiles(monkeypatch)
+    rows = [(SimpleNamespace(total_score=54, search_profile_id=4), _job(30, "Warehouse Worker"))]
+    latest = AsyncMock(return_value=rows)
+    monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+    message = SimpleNamespace(text=text, answer=AsyncMock())
+
+    asyncio.run(handlers.jobs(message))
+
+    latest.assert_awaited_once_with(7, 10, include_filtered=True, min_score=1, max_score=69, search_profile_id=4)
+    rendered = message.answer.await_args.args[0]
+    assert "Relocation-first" in rendered
+    assert "Ниже порога 70" in rendered
+    assert "/job 30 relocation" in rendered
+    assert message.answer.await_args.kwargs["reply_markup"].inline_keyboard[0][0].callback_data == "details:30:4"
+    assert searches[0].settings == {"notify_min_score": 65}
+    assert searches[1].settings == {"notify_min_score": 70}
+
+
+def test_jobs_career_scope_uses_score_ordered_query(monkeypatch):
+    _mock_profiles(monkeypatch)
+    latest = AsyncMock(return_value=[(SimpleNamespace(total_score=82), _job(25, "DevOps Engineer"))])
+    monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+    message = SimpleNamespace(text="/jobs career", answer=AsyncMock())
+
+    asyncio.run(handlers.jobs(message))
+
+    latest.assert_awaited_once_with(7, 10, min_score=65, search_profile_id=3)
+    assert "Career-first" in message.answer.await_args.args[0]
+
+
+def test_jobs_relocation_empty_results_link_to_scoped_manual_review(monkeypatch):
+    _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers.repo, "latest_matches", AsyncMock(return_value=[]))
+    message = SimpleNamespace(text="/jobs relocation", answer=AsyncMock())
+
+    asyncio.run(handlers.jobs(message))
+
+    rendered = message.answer.await_args.args[0]
+    assert "Relocation-first" in rendered
+    assert "70/100" in rendered
+    assert "/jobs relocation below" in rendered
+
+
+def test_jobs_missing_relocation_profile_does_not_fall_back_to_career(monkeypatch):
+    searches = _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches[:1]))
+    latest = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+    message = SimpleNamespace(text="/jobs relocation below", answer=AsyncMock())
+
+    asyncio.run(handlers.jobs(message))
+
+    latest.assert_not_awaited()
+    assert "/parallelsearch on" in message.answer.await_args.args[0]
+
+
+def test_jobs_career_keeps_legacy_single_profile_available(monkeypatch):
+    _mock_profiles(monkeypatch)
+    legacy = SimpleNamespace(id=3, kind="employment", settings={"notify_min_score": 65})
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=[legacy]))
+    latest = AsyncMock(return_value=[])
+    monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+
+    asyncio.run(handlers.jobs(SimpleNamespace(text="/jobs career", answer=AsyncMock())))
+
+    latest.assert_awaited_once_with(7, 10, min_score=65, search_profile_id=3)
+
+
+@pytest.mark.parametrize("arguments", ["career relocation", "below below", "1273", "relocation extra"])
+def test_jobs_rejects_ambiguous_or_unknown_arguments(monkeypatch, arguments):
+    _mock_profiles(monkeypatch)
+    latest = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+    message = SimpleNamespace(text=f"/jobs {arguments}", answer=AsyncMock())
+
+    asyncio.run(handlers.jobs(message))
+
+    latest.assert_not_awaited()
+    assert "Использование" in message.answer.await_args.args[0]
+
+
+def test_jobs_keyboard_preserves_each_listed_match_profile():
+    rows = [(SimpleNamespace(total_score=82, search_profile_id=3), _job(25, "Linux Support"))]
+    assert jobs_keyboard(rows).inline_keyboard[0][0].callback_data == "details:25:3"
+
+
+def test_details_callback_forwards_the_profile_that_produced_the_score(monkeypatch):
+    _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    details = AsyncMock(return_value={"job": SimpleNamespace(id=25)})
+    monkeypatch.setattr(handlers, "get_vacancy_details", details)
+    monkeypatch.setattr(handlers, "render_job_details", lambda payload: "Scoped card")
+    callback = SimpleNamespace(
+        data="details:25:4", answer=AsyncMock(),
+        message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=AsyncMock()),
+    )
+
+    asyncio.run(handlers.details_callback(callback))
+
+    details.assert_awaited_once_with(7, 25, search_profile_id=4)
+    assert callback.message.answer.await_args.args[0] == "Scoped card"
+    keyboard = callback.message.answer.await_args.kwargs["reply_markup"]
+    assert keyboard.inline_keyboard[0][0].callback_data == "compare:25:4"
+
+
+def test_job_command_forwards_explicit_relocation_profile(monkeypatch):
+    _mock_profiles(monkeypatch)
+    details = AsyncMock(return_value={"job": SimpleNamespace(id=25)})
+    monkeypatch.setattr(handlers, "get_vacancy_details", details)
+    monkeypatch.setattr(handlers, "render_job_details", lambda payload: "Scoped card")
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    message = SimpleNamespace(text="/job 25 relocation", answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.job_details(message))
+
+    details.assert_awaited_once_with(7, 25, search_profile_id=4)
+    assert progress.edit_text.await_args.args[0] == "Scoped card"
+
+
+def test_compare_callback_preserves_the_card_profile(monkeypatch):
+    _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    comparison = AsyncMock(return_value={})
+    monkeypatch.setattr(handlers, "get_vacancy_comparison", comparison)
+    monkeypatch.setattr(handlers, "render_fact_comparison", lambda payload: "Scoped comparison")
+    callback = SimpleNamespace(
+        data="compare:25:4", answer=AsyncMock(),
+        message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=AsyncMock()),
+    )
+
+    asyncio.run(handlers.compare_callback(callback))
+
+    comparison.assert_awaited_once_with(7, 25, search_profile_id=4)
+    assert callback.message.answer.await_args.args[0] == "Scoped comparison"
+
+
+def test_compare_command_preserves_explicit_relocation_profile(monkeypatch):
+    _mock_profiles(monkeypatch)
+    comparison = AsyncMock(return_value={})
+    monkeypatch.setattr(handlers, "get_vacancy_comparison", comparison)
+    monkeypatch.setattr(handlers, "render_fact_comparison", lambda payload: "Scoped comparison")
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    message = SimpleNamespace(text="/compare 25 relocation", answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.compare_job(message))
+
+    comparison.assert_awaited_once_with(7, 25, search_profile_id=4)
+    assert progress.edit_text.await_args.args[0] == "Scoped comparison"

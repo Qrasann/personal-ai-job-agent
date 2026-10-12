@@ -65,7 +65,7 @@ def test_hh_details_cache_returns_empty_without_hh_source(monkeypatch):
     assert result == {}
 
 def test_get_vacancy_details_uses_cached_hh_details(monkeypatch):
-    match = SimpleNamespace(profile_id=1)
+    match = SimpleNamespace(profile_id=1, search_profile_id=3)
     job = SimpleNamespace(
         id=24,
         description="short card text",
@@ -135,6 +135,11 @@ def test_get_vacancy_details_uses_cached_hh_details(monkeypatch):
         "refresh_match_score",
         fake_refresh,
     )
+    async def fake_searches(profile_id):
+        assert profile_id == 1
+        return [SimpleNamespace(id=3, name="Career-first")]
+
+    monkeypatch.setattr(services.repo, "list_search_profiles", fake_searches)
     monkeypatch.setattr(
         services.hh_client,
         "vacancy_web",
@@ -148,4 +153,5 @@ def test_get_vacancy_details_uses_cached_hh_details(monkeypatch):
     assert cache_calls == [24]
     assert refresh_calls == ["Требования:\nLinux\nDocker"]
     assert payload["details"]["description"] == "Требования:\nLinux\nDocker"
+    assert payload["search_profile_name"] == "Career-first"
     assert payload["source"] == "hh"

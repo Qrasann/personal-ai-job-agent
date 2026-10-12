@@ -1,8 +1,61 @@
 from types import SimpleNamespace
 
+import pytest
+
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
 from app.sources.adapters.hh import HHSource
 from app.telegram.vacancy_view import render_job_details, render_jobs_list
+
+
+def _timezone_card(restrictions):
+    job = SimpleNamespace(
+        id=25, title="Linux Support Engineer", company="Example",
+        salary_from=None, salary_to=None, salary_currency=None,
+        city=None, country=None, work_mode="remote", remote_scope="worldwide",
+        description="Linux support", published_at=None,
+    )
+    match = SimpleNamespace(
+        total_score=82, technical_score=86, geography_score=100,
+        salary_score=58, relocation_score=50, reason="",
+    )
+    return render_job_details({
+        "job": job, "match": match, "source": "himalayas", "url": "",
+        "details": {"timezone_restrictions": restrictions},
+    })
+
+
+def test_remote_card_discloses_source_timezones_separately_from_country_scope():
+    rendered = _timezone_card(["UTC-5", "UTC+4"])
+
+    assert "⏱ Часовые пояса по источнику: UTC-5, UTC+4" in rendered
+    assert "возможность найма в вашей стране нужно подтвердить" in rendered
+    assert "Geography: 100/100" in rendered
+
+
+def test_source_timezone_disclosure_is_clean_escaped_and_bounded():
+    rendered = _timezone_card([
+        "<b>UTC-5</b>", " UTC-5 ", "UTC+4 &amp; UTC+5",
+        *(f"UTC+{index}" for index in range(100)),
+    ])
+    line = next(line for line in rendered.splitlines() if line.startswith("⏱"))
+
+    assert "<b>UTC-5</b>" not in line
+    assert "UTC-5, UTC-5" not in line
+    assert "UTC+4 &amp; UTC+5" in line
+    assert len(line) <= 260
+    assert line.endswith("…")
+
+
+@pytest.mark.parametrize("restrictions", [
+    None, [], "UTC+4", {"offset": "UTC+4"}, [None, {}, 4],
+    [" ", "unknown", "unspecified", "n/a"],
+])
+def test_unknown_or_invalid_timezone_restrictions_make_no_availability_claim(restrictions):
+    rendered = _timezone_card(restrictions)
+
+    assert "⏱ Часовые пояса" not in rendered
+    assert "все часовые пояса" not in rendered
+    assert "возможность найма в вашей стране нужно подтвердить" in rendered
 
 
 def test_hh_card_salary_falls_back_to_visible_card_text():
@@ -131,6 +184,53 @@ def test_jobs_list_includes_job_id_and_details_command():
     assert "/job 25" in text
 
 
+def test_himalayas_job_list_item_includes_visible_source_attribution_link():
+    job = SimpleNamespace(
+        id=26,
+        title="DevOps Engineer",
+        company="Example Corp",
+        salary_from=None,
+        salary_to=None,
+        salary_currency=None,
+        salary_period=None,
+        description="Remote Linux role",
+        city=None,
+        country=None,
+        work_mode="remote",
+    )
+    match = SimpleNamespace(total_score=70)
+
+    text = render_jobs_list(
+        [(match, job)],
+        source_links={26: "https://himalayas.app/companies/example/jobs/devops"},
+    )
+
+    assert 'Источник: <a href="https://himalayas.app/companies/example/jobs/devops">Himalayas</a>' in text
+
+
+def test_jobs_list_marks_below_threshold_for_manual_review():
+    job = SimpleNamespace(
+        id=31,
+        title="Warehouse Worker",
+        company="Example Logistics",
+        salary_from=None,
+        salary_to=None,
+        salary_currency=None,
+        salary_period=None,
+        description="",
+        city="Tbilisi",
+        country="GE",
+        work_mode=None,
+    )
+    match = SimpleNamespace(total_score=54)
+
+    text = render_jobs_list([(match, job)], below_threshold=65)
+
+    assert "Ниже порога 65 · ручной просмотр" in text
+    assert "право на работу и условия переезда не подтверждены автоматически" in text
+    assert "#31 · 54/100" in text
+
+
 def test_job_details_separates_source_data_from_agent_score():
     job = SimpleNamespace(
         id=25,
@@ -174,6 +274,7 @@ def test_job_details_separates_source_data_from_agent_score():
             "published_at": "2026-08-23T10:38:00+03:00",
         },
         "warning": "",
+        "search_profile_name": "Relocation-first <manual>",
     }
     text = render_job_details(payload)
     assert "Описание вакансии" in text
@@ -187,3 +288,55 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "Конкуренция н/д" in text
     assert "23.08.2026 10:38" in text
     assert "Открыть оригинал вакансии" in text
+    assert "Профиль: Relocation-first &lt;manual&gt;" in text
+
+
+def test_remote_job_details_show_source_geography_without_claiming_work_eligibility():
+    match = SimpleNamespace(
+        total_score=70,
+        technical_score=70,
+        geography_score=50,
+        salary_score=58,
+        relocation_score=50,
+        recommendation_scores={},
+        reason="",
+    )
+
+    def render(scope, work_mode="remote"):
+        job = SimpleNamespace(
+            id=1273,
+            title="Associate Linux Support Engineer",
+            company="Canonical",
+            salary_from=72000,
+            salary_to=96000,
+            salary_currency="USD",
+            salary_period="annual",
+            description="Linux support",
+            city=None,
+            country=None,
+            work_mode=work_mode,
+            remote_scope=scope,
+            published_at=None,
+        )
+        return render_job_details({
+            "job": job,
+            "match": match,
+            "source": "himalayas",
+            "url": "https://himalayas.app/jobs/1273",
+            "details": {},
+        })
+
+    unknown = render("unknown")
+    worldwide = render("worldwide")
+    limited = render("Armenia, Georgia")
+    timezone = render("GMT-7 to GMT+4 time zones")
+    non_remote = render("unknown", work_mode="onsite")
+
+    assert "страны найма не указаны источником" in unknown
+    assert "возможность найма в вашей стране нужно подтвердить" in worldwide
+    assert "Armenia, Georgia указано источником" in limited
+    assert "GMT-7 to GMT+4 time zones указано источником" in timezone
+    assert "возможность найма в вашей стране нужно подтвердить" in timezone
+    assert "🌍 География remote:" in unknown
+    assert "72 000–96 000 $ в год" in unknown
+    assert "🌍 География remote:" not in non_remote

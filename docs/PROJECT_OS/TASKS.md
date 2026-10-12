@@ -76,11 +76,146 @@
   the bilingual GitHub Release after CI run `38138941745` passed.
 - [ ] Monitor later scheduled EURES scans; the first clean run does not prove
   the underlying TLS cause is permanently resolved.
-- [ ] Evaluate whether Job Bank pacing can avoid idle time while retaining at
-  least five seconds between request starts and no overlapping requests; verify
-  the effect with a fresh Telegram `/scan` before changing the runtime.
+- [x] Change Job Bank pacing to enforce at least five seconds between request
+  starts, without an extra wait when a slow response already consumes the
+  interval. Requests remain serialized. Regression tests verify both fast and
+  slow responses and concurrent callers.
+- [x] Owner compared a post-update Telegram `/scan` and `/scanstatus` at
+  20:42–20:44 Moscow: Job Bank returned 12 results in 71.2s, down from 100.7s
+  in the earlier check; EURES returned 16 in 34.1s. The supplied scan log has
+  no source failure. The retry/partial-recovery path remains verified by tests,
+  since this live scan had no transport failure.
 
-## v3.5.7 International Market Coverage — planned
+## v3.5.7 International Market Coverage — active candidate
+- [x] Audit bounded employer support evidence across preferences,
+  recommendations, and source adapters. Preserve unknown values, distinguish
+  separate support components, and prevent role requirements or guidance from
+  being reported as offers.
+- [x] Compare annual salary amounts with monthly profile minimums without
+  changing source amount/period; display known annual/monthly/hourly/weekly
+  periods. Hourly/weekly comparisons stay unknown without contracted hours.
+- [x] Reset stale scan dashboard fields when a new manual scan begins and
+  isolate independent source failures while retaining successful discoveries.
+- [x] Preserve the original persisted Remotive response age across restarts and
+  forced scans; show Himalayas timezone bounds as provider claims in details.
+- [x] Resumed full validation: 424 local passed / 3 skipped; isolated
+  PostgreSQL suite 427 passed, 73.22% branch coverage; compileall and
+  `git diff --check` passed.
+- [ ] Publish the verified candidate on PR #18's existing feature branch,
+  pass GitHub CI, rebuild/start Compose `repo`, and verify the existing named
+  volumes, runtime version, and startup scan.
+- [x] Add profile-specific `/jobs career|relocation [below]` lists using each
+  enabled profile's own threshold; retain independent scores through detail
+  and comparison buttons and explicit `/job`/`/compare` scope arguments.
+- [x] Correct ordinary `hotel staff`/`warehouse staff` being classified as
+  engineering Staff/Senior. Keep technical Staff, seniority, high-experience,
+  management and user exclusions covered by regressions.
+- [x] Verify selected-score isolation, user ownership, legacy callbacks and
+  below-threshold scope. Full local suite: 319 passed, 3 skipped; all 3 isolated
+  PostgreSQL repository tests passed; compilation and diff checks passed.
+- [x] Add an at-a-glance roadmap showing completed, current and later stages;
+  maintain the private relocation roadmap separately with current official
+  legal references and progress.
+- [ ] Verify the new scoped commands/cards in Telegram after local rebuild.
+- [ ] Evaluate bounded HH search for selected destinations: current discovery
+  only uses the current-country area. Verify official area data, preserve each
+  direction's role queries and keep unknown work/visa eligibility unknown.
+- [x] Add the Himalayas documented public search API as a bounded remote
+  source: up to four active-profile queries, three selected markets and one
+  page of 20 jobs per query/market; cache for 24 hours and show source links
+  and salary periods in Telegram.
+- [x] Preserve provider country restrictions; missing restrictions remain
+  unknown and no individual visa/work/payroll eligibility is inferred. Stop
+  treating RemoteOK's unspecified hiring geography as worldwide.
+- [x] Add regressions for country scope, unknown eligibility, salary periods,
+  attribution, bounded requests, partial failures and cache isolation. Targeted
+  suite: 41 passed.
+- [x] Full local suite: 266 passed, 3 database tests skipped; isolated
+  PostgreSQL suite: 269 passed; branch coverage 69.70% against the 55% gate.
+  `compileall` and `git diff --check` passed.
+- [x] Rebuild Compose project `repo`; app and PostgreSQL healthy, original
+  named volumes `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` remain
+  attached. Startup scan completed at 17:35:32 UTC. Himalayas requests for GE
+  and AM returned HTTP 200; the inspected log window showed no source errors.
+  HH API returned 403 and public web fallback succeeded.
+- [x] Owner verified `/sources`, `/scan`, `/scanstatus`, and `/jobs`: Himalayas
+  returned 20 cached roles and appeared first with source links; Career-first
+  processed 191 jobs and Relocation-first 67. Job Bank returned 12 in 71.2s,
+  EURES 16 in 34.1s. Supplied log excerpt shows no source exception or SSL
+  failure; HH API 403 recovered through the public-web fallback.
+- [x] Owner verified Telegram `/job 1273` at 20:56 Moscow time: the card shows
+  Himalayas' worldwide scope and explicitly says the employer must confirm
+  hiring from the user's country. The listing had no salary. Logs show the
+  Telegram update handled in 567ms without an error.
+- [x] Add a curated Collectly Lever Postings API source for selected AM/GE
+  profiles. Keep the Belgrade/RS source location separate from remote-country
+  eligibility; require a remote workplace and a public timezone range covering
+  UTC+4; preserve unknown country, visa, and relocation facts. Do not submit
+  applications.
+- [x] Add Lever regressions for role, remote mode, timezone scope, selected
+  markets, salary metadata, attribution URL, malformed payloads, and source
+  registration and safe timezone text in vacancy details. Full local suite:
+  274 passed, 3 database tests skipped;
+  `compileall` and `git diff --check` passed.
+- [x] Rebuild local Compose `repo`; verify PostgreSQL healthy and startup
+  `scan_all` completed at 18:06:21 UTC. Lever returned HTTP 200 for both
+  profiles; inspected scan logs contain no source exception.
+- [x] Owner verified `/sources` lists Lever for both profiles and ran
+  `/scan`/`/scanstatus`: 1 live Lever vacancy in 9.6s; complete scan in 131s,
+  266 processed, 37 Good, 33 Stretch, 196 filtered, 0 new notifications.
+  Job Bank returned 12 in 71.4s; EURES 16 in 55.2s; no source error appeared
+  in the supplied log excerpt.
+- [x] Inspect the saved Collectly Lever match after `/jobs` omitted it. Read-only
+  runtime query found job #1333 saved as `filtered`, score 0, because the
+  Career-first profile explicitly excludes `senior devops`; this is expected
+  filtering, not a source failure. The detail renderer's timezone/country
+  caveat has regression coverage. Keep the explicit filter unless the owner
+  chooses to change it.
+- [x] Add an explicit remote-work processing preference to both independent
+  profiles. It orders remote vacancies earlier within each source result batch,
+  preserves each profile's role queries, leaves Match Score and notification
+  thresholds untouched, and does not treat unknown remote scope as worldwide
+  eligibility.
+- [x] Add regressions for remote/onsite ordering across strategies, unknown
+  scope, and negated remote labels. Full isolated PostgreSQL suite: 257 passed,
+  68.59% branch coverage; local suite: 254 passed, 3 database-dependent tests
+  skipped; compileall and `git diff --check` passed.
+- [x] Verify remote work is surfaced to the owner after the candidate update:
+  Telegram `/review` and `/stretch` showed remote CloudCops 88/Good and Sporty
+  Group 72/Stretch. Regressions verify source-batch processing priority across
+  strategies; source geography remains qualified and unknown eligibility is
+  not inferred.
+- [x] Keep vacancy priority aligned with match rating: `/review`, `/stretch`,
+  and `/saved` already sort highest score first; `/jobs` now does the same and
+  uses recency only to break ties. The owner confirmed that higher-rated jobs
+  should always have higher priority. Keep the notification threshold at 65;
+  do not promote lower-rated results ahead of higher-rated ones.
+- [x] Add Remotive's official remote DevOps/Sysadmin feed with a single shared
+  daily response cache in existing PostgreSQL runtime state. Link each listing
+  to Remotive and show its name; retain explicit location scope, reject clear
+  country-only mismatches, and leave free-text salary unstructured. Verify
+  profile sharing, restart persistence, source attribution, parser behavior,
+  and no application capability.
+- [x] Owner confirmed `/sources` lists Remotive and `/scan` completes; record
+  the actual count rather than treating HTTP 200 as usable results. The first
+  scan returned 0 because category query parameters returned a general feed.
+  The worktree now uses Remotive's official Devops RSS feed and bumps the cache
+  key to v3. Targeted and full unit tests pass; rebuild returned a valid RSS
+  response with zero items. Recheck after the cache expires and confirm `/jobs`
+  attribution if the feed returns a match.
+- [x] Add `/jobs below` as a manual-review view of nonzero scores below the
+  configured threshold. Keep descending order; exclude duplicate and zero-score
+  results; state that legal work and relocation eligibility require separate
+  confirmation. Do not change Match Score or notification behavior.
+- [x] Give the immediate startup `scan_all` job a five-minute scheduler
+  misfire grace. A local restart showed the old one-second default could skip
+  the first scan after a brief startup delay; regression test covers the job
+  registration, and the rebuilt app started the scan immediately.
+- [ ] Improve practical Relocation-first results while preserving the 65-point
+  threshold, descending score order, independent search direction, and
+  evidence-based visa/work eligibility. Current scans can complete with 0
+  Good/Stretch; investigate relevance and source coverage without inflating
+  scores or changing owner exclusions.
 - [x] Review JOBS.GE and HR.ge robots guidance and add conservative request
   bounds. Terms/reuse permission remains unverified; owner must inspect scan
   quality before treating the sources as useful.
@@ -123,6 +258,17 @@
 - [x] Run the full isolated PostgreSQL suite and compile checks for the v3.5.7
   candidate after the encoded-HTML fix: 241 passed, 68.23% branch coverage;
   `git diff --check` passed.
+- [x] Preserve Job Bank results when an individual query or detail request
+  exhausts its bounded transport retry; continue processing other queries and
+  vacancy details. Keep the five-second request pacing and avoid parallel
+  calls. Full PostgreSQL suite: 251 passed, 68.44% branch coverage.
+- [x] Owner ran Telegram `/scan` and `/scanstatus` at 19:33–19:36 Moscow time.
+  The scan completed with Job Bank 12, EURES 16, HR.ge 2, HH 209, Remote OK 3,
+  Arbeitnow 2 and Greenhouse 1; Job Bank took 100.7 seconds. Supplied logs show
+  Job Bank detail requests and EURES/HR.ge requests returning HTTP 200, with no
+  Job Bank warning or source failure in the excerpt. This confirms a healthy
+  live run; partial transport-failure recovery remains covered by regression
+  tests because no failure occurred during this scan.
 - [x] Push candidate commit `4ccae7f`; GitHub push CI run `38143185017` passed
   Python checks, Docker build and secret scan.
 - [x] Push HTML-entity fix commit `5d6b00b`; push CI `38147877309` and PR CI

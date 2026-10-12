@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
 
 import httpx
 
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.support_evidence import support_evidence
 from app.sources.base import JobSource, SourceContext
 
 
@@ -58,9 +58,7 @@ class ArbeitnowSource(JobSource):
                 continue
 
             description = clean_html_text(str(row.get("description") or ""))
-            evidence = f"{title} {description}".casefold()
-            visa = bool(re.search(r"visa sponsorship|visa support|visum.{0,20}(?:sponsor|unterstütz)", evidence))
-            relocation = bool(re.search(r"relocation (?:support|assistance|package)|umzug.{0,20}(?:hilfe|unterstütz)", evidence))
+            support = support_evidence(f"{title}\n{description}")
             jobs.append(
                 NormalizedJob(
                     source=ArbeitnowSource.source_id,
@@ -72,8 +70,8 @@ class ArbeitnowSource(JobSource):
                     country="DE",
                     city=str(row.get("location") or "") or None,
                     work_mode="remote" if row.get("remote") is True else "onsite",
-                    relocation=True if relocation else None,
-                    visa_sponsorship=True if visa else None,
+                    relocation=support["relocation"],
+                    visa_sponsorship=support["visa_sponsorship"],
                     skills=tags,
                     published_at=str(row.get("created_at") or "") or None,
                     raw=row,

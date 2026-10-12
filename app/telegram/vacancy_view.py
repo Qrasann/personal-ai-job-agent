@@ -28,6 +28,40 @@ def _work_mode(job, details: dict) -> str:
     return clean_html_text(str(details.get("work_mode") or job.work_mode or "")) or "не указан"
 
 
+def _remote_scope(job, details: dict) -> str:
+    scope = clean_html_text(
+        str(details.get("remote_scope") or getattr(job, "remote_scope", None) or "")
+    ).strip()
+    work_mode = _work_mode(job, details).casefold()
+    is_remote = any(value in work_mode for value in ("remote", "удалён", "удален"))
+    normalized_scope = scope.casefold()
+    unknown_scope = normalized_scope in {"", "unknown", "unspecified", "none", "n/a"}
+    if not is_remote and unknown_scope:
+        return ""
+    if normalized_scope in {"worldwide", "global", "anywhere"}:
+        return "по всему миру указано источником; возможность найма в вашей стране нужно подтвердить"
+    if unknown_scope:
+        return "страны найма не указаны источником; проверьте доступность из вашей страны"
+    return f"{scope} указано источником; возможность найма в вашей стране нужно подтвердить"
+
+
+def _timezone_restrictions(details: dict) -> str:
+    values = details.get("timezone_restrictions")
+    if not isinstance(values, list):
+        return ""
+    known: list[str] = []
+    for value in values[:32]:
+        if not isinstance(value, str):
+            continue
+        text = " ".join(clean_html_text(value).split())
+        if not text or text.casefold() in {"unknown", "unspecified", "none", "n/a"}:
+            continue
+        text = _clip(text, 64)
+        if text not in known:
+            known.append(text)
+    return _clip(", ".join(known), 220)
+
+
 def _salary(job, details: dict, fallback_salary_text: str = "") -> str:
     # The search-card text can contain a fuller salary range than the vacancy
     # page itself, so let format_salary compare both sources. Put the saved
@@ -46,6 +80,7 @@ def _salary(job, details: dict, fallback_salary_text: str = "") -> str:
         details.get("salary_to") if details.get("salary_to") is not None else job.salary_to,
         details.get("salary_currency") or job.salary_currency,
         fallback_text=salary_text,
+        period=details.get("salary_period") or getattr(job, "salary_period", None),
     )
 
 
@@ -75,6 +110,7 @@ def render_queue_card(
         getattr(job, "salary_from", None),
         getattr(job, "salary_to", None),
         getattr(job, "salary_currency", None),
+        period=getattr(job, "salary_period", None),
     )
 
     location = repair_mojibake(
@@ -116,12 +152,34 @@ def render_queue_card(
     lines.append(f"📌 {position} из {total}")
     return "\n".join(lines)
 
-def render_jobs_list(rows: list[tuple[object, object]]) -> str:
-    lines = ["🔥 <b>Последние совпадения</b>", ""]
+def render_jobs_list(
+    rows: list[tuple[object, object]],
+    *,
+    source_links: dict[int, str | tuple[str, str] | list[tuple[str, str]]] | None = None,
+    below_threshold: int | None = None,
+    search_scope: str | None = None,
+) -> str:
+    if below_threshold is None:
+        lines = ["🔥 <b>Совпадения по рейтингу</b>", ""]
+    else:
+        lines = [
+            f"🔎 <b>Ниже порога {int(below_threshold)} · ручной просмотр</b>",
+            "Рейтинг ниже обычного порога; право на работу и условия переезда не подтверждены автоматически.",
+            "",
+        ]
+    if search_scope:
+        label = "Career-first" if search_scope == "career" else "Relocation-first"
+        lines.insert(1, f"🧭 <b>{label}</b>")
+    source_links = source_links or {}
     for match, job in rows:
         title = _clip(repair_mojibake(job.title or ""), 90)
         company = _clip(repair_mojibake(job.company or ""), 70)
-        salary = format_salary(job.salary_from, job.salary_to, job.salary_currency)
+        salary = format_salary(
+            job.salary_from,
+            job.salary_to,
+            job.salary_currency,
+            period=getattr(job, "salary_period", None),
+        )
         experience = extract_experience(job.description)
         meta = [f"💰 {salary}"]
         if job.city or job.country:
@@ -133,8 +191,25 @@ def render_jobs_list(rows: list[tuple[object, object]]) -> str:
         lines.append(f"<b>#{job.id} · {match.total_score}/100</b> — {html.escape(title)}")
         if company:
             lines.append(html.escape(company))
+        source_info = source_links.get(job.id)
+        if isinstance(source_info, str):
+            source_items = [(source_info, "Himalayas")]
+        elif isinstance(source_info, tuple) and len(source_info) == 2:
+            source_items = [source_info]
+        elif isinstance(source_info, list):
+            source_items = source_info
+        else:
+            source_items = []
+        if source_items:
+            anchors = [
+                f'<a href="{html.escape(url, quote=True)}">{html.escape(name)}</a>'
+                for url, name in source_items
+                if url and name
+            ]
+            if anchors:
+                lines.append("🌐 Источник: " + " · ".join(anchors))
         lines.append(html.escape(" · ".join(meta)))
-        lines.append(f"Подробнее: /job {job.id}")
+        lines.append(f"Подробнее: /job {job.id}" + (f" {search_scope}" if search_scope else ""))
         lines.append("")
     return "\n".join(lines).rstrip()
 
@@ -156,6 +231,8 @@ def render_job_details(payload: dict) -> str:
     experience = _experience(job, details)
     location = _clip(_location(job, details), 160)
     work_mode = _clip(_work_mode(job, details), 140)
+    remote_scope = _clip(_remote_scope(job, details), 220)
+    timezone_restrictions = _timezone_restrictions(details)
     applicant_location = _clip(clean_html_text(str(details.get("applicant_location") or "")), 140)
     published_at = _published(str(details.get("published_at") or job.published_at or ""))
 
@@ -170,6 +247,12 @@ def render_job_details(payload: dict) -> str:
         f"🏠 {html.escape(work_mode)}",
         f"🕒 {html.escape(experience)}",
     ]
+    if payload.get("search_profile_name"):
+        lines.insert(4, "🧭 Профиль: " + html.escape(_clip(str(payload["search_profile_name"]), 100)))
+    if remote_scope:
+        lines.append(f"🌍 География remote: {html.escape(remote_scope)}")
+    if timezone_restrictions:
+        lines.append(f"⏱ Часовые пояса по источнику: {html.escape(timezone_restrictions)}")
     if applicant_location:
         lines.append(f"👥 Доступно для: {html.escape(applicant_location)}")
     if published_at:
