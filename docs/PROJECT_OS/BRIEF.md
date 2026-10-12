@@ -2,7 +2,15 @@
 
 Last updated: 2026-10-12 (Europe/Moscow)
 
-**Current checkpoint — 2026-10-12.** The EURES padded-location fix is published
+**Current checkpoint — 2026-10-12.** The bootstrap GE/AM defaults were
+committed locally as `00f1f0d`. HeadHunter's official public area directory
+confirms RU `113` and GE `28`, but contains no Armenia area. The HH adapter now
+searches each represented current/target market independently, deduplicates
+results, and attributes country only to the scoped request; Armenia is left to
+other sources. Verification: local suite **429 passed, 3 skipped**; isolated
+PostgreSQL suite **433 passed**; compileall, secret scan, and diff checks pass.
+This HH follow-up is committed locally as `552cb72`; it has not been deployed or
+published, and Telegram acceptance is pending. The EURES padded-location fix is published
 as `159d510` on draft PR #18; push CI `38281187340` and PR CI `38281192380`
 passed. Full isolated PostgreSQL validation: **429 passed, 73.24% branch
 coverage**; 13 targeted EURES tests, `compileall`, secret scan, and diff checks
@@ -43,8 +51,10 @@ Never restart the project from scratch. Unknown visa, salary, citizenship, housi
   Moscow: source/runtime 3.5.7, app up and PostgreSQL healthy; startup scan
   completed successfully at 01:37:50 Moscow. Telegram acceptance
   of the new scoped commands remains pending. Next:
-  bounded discovery for selected HH destinations or verified AM/GE employer
-  feeds; no assumption that this correction alone produces Good/Stretch.
+  bounded HH discovery for selected destinations has now been implemented for
+  catalogued markets; official HH has no Armenia area. Continue verified AM/GE
+  employer feeds; no assumption that this correction alone produces
+  Good/Stretch.
   `ROADMAP.md` now has a stage/status overview; the private relocation roadmap
   has its own progress and a current official-law review. No publication.
 - **Latest candidate stage (Oct 12 Moscow):** Added the official Remotive

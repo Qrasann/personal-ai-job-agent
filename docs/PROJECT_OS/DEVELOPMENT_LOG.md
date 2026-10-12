@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-10-12 — HeadHunter selected-market discovery
+
+Verified the official public `/areas` catalog: RU is area `113`, GE is area
+`28`, and Armenia is not listed. Added bounded HH searches for each represented
+current/target market while preserving the profile's deduplicated role query
+list. Results are deduplicated across markets and receive country attribution
+from their area-scoped request. No unsupported Armenia area is guessed; other
+sources remain responsible for AM listings.
+
+Local suite: **430 passed, 3 skipped**. Full isolated PostgreSQL suite:
+**433 passed**. `compileall`, secret scan, and `git diff --check` passed. The
+change is committed locally as `552cb72`; runtime rebuild and Telegram
+acceptance remain pending.
+
 ## 2026-10-12 — AI job-bot GE/AM bootstrap defaults
 
 Updated the private-use bootstrap profile so a fresh AI job-bot setup selects

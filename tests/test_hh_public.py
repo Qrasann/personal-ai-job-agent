@@ -60,6 +60,91 @@ def test_hh_public_discovery_searches_each_role_separately_without_details():
     assert jobs[0].country == "RU"
 
 
+def test_hh_searches_catalogued_target_country_and_does_not_guess_unsupported_area():
+    fake = FakeHHClient()
+    source = HHSource(fake)
+    ctx = SourceContext(
+        user_id=1,
+        current_country="RU",
+        target_countries=["GE", "AM"],
+        queries=["DevOps Engineer"],
+    )
+
+    jobs = asyncio.run(source.discover(ctx))
+
+    assert [(call[0], call[3]) for call in fake.search_calls] == [
+        ("DevOps Engineer", "113"),
+        ("DevOps Engineer", "28"),
+    ]
+    # Duplicate postings returned across area searches are deduplicated, and
+    # country attribution follows the scoped official area request.
+    assert len(jobs) == 1
+    assert jobs[0].country == "RU"
+
+
+def test_hh_target_georgia_only_search_is_attributed_to_georgia():
+    class DistinctMarketHHClient(FakeHHClient):
+        async def search(self, text, page=0, per_page=20, area=None):
+            self.search_calls.append((text, page, per_page, area))
+            return {
+                "items": [{
+                    "id": "ge-job" if area == "28" else "ru-job",
+                    "name": text,
+                    "employer": {"name": "Example"},
+                    "area": {"name": "Tbilisi" if area == "28" else "Moscow"},
+                    "alternate_url": "https://hh.ru/vacancy/123",
+                }]
+            }
+
+    fake = DistinctMarketHHClient()
+    source = HHSource(fake)
+    ctx = SourceContext(
+        user_id=1,
+        current_country="RU",
+        target_countries=["GE"],
+        queries=["Linux Administrator"],
+    )
+
+    jobs = asyncio.run(source.discover(ctx))
+
+    assert fake.search_calls[0][3] == "113"
+    assert fake.search_calls[1][3] == "28"
+    assert [(job.source_job_id, job.country) for job in jobs] == [
+        ("ru-job", "RU"),
+        ("ge-job", "GE"),
+    ]
+
+
+def test_hh_public_web_fallback_attributes_selected_georgia_area():
+    class FallbackHHClient(FakeHHClient):
+        async def search(self, text, page=0, per_page=20, area=None):
+            from app.providers.hh import HHAPIForbidden
+            raise HHAPIForbidden("403")
+
+        async def search_web(self, text, page=0, area=None):
+            job_id = "222" if area == "28" else "111"
+            return (
+                '<div data-qa="vacancy-serp__vacancy">'
+                f'<a data-qa="serp-item__title" href="https://hh.ru/vacancy/{job_id}">{text}</a>'
+                "</div>"
+            )
+
+    source = HHSource(FallbackHHClient())
+    ctx = SourceContext(
+        user_id=1,
+        current_country="RU",
+        target_countries=["GE"],
+        queries=["Linux Administrator"],
+    )
+
+    jobs = asyncio.run(source.discover(ctx))
+
+    assert [(job.source_job_id, job.country) for job in jobs] == [
+        ("111", "RU"),
+        ("222", "GE"),
+    ]
+
+
 class FakeHH403ThenWeb:
     def __init__(self):
         self.api_calls = 0

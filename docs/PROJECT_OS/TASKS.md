@@ -132,9 +132,14 @@
   maintain the private relocation roadmap separately with current official
   legal references and progress.
 - [ ] Verify the new scoped commands/cards in Telegram after local rebuild.
-- [ ] Evaluate bounded HH search for selected destinations: current discovery
-  only uses the current-country area. Verify official area data, preserve each
-  direction's role queries and keep unknown work/visa eligibility unknown.
+- [x] Evaluate bounded HH search for selected destinations. Verify HH's public
+  `/areas` catalog: Russia is area `113`, Georgia is area `28`, and Armenia is
+  not present. Search each represented current/target
+  market independently, deduplicate results, and attribute country only from
+  the scoped area query; do not guess an Armenia area. Local suite: 430 passed,
+  3 skipped; isolated PostgreSQL suite: 433 passed; compileall, secret scan,
+  and diff checks passed. This source change is committed locally as `552cb72`;
+  Telegram/runtime acceptance remains pending.
 - [x] Add the Himalayas documented public search API as a bounded remote
   source: up to four active-profile queries, three selected markets and one
   page of 20 jobs per query/market; cache for 24 hours and show source links

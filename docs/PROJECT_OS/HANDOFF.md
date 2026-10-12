@@ -1,5 +1,24 @@
 # Handoff
 
+## HeadHunter selected-market discovery — 2026-10-12
+
+The fresh-profile GE/AM defaults and lower-barrier relocation queries are
+committed locally as `00f1f0d`. The follow-up HH coverage change is committed
+locally as `552cb72`. The official public HH `/areas` catalog confirms
+Russia area `113` and Georgia area `28`; Armenia is absent. The adapter now
+searches current/selected markets independently, retains the original role
+queries and result bounds, deduplicates results across areas, and assigns the
+requested country only for the corresponding area-filtered results. It does
+not invent or approximate an Armenia area. Armenia coverage remains with other
+sources.
+
+Verification: local suite **430 passed, 3 skipped**; isolated PostgreSQL suite
+**433 passed**; `compileall`, secret scan, and `git diff --check` passed. The
+test database is isolated. This HH change has not been pushed or deployed;
+Telegram/runtime acceptance remains pending. Keep PR #18 draft and preserve
+the existing Compose volumes when a later user-authorized runtime update is
+performed. No application actions or private HH endpoints were used.
+
 ## AI job-bot GE/AM bootstrap defaults — 2026-10-12
 
 The current unpublished follow-up aligns fresh AI job-bot profiles with the

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from dataclasses import replace
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup, Tag
@@ -21,6 +22,10 @@ class HHSource(JobSource):
     source_id = "hh"
     name = "HeadHunter"
     capabilities = SourceCapabilities(discovery=True, details=True, apply=False, messages=False)
+
+    # IDs from HeadHunter's public /areas catalog. Armenia is not present in
+    # that catalog, so it must not be approximated with an unrelated area.
+    MARKET_AREAS = {"RU": "113", "GE": "28"}
 
     def __init__(self, client: HHClient | None = None) -> None:
         self.client = client or HHClient()
@@ -262,7 +267,7 @@ class HHSource(JobSource):
             "applicant_location": applicant_location_name,
         }
 
-    def _from_api(self, payload: dict, *, is_ru: bool) -> list[NormalizedJob]:
+    def _from_api(self, payload: dict, *, country: str | None) -> list[NormalizedJob]:
         out: list[NormalizedJob] = []
         for row in payload.get("items", []):
             job_id = str(row.get("id", ""))
@@ -289,7 +294,7 @@ class HHSource(JobSource):
                 company=(row.get("employer") or {}).get("name", ""),
                 description=description,
                 url=row.get("alternate_url", ""),
-                country="RU" if is_ru else None,
+                country=country,
                 city=address.get("city") or area.get("name"),
                 work_mode=work_mode,
                 salary_from=salary.get("from"),
@@ -316,50 +321,66 @@ class HHSource(JobSource):
         if not queries:
             return []
 
-        is_ru = (context.current_country or "").upper() == "RU"
-        area = "113" if is_ru else None
+        countries = [
+            code for code in dict.fromkeys([
+                str(context.current_country or "").upper(),
+                *(str(item).upper() for item in (context.target_countries or [])),
+            ])
+            if code in self.MARKET_AREAS
+        ]
+        # Preserve the historical global search when no selected/current market
+        # is represented by the public HH area catalog.
+        markets: list[tuple[str | None, str | None]] = (
+            [(code, self.MARKET_AREAS[code]) for code in countries]
+            if countries else [(None, None)]
+        )
         out: list[NormalizedJob] = []
         seen_jobs: set[str] = set()
 
-        for query in queries:
-            try:
-                payload = await self.client.search(
-                    query,
-                    per_page=max(1, min(100, settings.hh_public_per_page)),
-                    area=area,
-                )
-            except HHAPIForbidden:
-                if not settings.hh_web_fallback_enabled:
-                    raise
-                log.warning("HH API returned 403; using ordinary public HH web search fallback")
-                break
-
-            for job in self._from_api(payload, is_ru=is_ru):
-                if job.source_job_id in seen_jobs:
-                    continue
-                seen_jobs.add(job.source_job_id)
-                out.append(job)
-        else:
-            return out
-
         pages = max(1, min(3, settings.hh_web_max_pages))
-        for query in queries:
-            previous_page_ids: set[str] | None = None
-            for page in range(pages):
-                html = await self.client.search_web(query, page=page, area=area)
-                jobs = self.parse_web_html(html, is_ru=is_ru)
-                if not jobs:
+        for country, area in markets:
+            api_available = True
+            for query in queries:
+                try:
+                    payload = await self.client.search(
+                        query,
+                        per_page=max(1, min(100, settings.hh_public_per_page)),
+                        area=area,
+                    )
+                except HHAPIForbidden:
+                    if not settings.hh_web_fallback_enabled:
+                        raise
+                    log.warning("HH API returned 403; using ordinary public HH web search fallback")
+                    api_available = False
                     break
 
-                page_ids = {job.source_job_id for job in jobs}
-                if previous_page_ids == page_ids:
-                    break
-                previous_page_ids = page_ids
-
-                for job in jobs:
+                for job in self._from_api(payload, country=country):
                     if job.source_job_id in seen_jobs:
                         continue
                     seen_jobs.add(job.source_job_id)
                     out.append(job)
+            if api_available:
+                continue
+
+            for query in queries:
+                previous_page_ids: set[str] | None = None
+                for page in range(pages):
+                    html = await self.client.search_web(query, page=page, area=area)
+                    jobs = self.parse_web_html(html, is_ru=country == "RU")
+                    if country and country != "RU":
+                        jobs = [replace(job, country=country) for job in jobs]
+                    if not jobs:
+                        break
+
+                    page_ids = {job.source_job_id for job in jobs}
+                    if previous_page_ids == page_ids:
+                        break
+                    previous_page_ids = page_ids
+
+                    for job in jobs:
+                        if job.source_job_id in seen_jobs:
+                            continue
+                        seen_jobs.add(job.source_job_id)
+                        out.append(job)
 
         return out
