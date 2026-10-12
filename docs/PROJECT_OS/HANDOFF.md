@@ -1,5 +1,32 @@
 # Handoff
 
+## Emerging Travel Group official AM/GE lead — 2026-10-12
+
+The current Emerging Travel Group careers page lists a remote Junior DevOps
+Engineer position and names Armenia and Georgia among available locations.
+The listed requirements include 1.5+ years commercial DevOps experience,
+Linux, Ansible, Docker, six months Kubernetes, and English B1+. This is a
+useful manual lead against the owner's stated B1 level, but no candidate facts
+confirm the commercial DevOps or Kubernetes duration. The role does not
+establish eligibility to hire a Russian citizen, visa support, or a relocation
+package.
+
+Workable's official help page documents public jobs endpoints for published
+roles. The ETG account endpoint returned HTTP 403 when checked, so an automated
+connector is not justified. Added the official posting as a manual source link
+for both selected markets; it does not enter toggles or scans. Targeted tests:
+5 passed; full unit suite: 437 passed, 3 skipped; compileall, secret scan, and
+diff check passed. Compose `repo` rebuilt at 21:37 Moscow, PostgreSQL stayed
+healthy, and startup scan completed at 21:38:46 UTC. One isolated HH search
+logged a transient `ConnectError`; scheduler scan completed. Commit is pending.
+
+The Telegram `/jobs relocation` output shared at 21:13 Moscow time showed a
+Tyumen onsite job, but it predates the 21:26 rebuild that introduced the
+current-country onsite filter. Re-run `/sources`, `/jobs relocation`, and
+`/jobs relocation below` after the current source-link rebuild. The filter
+must hide same-country onsite results unless domestic relocation is explicitly
+enabled, while leaving explicit remote and unknown-country results visible.
+
 ## Relocation-first current-country onsite filter — 2026-10-12
 
 Owner Telegram output at 21:12–21:13 Moscow confirmed the manual source links

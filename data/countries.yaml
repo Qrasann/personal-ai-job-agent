@@ -17,6 +17,7 @@ countries:
       - {id: staff_am_manual, name: Staff.am, url: "https://staff.am/jobs/devops-infrastructure", scope: "Armenia · manual", availability_note: "условия запрещают автоматический сбор без письменного разрешения"}
       - {id: job_am_manual, name: Job.am, url: "https://job.am/jobs", scope: "Armenia · manual", availability_note: "автоматизированное повторное использование не подключено"}
       - {id: careercenter_am_manual, name: CareerCenter.am, url: "https://careercenter.am/en/jobs", scope: "Armenia · manual", availability_note: "условия требуют письменного согласия для копирования или распространения"}
+      - {id: emerging_travel_manual, name: Emerging Travel Group · Junior DevOps, url: "https://www.emergingtravel.com/career/positions/166/", scope: "Armenia/Georgia · remote · manual", availability_note: "официальная карьерная страница; текущая Junior DevOps вакансия требует 1.5+ года коммерческого опыта, 6+ месяцев Kubernetes и английский B1+"}
     query_languages: [en, ru, hy]
   AT: {name: Austria, aliases: [Austria, Österreich, Австрия], languages: [de], currencies: [EUR], local_sources: [], query_languages: [en, de]}
   BE: {name: Belgium, aliases: [Belgium, België, Belgique, Бельгия], languages: [nl, fr, de], currencies: [EUR], local_sources: [], query_languages: [en, nl, fr, de]}
@@ -58,6 +59,7 @@ countries:
     manual_sources:
       - {id: findjobs_ge_manual, name: Findjobs.ge · Georgia, url: "https://findjobs.ge/en/", scope: "Georgia · manual", availability_note: "AI assistants welcome; recurring extraction of substantial data requires written permission"}
       - {id: leverx_manual, name: LeverX Careers · Georgia, url: "https://career.leverx.com/vacancies", scope: "Georgia · manual", availability_note: "no public job API verified; current postings include English B2+ roles"}
+      - {id: emerging_travel_manual, name: Emerging Travel Group · Junior DevOps, url: "https://www.emergingtravel.com/career/positions/166/", scope: "Armenia/Georgia · remote · manual", availability_note: "официальная карьерная страница; текущая Junior DevOps вакансия требует 1.5+ года коммерческого опыта, 6+ месяцев Kubernetes и английский B1+"}
     query_languages: [en, ru, ka]
 
   MD:

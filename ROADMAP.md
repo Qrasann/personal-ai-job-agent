@@ -44,6 +44,13 @@ explicitly enabled; remote and unknown-country listings remain. Unit and
 PostgreSQL suites pass, and the rebuilt startup scan completed. Verify the
 post-fix `/jobs relocation` output before closing the result-quality item.
 
+An additional official Emerging Travel Group Junior DevOps opening currently
+lists Armenia and Georgia as available remote locations and English B1+ as its
+minimum stated language level. It is now a direct manual source link for both
+markets. Workable's documented public endpoint returned HTTP 403, so the bot
+does not scan it. The 21:13 Telegram output predates the 21:26 filter rebuild;
+post-rebuild list acceptance is still needed.
+
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.
 

@@ -39,6 +39,14 @@ def test_selected_market_manual_sources_are_link_only_entries():
     assert ita_jobs.implemented is False
     assert "findjobs_ge_manual" not in am_plan
 
+    for plan in (ge_plan, am_plan):
+        etg = plan["emerging_travel_manual"]
+        assert etg.manual is True
+        assert etg.url == "https://www.emergingtravel.com/career/positions/166/"
+        assert etg.implemented is False
+        assert etg.transport == "manual"
+        assert "B1+" in etg.availability_note
+
 
 def test_manual_source_display_links_the_site_and_marks_manual_use():
     item = next(x for x in build_source_plan("RU", ["GE"]) if x.source_id == "findjobs_ge_manual")
@@ -48,3 +56,9 @@ def test_manual_source_display_links_the_site_and_marks_manual_use():
     assert '<a href="https://findjobs.ge/en/">Findjobs.ge · Georgia</a>' in line
     assert "ручной поиск" in line
     assert "written permission" in line
+
+    etg = next(x for x in build_source_plan("RU", ["AM"]) if x.source_id == "emerging_travel_manual")
+    etg_line = manual_source_line(etg)
+    assert '<a href="https://www.emergingtravel.com/career/positions/166/">Emerging Travel Group · Junior DevOps</a>' in etg_line
+    assert "ручной поиск" in etg_line
+    assert "B1+" in etg_line

@@ -2,6 +2,24 @@
 
 Last updated: 2026-10-12 (Europe/Moscow)
 
+**Current checkpoint — 2026-10-12.** Reviewed the official Emerging Travel
+Group Junior DevOps opening: it names Armenia and Georgia as available remote
+locations, and asks for 1.5+ years commercial DevOps, six months of Kubernetes,
+and English B1+. Workable's own docs describe public published-job endpoints,
+but the documented ETG endpoint currently returns HTTP 403 from this network.
+Added the official role as a link-only manual entry under both AM and GE; no
+scraper or scan was added. Telegram's 21:13 Moscow result showing a Tyumen
+onsite vacancy predates the 21:26 rebuild containing the current-country
+filter. The next owner command should verify `/jobs relocation` and
+`/jobs relocation below` against that rebuilt runtime. Targeted source display
+tests: **5 passed**; full unit suite: **437 passed, 3 skipped**. Compileall,
+secret scan, and diff check pass. Compose `repo` was rebuilt at 21:37 Moscow;
+PostgreSQL stayed healthy and startup scan completed at 21:38:46 UTC. The scan
+logged one transient HeadHunter `ConnectError` for search 2 and completed
+successfully with source isolation. The role is not evidence of a Russian
+citizen's individual hiring, visa, or right-to-work eligibility. Local commit
+is pending; Telegram post-filter list confirmation remains pending.
+
 **Current checkpoint — 2026-10-12.** A fresh Telegram check confirmed
 `/sources`, `/jobs relocation`, and `/jobs relocation below` render correctly.
 It exposed that ordinary onsite jobs in the current country (RU) could appear

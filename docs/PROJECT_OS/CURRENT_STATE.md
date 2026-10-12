@@ -1,6 +1,19 @@
 # Current State
 
 ## Latest state
+- **2026-10-12 — ETG official AM/GE lead:** the official Emerging Travel Group
+  site currently lists a remote Junior DevOps Engineer opening with Armenia
+  and Georgia among available locations. It requires 1.5+ years commercial
+  DevOps experience, six months of Kubernetes, and English B1+. Added the
+  direct official listing as a link-only manual source for both markets. The
+  documented public Workable jobs endpoint returned 403, so this source is
+  not automated or scanned. Targeted tests: 5 passed; full unit suite: 437
+  passed / 3 skipped; compileall, secret scan, and diff check passed. Compose
+  `repo` was rebuilt at 21:37 Moscow, PostgreSQL remained healthy, and the
+  startup scan completed at 21:38:46 UTC. One isolated HH search failed with a
+  transient `ConnectError`; the scheduler scan completed. The `/jobs
+  relocation` output shared at 21:13 Moscow predates the 21:26 rebuild with
+  the domestic-onsite filter; recheck it on the current runtime.
 - **2026-10-12 — Relocation-first current-country onsite filter:** owner-confirmed
   Telegram output showed Russian onsite vacancies in `/jobs relocation` and
   `/jobs relocation below`. Relocation-first now drops vacancies whose explicit

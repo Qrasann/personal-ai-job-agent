@@ -20,6 +20,26 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-12 — Emerging Travel Group manual AM/GE lead
+
+Reviewed the official Emerging Travel Group posting for Junior DevOps
+Engineer. It is marked remote and lists Armenia and Georgia as available
+locations; stated requirements include 1.5+ years commercial DevOps, Linux,
+Ansible, Docker, six months of Kubernetes, and English B1+. Workable's own
+help page documents public endpoints for published job listings, but the ETG
+account endpoint returned HTTP 403 in verification. Added the official ETG
+listing as a manual link for both AM and GE; it is excluded from scans and
+source toggles. No eligibility, visa, or relocation support is inferred.
+Targeted tests: 5 passed; full suite: 437 passed, 3 skipped; compileall,
+secret scan, and diff check passed. Compose `repo` rebuilt at 21:37 Moscow,
+PostgreSQL healthy, startup scan completed at 21:38:46 UTC. One HH search had
+a transient isolated `ConnectError`; the scheduler scan completed.
+
+The owner's 21:13 Telegram list with a Tyumen onsite result preceded the 21:26
+runtime rebuild containing the current-country Relocation-first filter. The
+owner should confirm `/sources`, `/jobs relocation`, and `/jobs relocation
+below` on the current runtime. The local commit is pending.
+
 ## 2026-10-12 — AM/GE manual source discovery links
 
 Reviewed current public AM/GE candidate boards. Added selected-market,

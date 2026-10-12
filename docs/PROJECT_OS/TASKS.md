@@ -87,6 +87,14 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Check the official Emerging Travel Group Junior DevOps listing and
+  Workable's documented public jobs endpoint. The role currently names AM/GE,
+  remote, 1.5+ years commercial DevOps, six months Kubernetes, and English
+  B1+; endpoint returned 403. Add the employer's official posting as a
+  link-only manual source and do not scrape or infer legal eligibility.
+- [ ] After rebuild, owner verifies `/sources`, `/jobs relocation`, and
+  `/jobs relocation below`; the supplied 21:13 Telegram lists predate the
+  21:26 rebuild of the domestic-onsite filter.
 - [x] Align the AI job-bot's bootstrap profile with the owner's current
   equal-priority GE/AM plan and add bounded lower-barrier Relocation-first
   role queries. Existing persisted user settings remain unchanged; add a
