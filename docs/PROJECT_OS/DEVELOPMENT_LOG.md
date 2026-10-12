@@ -19,6 +19,9 @@ gap, not a hard exclusion.
 
 Verification: local suite **432 passed, 3 skipped**; isolated PostgreSQL suite
 **435 passed**; compileall, secret scan, and `git diff --check` passed.
+Committed as `ffabb1b`. Rebuilt local Compose project `repo`; startup
+`scan_all` completed at 18:06:12 UTC with runtime 3.5.7 and healthy PostgreSQL.
+The inspected log window has no request to a manual portal.
 
 ## 2026-10-12 — HeadHunter selected-market discovery
 

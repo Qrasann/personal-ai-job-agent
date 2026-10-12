@@ -280,7 +280,9 @@
   repeated/systematic extraction of substantial data without written
   permission, so no recurring adapter was added. Full local suite: 432 passed,
   3 skipped; isolated PostgreSQL suite: 435 passed; compileall, secret scan,
-  and diff check passed.
+  and diff check passed. Rebuilt Compose `repo`; startup `scan_all` completed
+  at 18:06:12 UTC, runtime is 3.5.7 and PostgreSQL is healthy. No manual
+  portal was requested during the scan.
 - [ ] Keep visa sponsorship, work authorization, relocation support, salary
   and language evidence separate; unknown remains unknown.
 - [x] Run the full isolated PostgreSQL suite and compile checks for the v3.5.7

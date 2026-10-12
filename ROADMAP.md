@@ -33,8 +33,9 @@ evidence of a usable opportunity.
 markets. These entries never enter automated scans; Findjobs.ge requires
 written permission for recurring extraction of substantial data. Current
 local validation is 432 passed / 3 skipped and the isolated PostgreSQL suite is
-435 passed. This manual-link change still needs a commit, local rebuild and
-owner Telegram check.
+435 passed. Commit `ffabb1b` is rebuilt locally; its startup scan completed at
+18:06:12 UTC with PostgreSQL healthy. Owner Telegram check of `/sources` remains
+pending.
 
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.

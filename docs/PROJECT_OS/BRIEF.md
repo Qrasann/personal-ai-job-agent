@@ -29,7 +29,10 @@ portals in `/sources`. These links do not enter automated scans or source
 toggles; Findjobs.ge's current terms require written permission for repeated or
 systematic extraction of substantial data. Local validation: **432 passed,
 3 skipped**; isolated PostgreSQL **435 passed**; compileall, secret scan, and
-diff check pass. This manual-link stage is not yet committed or deployed.
+diff check pass. Manual-link stage is commit `ffabb1b`. Compose was rebuilt
+from this branch; startup scan completed at 18:06:12 UTC with PostgreSQL
+healthy and no request to any manual portal. Owner Telegram confirmation of
+`/sources` rendering remains pending.
 
 The AI job-bot bootstrap profile now defaults to equal-priority `GE` and `AM`
 and bounded lower-barrier Relocation-first queries. This affects only fresh

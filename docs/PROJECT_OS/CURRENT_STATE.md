@@ -5,9 +5,11 @@
   selected-market clickable links for ITA Jobs, Staff.am, Job.am,
   CareerCenter.am, Findjobs.ge and LeverX Careers. They are marked manual,
   excluded from toggles and never scanned. Findjobs.ge terms require written
-  permission for repeated/systematic substantial extraction. Local tests:
-  432 passed, 3 skipped; isolated PostgreSQL: 435 passed; compileall, secret
-  scan and diff check pass. Candidate is not yet committed or deployed.
+  permission for repeated/systematic substantial extraction. Commit `ffabb1b`.
+  Local tests: 432 passed, 3 skipped; isolated PostgreSQL: 435 passed;
+  compileall, secret scan and diff check pass. Compose startup scan completed
+  at 18:06:12 UTC; runtime 3.5.7 and PostgreSQL healthy, with no manual portal
+  requests. Owner Telegram acceptance remains pending.
 - **2026-10-12 — HeadHunter destination search:** commit `61fe39d` adds
   country-scoped public HH searches across the current and selected markets.
   Verified from HH's public area catalog: RU `113`, GE `28`; Armenia is not

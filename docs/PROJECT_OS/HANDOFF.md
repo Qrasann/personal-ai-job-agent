@@ -18,10 +18,12 @@ in Georgia and asks for English B2+, making it a manual lead with a known
 language gap against the owner's current B1 estimate.
 
 Verification: local suite **432 passed, 3 skipped**; isolated PostgreSQL suite
-**435 passed**; compileall, secret scan, and `git diff --check` passed. The
-change is not yet committed or deployed. Next: commit the stage, rebuild the
-local Compose app, and confirm these entries do not alter scan adapters. Do not
-publish v3.5.7.
+**435 passed**; compileall, secret scan, and `git diff --check` passed. Commit
+`ffabb1b` adds the feature. Compose `repo` was rebuilt from this branch;
+startup `scan_all` completed at 18:06:12 UTC, runtime is 3.5.7 and PostgreSQL
+is healthy. The inspected scan logs contain requests only to existing adapters;
+manual portals were not queried. Owner Telegram confirmation of `/sources`
+link rendering remains pending. Do not publish v3.5.7.
 
 ## HeadHunter selected-market discovery — 2026-10-12
 
