@@ -65,6 +65,24 @@ def test_eures_flag_is_not_visa_or_relocation_support():
     assert job.raw["evidence_url"].endswith(job.source_job_id + "?requestLang=en")
 
 
+def test_eures_city_collapses_source_padding_before_storage():
+    padded = "CAHERCALLA COMMUNITY HOSPITAL" + (" " * 300) + "Cahercalla Comm Hosp, Co. Clare V95 NR59"
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[{"countryCode": "ie", "cityName": padded}]))
+    assert job.country == "IE"
+    assert job.city == "CAHERCALLA COMMUNITY HOSPITAL Cahercalla Comm Hosp, Co. Clare V95 NR59"
+    assert len(job.city) <= 256
+
+
+def test_eures_unusable_long_city_remains_unknown_with_source_value_preserved():
+    source_city = "Subregion " * 40
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[{"countryCode": "ie", "cityName": source_city}]))
+    assert job.country == "IE"
+    assert job.city is None
+    assert job.raw["location_text"] == source_city
+
+
 def test_search_request_filters_for_cross_border_vacancies():
     request = EuresSource.request_payload("DevOps")
     assert request["keywords"] == [{"keyword": "DevOps", "specificSearchCode": "EVERYWHERE"}]

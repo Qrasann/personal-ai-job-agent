@@ -2,20 +2,18 @@
 
 Last updated: 2026-10-12 (Europe/Moscow)
 
-**Resumed verification — 2026-10-12.** The saved candidate now also fixes
-support-evidence false positives, annual salary comparisons, stale scan
-dashboard timestamps, source-isolated discovery failures, Remotive cache-age
-renewal, and Himalayas timezone detail display. Validation: local suite
-**424 passed, 3 PostgreSQL tests skipped**; full isolated PostgreSQL suite
-**427 passed, 73.22% branch coverage** (55% gate); `compileall` and
-`git diff --check` pass. The source/runtime version is 3.5.7. Production app
-and PostgreSQL are currently stopped (`Exited (0)`); do not claim the current
-worktree is deployed yet. PR #18 is open as a draft at `d445c87`; this
-worktree's changes remain unpublished. Preserve its existing changes and
-named volumes. Next: finish the candidate audit, publish to the existing
-feature branch, verify CI, then rebuild/start Compose `repo` and check the
-same volumes and startup scan. See the newest entry at the top of
-`HANDOFF.md`.
+**Current checkpoint — 2026-10-12.** The cumulative v3.5.7 candidate was
+published as `8da96f8`; push and PR CI passed, and Compose `repo` is running
+source/runtime 3.5.7 with healthy PostgreSQL. Its first startup scan exposed a
+real EURES persistence defect: a source location padded with long whitespace
+exceeded the `jobs.city` 256-character limit, so that vacancy was not saved.
+The current two-file fix collapses source whitespace and preserves a genuinely
+overlong value as raw evidence while leaving city unknown. It passed the full
+isolated PostgreSQL suite: **429 passed, 73.24% branch coverage** (55% gate),
+plus 13 targeted EURES tests, `compileall`, and `git diff --check`. The fix is
+not yet published or deployed. Next: update PROJECT_OS, commit/push to PR #18,
+pass CI, update Compose without removing data, and verify a clean startup scan
+with the existing named volumes. See the newest entry in `HANDOFF.md`.
 
 ## Mission
 

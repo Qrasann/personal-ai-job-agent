@@ -135,7 +135,18 @@ class EuresSource(JobSource):
         if locations and isinstance(locations[0], dict):
             location = locations[0]
             job.country = str(location.get("countryCode") or job.country or "").upper() or None
-            job.city = str(location.get("cityName") or "").strip() or None
+            raw_city = str(location.get("cityName") or "")
+            normalized_city = re.sub(r"\s+", " ", raw_city).strip()
+            # EURES sometimes pads the location with long whitespace blocks.
+            # Normalize them before saving to the bounded city column. If the
+            # remaining value is still too long to be a useful city label, keep
+            # it as source evidence and leave city unknown.
+            if normalized_city and len(normalized_city) <= 256:
+                job.city = normalized_city
+            else:
+                job.city = None
+                if raw_city:
+                    job.raw["location_text"] = raw_city
         job.company = str((profile.get("employer") or {}).get("name") or job.company)
 
         # Preserve a verified, source-provided application destination when one

@@ -1,5 +1,35 @@
 # Handoff
 
+## EURES padded-location production follow-up — 2026-10-12
+
+The cumulative v3.5.7 candidate is published at `8da96f8` on
+`feature/v3.5.7-international-market-coverage`. Both GitHub Actions runs passed
+(push `38280187127`, PR `38280191809`). Compose project `repo` was safely
+updated and is currently running source/runtime 3.5.7 with healthy PostgreSQL;
+the existing PostgreSQL and storage volume names were preserved.
+
+The first startup scan reached all inspected public sources, but one EURES
+vacancy failed during database insertion with `value too long for type
+character varying(256)`. The source supplied an Ireland location with large
+fixed-width whitespace padding. The scheduler completed, but that row was not
+persisted, so the scan must not be described as fully clean.
+
+The current worktree adds a bounded adapter fix and two regressions:
+
+- collapse all EURES `cityName` whitespace before assigning `jobs.city`;
+- if meaningful normalized text still exceeds 256 characters, leave city
+  unknown and preserve the exact source value in `raw.location_text`;
+- keep the source country unchanged and make no visa or relocation inference.
+
+Verification: full isolated PostgreSQL suite **429 passed**, branch coverage
+**73.24%**; targeted EURES suite **13 passed**; `compileall` and
+`git diff --check` pass. No schema or data migration is required.
+
+Next: commit and push this fix with the four PROJECT_OS updates, wait for both
+CI runs, apply through `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent update`, and
+verify the same named volumes, healthy runtime, and a fresh startup scan with
+no city-width database error. Do not merge/tag/release PR #18 in this stage.
+
 ## Resumed verification checkpoint — 2026-10-12
 
 The owner resumed the saved objective. The current candidate has completed

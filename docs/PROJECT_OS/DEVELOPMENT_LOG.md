@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-10-12 — EURES padded location persistence guard
+- Published the accumulated v3.5.7 candidate as `8da96f8`; push CI
+  `38280187127` and PR CI `38280191809` passed. Updated Compose `repo` without
+  deleting data; source/runtime report 3.5.7 and PostgreSQL is healthy.
+- The resulting startup scan found a production-only EURES data shape: an
+  Ireland `cityName` contained large fixed-width whitespace blocks and exceeded
+  the 256-character database column. The insert failed for that vacancy while
+  the scheduler continued.
+- Normalize EURES location whitespace before persistence. A normalized value
+  still over 256 characters is kept as raw source evidence and the city stays
+  unknown. Country, visa, and relocation semantics are unchanged.
+- Added regressions for padded and genuinely overlong source locations. Full
+  isolated PostgreSQL suite: 429 passed, 73.24% branch coverage. Targeted
+  EURES suite: 13 passed. Compilation and diff checks pass. Publication, CI,
+  safe runtime update, and post-update scan verification remain next.
+
 ## 2026-10-12 — Owner shutdown checkpoint
 - Stopped at the completed independent-review stage at the owner's request;
   no new long operation was started. Saved completed work, remaining tasks,

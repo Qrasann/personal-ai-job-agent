@@ -101,9 +101,18 @@
 - [x] Resumed full validation: 424 local passed / 3 skipped; isolated
   PostgreSQL suite 427 passed, 73.22% branch coverage; compileall and
   `git diff --check` passed.
-- [ ] Publish the verified candidate on PR #18's existing feature branch,
-  pass GitHub CI, rebuild/start Compose `repo`, and verify the existing named
-  volumes, runtime version, and startup scan.
+- [x] Publish the cumulative candidate as `8da96f8` on PR #18's existing
+  feature branch; push CI `38280187127` and PR CI `38280191809` passed. Safely
+  update/start Compose `repo`, verify source/runtime 3.5.7, healthy PostgreSQL,
+  and the unchanged named PostgreSQL/storage volumes.
+- [x] Diagnose the startup scan's EURES database failure: fixed-width source
+  whitespace made `cityName` exceed the 256-character city column. Normalize
+  whitespace; preserve genuinely overlong source text as raw evidence and
+  keep city unknown. Full isolated PostgreSQL suite: 429 passed, 73.24% branch
+  coverage; targeted EURES suite: 13 passed; compile and diff checks passed.
+- [ ] Publish the EURES follow-up to PR #18, pass both CI runs, safely update
+  Compose `repo`, and verify a fresh startup scan has no city-width insertion
+  error while the existing named volumes remain attached.
 - [x] Add profile-specific `/jobs career|relocation [below]` lists using each
   enabled profile's own threshold; retain independent scores through detail
   and comparison buttons and explicit `/job`/`/compare` scope arguments.
