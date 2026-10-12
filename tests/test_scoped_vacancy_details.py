@@ -72,6 +72,7 @@ def test_himalayas_details_pass_known_timezones_without_changing_match(monkeypat
     job = SimpleNamespace(id=25, description="Globally remote Linux support", remote_scope="worldwide")
     ref = SimpleNamespace(source_id="himalayas", url="https://himalayas.app/jobs/25", raw={
         "timezone_restrictions": restrictions,
+        "availability": {"source_field": "expiryDate", "expires_at": "2030-01-01T00:00:00+00:00"},
     })
 
     async def source_ref(_job_id, source_id=None):
@@ -89,6 +90,8 @@ def test_himalayas_details_pass_known_timezones_without_changing_match(monkeypat
     payload = asyncio.run(services.get_vacancy_details(7, 25, search_profile_id=3))
 
     assert payload["details"].get("timezone_restrictions") == expected
+    assert payload["details"]["availability"] == ref.raw["availability"]
+    assert payload["details"]["availability"] is not ref.raw["availability"]
     assert payload["job"].remote_scope == "worldwide"
     assert payload["match"].geography_score == 100
     assert payload["match"].total_score == 82

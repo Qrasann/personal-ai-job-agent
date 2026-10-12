@@ -2,7 +2,10 @@
 
 Last reviewed: 2026-10-13
 
-Latest verified checkpoint: resumed clean `c829a5f`. Its startup scan completed
+Latest verified checkpoint: local HH recovery `5c4b959` followed by source
+listing-expiry evidence/cards. Targeted expiry tests 76 passed; shared worktree
+unit 563 passed / 3 skipped and PostgreSQL 566 passed; safety checks pass. No
+new runtime deployment. Resumed clean `c829a5f`. Its startup scan completed
 at 21:53:38 UTC / 00:53:38 Moscow; Compose app and PostgreSQL are healthy.
 The local follow-up corrects HH skipped/partial summaries, serializes outage
 probes, invalidates stale HH caches and preserves counts on source recovery.

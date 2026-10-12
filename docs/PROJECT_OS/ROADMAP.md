@@ -8,6 +8,7 @@ follow its mandatory obligations.
 Latest checkpoint: HH skipped/partial summaries and cooldown cache/concurrency
 recovery are validated locally. Prior runtime c829a5f is healthy and its startup
 scan completed 21:53:38 UTC. No new production deployment/publication authorized.
-Continue source-expiry evidence, bounded remote support queries and permitted
+Source-expiry evidence/cards are implemented locally. Continue bounded remote
+support queries and permitted
 AM/GE employer feeds. Owner-only Telegram acceptance stays separately pending.
 See BRIEF.md for concise verification and HANDOFF.md for transfer details.

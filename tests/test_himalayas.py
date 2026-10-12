@@ -4,6 +4,7 @@ import httpx
 import pytest
 
 from app.domain.job_text import format_salary
+from app.domain.vacancy_availability import vacancy_availability
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
 from app.sources.adapters.himalayas import HimalayasSource
@@ -78,6 +79,41 @@ def test_himalayas_accepts_documented_country_object_shape():
 
     assert len(jobs) == 1
     assert jobs[0].country == "AM"
+
+
+@pytest.mark.parametrize("expiry", [1893456000, 1893456000000, "2030-01-01T00:00:00Z"])
+def test_himalayas_preserves_listing_expiry_without_changing_publication_or_match_signals(expiry):
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    row = listing("dated", "DevOps Engineer", [], expiryDate=expiry)
+    with_expiry = HimalayasSource.parse_payload({"jobs": [row]}, context)[0]
+    row.pop("expiryDate")
+    without_expiry = HimalayasSource.parse_payload({"jobs": [row]}, context)[0]
+
+    assert with_expiry.raw["availability"] == {
+        "source_field": "expiryDate", "source_value": expiry,
+        "expires_at": "2030-01-01T00:00:00+00:00",
+    }
+    assert with_expiry.published_at == without_expiry.published_at
+    # Expiry is evidence for review; it neither promotes nor filters a match.
+    dated_signals = analyze_job_signals(Job(**{
+        key: getattr(with_expiry, key)
+        for key in ("title", "description", "country", "work_mode", "remote_scope")
+    }))
+    undated_signals = analyze_job_signals(Job(**{
+        key: getattr(without_expiry, key)
+        for key in ("title", "description", "country", "work_mode", "remote_scope")
+    }))
+    assert dated_signals == undated_signals
+    assert vacancy_availability(without_expiry.raw).status == "unknown"
+
+
+@pytest.mark.parametrize("published", [True, "no date", "2026-10-11T14:49:28", []])
+def test_himalayas_ambiguous_or_malformed_publication_dates_remain_unknown(published):
+    context = SourceContext(user_id=1, queries=["DevOps Engineer"])
+    jobs = HimalayasSource.parse_payload(
+        {"jobs": [listing("bad-date", "DevOps Engineer", [], pubDate=published)]}, context,
+    )
+    assert jobs[0].published_at is None
 
 
 def test_himalayas_missing_location_restrictions_remains_unknown():

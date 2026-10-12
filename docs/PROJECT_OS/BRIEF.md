@@ -18,7 +18,8 @@ salary, visa, relocation and candidate experience remain unknown.
 ## Actual checkpoint
 
 - Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
-- Resumed from clean `c829a5f`, 24 local commits ahead of configured upstream.
+- Resumed from clean `c829a5f`; HH recovery/summary follow-up committed as
+  `5c4b959`. Later stages stay local until explicit publication approval.
   Read `git status` and `git log -3` before continuing; never reset user work.
 - Compose `repo` still runs the previously authorized c829a5f build. App up,
   PostgreSQL healthy. Startup scan completed 2026-10-12 21:53:38 UTC
@@ -30,17 +31,19 @@ salary, visa, relocation and candidate experience remain unknown.
   Current follow-up fixes quiet skipped/partial summary rendering, serializes
   concurrent HH probes, invalidates stale HH caches on failure, and preserves
   aggregate successful counts if another profile skips/fails.
-- Checks on the shared candidate: targeted HH/cache/Telegram suite 49 passed;
-  full unit 486 passed, 3 skipped; isolated PostgreSQL 489 passed; compileall,
-  secret scan and diff check pass. Independent source-expiry parser work is
-  also present in the worktree; finish and commit that as its own next stage.
+- Himalayas preserves bounded `expiryDate` evidence in existing source-ref JSON
+  and cards display its UTC listing-expiry/expired/unknown state. Future expiry
+  does not prove hiring or an employer application deadline; no score/filter
+  change or schema migration. Cached cards reassess expiry at display time.
+- Checks: expiry/parser/service/card targeted suite 76 passed; shared candidate
+  full unit 563 passed / 3 skipped, PostgreSQL 566 passed; compileall, secret
+  scan and diff check pass. Includes prepared independent query/source tests.
 
 ## Current priority
 
 Complete v3.5.7 practical relevance and source coverage before v3.6.
-Next implementation: source-supplied Himalayas listing-expiry evidence in
-cards; then ensure the bounded remote query plan includes selected support
-roles, and connect verified relevant public employer feeds. Preserve score
+Next implementation: ensure the bounded remote query plan includes selected
+support roles, then connect verified relevant public employer feeds. Preserve score
 rules and owner exclusions. Owner post-filter Telegram acceptance remains
 pending and does not block independent safe implementation.
 

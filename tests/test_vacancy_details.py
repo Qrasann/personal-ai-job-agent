@@ -7,7 +7,7 @@ from app.sources.adapters.hh import HHSource
 from app.telegram.vacancy_view import render_job_details, render_jobs_list
 
 
-def _timezone_card(restrictions):
+def _timezone_card(restrictions, availability=None):
     job = SimpleNamespace(
         id=25, title="Linux Support Engineer", company="Example",
         salary_from=None, salary_to=None, salary_currency=None,
@@ -20,8 +20,24 @@ def _timezone_card(restrictions):
     )
     return render_job_details({
         "job": job, "match": match, "source": "himalayas", "url": "",
-        "details": {"timezone_restrictions": restrictions},
+        "details": {"timezone_restrictions": restrictions, "availability": availability},
     })
+
+
+@pytest.mark.parametrize(("expires_at", "expected"), [
+    ("2000-01-01T00:00:00+00:00", "Срок размещения по источнику истёк: 01.01.2000"),
+    ("2090-01-01T00:00:00+00:00", "Срок размещения по источнику: 01.01.2090"),
+    (None, "Срок размещения: не указан источником"),
+    ("invalid", "Срок размещения: не указан источником"),
+])
+def test_card_discloses_source_expiry_without_promising_employer_hiring(expires_at, expected):
+    rendered = _timezone_card([], {"source_field": "expiryDate", "expires_at": expires_at})
+    assert expected in rendered
+    assert "Match: <b>82/100</b>" in rendered
+    assert "вакансия открыта" not in rendered.casefold()
+    assert "вакансия закрыта" not in rendered.casefold()
+    if expires_at and expires_at != "invalid":
+        assert "Статус найма и дедлайн отклика уточняйте у работодателя." in rendered
 
 
 def test_remote_card_discloses_source_timezones_separately_from_country_scope():

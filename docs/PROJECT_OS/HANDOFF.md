@@ -5,7 +5,7 @@ Updated: 2026-10-13 (Europe/Moscow)
 ## Current source and runtime
 
 - Source 3.5.7 on `feature/v3.5.7-international-market-coverage`.
-- Starting HEAD `c829a5f`; obtain current HEAD with `git rev-parse --short HEAD`
+- Latest completed local stage `5c4b959` (HH recovery); obtain current HEAD with `git rev-parse --short HEAD`
   and inspect `git status --short`. Resumed clean; preserve in-flight stages.
 - Runtime remains the c829a5f Compose `repo` build from 00:52 Moscow. App up,
   PostgreSQL healthy; startup scan completed at 21:53:38 UTC / 00:53:38 Moscow.
@@ -30,18 +30,23 @@ after cooldown, and retained successful counts. Targeted suite 49 passed;
 full shared-candidate unit suite 486 passed / 3 skipped; isolated PostgreSQL
 489 passed; compileall, secret scan and git diff --check passed.
 
-Independent prepared work: Himalayas expiry metadata/parser and tests. Finish
-service-to-card rendering and commit separately; future listing expiry is not
-proof of an active employer opening or an application deadline.
+Himalayas expiry evidence is now carried through the existing source-ref raw
+JSON to /job cards. `expiryDate` is source listing expiry, separately labeled
+from employer hiring/application deadline; missing/malformed/timezone-ambiguous
+values stay unknown. Epoch seconds/ms and timezone-aware ISO are normalized to
+UTC. Old source refs without metadata show unknown until provider refresh.
+No database migration, score change, new filter or extra provider requests.
+Targeted expiry/service/card suite 76 passed; full shared candidate unit 563
+passed / 3 skipped, PostgreSQL 566 passed; compileall/secret/diff checks passed.
+Prepared independent remote-query/source modules are included in those totals.
 
 ## Next concrete work
 
-1. Finish source listing-expiry display and persistence tests.
-2. Fix Himalayas first-four query planning so selected customer-support roles
+1. Fix Himalayas first-four query planning so selected customer-support roles
    are searched for both AM/GE, without altering stored role preferences.
-3. Evaluate/connect permitted relevant public employer feeds, respecting all
+2. Evaluate/connect permitted relevant public employer feeds, respecting all
    owner exclusions and active profile role queries.
-4. Keep owner-only post-filter Telegram acceptance pending separately. Do not
+3. Keep owner-only post-filter Telegram acceptance pending separately. Do not
    close v3.5.7 or move versions based on HTTP 200/automated tests alone.
 
 After v3.5.7 obligations: v3.6 candidate/vacancy fit, v3.7 application workspace,

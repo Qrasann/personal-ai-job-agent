@@ -25,6 +25,14 @@
 
 ## Himalayas — implemented in the v3.5.7 candidate
 
+- Source `expiryDate` is now preserved in bounded `raw.availability` metadata
+  and displayed as UTC listing expiry on /job. Primary references describe
+  epoch seconds/milliseconds and timezone-aware ISO; invalid/ambiguous values
+  stay unknown. Cached cards re-evaluate expiry at display time. This is not an
+  employer deadline, hiring-status confirmation, or work-eligibility claim.
+  Existing persisted source refs gain metadata only on their normal refresh;
+  no schema or request-frequency change.
+
 - Official API reference: https://himalayas.app/docs/remote-jobs-api and
   https://himalayas.app/api. The provider documents a public JSON search API
   with role, ISO country and worldwide filters; no authentication is required.

@@ -20,6 +20,26 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Source listing expiry in vacancy cards
+
+Himalayas public API documents expiryDate; its primary references differ on
+seconds/milliseconds/ISO representation. Added conservative finite epoch
+seconds/ms and timezone-aware ISO parsing, bounded raw evidence, and UTC source
+listing-expiry display through existing source-ref JSON and the /job renderer.
+Past expiry is visible without relabeling an employer opening as closed; future
+expiry does not establish active hiring or an employer application deadline.
+Missing, malformed or ambiguous dates remain unknown. No database migration,
+score, threshold, discovery filter, or provider request-volume change.
+
+Targeted parser/source/service/card suite 76 passed. Full shared worktree unit
+563 passed / 3 skipped, PostgreSQL 566 passed; compileall, secret scan and diff
+check passed. Independently prepared query-plan/ATS module tests are included
+in full totals and are not yet wired. Runtime remains c829a5f; no deployment,
+publication, external application or messaging was performed. Next implement
+bounded remote support query planning.
+Primary references: https://himalayas.app/api and
+https://himalayas.app/docs/openapi.json.
+
 ## 2026-10-13 — HH recovery/summary completion and context reconciliation
 
 Resumed clean c829a5f on feature/v3.5.7-international-market-coverage. Read-only

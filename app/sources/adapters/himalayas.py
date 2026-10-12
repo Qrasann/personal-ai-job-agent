@@ -3,13 +3,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 import httpx
 
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.vacancy_availability import listing_expiry_metadata, source_datetime
 from app.geo.countries import normalize_country
 from app.sources.base import JobSource, SourceContext
 
@@ -84,15 +84,8 @@ class HimalayasSource(JobSource):
 
     @staticmethod
     def _published_at(value: object) -> str | None:
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            return str(value) if value else None
-        try:
-            timestamp = float(value)
-            if timestamp > 100_000_000_000:
-                timestamp /= 1000
-            return datetime.fromtimestamp(timestamp, tz=UTC).isoformat()
-        except (OverflowError, OSError, ValueError):
-            return None
+        parsed = source_datetime(value)
+        return parsed.isoformat() if parsed else None
 
     @classmethod
     def parse_payload(cls, payload: dict, context: SourceContext) -> list[NormalizedJob]:
@@ -153,6 +146,7 @@ class HimalayasSource(JobSource):
                 "source_salary_max": row.get("maxSalary"),
                 "source_currency": row.get("currency"),
                 "categories": row.get("categories") or [],
+                "availability": listing_expiry_metadata(row.get("expiryDate")),
             }
             jobs.append(
                 NormalizedJob(

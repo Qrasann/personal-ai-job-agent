@@ -607,6 +607,8 @@ async def get_vacancy_details(
     )
 
     raw = (ref.raw or {}) if ref else {}
+    if isinstance(raw.get("availability"), dict):
+        details["availability"] = dict(raw["availability"])
     if ref and ref.source_id == "himalayas":
         timezone_restrictions = raw.get("timezone_restrictions")
         if isinstance(timezone_restrictions, list):

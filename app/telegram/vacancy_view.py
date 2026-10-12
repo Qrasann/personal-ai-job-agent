@@ -4,6 +4,7 @@ import html
 from datetime import datetime
 
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
+from app.domain.vacancy_availability import vacancy_availability_lines
 
 
 def _clip(value: str, limit: int) -> str:
@@ -257,6 +258,8 @@ def render_job_details(payload: dict) -> str:
         lines.append(f"👥 Доступно для: {html.escape(applicant_location)}")
     if published_at:
         lines.append(f"📅 Опубликована: {html.escape(_clip(published_at, 80))}")
+    if source == "HIMALAYAS" or "availability" in details:
+        lines.extend(html.escape(line) for line in vacancy_availability_lines(details))
 
     if description:
         lines.extend(["", "📝 <b>Описание вакансии</b>", html.escape(description)])

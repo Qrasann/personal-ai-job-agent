@@ -87,6 +87,12 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Preserve Himalayas `expiryDate` as source listing-expiry evidence in
+  existing source-ref JSON and display UTC expiry/expired/unknown on /job.
+  Reassess cached dates at render time; future expiry never confirms employer
+  hiring or an application deadline. No migration/score/filter change.
+  Targeted suite 76 passed; shared candidate unit 563 passed / 3 skipped,
+  PostgreSQL 566 passed; compileall/secret/diff pass. Not deployed.
 - [x] Complete the HH cooldown follow-up: accurate quiet skipped/partial
   /scan and persisted /scanstatus, shared serialized probes, HH cache
   invalidation on ConnectError, and aggregate recovery retaining successful
