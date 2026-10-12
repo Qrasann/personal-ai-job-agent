@@ -8,9 +8,10 @@ interview-risk unknown. The parser now handles `What we are looking for`,
 `What you'll bring`, and `Nice-to-have skills`, including curly apostrophes;
 the risk evidence explicitly says technical requirements only. Targeted tests:
 **37 passed**; full suite: **439 passed, 3 skipped**; isolated PostgreSQL:
-**442 passed**; compileall, secret scan and diff check passed. Compose app is
-up on 3.5.7 with healthy PostgreSQL; rebuild and Telegram `/job 1273`
-confirmation are next. Do not interpret technical fit as a full interview
+**442 passed**; compileall, secret scan and diff check passed. Commit `b42d47c`
+is local. Compose `repo` was rebuilt at 00:14 Moscow on Oct 13; app and
+PostgreSQL are healthy, startup scan has begun, and Telegram `/job 1273`
+confirmation remains next. Do not interpret technical fit as a full interview
 probability or include unsupported education/language judgments.
 
 **Current checkpoint — 2026-10-12.** Reviewed the official Emerging Travel

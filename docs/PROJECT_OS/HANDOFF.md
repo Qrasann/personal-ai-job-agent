@@ -22,11 +22,13 @@ to verify with the employer and are not added to the technical score.
 
 Verification: targeted tests **37 passed**; full unit suite **439 passed, 3
 skipped**; isolated PostgreSQL suite **442 passed**; compileall, secret scan,
-and `git diff --check` passed. The running Compose app is on source/runtime
-3.5.7 with healthy PostgreSQL; rebuild the app after commit, preserving both
-named volumes, then ask the owner to reopen `/job 1273` and verify technical
-interview-risk is populated while nontechnical conditions remain separate.
-Do not apply or send any application.
+and `git diff --check` passed. Committed locally as `b42d47c`. Compose `repo`
+was rebuilt at 00:14 Moscow on Oct 13, preserving the named volumes; source
+and runtime report 3.5.7, PostgreSQL is healthy, and the startup scan began
+successfully. The inspected startup log shows Himalayas HTTP 200 and HH public
+web fallback after API 403. Ask the owner to reopen `/job 1273` and verify
+technical interview-risk is populated while nontechnical conditions remain
+separate. Do not apply or send any application.
 
 ## Candidate English bootstrap default — 2026-10-12
 
