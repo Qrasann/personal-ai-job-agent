@@ -16,6 +16,8 @@ class SourcePlan:
     implemented: bool = False
     available: bool = True
     availability_note: str | None = None
+    manual: bool = False
+    url: str | None = None
 
 
 IMPLEMENTED = {"hh", "remoteok", "himalayas", "remotive", "arbeitnow", "jobbank", "eures", "greenhouse", "lever", "telegram", "jobs_ge", "hr_ge"}
@@ -25,6 +27,20 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
     plans: dict[str, SourcePlan] = {}
     codes = [x for x in [current_country, *target_countries] if x]
     for code in dict.fromkeys(codes):
+        country = load_country_catalog().get("countries", {}).get(str(code).upper(), {})
+        for src in country.get("manual_sources", []):
+            plans[src["id"]] = SourcePlan(
+                source_id=src["id"],
+                name=src.get("name", src["id"]),
+                scope=src.get("scope", f"country:{code}"),
+                transport="manual",
+                capability="manual_search",
+                implemented=False,
+                available=True,
+                availability_note=src.get("availability_note"),
+                manual=True,
+                url=src.get("url"),
+            )
         for src in local_sources(code):
             if not src.get("enabled_by_default", True):
                 continue

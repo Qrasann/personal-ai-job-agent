@@ -1,6 +1,13 @@
 # Current State
 
 ## Latest state
+- **2026-10-12 — AM/GE manual search links:** the current candidate adds
+  selected-market clickable links for ITA Jobs, Staff.am, Job.am,
+  CareerCenter.am, Findjobs.ge and LeverX Careers. They are marked manual,
+  excluded from toggles and never scanned. Findjobs.ge terms require written
+  permission for repeated/systematic substantial extraction. Local tests:
+  432 passed, 3 skipped; isolated PostgreSQL: 435 passed; compileall, secret
+  scan and diff check pass. Candidate is not yet committed or deployed.
 - **2026-10-12 — HeadHunter destination search:** commit `61fe39d` adds
   country-scoped public HH searches across the current and selected markets.
   Verified from HH's public area catalog: RU `113`, GE `28`; Armenia is not

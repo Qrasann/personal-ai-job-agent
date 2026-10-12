@@ -199,6 +199,20 @@
   by Relokatz. Its automated-access and reuse terms have not been verified;
   treat it as a manual-search candidate until those terms and a permitted feed
   are checked.
+- [ITA Jobs](https://jobs.ita.am/) is a free IT Association of Armenia
+  directory that says it collects openings from employer and academy pages and
+  links users to the original application page. Its public terms/privacy page
+  does not document a reusable API. Keep it as a direct, manual-search link;
+  validate each opening on the employer's page.
+- In the 2026-10-12 review, the [Findjobs.ge home page](https://findjobs.ge/en/)
+  advertised local, remote, and no-experience categories and linked its current
+  [Terms of Use](https://findjobs.ge/en/terms/), updated 2026-09-27. The terms
+  welcome search engines and AI assistants but prohibit repeated/systematic
+  extraction or reuse of substantial parts of the board without written
+  permission. It is therefore a manual link in the bot, not a recurring
+  collector. Its listing summaries and labels are leads only; verify the
+  original posting, employer, salary period, expiry, language and legal
+  eligibility before applying.
 - [LeverX Careers](https://career.leverx.com/vacancies) currently lists DevOps
   roles for Georgia, including [Middle DevOps Engineer](https://career.leverx.com/vacancies/middle-devops-engineer)
   (hybrid/remote) and [Senior DevOps Engineer](https://career.leverx.com/vacancies/devops-engineer)

@@ -273,6 +273,14 @@
   and owner-selected Telegram channels for Armenia/Georgia. Verify role
   relevance, location, language, expiry, access conditions, and eligibility
   evidence before integration.
+- [x] Add verified Armenia/Georgia manual-search links to `/sources` for ITA
+  Jobs, Staff.am, Job.am, CareerCenter.am, Findjobs.ge and LeverX Careers.
+  Manual entries are clickable, excluded from scanners and source toggles, and
+  explicitly do not imply work eligibility. Findjobs.ge terms prohibit
+  repeated/systematic extraction of substantial data without written
+  permission, so no recurring adapter was added. Full local suite: 432 passed,
+  3 skipped; isolated PostgreSQL suite: 435 passed; compileall, secret scan,
+  and diff check passed.
 - [ ] Keep visa sponsorship, work authorization, relocation support, salary
   and language evidence separate; unknown remains unknown.
 - [x] Run the full isolated PostgreSQL suite and compile checks for the v3.5.7

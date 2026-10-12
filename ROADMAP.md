@@ -29,6 +29,13 @@ and remains the responsibility of other sources. Runtime check is complete;
 owner Telegram acceptance remains pending. An enabled source or HTTP 200 is not
 evidence of a usable opportunity.
 
+`/sources` also contains link-only manual destinations for selected AM/GE
+markets. These entries never enter automated scans; Findjobs.ge requires
+written permission for recurring extraction of substantial data. Current
+local validation is 432 passed / 3 skipped and the isolated PostgreSQL suite is
+435 passed. This manual-link change still needs a commit, local rebuild and
+owner Telegram check.
+
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.
 

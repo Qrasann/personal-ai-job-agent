@@ -25,6 +25,7 @@ from app.geo.countries import all_supported_countries, country_config, normalize
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_telegram_job
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
+from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import source_enabled
@@ -562,6 +563,9 @@ async def sources(message: Message) -> None:
         plan = build_source_plan(user.current_country or "RU", targets, include_international=True)
         lines.append(f"\n<b>{html.escape(search.name)}</b> · рынки: {html.escape(', '.join(targets) or 'не заданы')}")
         for item in plan:
+            if item.manual:
+                lines.append(manual_source_line(item))
+                continue
             if not item.implemented:
                 flag = "🧩"
             elif not item.available:
@@ -569,8 +573,9 @@ async def sources(message: Message) -> None:
             else:
                 flag = "✅" if source_enabled(settings_map, item.source_id) else "⏸"
             availability = f" · {item.availability_note}" if item.availability_note else ""
-            lines.append(f"{flag} {html.escape(item.name)} — {html.escape(item.scope)} — {html.escape(item.transport)}{html.escape(availability)}")
-    lines.append("\n✅ = источник доступен и разрешён настройками; ⏸ = отключён в настройках; ⚠️ = временно приостановлен; 🧩 = adapter ещё не подключён. Это не live health check.")
+            name = html.escape(item.name)
+            lines.append(f"{flag} {name} — {html.escape(item.scope)} — {html.escape(item.transport)}{html.escape(availability)}")
+    lines.append("\n✅ = автоматический источник разрешён настройками; ⏸ = отключён; ⚠️ = временно приостановлен; 🧩 = adapter не подключён; 🔗 = ручной поиск по ссылке, бот источник не сканирует. Это не live health check и не подтверждение права на работу.")
     await message.answer("\n".join(lines), parse_mode="HTML")
 
 

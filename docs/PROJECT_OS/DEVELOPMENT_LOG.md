@@ -1,5 +1,25 @@
 # Development Log
 
+## 2026-10-12 — AM/GE manual source discovery links
+
+Reviewed current public AM/GE candidate boards. Added selected-market,
+clickable manual-search entries for ITA Jobs, Staff.am, Job.am,
+CareerCenter.am, Findjobs.ge and LeverX Careers to `/sources`. Manual entries
+do not appear in source toggles or adapter execution. This gives the owner
+direct paths to local listings without mirroring data where terms or feed
+permission do not support recurring extraction.
+
+Findjobs.ge terms dated 2026-09-27 welcome AI assistants but prohibit
+repeated/systematic extraction or reuse of substantial board data without
+written permission. ITA Jobs describes its listings as a reference directory
+linking to employer/academy applications but documents no reusable public job
+API. Current LeverX Support Engineer is in-office in Georgia and asks for
+English B2+; this remains a manual lead and the owner's B1 estimate is a known
+gap, not a hard exclusion.
+
+Verification: local suite **432 passed, 3 skipped**; isolated PostgreSQL suite
+**435 passed**; compileall, secret scan, and `git diff --check` passed.
+
 ## 2026-10-12 — HeadHunter selected-market discovery
 
 Verified the official public `/areas` catalog: RU is area `113`, GE is area

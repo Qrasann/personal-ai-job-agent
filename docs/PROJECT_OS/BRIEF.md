@@ -24,6 +24,13 @@ database/source error, traceback, or repeated city-width failure. Continue the
 open practical Relocation-first coverage and latest scoped-command Telegram
 acceptance; do not merge/tag/release v3.5.7 yet. See `HANDOFF.md`.
 
+The current worktree adds clickable manual-search links for verified AM/GE
+portals in `/sources`. These links do not enter automated scans or source
+toggles; Findjobs.ge's current terms require written permission for repeated or
+systematic extraction of substantial data. Local validation: **432 passed,
+3 skipped**; isolated PostgreSQL **435 passed**; compileall, secret scan, and
+diff check pass. This manual-link stage is not yet committed or deployed.
+
 The AI job-bot bootstrap profile now defaults to equal-priority `GE` and `AM`
 and bounded lower-barrier Relocation-first queries. This affects only fresh
 profile initialization; persisted user settings are preserved.

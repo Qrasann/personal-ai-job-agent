@@ -1,5 +1,6 @@
 from app.geo.countries import normalize_country, local_sources
 from app.sources.registry import build_source_plan
+from app.telegram.source_display import manual_source_line
 
 
 def test_country_aliases():
@@ -20,3 +21,30 @@ def test_source_plan_keeps_international():
     assert "remoteok" in ids
     assert "arbeitnow" in ids
     assert "telegram" in ids
+
+
+def test_selected_market_manual_sources_are_link_only_entries():
+    ge_plan = {x.source_id: x for x in build_source_plan("RU", ["GE"])}
+    am_plan = {x.source_id: x for x in build_source_plan("RU", ["AM"])}
+
+    findjobs = ge_plan["findjobs_ge_manual"]
+    assert findjobs.manual is True
+    assert findjobs.url == "https://findjobs.ge/en/"
+    assert findjobs.implemented is False
+    assert findjobs.transport == "manual"
+
+    ita_jobs = am_plan["ita_jobs_manual"]
+    assert ita_jobs.manual is True
+    assert ita_jobs.url == "https://jobs.ita.am/"
+    assert ita_jobs.implemented is False
+    assert "findjobs_ge_manual" not in am_plan
+
+
+def test_manual_source_display_links_the_site_and_marks_manual_use():
+    item = next(x for x in build_source_plan("RU", ["GE"]) if x.source_id == "findjobs_ge_manual")
+
+    line = manual_source_line(item)
+
+    assert '<a href="https://findjobs.ge/en/">Findjobs.ge · Georgia</a>' in line
+    assert "ручной поиск" in line
+    assert "written permission" in line

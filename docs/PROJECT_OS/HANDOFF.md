@@ -1,5 +1,28 @@
 # Handoff
 
+## AM/GE manual source links — 2026-10-12
+
+The current candidate adds clickable manual-search entries to `/sources` for
+ITA Jobs, Staff.am, Job.am, CareerCenter.am, Findjobs.ge, and LeverX Careers.
+Entries appear only when their market is selected, are marked `manual`, and
+are excluded from source toggles and scan execution. The `/sources` footnote
+states that these links do not prove work eligibility. Existing automated
+adapters and profile settings are unchanged.
+
+The 2026-09-27 Findjobs.ge terms welcome search engines and AI assistants but
+prohibit repeated/systematic extraction or reuse of substantial board data
+without written permission. No collector was added. ITA Jobs describes itself
+as a reference directory linking back to employer/academy pages, but publishes
+no reusable jobs API. LeverX's current Support Engineer opening is office-based
+in Georgia and asks for English B2+, making it a manual lead with a known
+language gap against the owner's current B1 estimate.
+
+Verification: local suite **432 passed, 3 skipped**; isolated PostgreSQL suite
+**435 passed**; compileall, secret scan, and `git diff --check` passed. The
+change is not yet committed or deployed. Next: commit the stage, rebuild the
+local Compose app, and confirm these entries do not alter scan adapters. Do not
+publish v3.5.7.
+
 ## HeadHunter selected-market discovery — 2026-10-12
 
 The fresh-profile GE/AM defaults and lower-barrier relocation queries are
