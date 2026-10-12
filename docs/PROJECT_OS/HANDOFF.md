@@ -1,5 +1,22 @@
 # Handoff
 
+## Current in-progress change — skip HH ConnectError
+
+The owner clarified that public HeadHunter `httpx.ConnectError` should be
+skipped immediately, allowing the remaining sources to complete. The HH public
+API and ordinary-web paths now fail fast on `ConnectError`; existing scan-level
+source isolation already collects that failure and continues with other
+adapters. Other transient transport errors retain one retry. Tests cover both
+HH public paths; targeted suite: **15 passed**, full suite: **443 passed, 3
+skipped**, isolated PostgreSQL suite: **446 passed**; compileall, secret scan
+and diff check passed. Current Compose logs show successful responses from
+other active sources but predate this code. Runtime rebuild/log verification
+and commit remain to be done.
+Current worktree changes are in `app/providers/hh.py`,
+`tests/test_hh_public.py`, and these PROJECT_OS documents. Do not claim the new
+behavior is live until rebuilt and verified. Yandex outage causality remains
+unproven.
+
 ## Public HeadHunter transient-network retry — 2026-10-13
 
 The owner asked whether intermittent HH failures could be related to recent

@@ -87,6 +87,11 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Skip HH immediately on public-search `httpx.ConnectError`; let source
+  isolation finish other feeds. Keep the single retry for other transient
+  transport errors. Targeted tests: 15 passed; full suite: 443 passed, 3
+  skipped; isolated PostgreSQL suite: 446 passed; compileall, secret scan and
+  diff check passed. Commit, rebuild and runtime verification remain pending.
 - [x] Add one bounded retry for transient transport failures in the public HH
   API and web-search requests. This directly addresses the observed TLS
   `ConnectError`; it does not assume Yandex is the cause. Do not retry HTTP

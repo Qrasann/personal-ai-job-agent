@@ -2,6 +2,17 @@
 
 Last updated: 2026-10-13 (Europe/Moscow)
 
+**Latest checkpoint — HH connection-error handling, 2026-10-13.** The owner
+asked to skip HeadHunter immediately when public search raises `httpx.ConnectError`
+and continue other sources. HH now raises that error without retrying; scan-level
+isolation records the HH failure while unrelated adapters continue. Other
+transient transport errors retain one bounded retry. Targeted HH suite: **15
+passed**; full suite: **443 passed, 3 skipped**; isolated PostgreSQL suite:
+**446 passed**. Compileall, secret scan and diff check passed. The current
+Compose logs show successful requests from the other enabled sources but
+predate this code change; deployed verification and commit remain pending. No
+causality between HH and Yandex datacenters is established.
+
 **Current checkpoint — 2026-10-13, HH transient-network resilience.** The
 owner noted recent Yandex data-center outages as a possible cause of HH
 connection failures. The latest Compose log confirms `source hh failed` on a

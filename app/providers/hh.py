@@ -54,6 +54,12 @@ class HHClient:
         for attempt in range(self.public_search_retries + 1):
             try:
                 return await request(*args, **kwargs)
+            except httpx.ConnectError:
+                # HH connection establishment has been intermittently failing
+                # in the owner's deployment. Do not spend time retrying this
+                # source; let scan-level source isolation continue other feeds.
+                log.warning("HH public-search connection failed; skipping HH for this request")
+                raise
             except httpx.TransportError as exc:
                 if attempt >= self.public_search_retries:
                     raise

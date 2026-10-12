@@ -1,4 +1,5 @@
 import asyncio
+import pytest
 
 from app.config import Settings, settings
 from app.sources.adapters.hh import HHSource
@@ -262,7 +263,7 @@ def test_hh_public_api_retries_one_transient_transport_failure(monkeypatch):
         async def request(self, *_args, **_kwargs):
             self.calls += 1
             if self.calls == 1:
-                raise httpx.ConnectError("temporary TLS/connect failure")
+                raise httpx.ReadTimeout("temporary response timeout")
             return SimpleNamespace(status_code=200, json=lambda: {"items": []})
 
     client = FlakyClient()
@@ -296,7 +297,7 @@ def test_hh_public_web_search_retries_one_transient_transport_failure(monkeypatc
         async def get(self, *_args, **_kwargs):
             self.calls += 1
             if self.calls == 1:
-                raise httpx.ConnectError("temporary TLS/connect failure")
+                raise httpx.ReadTimeout("temporary response timeout")
             return SimpleNamespace(
                 status_code=200,
                 text='<div data-qa="vacancy-serp__vacancy"></div>',
@@ -315,6 +316,58 @@ def test_hh_public_web_search_retries_one_transient_transport_failure(monkeypatc
 
     assert "vacancy-serp" in html
     assert client.calls == 2
+
+
+def test_hh_public_api_skips_immediately_on_connect_error(monkeypatch):
+    import httpx
+    from app.providers import hh as hh_provider
+
+    class OfflineClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def request(self, *_args, **_kwargs):
+            self.calls += 1
+            raise httpx.ConnectError("temporary TLS/connect failure")
+
+    client = OfflineClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    with pytest.raises(httpx.ConnectError):
+        asyncio.run(hh_provider.HHClient().search("DevOps"))
+
+    assert client.calls == 1
+
+
+def test_hh_public_web_search_skips_immediately_on_connect_error(monkeypatch):
+    import httpx
+    from app.providers import hh as hh_provider
+
+    class OfflineClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def get(self, *_args, **_kwargs):
+            self.calls += 1
+            raise httpx.ConnectError("temporary TLS/connect failure")
+
+    client = OfflineClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    with pytest.raises(httpx.ConnectError):
+        asyncio.run(hh_provider.HHClient().search_web("DevOps"))
+
+    assert client.calls == 1
 
 
 class FakeHH403Paged:

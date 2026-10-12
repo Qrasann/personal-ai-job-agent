@@ -20,6 +20,21 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Skip public HeadHunter connection errors
+
+The owner requested that a public HH `httpx.ConnectError` be skipped
+immediately while the scan continues through other enabled sources. HH public
+search now re-raises connection-establishment failures without retrying; the
+existing scan-level adapter isolation records the error and continues with
+the other discovered adapters. Other `httpx.TransportError` types retain one
+bounded retry. HTTP status behavior, CAPTCHA handling, and private applicant
+methods are unchanged. Regression tests cover API and ordinary public-web
+search; targeted suite passes **15 tests**. Full suite, isolated PostgreSQL
+suite, compileall, secret scan and diff check pass (**443 passed, 3 skipped**;
+PostgreSQL **446 passed**). Current Compose logs show the other enabled
+sources returning successful HTTP responses, but those logs predate this code
+change. Commit, rebuild and runtime verification remain pending.
+
 ## 2026-10-13 — Recognize remote-board requirement sections
 
 Reviewing the Himalayas Canonical Associate Linux Support Engineer card
