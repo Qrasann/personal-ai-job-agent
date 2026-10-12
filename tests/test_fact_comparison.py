@@ -66,6 +66,12 @@ def test_recognizes_common_remote_job_board_requirement_headings():
     assert importance["Bash"] == "required"
     assert importance["Kubernetes"] == "preferred"
 
+    curly_apostrophe = clean_html_text(
+        "&lt;h3&gt;What you’ll bring&lt;/h3&gt;"
+        "&lt;p&gt;Linux troubleshooting&lt;/p&gt;"
+    )
+    assert extract_requirement_importance(curly_apostrophe)["Linux"] == "required"
+
 
 def test_comparison_preserves_candidate_fact_experience_types():
     vacancy = """
