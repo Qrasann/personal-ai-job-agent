@@ -273,6 +273,16 @@
   and owner-selected Telegram channels for Armenia/Georgia. Verify role
   relevance, location, language, expiry, access conditions, and eligibility
   evidence before integration.
+- [x] Confirm owner-visible `/sources`, `/jobs`, `/jobs relocation`, and
+  `/jobs relocation below` rendering in Telegram. The output exposed Russian
+  onsite jobs in the relocation lane; suppress same-current-country onsite
+  jobs for Relocation-first unless domestic relocation is explicitly enabled.
+  Keep explicit remote and unknown-country jobs; preserve Career-first and
+  score semantics. Targeted tests 49 passed; full local suite 437 passed / 3
+  skipped; isolated PostgreSQL 440 passed; compileall, secret scan and diff
+  check passed. Rebuilt Compose 3.5.7; startup scan completed at 18:26:17 UTC,
+  PostgreSQL healthy. One HeadHunter web request logged transient ConnectError.
+  Owner confirmation of the filtered output remains open.
 - [x] Add verified Armenia/Georgia manual-search links to `/sources` for ITA
   Jobs, Staff.am, Job.am, CareerCenter.am, Findjobs.ge and LeverX Careers.
   Manual entries are clickable, excluded from scanners and source toggles, and

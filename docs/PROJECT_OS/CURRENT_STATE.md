@@ -1,6 +1,22 @@
 # Current State
 
 ## Latest state
+- **2026-10-12 — Relocation-first current-country onsite filter:** owner-confirmed
+  Telegram output showed Russian onsite vacancies in `/jobs relocation` and
+  `/jobs relocation below`. Relocation-first now drops vacancies whose explicit
+  country equals the user's current country when they are not remote, unless
+  `domestic_relocation: true` explicitly opts into a domestic move. Remote
+  vacancies and unknown-country listings remain; Career-first behavior is
+  unchanged. Unit suite: 437 passed / 3 skipped; isolated PostgreSQL: 440
+  passed; compileall, secret scan, and diff check passed. Compose was rebuilt;
+  runtime 3.5.7, PostgreSQL healthy, startup scan completed successfully at
+  18:26:17 UTC. One HeadHunter web request logged `ConnectError`; the scheduler
+scan completed. Check `/jobs relocation` after the change in Telegram.
+- **2026-10-12 — Telegram acceptance of manual sources and scoped lists:** the
+  owner confirmed `/sources` manual AM/GE links render for both profiles and
+  `/jobs`, `/jobs relocation`, and `/jobs relocation below` render with their
+  intended scopes. The supplied lists exposed the current-country onsite issue
+  fixed in the entry above.
 - **2026-10-12 — AM/GE manual search links:** the current candidate adds
   selected-market clickable links for ITA Jobs, Staff.am, Job.am,
   CareerCenter.am, Findjobs.ge and LeverX Careers. They are marked manual,

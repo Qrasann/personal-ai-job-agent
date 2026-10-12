@@ -1,5 +1,37 @@
 # Handoff
 
+## Relocation-first current-country onsite filter — 2026-10-12
+
+Owner Telegram output at 21:12–21:13 Moscow confirmed the manual source links
+and scoped job views. The Relocation-first list showed a chef job in Tyumen at
+70/100, while the below-threshold list included several Moscow-area onsite
+jobs. Root cause: the profile allowed `local_ru`, and location filtering only
+ran when geography had been explicitly configured, so same-country onsite
+vacancies were not excluded from the relocation review lane.
+
+`vacancy_allowed` now suppresses a vacancy only when all are true: strategy is
+Relocation-first, the vacancy country is explicitly the user's current country,
+the role is not explicitly remote, and `domestic_relocation` is not enabled.
+Unknown country remains unknown. Remote roles in RU remain visible because
+remote hiring from a destination still needs verification in the vacancy card.
+Career-first and the global score/threshold are unchanged. Setting
+`domestic_relocation: true` is an explicit opt-in to domestic moves.
+The scoped Telegram list also filters persisted older matches and fetches an
+expanded candidate set before applying the same rule, so old onsite rows do not
+occupy the first ten result slots after a settings or code change.
+
+Verification: targeted tests **49 passed**; full local suite **437 passed,
+3 skipped**; isolated PostgreSQL suite **440 passed**. `compileall`, secret
+scan, and `git diff --check` passed. Compose `repo` was rebuilt, reports source
+and runtime 3.5.7, app is up, PostgreSQL is healthy, and startup scan completed
+at 18:26:17 UTC. One HeadHunter public-web request logged a transient
+`ConnectError`, while the scheduler scan completed. Existing PostgreSQL/storage
+volumes were preserved. The
+owner should run `/jobs relocation` and `/jobs relocation below` once more to
+confirm current-country onsite vacancies are gone while remote/GE/AM results
+remain. Do not change the 65 threshold or scores based on this fix.
+
+
 ## AM/GE manual source links — 2026-10-12
 
 The current candidate adds clickable manual-search entries to `/sources` for
@@ -22,8 +54,9 @@ Verification: local suite **432 passed, 3 skipped**; isolated PostgreSQL suite
 `ffabb1b` adds the feature. Compose `repo` was rebuilt from this branch;
 startup `scan_all` completed at 18:06:12 UTC, runtime is 3.5.7 and PostgreSQL
 is healthy. The inspected scan logs contain requests only to existing adapters;
-manual portals were not queried. Owner Telegram confirmation of `/sources`
-link rendering remains pending. Do not publish v3.5.7.
+manual portals were not queried. Owner confirmed `/sources` link rendering at
+21:12 Moscow time; the manual links appear for both markets and profiles. Do
+not publish v3.5.7.
 
 ## HeadHunter selected-market discovery — 2026-10-12
 

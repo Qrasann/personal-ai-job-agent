@@ -28,7 +28,7 @@ from app.telegram.vacancy_view import render_fact_comparison, render_job_details
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
-from app.search.preferences import source_enabled
+from app.search.preferences import relocation_first_allows, source_enabled
 from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
 from app.version import current_version
 from app.telegram.multicommand import (
@@ -1120,17 +1120,24 @@ async def jobs(message: Message) -> None:
         _, search = await _first_search(user.id)
     threshold = int(((search.settings or {}) if search else {}).get("notify_min_score", 65))
     search_filter = {"search_profile_id": search.id} if scope else {}
+    query_limit = 80 if scope == "relocation" else 10
     if show_below:
         rows = await repo.latest_matches(
             user.id,
-            10,
+            query_limit,
             include_filtered=True,
             min_score=1,
             max_score=threshold - 1,
             **search_filter,
         )
     else:
-        rows = await repo.latest_matches(user.id, 10, min_score=threshold, **search_filter)
+        rows = await repo.latest_matches(user.id, query_limit, min_score=threshold, **search_filter)
+    if scope == "relocation" and search:
+        rows = [
+            (match, job)
+            for match, job in rows
+            if relocation_first_allows(job, search.settings, current_country=user.current_country)
+        ][:10]
     if not rows:
         if show_below:
             await message.answer(

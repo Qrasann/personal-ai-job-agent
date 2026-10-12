@@ -2,8 +2,20 @@
 
 Last updated: 2026-10-12 (Europe/Moscow)
 
-**Current checkpoint — 2026-10-12.** The bootstrap GE/AM defaults were
-committed locally as `00f1f0d`. HeadHunter's official public area directory
+**Current checkpoint — 2026-10-12.** A fresh Telegram check confirmed
+`/sources`, `/jobs relocation`, and `/jobs relocation below` render correctly.
+It exposed that ordinary onsite jobs in the current country (RU) could appear
+in Relocation-first. The filter now excludes those jobs unless the owner
+explicitly enables `domestic_relocation`; explicit remote jobs and unknown-
+country vacancies remain visible, and Career-first is unchanged. Regression
+coverage includes all four cases. Local suite: **437 passed, 3 skipped**;
+isolated PostgreSQL suite: **440 passed**; compileall, secret scan, and diff
+check pass. Compose `repo` was rebuilt without replacing PostgreSQL or its
+volumes; runtime 3.5.7 and PostgreSQL are healthy, and startup `scan_all`
+completed at 18:26:17 UTC. One HeadHunter public-web request logged a
+transient `ConnectError`; the scheduler scan completed. Telegram verification
+of the filtered list remains pending. The bootstrap GE/AM defaults were committed locally as
+`00f1f0d`. HeadHunter's official public area directory
 confirms RU `113` and GE `28`, but contains no Armenia area. The HH adapter now
 searches each represented current/target market independently, deduplicates
 results, and attributes country only to the scoped request; Armenia is left to
@@ -31,8 +43,8 @@ systematic extraction of substantial data. Local validation: **432 passed,
 3 skipped**; isolated PostgreSQL **435 passed**; compileall, secret scan, and
 diff check pass. Manual-link stage is commit `ffabb1b`. Compose was rebuilt
 from this branch; startup scan completed at 18:06:12 UTC with PostgreSQL
-healthy and no request to any manual portal. Owner Telegram confirmation of
-`/sources` rendering remains pending.
+healthy and no request to any manual portal. Owner confirmed `/sources`
+rendering at 21:12 Moscow time; the manual links appear for both profiles.
 
 The AI job-bot bootstrap profile now defaults to equal-priority `GE` and `AM`
 and bounded lower-barrier Relocation-first queries. This affects only fresh

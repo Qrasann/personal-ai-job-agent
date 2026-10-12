@@ -23,6 +23,51 @@ def test_current_and_selected_city_scope():
     assert not vacancy_allowed(make_job(city="Kazan"), cfg, current_country="RU")
 
 
+def test_relocation_first_excludes_onsite_jobs_in_current_country():
+    cfg = {
+        "search_strategy": "relocation_first",
+        "target_countries": ["GE", "AM"],
+    }
+    local_onsite = make_job(country="RU", city="Tyumen", work_mode="onsite")
+
+    assert not vacancy_allowed(local_onsite, cfg, current_country="RU")
+
+
+def test_relocation_first_keeps_remote_and_unknown_country_jobs():
+    cfg = {
+        "search_strategy": "relocation_first",
+        "target_countries": ["GE", "AM"],
+    }
+    remote_ru = make_job(country="RU", city="Moscow", work_mode="remote")
+    unknown_country = make_job(country=None, city="Tbilisi", work_mode="onsite")
+
+    assert vacancy_allowed(remote_ru, cfg, current_country="RU")
+    assert vacancy_allowed(unknown_country, cfg, current_country="RU")
+
+
+def test_relocation_first_allows_domestic_move_only_when_explicit():
+    cfg = {
+        "search_strategy": "relocation_first",
+        "target_countries": ["GE", "AM"],
+        "domestic_relocation": True,
+    }
+    local_onsite = make_job(country="RU", city="Tyumen", work_mode="onsite")
+
+    assert vacancy_allowed(local_onsite, cfg, current_country="RU")
+    assert not vacancy_allowed(
+        local_onsite,
+        {**cfg, "domestic_relocation": "false"},
+        current_country="RU",
+    )
+
+
+def test_career_first_keeps_current_country_onsite_jobs():
+    cfg = {"search_strategy": "career_first", "target_countries": ["GE", "AM"]}
+    local_onsite = make_job(country="RU", city="Tyumen", work_mode="onsite")
+
+    assert vacancy_allowed(local_onsite, cfg, current_country="RU")
+
+
 def test_selected_country_can_be_the_only_foreign_country():
     cfg = {"target_countries": ["DE"], "geography": {"configured": True, "include_current_city": True, "include_other_cities": False, "include_other_countries": False, "worldwide": False}}
     assert vacancy_allowed(make_job(country="DE", city="Berlin"), cfg, current_country="RU")

@@ -119,8 +119,8 @@ def _signals(job: NormalizedJob) -> dict[str, bool]:
 
 
 def _is_remote_job(job: NormalizedJob) -> bool:
-    mode = _norm_text(job.work_mode)
-    scope = _norm_text(job.remote_scope)
+    mode = _norm_text(getattr(job, "work_mode", None))
+    scope = _norm_text(getattr(job, "remote_scope", None))
     non_remote = r"\b(?:onsite|on-site|office only|no remote|not remote|не удаленн\w*|не дистанционн\w*)\b"
     if re.search(non_remote, mode):
         return False
@@ -142,8 +142,29 @@ def _policy(settings: dict | None, key: str) -> str:
     return value if value in POLICY_VALUES else "any"
 
 
+def relocation_first_allows(job: NormalizedJob, settings: dict | None, *, current_country: str | None = None) -> bool:
+    """Hide known domestic onsite roles from relocation lists and discovery."""
+    if search_strategy(settings) != "relocation_first":
+        return True
+    home_country = _norm_code(current_country)
+    return not (
+        home_country
+        and _norm_code(job.country) == home_country
+        and not _is_remote_job(job)
+        and search_config(settings).get("domestic_relocation") is not True
+    )
+
+
 def vacancy_allowed(job: NormalizedJob, settings: dict | None, *, current_country: str | None = None) -> bool:
     cfg = search_config(settings)
+    job_country = _norm_code(job.country)
+    home_country = _norm_code(current_country)
+    # Relocation-first must not present an ordinary onsite job in the
+    # candidate's current country as a relocation lead. Explicit remote roles
+    # remain discoverable, and users can opt into domestic moves separately.
+    if not relocation_first_allows(job, cfg, current_country=current_country):
+        return False
+
     geo = _dict(cfg.get("geography"))
     if geo.get("configured"):
         worldwide = bool(geo.get("worldwide", False))
@@ -153,9 +174,7 @@ def vacancy_allowed(job: NormalizedJob, settings: dict | None, *, current_countr
         current_city = _norm_text(str(cfg.get("local_city") or ""))
         selected_cities = {_norm_text(str(x)) for x in _list(cfg.get("selected_cities")) if str(x).strip()}
         selected_countries = {_norm_code(str(x)) for x in _list(cfg.get("target_countries")) if str(x).strip()}
-        job_country = _norm_code(job.country)
         job_city = _norm_text(job.city)
-        home_country = _norm_code(current_country)
 
         if not worldwide and job_country:
             if home_country and job_country == home_country:

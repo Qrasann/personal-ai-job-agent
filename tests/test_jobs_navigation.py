@@ -119,9 +119,9 @@ def test_jobs_below_command_shows_filtered_matches_without_changing_threshold(mo
 def _mock_profiles(monkeypatch):
     searches = [
         SimpleNamespace(id=3, kind="career", name="Career-first", settings={"notify_min_score": 65}),
-        SimpleNamespace(id=4, kind="relocation", name="Relocation-first", settings={"notify_min_score": 70}),
+        SimpleNamespace(id=4, kind="relocation", name="Relocation-first", settings={"notify_min_score": 70, "search_strategy": "relocation_first", "target_countries": ["GE", "AM"]}),
     ]
-    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7, current_country="RU")))
     monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=2)))
     monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
     monkeypatch.setattr(handlers.repo, "source_ref", AsyncMock(return_value=None))
@@ -138,14 +138,14 @@ def test_jobs_relocation_uses_its_own_threshold_and_scope(monkeypatch, text):
 
     asyncio.run(handlers.jobs(message))
 
-    latest.assert_awaited_once_with(7, 10, include_filtered=True, min_score=1, max_score=69, search_profile_id=4)
+    latest.assert_awaited_once_with(7, 80, include_filtered=True, min_score=1, max_score=69, search_profile_id=4)
     rendered = message.answer.await_args.args[0]
     assert "Relocation-first" in rendered
     assert "Ниже порога 70" in rendered
     assert "/job 30 relocation" in rendered
     assert message.answer.await_args.kwargs["reply_markup"].inline_keyboard[0][0].callback_data == "details:30:4"
     assert searches[0].settings == {"notify_min_score": 65}
-    assert searches[1].settings == {"notify_min_score": 70}
+    assert searches[1].settings["notify_min_score"] == 70
 
 
 def test_jobs_career_scope_uses_score_ordered_query(monkeypatch):
@@ -171,6 +171,30 @@ def test_jobs_relocation_empty_results_link_to_scoped_manual_review(monkeypatch)
     assert "Relocation-first" in rendered
     assert "70/100" in rendered
     assert "/jobs relocation below" in rendered
+
+
+def test_jobs_relocation_hides_stored_domestic_onsite_but_keeps_remote(monkeypatch):
+    _mock_profiles(monkeypatch)
+    onsite = SimpleNamespace(
+        id=31, title="Chef", company="Local", salary_from=None, salary_to=None,
+        salary_currency=None, description="", city="Tyumen", country="RU",
+        work_mode="Офис", remote_scope=None,
+    )
+    remote = _job(32, "Remote Linux Support")
+    rows = [
+        (SimpleNamespace(total_score=90), onsite),
+        (SimpleNamespace(total_score=80), remote),
+    ]
+    latest = AsyncMock(return_value=rows)
+    monkeypatch.setattr(handlers.repo, "latest_matches", latest)
+    message = SimpleNamespace(text="/jobs relocation", answer=AsyncMock())
+
+    asyncio.run(handlers.jobs(message))
+
+    rendered = message.answer.await_args.args[0]
+    assert "Remote Linux Support" in rendered
+    assert "Chef" not in rendered
+    assert "/job 32 relocation" in rendered
 
 
 def test_jobs_missing_relocation_profile_does_not_fall_back_to_career(monkeypatch):

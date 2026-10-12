@@ -20,22 +20,29 @@ orders highest rating first. Ordinary `hotel staff` and `warehouse staff`
 titles no longer trigger the engineering `Staff` seniority exclusion; explicit
 Senior/Lead/Principal, experience and management requirements still apply.
 
-Still open in v3.5.7: useful local AM/GE employer coverage and live acceptance
-of the latest commands. Recent completed scans found no Relocation-first
+Still open in v3.5.7: useful local AM/GE employer coverage and post-fix
+Telegram confirmation of the Relocation-first result list. Recent completed scans found no Relocation-first
 Good/Stretch results. Unknown eligibility remains unknown and the threshold
 stays at 65. Local commit `61fe39d` adds bounded HH searches for official
 catalog areas RU `113` and GE `28`; Armenia is absent from HH's public catalog
 and remains the responsibility of other sources. Runtime check is complete;
-owner Telegram acceptance remains pending. An enabled source or HTTP 200 is not
-evidence of a usable opportunity.
+owner confirmed `/sources` and scoped list rendering on 2026-10-12. An enabled
+source or HTTP 200 is not evidence of a usable opportunity.
 
 `/sources` also contains link-only manual destinations for selected AM/GE
 markets. These entries never enter automated scans; Findjobs.ge requires
 written permission for recurring extraction of substantial data. Current
 local validation is 432 passed / 3 skipped and the isolated PostgreSQL suite is
-435 passed. Commit `ffabb1b` is rebuilt locally; its startup scan completed at
-18:06:12 UTC with PostgreSQL healthy. Owner Telegram check of `/sources` remains
-pending.
+435 passed. Commit `ffabb1b` was rebuilt locally; its startup scan completed at
+18:06:12 UTC with PostgreSQL healthy. Owner Telegram check of `/sources` passed
+at 21:12 Moscow time.
+
+Owner Telegram acceptance has now confirmed the manual links and scoped list
+rendering. That live output exposed and prompted a Relocation-first filter fix:
+current-country onsite vacancies are excluded unless domestic relocation is
+explicitly enabled; remote and unknown-country listings remain. Unit and
+PostgreSQL suites pass, and the rebuilt startup scan completed. Verify the
+post-fix `/jobs relocation` output before closing the result-quality item.
 
 The candidate is local and unpublished. The personal departure timetable,
 finances and legal-route decisions are kept in the separate private roadmap.

@@ -1,3 +1,23 @@
+## 2026-10-12 — Relocation-first excludes domestic onsite vacancies
+
+Owner Telegram output showed ordinary onsite vacancies in Russia inside the
+Relocation-first list, although the intended route prioritizes work abroad or
+remote work that can continue after moving. Root cause was permissive current-
+country handling when explicit geography settings were absent. The strategy
+filter now excludes a same-country onsite vacancy from Relocation-first unless
+`domestic_relocation` is explicitly enabled. Explicit remote roles and unknown-
+country jobs remain discoverable; Career-first is untouched. No score, score
+ordering, threshold, or visa/work-eligibility inference changed.
+
+Regression tests cover current-country onsite exclusion, remote and unknown-
+country retention, explicit domestic-move opt-in, and Career-first compatibility.
+Targeted suite: 49 passed. Full local suite: 437 passed, 3 skipped. Isolated
+PostgreSQL suite: 440 passed. `compileall`, secret scan, and `git diff --check`
+passed. Compose `repo` rebuilt on runtime 3.5.7; PostgreSQL healthy and startup
+scan completed at 18:26:17 UTC. One HH public-web request logged a
+transient `ConnectError`; the scheduler scan completed. User-visible
+confirmation after the fix remains pending.
+
 # Development Log
 
 ## 2026-10-12 — AM/GE manual source discovery links
