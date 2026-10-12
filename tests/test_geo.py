@@ -33,6 +33,12 @@ def test_selected_market_manual_sources_are_link_only_entries():
     assert findjobs.implemented is False
     assert findjobs.transport == "manual"
 
+    ss_ge = ge_plan["ss_ge_manual"]
+    assert ss_ge.manual is True
+    assert ss_ge.url == "https://jobs.ss.ge/en/l/vacancies"
+    assert ss_ge.implemented is False
+    assert ss_ge.transport == "manual"
+
     ita_jobs = am_plan["ita_jobs_manual"]
     assert ita_jobs.manual is True
     assert ita_jobs.url == "https://jobs.ita.am/"
@@ -56,6 +62,12 @@ def test_manual_source_display_links_the_site_and_marks_manual_use():
     assert '<a href="https://findjobs.ge/en/">Findjobs.ge · Georgia</a>' in line
     assert "ручной поиск" in line
     assert "written permission" in line
+
+    ss_ge = next(x for x in build_source_plan("RU", ["GE"]) if x.source_id == "ss_ge_manual")
+    ss_ge_line = manual_source_line(ss_ge)
+    assert '<a href="https://jobs.ss.ge/en/l/vacancies">jobs.ss.ge · Georgia</a>' in ss_ge_line
+    assert "ручной поиск" in ss_ge_line
+    assert "no public job API" in ss_ge_line
 
     etg = next(x for x in build_source_plan("RU", ["AM"]) if x.source_id == "emerging_travel_manual")
     etg_line = manual_source_line(etg)

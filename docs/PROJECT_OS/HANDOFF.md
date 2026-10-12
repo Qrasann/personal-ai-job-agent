@@ -1,5 +1,17 @@
 # Handoff
 
+## Current in-progress stage — Georgian manual vacancy portal
+
+Added `jobs.ss.ge` to the Georgia manual-source catalog so the owner can
+review broader local listings, including some lower-barrier categories. The
+source is link-only. No reusable API or automated-extraction permission was
+verified; it is not enabled in scan execution or source toggles. The listing
+site is primarily Georgian-language, so each posting's language and eligibility
+conditions need manual review. Targeted source tests: **5 passed**; full suite:
+**443 passed, 3 skipped**; isolated PostgreSQL suite: **446 passed**;
+compileall, secret scan and diff check passed. Compose rebuild and Telegram
+`/sources` confirmation remain pending.
+
 ## Current in-progress change — skip HH ConnectError
 
 The owner clarified that public HeadHunter `httpx.ConnectError` should be

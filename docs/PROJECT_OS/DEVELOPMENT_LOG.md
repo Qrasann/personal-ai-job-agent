@@ -20,6 +20,21 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Add Georgian lower-barrier manual job portal
+
+The local-market audit found `jobs.ss.ge`, a Georgian-language vacancy board
+with categories for cleaning, worker/loader, hotel/tourism, factory/production,
+and no-experience roles. Public pages provide listing details, but this review
+did not establish a reusable public job API or permission for repeated
+automated extraction. Added a market-scoped, clickable manual-search entry to
+`/sources`; it remains excluded from automated source toggles and scans. The
+entry explicitly notes the missing API/automation permission. Targeted source
+tests: **5 passed**; full suite: **443 passed, 3 skipped**; isolated
+PostgreSQL suite: **446 passed**; compileall, secret scan and diff check passed.
+Compose rebuild and Telegram `/sources` check remain pending. The board's
+Georgian-language content and any employer-specific language/work-
+authorization requirements still need manual review.
+
 ## 2026-10-13 — Skip public HeadHunter connection errors
 
 The owner requested that a public HH `httpx.ConnectError` be skipped

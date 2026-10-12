@@ -87,6 +87,12 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Add jobs.ss.ge as a selected-Georgia manual-search destination after
+  confirming that it exposes broad vacancy listings but no verified reusable
+  public API or automated-collection permission. Keep it link-only. Targeted
+  source tests: 5 passed; full suite: 443 passed, 3 skipped; isolated
+  PostgreSQL suite: 446 passed; compileall, secret scan and diff check passed.
+  Rebuild and Telegram check remain pending.
 - [x] Skip HH immediately on public-search `httpx.ConnectError`; let source
   isolation finish other feeds. Keep the single retry for other transient
   transport errors. Targeted tests: 15 passed; full suite: 443 passed, 3

@@ -57,6 +57,7 @@ countries:
       - {id: jobs_ge, name: JOBS.GE, url: "https://jobs.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true, available: false, availability_note: "временно приостановлен: сайт вернул HTTP 410 Gone"}
       - {id: hr_ge, name: HR.ge, url: "https://www.hr.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true}
     manual_sources:
+      - {id: ss_ge_manual, name: jobs.ss.ge · Georgia, url: "https://jobs.ss.ge/en/l/vacancies", scope: "Georgia · manual", availability_note: "broad local vacancies including entry-level work; no public job API or automated-reuse permission verified"}
       - {id: findjobs_ge_manual, name: Findjobs.ge · Georgia, url: "https://findjobs.ge/en/", scope: "Georgia · manual", availability_note: "AI assistants welcome; recurring extraction of substantial data requires written permission"}
       - {id: leverx_manual, name: LeverX Careers · Georgia, url: "https://career.leverx.com/vacancies", scope: "Georgia · manual", availability_note: "no public job API verified; current postings include English B2+ roles"}
       - {id: emerging_travel_manual, name: Emerging Travel Group · Junior DevOps, url: "https://www.emergingtravel.com/career/positions/166/", scope: "Armenia/Georgia · remote · manual", availability_note: "официальная карьерная страница; текущая Junior DevOps вакансия требует 1.5+ года коммерческого опыта, 6+ месяцев Kubernetes и английский B1+"}

@@ -2,6 +2,15 @@
 
 Last updated: 2026-10-13 (Europe/Moscow)
 
+**Latest discovery checkpoint — Georgia manual job search.** Added a
+market-scoped `jobs.ss.ge` link-only entry to `/sources`. It provides a broad
+Georgian vacancy catalog including lower-barrier roles, but a reusable public
+API and permission for automated collection were not verified. It is excluded
+from adapters and scan execution. Targeted source tests: **5 passed**; full
+suite: **443 passed, 3 skipped**; isolated PostgreSQL suite: **446 passed**;
+compileall, secret scan and diff check passed. Compose rebuild and Telegram
+rendering check remain pending.
+
 **Latest checkpoint — HH connection-error handling, 2026-10-13.** The owner
 asked to skip HeadHunter immediately when public search raises `httpx.ConnectError`
 and continue other sources. HH now raises that error without retrying; scan-level
