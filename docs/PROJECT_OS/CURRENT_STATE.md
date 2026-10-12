@@ -1,7 +1,7 @@
 # Current State
 
 ## Latest state
-- **2026-10-13 — Public HH transport retry (current uncommitted stage):** the
+- **2026-10-13 — Public HH transport retry (committed `b427e96`):** the
   latest Compose log shows public `hh.ru` search failed during TLS setup with
   `httpx.ConnectError`. The owner suggested recent Yandex data-center outages
   as context. Yandex officially confirmed damage to data centers in Sasovo and
@@ -9,12 +9,13 @@
   `httpx.TransportError` on the public API and web search paths only. HTTP
   status responses, CAPTCHA, and private applicant paths are unchanged.
   Targeted tests: 13 passed; full unit suite: 441 passed / 3 skipped; isolated
-  PostgreSQL: 444 passed; compileall, secret scan and diff check passed. HEAD
-  remains `83a1269` until this stage is committed. Compose `repo` is up at
-  source/runtime 3.5.7 with healthy PostgreSQL, still running the previous
-  image. Rebuild and inspect scan logs next. Telegram acceptance of the
-  domestic-onsite relocation filter and Canonical `/job 1273` risk card is
-  still pending.
+  PostgreSQL: 444 passed; compileall, secret scan and diff check passed. The
+  app was rebuilt at 00:23 Moscow; runtime and source report 3.5.7 and
+  PostgreSQL is healthy. Startup scan completed at 00:25 Moscow: logs show the
+  HH API 403 fallback, the new single retry after `ConnectError`, subsequent
+  public-search HTTP 200 responses and successful scan completion. Telegram
+  acceptance of the domestic-onsite relocation filter and Canonical `/job
+  1273` risk card remains pending.
 - The entries below are historical checkpoints; their branch, worktree and
   test claims are superseded by the dated latest-state entries above.
 - **2026-10-13 — Himalayas requirement-section parsing:** Job Agent now

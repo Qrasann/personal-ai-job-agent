@@ -12,12 +12,13 @@ zones. Added one bounded retry for transport errors on HH's public API and web
 search only. HTTP responses (including 403) and CAPTCHA checks are not retried;
 private applicant requests are unchanged. Targeted tests: **13 passed**; full
 local suite: **441 passed, 3 skipped**; isolated PostgreSQL suite: **444
-passed**; compileall, secret scan and diff check passed. Changes are being
-committed locally; the Compose app currently runs v3.5.7 from the previous
-build, PostgreSQL is healthy, and the source/runtime logs identify HH public
-search as the failing stage. Rebuild and verify its retry behavior next, then
-ask the owner to recheck `/jobs relocation`, `/jobs relocation below`, and
-`/job 1273` on the current bot. Do not infer eligibility or apply.
+passed**; compileall, secret scan and diff check passed. Committed locally as
+`b427e96`. Compose `repo` was rebuilt at 00:23 Moscow; source/runtime report
+3.5.7 and PostgreSQL is healthy. Startup `scan_all` completed at 00:25 Moscow.
+Logs show HH API 403 falling back to public search, one TLS `ConnectError`,
+`retry 1/1`, subsequent public search HTTP 200s, and successful completion.
+Owner Telegram verification of `/jobs relocation`, `/jobs relocation below`,
+and `/job 1273` remains open. Do not infer eligibility or apply.
 
 **Current checkpoint — 2026-10-13.** Review of the Canonical Himalayas listing
 found a common requirements-heading gap that left technical requirements and

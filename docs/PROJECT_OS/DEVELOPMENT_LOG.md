@@ -1259,7 +1259,9 @@ applicant endpoint behavior changed. Regressions exercise each transport path.
 
 Verification: 13 targeted tests; full local suite 441 passed / 3 skipped;
 isolated PostgreSQL suite 444 passed; compileall, secret scan and
-`git diff --check` passed. The deployed Compose app still runs the prior 3.5.7
-image until rebuild; PostgreSQL is healthy and volumes remain untouched.
-Rebuild, inspect startup scan logs, then leave owner Telegram acceptance of
-the relocation lists and Canonical technical-risk card open.
+`git diff --check` passed. Committed as `b427e96`. Compose `repo` was rebuilt
+at 00:23 Moscow without replacing volumes. Runtime reports 3.5.7; PostgreSQL
+is healthy. Startup `scan_all` completed at 00:25 Moscow. Logs show HH API 403
+fallback, a single `ConnectError`, the bounded retry, subsequent HTTP 200
+public-web requests, and successful scan completion. Leave owner Telegram
+acceptance of relocation lists and the Canonical technical-risk card open.

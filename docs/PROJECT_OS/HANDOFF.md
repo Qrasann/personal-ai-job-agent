@@ -18,12 +18,15 @@ The current code retries a public API/web search exactly once on
 private applicant methods are not retried. Regression tests cover transient
 failure recovery in both public paths. Verification: targeted **13 passed**;
 full local **441 passed, 3 skipped**; isolated PostgreSQL **444 passed**;
-compileall, secret scan and `git diff --check` passed. This source change is
-not yet in the running Compose container. Next: commit, safely rebuild project
-`repo` without altering volumes, inspect startup and next scan logs, then ask
-the owner to verify `/jobs relocation`, `/jobs relocation below`, and
-`/job 1273` in Telegram. Preserve both search directions and the 65 threshold.
-No publication or application action is authorized.
+compileall, secret scan and `git diff --check` passed. Commit `b427e96` is
+applied. Compose `repo` was rebuilt at 00:23 Moscow; app and PostgreSQL are
+healthy and named volumes were preserved. Startup `scan_all` completed at
+00:25 Moscow. Logs confirm HH API 403 fallback to public search, one
+`ConnectError`, `retry 1/1`, subsequent public-search HTTP 200s, and successful
+scan completion. Next ask the owner to verify `/jobs relocation`,
+`/jobs relocation below`, and `/job 1273` in Telegram. Preserve both search
+directions and the 65 threshold. No publication or application action is
+authorized.
 
 ## Previous active stage — 2026-10-13
 

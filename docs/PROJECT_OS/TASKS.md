@@ -93,9 +93,12 @@
   errors/CAPTCHA or change private applicant endpoints. Targeted HH tests: 13
   passed; full local suite: 441 passed, 3 skipped; isolated PostgreSQL: 444
   passed; compileall, secret scan and diff check passed.
-- [ ] Rebuild Compose `repo`, verify startup scan and a subsequent HH scan; the
-  current container is still from the previous source build. Preserve named
-  volumes.
+- [x] Commit as `b427e96` and rebuild Compose `repo` without changing named
+  volumes. Source/runtime report 3.5.7 and PostgreSQL is healthy. Startup scan
+  completed at 00:25 Moscow; HH API 403 fell back to public search, where a
+  TLS `ConnectError` triggered the new single retry. Later public HH requests
+  returned HTTP 200 and `scan_all` completed successfully. No causal claim is
+  made about Yandex infrastructure.
 - [x] Recognize common remote-board requirement headings (`What we are
   looking for`, `What you'll bring`, `Nice-to-have skills`) so existing
   technical requirement coverage is not left unknown; label interview-risk
