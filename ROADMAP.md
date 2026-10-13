@@ -56,6 +56,7 @@ post-deployment latency and relevance measurement remains pending.
 EURES now preserves partial results across individual HTTP and parse failures.
 Dependency minimums now exclude checked pypdf/python-multipart advisory ranges;
 a reproducible lock/constraints workflow remains planned.
+Telegram/HH network warning logs now omit raw exception messages.
 Runtime acceptance and live HH ConnectError diagnosis remain open.
 
 ## Immediate gates

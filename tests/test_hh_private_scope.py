@@ -43,3 +43,20 @@ def test_hh_applicant_credential_requires_configured_owner(monkeypatch):
         asyncio.run(services.apply_match(object(), 17, 1))
 
     lookup.assert_not_awaited()
+
+
+def test_hh_chat_polling_log_does_not_include_exception_payload(monkeypatch, caplog):
+    secret = "token=private-value"
+    monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "owner-chat")
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(
+        private_api_available=True,
+        chats=AsyncMock(side_effect=RuntimeError(f"https://hh.test/?{secret}")),
+    ))
+    monkeypatch.setattr(services.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=1)))
+    monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
+    monkeypatch.setattr(services.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=3)))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+
+    asyncio.run(services.scan_hh_chats(object()))
+    assert "HH chats failed" in caplog.text
+    assert secret not in caplog.text

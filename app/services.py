@@ -779,7 +779,7 @@ async def scan_hh_chats(bot: Bot) -> None:
     try:
         chats = await hh_client.chats(per_page=50)
     except Exception as exc:
-        log.warning("HH chats failed: %s", exc)
+        log.warning("HH chats failed (%s)", type(exc).__name__)
         return
     for chat in chats.get("items", []):
         if int(chat.get("unread_message_count") or 0) <= 0:

@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-14 — network log hygiene
+
+Telegram startup retry and HH chat polling no longer print exception payloads
+to application logs. They retain error classes for diagnosis; retry and
+authorization behavior is unchanged.
+
 ## 2026-10-14 — dependency floors
 
 `requirements.txt` now requires pypdf >=6.20.1 and python-multipart >=0.0.31.

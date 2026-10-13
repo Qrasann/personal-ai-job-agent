@@ -1,5 +1,11 @@
 # Known Issues
 
+## 2026-10-14 — network log hygiene
+
+Fixed locally: Telegram startup and HH chat poll warnings logged raw exception
+text, which could include URL parameters. They now record exception class only.
+The running image is unchanged until separately authorized deployment.
+
 ## 2026-10-14 — dependency advisory review
 
 Local pypdf 6.20.0 was below the upstream 6.20.1 fix for a possible infinite

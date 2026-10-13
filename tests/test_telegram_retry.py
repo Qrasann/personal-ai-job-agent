@@ -92,3 +92,23 @@ def test_wait_for_telegram_does_not_hide_non_network_errors():
 
     with pytest.raises(RuntimeError, match="bad configuration"):
         asyncio.run(wait_for_telegram(bot))
+
+
+def test_telegram_network_retry_log_does_not_include_exception_payload(caplog):
+    secret = "token=private-value"
+
+    class Bot:
+        calls = 0
+
+        async def me(self):
+            self.calls += 1
+            if self.calls == 1:
+                raise TelegramNetworkError(method=GetMe(), message=f"https://api.telegram.test/?{secret}")
+            return object()
+
+    async def no_wait(_delay):
+        return None
+
+    asyncio.run(wait_for_telegram(Bot(), sleep=no_wait))
+    assert "Telegram API unavailable" in caplog.text
+    assert secret not in caplog.text

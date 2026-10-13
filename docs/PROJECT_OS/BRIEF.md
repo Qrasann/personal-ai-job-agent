@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-14 — network exception logging
+
+Telegram startup retry and HH chat polling now log exception classes without
+raw messages that could contain URLs or parameters. Regression tests reproduced
+the leak before the change. Retry/backoff and private-action settings remain.
+
 ## 2026-10-14 — dependency floor review
 
 Raised `pypdf` minimum to 6.20.1 after checking its Oct 12 upstream advisory;

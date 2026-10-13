@@ -1,5 +1,10 @@
 # Decisions
 
+## 2026-10-14 — no raw network exception payloads in logs
+
+Telegram startup and HH chat poll diagnostics report exception class and
+retry behavior without logging untrusted URL or response text.
+
 ## 2026-10-14 — patched dependency minimums
 
 Set minimum pypdf 6.20.1 and python-multipart 0.0.31 based on upstream

@@ -74,8 +74,8 @@ async def wait_for_telegram(
         except TelegramNetworkError as exc:
             attempts += 1
             logger.warning(
-                "Telegram API unavailable: %s; retrying in %.0fs",
-                exc,
+                "Telegram API unavailable (%s); retrying in %.0fs",
+                type(exc).__name__,
                 delay,
             )
             await sleep(delay)

@@ -1,3 +1,13 @@
+## 2026-10-14 — Telegram/HH network log payloads
+
+After `921caf4`, tests reproduced that `wait_for_telegram` and
+`scan_hh_chats` logged raw exception messages containing URL parameters.
+Changed both warnings to report exception class only. Telegram bounded
+backoff, HH chat polling gate, private actions and runtime settings were not
+changed. No external request or production action. Final checks: 741 unit
+passed / 4 isolated-DB skips; 745 passed with isolated PostgreSQL; compileall,
+secret scan and `git diff --check` passed.
+
 ## 2026-10-14 — dependency advisory floors
 
 After `292e6d2`, local `pip list` showed pypdf 6.20.0 and python-multipart

@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-14 — exception log hygiene
+
+- [x] Prevent Telegram startup network errors and HH chat polling errors from
+  logging raw exception URLs/parameters; cover both with regressions.
+
 ## 2026-10-14 — dependency security
 
 - [x] Raise pypdf/python-multipart lower bounds past checked upstream

@@ -1,5 +1,13 @@
 # Handoff
 
+## 2026-10-14 — exception log follow-up
+
+After `921caf4`, Telegram startup retry and HH chat poll logs were reduced to
+exception class. Tests reproduced URL parameter leakage before the fix. Final
+local checks: 741 unit passed / 4 skipped, 745 isolated PostgreSQL passed,
+compileall/secret scan/diff check passed.
+No runtime update occurred; preserve both untracked owner proposal files.
+
 ## 2026-10-14 — dependency floor checkpoint
 
 After `292e6d2`, checked official pypdf and python-multipart advisories.
