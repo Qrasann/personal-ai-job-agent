@@ -14,6 +14,11 @@ Updated: 2026-10-13 (Europe/Moscow)
 - Runtime remains the c829a5f Compose `repo` build from 00:52 Moscow. App up,
   PostgreSQL healthy; startup scan completed at 21:53:38 UTC / 00:53:38 Moscow.
   One HH connection error was isolated and other sources completed.
+- A fresh log read reproduced old HH `aggregate["found"]` KeyError at
+  2026-10-13 05:08:33 UTC for profile 2. Scheduled scan completed at 05:08:34,
+  losing that recovered source's batch. This is the precise already-tested
+  aggregate-recovery regression fixed in 5c4b959, part of candidate 443aaeb.
+  Runtime approval remains pending; do not bypass the deployment gate.
 - Draft PR #18 remains open at remote `f9ed986`, with successful Python,
   Docker build and secret-scan checks. CI does not cover local later commits.
   Formal release/main is v3.5.6. No new production deployment is authorized.

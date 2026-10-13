@@ -96,6 +96,9 @@
 - [ ] Owner authorizes working-runtime implementation 443aaeb update (question
   sent, answer pending), then real Telegram/new source/scoped relocation
   acceptance; keep separate from unit tests.
+  Latest old-runtime logs reproduced the already-fixed HH aggregate KeyError
+  at 05:08:33 UTC on Oct 13. This strengthens the update priority; agreement
+  is still required by the owner's explicit deployment instruction.
 - [x] Recognize exact public Devexperts `What we expect from candidates`
   required and `As a Plus` preferred section headings. Negative near-match,
   HTML/inline, and optional-coverage regressions pass; vocabulary, weights

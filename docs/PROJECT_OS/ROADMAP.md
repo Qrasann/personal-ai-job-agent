@@ -17,3 +17,6 @@ See BRIEF.md for concise verification and HANDOFF.md for transfer details.
 
 Verified implementation candidate 443aaeb is committed; owner deployment
 approval is pending. See HANDOFF.md for precise continuation and runtime gate.
+Old runtime reproduced the HH aggregate-recovery KeyError at 05:08:33 UTC;
+the candidate already fixes it. Record real source/Telegram acceptance after
+the approved update, then continue v3.6.

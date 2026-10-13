@@ -20,6 +20,16 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Live confirmation of old HH aggregate recovery bug
+
+Fresh read-only repo logs show HH source 2 failed at 05:08:33.606 UTC with
+KeyError found in aggregate["found"] += len(jobs), running the old c829a5f
+build. Scheduler scan completed 05:08:34.949, but the recovered source batch
+was not processed. The exact skip/error→success transition is already fixed
+and regression-tested in 5c4b959, included in validated implementation 443aaeb.
+No new code change needed; recorded live evidence and kept pending owner
+deployment approval. Runtime app remains up and PostgreSQL healthy.
+
 ## 2026-10-13 — Transfer checkpoint after six local stages
 
 Implementation HEAD 443aaeb, source 3.5.7 on existing feature branch, all six

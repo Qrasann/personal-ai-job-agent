@@ -29,6 +29,10 @@ salary, visa, relocation and candidate experience remain unknown.
 - Compose `repo` still runs the previously authorized c829a5f build. App up,
   PostgreSQL healthy. Startup scan completed 2026-10-12 21:53:38 UTC
   (2026-10-13 00:53:38 Moscow), including one isolated HH ConnectError.
+- Latest runtime log (2026-10-13 05:08:33 UTC) reproduced `KeyError: 'found'`
+  in old HH aggregation after recovery. Scan completed, but that source result
+  was discarded. Local 5c4b959/443aaeb fixes this exact transition with a
+  regression; deploy remains gated by owner agreement.
 - Remote draft PR #18 is open at `f9ed986`; its Python/Docker/secret CI passed.
   Those results do not cover subsequent local commits. Main/formal release
   remains v3.5.6. No new push, merge, deployment or release authorized.
