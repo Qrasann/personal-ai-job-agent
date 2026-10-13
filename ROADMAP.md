@@ -1,5 +1,9 @@
 # Roadmap
 
+Telegram Channel Watch stage1 implemented locally: per-user subscriptions,
+scoped Bot API ingestion, statistics and PostgreSQL replay dedupe (702 tests).
+Next parsing/provenance; access/history limitations documented.
+
 Last reviewed: 2026-10-14
 
 Latest direct visa evidence stage:676 unit/679 PostgreSQL; safety checks passed.

@@ -1,5 +1,18 @@
 # Current State
 
+## Telegram watcher stage 1 — 2026-10-14
+
+Implemented /channels subscriptions (add/on/off/remove, career/relocation/both),
+Bot API post/caption routing for selected users only, persistent statistics and
+SeenMessage replay suppression. Both profiles use existing scoring/persistence;
+pause/source-disable respected. Alias subscriptions union scopes. No migration,
+production change, account login/history scraping or external application.
+Unit698/4skipped, PostgreSQL702; watcher targeted23 including real PostgreSQL
+reload and dual-profile matches. Compileall/secret/diff passed. Help entry added;
+see developer/TELEGRAM_WATCH for access/transaction/retry limitations.
+Next safe stage: labeled role/company/location parsing and forwarded-channel
+provenance; then edited-post/retry handling. Deployment approval remains separate.
+
 Verified implementation06fe88c; separate Docker imagea80ee8bdf948 built,
 Python3.12 compile/import/evidence smoke passed without networking. Latest676
 unit/679PostgreSQL and safety checks passed. Owner deployment approval requested
