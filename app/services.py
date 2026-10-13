@@ -342,6 +342,9 @@ async def ingest_and_match(
 def _error_text(exc: Exception) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
         return f"HTTP {exc.response.status_code}"
+    if isinstance(exc, httpx.TransportError):
+        # HTTPX may include a full request URL (and its query) in the message.
+        return type(exc).__name__
     message = str(exc).strip()
     return message or type(exc).__name__
 
@@ -480,14 +483,28 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 _aggregate_source(summary["sources"], adapter.source_id, info)
                 cache_label = " (кэш)" if cache_hit else ""
                 await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · {duration_ms / 1000:.1f} с")
+                processing_errors = 0
                 for index, job in enumerate(jobs, start=1):
-                    counters = await ingest_and_match(bot, job, only_user_id=user.id, only_search_profile_id=search.id)
-                    for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
-                        value = counters.get(key, 0)
-                        summary[key] += value
-                        search_summary[key] += value
+                    try:
+                        counters = await ingest_and_match(bot, job, only_user_id=user.id, only_search_profile_id=search.id)
+                    except Exception as exc:
+                        processing_errors += 1
+                        log.error("source %s vacancy processing failed for search %s (%s)",
+                                  adapter.source_id, search.id, type(exc).__name__)
+                        continue
+                    else:
+                        for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
+                            value = counters.get(key, 0)
+                            summary[key] += value
+                            search_summary[key] += value
                     if index % 5 == 0 or index == len(jobs):
                         await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
+                if processing_errors:
+                    info.update(partial=True, processing_errors=processing_errors)
+                    summary["sources"][adapter.source_id]["partial"] = True
+                    summary["sources"][adapter.source_id]["processing_errors"] = (
+                        summary["sources"][adapter.source_id].get("processing_errors", 0) + processing_errors
+                    )
             except Exception as exc:
                 silent_hh_connect_error = (
                     discovery_error is exc
@@ -495,7 +512,11 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                     and isinstance(exc, httpx.ConnectError)
                 )
                 if not silent_hh_connect_error:
-                    log.exception("source %s failed for search %s", adapter.source_id, search.id)
+                    if isinstance(exc, httpx.TransportError):
+                        log.error("source %s transport failure for search %s (%s)",
+                                  adapter.source_id, search.id, type(exc).__name__)
+                    else:
+                        log.exception("source %s failed for search %s", adapter.source_id, search.id)
                 error = _error_text(exc)
                 if silent_hh_connect_error:
                     info = {"skipped": "ConnectError", "duration_ms": duration_ms}
@@ -509,7 +530,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
 
 async def scan_all(bot: Bot) -> None:
     for user in await repo.list_active_users():
-        await scan_for_user(bot, user.id)
+        try:
+            await scan_for_user(bot, user.id)
+        except Exception as exc:
+            log.error("scheduled scan failed for user %s (%s); continuing", user.id, type(exc).__name__)
 
 
 async def refresh_match_score(match, job, *, technical_text: str = ""):
@@ -699,6 +723,12 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
     match = await repo.get_match(match_id)
     if not match or match.user_id != user_id:
         raise RuntimeError("Match не найден")
+    # The applicant token is a single global owner credential, not per-user
+    # OAuth. Never let another registered user submit through that identity.
+    owner_chat = settings.telegram_admin_chat_id.strip()
+    owner = await repo.get_user_by_chat(owner_chat) if owner_chat else None
+    if not owner or owner.id != user_id:
+        raise RuntimeError("HH private applicant API доступен только owner-профилю")
     job = await repo.get_job(match.job_id)
     if not job:
         raise RuntimeError("Вакансия не найдена")

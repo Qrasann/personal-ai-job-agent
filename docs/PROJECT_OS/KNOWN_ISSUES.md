@@ -1,5 +1,22 @@
 # Known Issues
 
+## 2026-10-14 — security and reliability audit notes
+
+- Fixed locally: a scheduled `scan_all` exception for one user aborted later
+  users; Telegram user routes accepted group chat updates when bound to a chat
+  ID; global HH applicant actions lacked owner-profile enforcement; source
+  transport errors and HH API error bodies could expose untrusted response or
+  URL text; one malformed vacancy aborted later results in its source. Each has
+  a reproducing regression test.
+- HH ConnectError remains an upstream/environment-dependent condition. The
+  current app skips HH for a bounded cooldown and continues other sources;
+  there is no evidence yet to attribute a live failure to DNS, TLS, proxy or
+  HH itself. No bypass or retry loop was added.
+- A complete production security review still needs a separately authorized
+  runtime check. Local review covered Telegram routing, HH applicant boundary,
+  source errors, watcher flow, Docker/CI configuration and relevant tests; it
+  did not audit production credentials or run active external probes.
+
 ## Current gates — 2026-10-14
 
 - Channel Watcher code is locally tested, but no actual selected-channel Bot

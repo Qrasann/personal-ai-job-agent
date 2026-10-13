@@ -1,5 +1,14 @@
 # Decisions
 
+## 2026-10-14 — scoped reliability and security boundaries
+
+Candidate Telegram commands and callbacks are private-chat actions; selected
+Bot API channel posts retain their separate watcher route. The one configured
+HH applicant credential belongs to the owner profile until per-user OAuth is
+designed and approved. A failed vacancy is isolated within its source, with
+partial status retained; transport errors are reported by type and HTTP status
+without untrusted URLs or response bodies.
+
 ## 2026-10-14 — roadmap reconciliation
 
 The complete original v3.5.1–v4.x product vision remains in canonical root

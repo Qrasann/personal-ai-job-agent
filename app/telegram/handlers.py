@@ -40,6 +40,10 @@ from app.telegram.multicommand import (
 )
 
 router = Router()
+# Candidate data and account actions belong to private chats. Channel posts
+# use their own observer and remain available to the selected-channel watcher.
+router.message.filter(F.chat.type == "private")
+router.callback_query.filter(F.message.chat.type == "private")
 _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
 _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
 

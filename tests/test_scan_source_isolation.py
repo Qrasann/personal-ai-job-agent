@@ -32,6 +32,24 @@ def configure_scan(monkeypatch, sources, priorities=None):
         monkeypatch.setattr(services, adapter, factory)
 
 
+def test_scheduled_scan_continues_after_one_user_fails(monkeypatch, caplog):
+    users = [SimpleNamespace(id=1), SimpleNamespace(id=2)]
+    seen = []
+
+    monkeypatch.setattr(services.repo, "list_active_users", AsyncMock(return_value=users))
+
+    async def scan(bot, user_id):
+        seen.append(user_id)
+        if user_id == 1:
+            raise RuntimeError("temporary database failure")
+
+    monkeypatch.setattr(services, "scan_for_user", scan)
+    asyncio.run(services.scan_all(object()))
+
+    assert seen == [1, 2]
+    assert "scheduled scan failed for user 1" in caplog.text
+
+
 def test_source_timeout_and_error_do_not_discard_successful_discovery(monkeypatch):
     cancelled = []
     matched = []
@@ -76,6 +94,33 @@ def test_source_timeout_and_error_do_not_discard_successful_discovery(monkeypatc
     assert all("duration_ms" in info for info in summary["sources"].values())
     assert alerts.await_count == 2
     assert set(summary["searches"]["11"]["sources"]) == {"hh", "remoteok", "arbeitnow"}
+
+
+def test_one_bad_vacancy_does_not_discard_later_results_from_source(monkeypatch):
+    class Source:
+        source_id = name = "remoteok"
+
+        async def discover(self, _context):
+            return [
+                NormalizedJob(source="remoteok", source_job_id="bad", title="DevOps"),
+                NormalizedJob(source="remoteok", source_job_id="good", title="DevOps"),
+            ]
+
+    async def ingest(_bot, job, **_kwargs):
+        if job.source_job_id == "bad":
+            raise ValueError("malformed vacancy")
+        return {"processed": 1}
+
+    configure_scan(monkeypatch, {"remoteok": Source})
+    monkeypatch.setattr(services, "ingest_and_match", ingest)
+    monkeypatch.setattr(services, "notify_chat", AsyncMock())
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert summary["processed"] == 1
+    assert summary["sources"]["remoteok"]["found"] == 2
+    assert summary["sources"]["remoteok"]["partial"] is True
+    assert summary["searches"]["11"]["sources"]["remoteok"]["processing_errors"] == 1
 
 
 def test_ingestion_respects_source_priority_when_discovery_finishes_out_of_order(monkeypatch):

@@ -46,6 +46,12 @@ idempotent context-delta import. Current Context Watch does not imply live
 access to other chats. `docs/PROJECT_OS/` stays the portable handoff; this file
 is its sole canonical roadmap.
 
+Local reliability/security follow-up (2026-10-14): per-user scheduled scan
+isolation, private-chat Telegram user routes, owner-only global HH applicant
+actions and safe source error summaries are implemented with regressions.
+One failed vacancy now preserves later results from the same source.
+Runtime acceptance and live HH ConnectError diagnosis remain open.
+
 ## Immediate gates
 
 1. Validate selected Bot API channels and owner-approved runtime only after

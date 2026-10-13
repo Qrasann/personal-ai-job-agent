@@ -344,6 +344,27 @@ def test_hh_public_api_skips_immediately_on_connect_error(monkeypatch):
     assert client.calls == 1
 
 
+def test_hh_api_error_does_not_repeat_untrusted_response_body(monkeypatch):
+    import httpx
+    from app.providers import hh as hh_provider
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def request(self, method, url, **_kwargs):
+            request = httpx.Request(method, url)
+            return httpx.Response(403, json={"debug": "token=private-value"}, request=request)
+
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: Client())
+    with pytest.raises(hh_provider.HHAPIForbidden) as error:
+        asyncio.run(hh_provider.HHClient().search("DevOps"))
+    assert str(error.value) == "HH API 403"
+
+
 def test_hh_public_web_search_skips_immediately_on_connect_error(monkeypatch):
     import httpx
     from app.providers import hh as hh_provider

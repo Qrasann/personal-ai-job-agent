@@ -1,5 +1,21 @@
 # Handoff
 
+## 2026-10-14 — local reliability/security follow-up
+
+This checkpoint follows `99ea166` with fixes in services, HH provider and
+Telegram routers plus regression tests. Preserve the
+two unrelated untracked roadmap proposal files. `scan_all` continues after one
+user fails. Telegram user actions are private-chat only; channel-post watcher
+updates remain accepted. `apply_match` requires the configured owner profile
+before using the global HH applicant token. HTTP transport errors/HH API bodies
+are reduced to safe classes/statuses in user-facing alerts. No production or
+external action was taken. A failed vacancy now leaves later jobs in the same
+source available and marks that source partial. Final local verification:
+730 unit passed / 4 skipped and 734 passed with isolated PostgreSQL;
+compileall, secret scan and diff check passed.
+Do not deploy/push/release without separate authorization. Real HH ConnectError
+cause and Bot API channel acceptance remain unresolved.
+
 ## Night development checkpoint — 2026-10-14
 
 Current source branch still has `VERSION=3.5.7`; root roadmap now carries

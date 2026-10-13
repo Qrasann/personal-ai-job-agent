@@ -93,8 +93,8 @@ class HHClient:
                     "можно продолжить только через обычную публичную страницу HH, если она доступна без проверки."
                 )
             if response.status_code == 403:
-                raise HHAPIForbidden(f"HH API 403: {body}")
-            raise HHError(f"HH {response.status_code}: {body}")
+                raise HHAPIForbidden("HH API 403")
+            raise HHError(f"HH API HTTP {response.status_code}")
         return response
 
     async def search(self, text: str, page: int = 0, per_page: int = 20, area: str | None = None) -> dict:

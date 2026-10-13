@@ -1,5 +1,23 @@
 # Tasks
 
+## 2026-10-14 — reliability and security follow-up
+
+- [x] Isolate scheduled scan failures per user, with a regression proving the
+  next active user is scanned after an exception.
+- [x] Restrict Telegram candidate commands/callbacks to private chats and the
+  global HH applicant token to the configured owner profile; cover both gates.
+- [x] Remove raw HTTP transport messages and HH API bodies from source alerts.
+- [x] Preserve later vacancies from a successful source after one vacancy
+  fails processing; record a partial source and error count.
+- [ ] **P0, owner/runtime gate:** after explicit deployment authorization,
+  verify private-chat commands and selected Bot API channel posts in the real
+  runtime. Confirm a group cannot access candidate data or invoke a callback.
+- [ ] **P1, security:** review legacy HH manual reply flow and any future
+  per-user OAuth before enabling private actions for additional users.
+- [ ] **P1, reliability:** measure HH ConnectError frequency in the authorized
+  runtime; the current bounded cooldown isolates HH but does not repair an
+  upstream DNS/TLS/proxy failure.
+
 ## Night development checkpoint — 2026-10-14
 
 - [x] Reconcile canonical roadmap with current v3.5.7 code/tests and original

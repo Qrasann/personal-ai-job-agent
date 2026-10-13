@@ -13,6 +13,8 @@ from app.sources.registry import IMPLEMENTED, build_source_plan
 from app.telegram.settings_ui import countries_keyboard, geography_keyboard, next_policy, relocation_keyboard, settings_root_keyboard, source_keyboard, strategy_keyboard
 
 router = Router(name="search-control")
+router.message.filter(F.chat.type == "private")
+router.callback_query.filter(F.message.chat.type == "private")
 
 
 async def _user_message(message: Message):

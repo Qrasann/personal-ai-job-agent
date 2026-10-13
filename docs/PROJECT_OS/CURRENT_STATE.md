@@ -1,5 +1,15 @@
 # Current State
 
+## 2026-10-14 — reliability and security follow-up
+
+Local branch now isolates scheduled scans by user. Telegram user routes require
+private chats; Bot API channel-post ingestion remains enabled for the selected
+watcher. A global HH applicant token is restricted to the configured owner
+profile at the service boundary. Transport exception messages and HH API error
+bodies are no longer exposed in source alerts. Per-vacancy processing failures
+now preserve later results and mark the source partial. These changes have local tests;
+production runtime and external service behavior have not been revalidated.
+
 ## Night development checkpoint — 2026-10-14
 
 Root roadmap reconciled with implementation and complete original product

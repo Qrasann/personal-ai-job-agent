@@ -1,5 +1,17 @@
 # Codex Brief
 
+## 2026-10-14 — local reliability and security checkpoint
+
+Scheduled scans now continue after one user's scan raises. Telegram candidate
+commands and callbacks route only in private chats; selected channel posts remain
+available. HH applicant actions require the configured owner profile before any
+outbound request. Source transport errors and HH API response bodies no longer
+appear in user-facing error text. A failed vacancy no longer prevents later
+vacancies from the same successful source from being processed; the source is
+marked partial. Regression tests cover each case. This is
+local code only; no runtime deployment, outbound application or release occurred.
+See the newest DEVELOPMENT_LOG and HANDOFF entries for exact verification.
+
 ## Night development checkpoint — 2026-10-14
 
 Root `ROADMAP.md` now maps original v3.5.1–v4.x intent to verified code and

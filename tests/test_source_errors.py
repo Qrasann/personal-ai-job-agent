@@ -14,3 +14,9 @@ def test_source_error_reports_http_status():
     response = services.httpx.Response(503, request=request)
     error = services.httpx.HTTPStatusError("", request=request, response=response)
     assert services._error_text(error) == "HTTP 503"
+
+
+def test_transport_error_does_not_expose_request_url_or_credentials():
+    request = services.httpx.Request("GET", "https://feed.example/jobs?token=private-value")
+    error = services.httpx.ConnectError("connection to https://feed.example/jobs?token=private-value failed", request=request)
+    assert services._error_text(error) == "ConnectError"

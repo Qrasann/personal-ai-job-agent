@@ -1,3 +1,31 @@
+## 2026-10-14 — scheduled scan and security boundaries
+
+Started at `99ea166` on `feature/v3.5.7-international-market-coverage`, 46
+commits ahead of origin; tracked tree clean, two owner roadmap proposals
+untracked and preserved. Read BRIEF, current state/handoff/tasks/known issues,
+canonical roadmap and proposals; inspected source adapters, scan orchestration,
+watcher, Telegram routes, HH private actions, test DB configuration and CI.
+
+Reproduced four local failures before fixing them: `scan_all` stopped at the
+first failing user; group chat updates could reach candidate commands/callbacks
+through a registered chat ID; an arbitrary registered user could invoke
+`apply_match` with the global HH applicant credential when the private API was
+enabled; and a bad vacancy stopped processing later vacancies from its source.
+Transport exceptions could also place a full URL/query in source alerts, and
+HH API error bodies were forwarded into errors. Added regressions, then fixed
+each at the narrowest service/router boundary. Source summaries now show
+`partial` and `processing_errors` while preserving successful counts. HH
+ConnectError remains an isolated bounded cooldown; no unsupported network
+root cause or CAPTCHA bypass is claimed.
+
+Final local checks: 730 unit passed / 4 isolated-DB skips; 734 passed with
+documented isolated PostgreSQL on `docker-compose.test.yml`; `compileall`,
+secret scan and `git diff --check` passed. No production Compose/DB/volumes,
+Telegram runtime, external HH action, deployment, VERSION or publication was
+changed. Real Bot API channel acceptance, authorized runtime verification and
+upstream HH ConnectError diagnosis remain open. The canonical roadmap was
+annotated without changing proposed version labels.
+
 ## 2026-10-14 — night development: watcher isolation and roadmap sync
 
 Starting branch `feature/v3.5.7-international-market-coverage` at `8781081`,
