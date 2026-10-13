@@ -1,8 +1,12 @@
 # Roadmap
 
-Last reviewed: 2026-10-13
+Last reviewed: 2026-10-14
 
-Latest local work: HH recovery (`5c4b959`), expiry cards (`c516a77`), bounded
+Latest stage: source-evidence quality fixes validated with 631 unit / 3 skipped,
+634 PostgreSQL and safety checks. Telegram ingestion evidence is next. Runtime
+update/acceptance remains pending; v3.5.7 stays active.
+
+Historical local work: HH recovery (`5c4b959`), expiry cards (`c516a77`), bounded
 remote queries (`e7b56f6`), GE public feed (`5044e90`), requirement section parsing
 (`5d02cb2`), and Unicode explicit role/resume tokens. Latest unit 606 / 3 skipped,
 PostgreSQL 609 and safety checks passed; separate Docker/Python 3.12 validation

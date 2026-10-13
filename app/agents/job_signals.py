@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass, field
 
 from app.database.models import Job
+from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 
 
@@ -56,6 +57,9 @@ def analyze_job_signals(job: Job) -> JobSignals:
         if any(re.search(pattern, text) for pattern in no_remote_patterns):
             remote_eligibility = "no"
             remote_reason = "remote ограничен страной/правом на работу"
+        elif remote_residence_requirement(job.description) or restricted_remote_scope(job.remote_scope):
+            remote_eligibility = "uncertain"
+            remote_reason = "remote с ограничениями источника — доступность из вашей страны нужно проверить"
         elif any(x in text for x in yes_remote_terms):
             remote_eligibility = "yes"
             remote_reason = "remote worldwide"

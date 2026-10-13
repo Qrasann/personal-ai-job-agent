@@ -4,6 +4,7 @@ import html
 from datetime import datetime
 
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
+from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
 from app.domain.vacancy_availability import vacancy_availability_lines
 
 
@@ -39,6 +40,13 @@ def _remote_scope(job, details: dict) -> str:
     unknown_scope = normalized_scope in {"", "unknown", "unspecified", "none", "n/a"}
     if not is_remote and unknown_scope:
         return ""
+    requirement = remote_residence_requirement(str(details.get("description") or job.description or ""))
+    if requirement:
+        # Re-evaluate the complete text for old cached worldwide rows too.
+        prefix = ""
+        if restricted_remote_scope(scope) and not requirement.casefold().startswith(scope.rstrip("…").casefold()):
+            prefix = _clip(scope, 45) + "; "
+        return f"{prefix}в описании: {_clip(requirement, 100)}; найм в вашей стране нужно подтвердить"
     if normalized_scope in {"worldwide", "global", "anywhere"}:
         return "по всему миру указано источником; возможность найма в вашей стране нужно подтвердить"
     if unknown_scope:
@@ -76,13 +84,21 @@ def _salary(job, details: dict, fallback_salary_text: str = "") -> str:
         )
         if part
     )
-    return format_salary(
+    formatted = format_salary(
         details.get("salary_from") if details.get("salary_from") is not None else job.salary_from,
         details.get("salary_to") if details.get("salary_to") is not None else job.salary_to,
         details.get("salary_currency") or job.salary_currency,
         fallback_text=salary_text,
         period=details.get("salary_period") or getattr(job, "salary_period", None),
     )
+    if formatted != "не указана":
+        return formatted
+    evidence = details.get("source_salary_text")
+    if isinstance(evidence, str):
+        text = " ".join(clean_html_text(evidence[:2000]).split())
+        if text:
+            return "по источнику: " + _clip(text, 240)
+    return formatted
 
 
 def _published(value: str) -> str:

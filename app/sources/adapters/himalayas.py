@@ -9,6 +9,7 @@ import httpx
 
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.remote_evidence import remote_residence_requirement
 from app.domain.vacancy_availability import listing_expiry_metadata, source_datetime
 from app.geo.countries import normalize_country
 from app.sources.base import JobSource, SourceContext
@@ -129,8 +130,10 @@ class HimalayasSource(JobSource):
             if parsed_url.scheme != "https" or parsed_url.hostname not in {"himalayas.app", "www.himalayas.app"}:
                 continue
 
+            description = clean_html_text(str(row.get("description") or row.get("excerpt") or ""))
+            residence_requirement = remote_residence_requirement(description)
             location_scope = (
-                "worldwide"
+                residence_requirement or "worldwide"
                 if worldwide
                 else ", ".join(dict.fromkeys(restrictions)) if restrictions else "unknown"
             )
@@ -155,7 +158,7 @@ class HimalayasSource(JobSource):
                     source_job_id=str(row.get("guid") or application_link),
                     title=str(row["title"]).strip(),
                     company=str(row.get("companyName") or "").strip(),
-                    description=clean_html_text(str(row.get("description") or row.get("excerpt") or "")),
+                    description=description,
                     url=application_link,
                     country=None if worldwide or not restrictions else matched_countries[0],
                     work_mode="remote",

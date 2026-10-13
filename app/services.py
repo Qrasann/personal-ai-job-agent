@@ -610,6 +610,11 @@ async def get_vacancy_details(
     )
 
     raw = (ref.raw or {}) if ref else {}
+    source_salary_text = raw.get("source_salary_text")
+    if isinstance(source_salary_text, str) and source_salary_text.strip():
+        # Display-only source evidence: never send decimal/hourly or ambiguous
+        # amounts through the legacy HH numeric salary fallback.
+        details["source_salary_text"] = source_salary_text[:2000]
     if isinstance(raw.get("availability"), dict):
         details["availability"] = dict(raw["availability"])
     if ref and ref.source_id == "himalayas":
