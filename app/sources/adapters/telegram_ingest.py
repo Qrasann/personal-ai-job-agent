@@ -25,7 +25,11 @@ def _number(value: str | None) -> int | None:
     # punctuation would silently change the source value or its units.
     if not value or "." in value or "," in value:
         return None
-    return int(value.replace(" ", "").replace("\u00a0", ""))
+    compact = value.replace(" ", "").replace("\u00a0", "")
+    if len(compact) > 10:
+        return None
+    number = int(compact)
+    return number if 0 < number <= 2**31 - 1 else None
 
 
 def _remote(text: str) -> bool:

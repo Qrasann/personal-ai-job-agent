@@ -1,5 +1,36 @@
 ## 2026-10-12 — Relocation-first excludes domestic onsite vacancies
 
+## Current checkpoint — 2026-10-14
+
+Source 3.5.7, feature/v3.5.7-international-market-coverage. Previous six stages
+remain complete. New stages: af1ff56 (source salary display and remote limit
+precedence), 76b5661 (Telegram unknown/negative support and explicit salary
+units), then malformed numeric salary bounds (obtain final HEAD from Git).
+Latest complete candidate: 658 unit passed / 3 skipped, isolated PostgreSQL
+661 passed; compileall, secret scan and git diff --check passed.
+No scoring formula/weight/65-threshold changes or schema migrations.
+
+Optional NaN/infinite/fractional/out-of-storage-range source amounts now remain
+unknown instead of aborting source batches or overflowing PostgreSQL Integer.
+Telegram huge integers likewise remain source text. Valid adjacent jobs and
+representable whole amounts survive. New numeric regressions: 12 cases.
+Earlier explicit residence/country constraints outrank broad worldwide prose;
+source salary text is bounded/escaped and display-only. Telegram support
+absence is unknown and explicit refusals remain false.
+
+Existing Compose repo app up/PostgreSQL healthy at last read; no rebuild,
+update or publication performed. Last identified runtime build c829a5f.
+Deployment approval/real startup/source/scoped Telegram acceptance remain
+pending. Do not close v3.5.7 or skip to v3.6 until mandatory acceptance.
+Next decision: owner approval for the latest tested candidate, then recheck
+clean Git, update only approved source and validate startup plus /sources,
+/jobs relocation, /jobs relocation below and detailed cards. Independent
+AM employer-feed research remains open; prior researcher hit usage limit
+without delivering a verified integration candidate, so none was invented.
+Context Watch placeholder hash recorded privately; no new synchronized delta
+or live ChatGPT access. MODEL_ROUTING was read; supported job_scout performed
+read-only sync audit. No expensive reviewer was needed.
+
 ## 2026-10-14 — Telegram source evidence
 
 Telegram ingestion now uses shared tri-state support evidence: absence unknown,

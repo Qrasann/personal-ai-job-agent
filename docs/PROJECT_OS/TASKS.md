@@ -2,13 +2,17 @@
 
 ## Current checkpoint — 2026-10-14
 
-Source 3.5.7; branch feature/v3.5.7-international-market-coverage. Earlier six
-stages complete. af1ff56 fixes source salary display and remote-limit precedence;
-Telegram evidence stage completed next. Latest unit 646 / 3 skipped,
-PostgreSQL 649, compileall/secret/diff passed. Runtime last read up/PG healthy;
-no new deployment/publication. See HANDOFF for exact continuation/limitations.
-Context Watch has no synchronized delta. Next: malformed numeric source values;
-v3.5.7 real Telegram/source acceptance still requires approved runtime update.
+Source 3.5.7, feature/v3.5.7-international-market-coverage. Previous six stages
+remain complete. New stages: af1ff56 (source salary display and remote limit
+precedence), 76b5661 (Telegram unknown/negative support and explicit salary
+units), then malformed numeric salary bounds (obtain final HEAD from Git).
+Latest complete candidate: 658 unit passed / 3 skipped, isolated PostgreSQL
+661 passed; compileall, secret scan and git diff --check passed.
+No scoring formula/weight/65-threshold changes or schema migrations.
+
+See BRIEF/HANDOFF for implementation limits and pending deployment/acceptance.
+Next: approved runtime validation; independent Armenian employer-feed research
+remains open. Historical counts below belong to their recorded stages.
 
 ## v3.5.6 candidate maintenance — EURES and target markets
 - [x] Reproduce EURES TLS body-read failure with default compressed encoding

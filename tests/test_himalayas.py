@@ -81,6 +81,22 @@ def test_himalayas_accepts_documented_country_object_shape():
     assert jobs[0].country == "AM"
 
 
+@pytest.mark.parametrize("amount", [float("nan"), float("inf"), -float("inf"), 2**31, 10**400, True, -1, 0, 20.5])
+def test_invalid_optional_salary_does_not_lose_valid_neighboring_jobs(amount):
+    jobs = HimalayasSource.parse_payload({"jobs": [
+        listing("invalid-salary", "DevOps Engineer", [], minSalary=amount, maxSalary=None),
+        listing("valid", "DevOps Engineer", [], minSalary=72000),
+    ]}, SourceContext(user_id=1, queries=["DevOps Engineer"]))
+    assert [job.source_job_id for job in jobs] == ["invalid-salary", "valid"]
+    assert jobs[0].salary_from is None
+    assert jobs[1].salary_from == 72000
+
+
+def test_storage_representable_salary_boundary_is_preserved():
+    assert HimalayasSource._amount(2**31 - 1) == 2**31 - 1
+    assert HimalayasSource._amount(72000.0) == 72000
+
+
 @pytest.mark.parametrize("expiry", [1893456000, 1893456000000, "2030-01-01T00:00:00Z"])
 def test_himalayas_preserves_listing_expiry_without_changing_publication_or_match_signals(expiry):
     context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])

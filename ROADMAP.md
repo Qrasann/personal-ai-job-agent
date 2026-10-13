@@ -2,10 +2,10 @@
 
 Last reviewed: 2026-10-14
 
-Latest stage: source-evidence quality fixes validated with 631 unit / 3 skipped,
-634 PostgreSQL and safety checks. Telegram ingestion evidence is now corrected (646 unit / 649 PostgreSQL);
-malformed numeric source handling follows. Runtime
-update/acceptance remains pending; v3.5.7 stays active.
+Latest stages: source salary/remote evidence af1ff56, Telegram evidence
+76b5661, numeric metadata resilience. Latest unit 658 / 3 skipped,
+PostgreSQL 661; compileall/secret/diff passed. Runtime update/acceptance remains
+pending; v3.5.7 stays active. No new Armenian feed verified yet.
 
 Historical local work: HH recovery (`5c4b959`), expiry cards (`c516a77`), bounded
 remote queries (`e7b56f6`), GE public feed (`5044e90`), requirement section parsing

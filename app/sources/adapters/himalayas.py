@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import re
 from urllib.parse import urlparse
 
@@ -80,6 +81,12 @@ class HimalayasSource(JobSource):
     @staticmethod
     def _amount(value: object) -> int | None:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        # Existing PostgreSQL salary columns are signed 32-bit Integer.
+        # Invalid optional metadata must not abort discovery or overflow writes.
+        if not 0 < value <= 2**31 - 1:
             return None
         number = int(value)
         return number if number == value and number > 0 else None

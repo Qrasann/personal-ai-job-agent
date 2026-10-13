@@ -37,3 +37,11 @@ def test_ambiguous_or_decimal_salary_is_source_text_without_numeric_inference(te
 def test_explicit_whole_monthly_salary_keeps_currency_period_and_range():
     job = parse("USD 3000-4500 per month")
     assert (job.salary_from, job.salary_to, job.salary_currency, job.salary_period) == (3000, 4500, "USD", "monthly")
+
+
+@pytest.mark.parametrize("amount", [str(2**31), "9" * 5000])
+def test_unrepresentable_integer_salary_remains_display_only(amount):
+    job = parse(f"USD {amount} monthly")
+    assert job.salary_from is None
+    assert job.salary_currency is None
+    assert job.raw["source_salary_text"].startswith("USD ")
