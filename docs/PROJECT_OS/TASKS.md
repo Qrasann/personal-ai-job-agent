@@ -87,6 +87,14 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Make explicit Georgian/Armenian role/resume text tokenization Unicode
+  aware in Georgia discovery/matching. Preserve generic exclusions, technical
+  punctuation, weights/caps/threshold and supplied preferences; no translation
+  aliases invented. Targeted 48 passed; full unit 606 / 3 skipped, PostgreSQL 609;
+  compileall/secret/diff pass. Separate Docker/Python 3.12 validation passed.
+  Working runtime remains c829a5f pending owner deployment agreement.
+- [ ] Owner authorizes working-runtime candidate update, then real Telegram
+  and new source/scoped relocation acceptance; keep separate from unit tests.
 - [x] Recognize exact public Devexperts `What we expect from candidates`
   required and `As a Plus` preferred section headings. Negative near-match,
   HTML/inline, and optional-coverage regressions pass; vocabulary, weights

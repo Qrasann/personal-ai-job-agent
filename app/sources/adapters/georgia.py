@@ -51,7 +51,9 @@ CITY_NAMES = (
 
 
 def _tokens(text: str) -> set[str]:
-    return set(re.findall(r"[a-zа-яё0-9+#.-]+", text.casefold()))
+    # Unicode words admit owner-selected Georgian/Armenian role text while
+    # preserving the original treatment of technical punctuation/underscores.
+    return set(re.findall(r"(?:[^\W_]|[+#.-])+", text.casefold()))
 
 
 def _matches(title: str, queries: list[str] | None) -> bool:

@@ -2,13 +2,14 @@
 
 Last reviewed: 2026-10-13
 
-Latest local work: HH recovery (`5c4b959`), listing-expiry cards (`c516a77`),
-bounded remote support queries (`e7b56f6`), GE public feed (`5044e90`) and exact
-required/preferred section parsing. Latest targeted heading/parser/source 80
-passed; shared unit 585 / 3 skipped and PostgreSQL 588, safety checks passed.
-New work is not deployed. Runtime c829a5f remains healthy; startup completed
-21:53:38 UTC. Draft PR #18 is at remote f9ed986 with CI for that commit only.
-Owner acceptance remains pending. Milestones below retain historical evidence.
+Latest local work: HH recovery (`5c4b959`), expiry cards (`c516a77`), bounded
+remote queries (`e7b56f6`), GE public feed (`5044e90`), requirement section parsing
+(`5d02cb2`), and Unicode explicit role/resume tokens. Latest unit 606 / 3 skipped,
+PostgreSQL 609 and safety checks passed; separate Docker/Python 3.12 validation
+passed. New work is not deployed. Runtime c829a5f remains healthy; startup
+completed 21:53:38 UTC. Draft PR #18 remains at remote f9ed986 with CI only for
+that commit. Next gate is owner-approved runtime update and real source/scoped
+Telegram acceptance before v3.6. Milestones below retain historical evidence.
 
 ## Progress at a glance
 

@@ -12,3 +12,8 @@ Draft PR #18 at f9ed986 has passing CI for that remote commit only.
 
 Full previous state history is preserved in
 [history/CURRENT_STATE_2026-10-13_c829a5f.md](history/CURRENT_STATE_2026-10-13_c829a5f.md).
+
+Latest local candidate checks: 606 unit passed / 3 skipped, isolated PostgreSQL
+609 passed; compileall/secret/diff and separate Docker/Python 3.12 validation
+passed. New work is not deployed. See HANDOFF.md for local commit anchors and
+explicit deployment/Telegram acceptance gate.

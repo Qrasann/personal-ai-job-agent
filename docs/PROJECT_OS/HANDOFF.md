@@ -6,7 +6,8 @@ Updated: 2026-10-13 (Europe/Moscow)
 
 - Source 3.5.7 on `feature/v3.5.7-international-market-coverage`.
 - Latest completed local stages `5c4b959` (HH recovery), `c516a77` (expiry),
-  `e7b56f6` (remote queries), `5044e90` (GE public feed); obtain current HEAD with `git rev-parse --short HEAD`
+  `e7b56f6` (remote queries), `5044e90` (GE public feed),
+  `5d02cb2` (exact required/preferred sections); obtain current HEAD with `git rev-parse --short HEAD`
   and inspect `git status --short`. Resumed clean; preserve in-flight stages.
 - Runtime remains the c829a5f Compose `repo` build from 00:52 Moscow. App up,
   PostgreSQL healthy; startup scan completed at 21:53:38 UTC / 00:53:38 Moscow.
@@ -63,15 +64,25 @@ targeted tests, with existing 85/15 technical weights intact. Nontechnical
 conditions stay unscored. Alternative-language groups remain a known v3.6 gap;
 do not turn a required-section Python mention into an individually mandatory
 Python hiring claim. Full unit 585 / 3 skipped, PostgreSQL 588 and safety checks
-passed. Unicode query-token support is the next local stage.
+passed. Unicode query-token support is now implemented as the next completed local
+stage: explicit Georgian/Armenian words tokenize in Georgia discovery, role
+matching and resume selection. English/Russian punctuation/generic exclusions,
+weights/caps and threshold remain unchanged; no translation or preference
+injection. Targeted multilingual/Georgia/resume/Staff suite 48 passed. Latest
+full unit 606 / 3 skipped, PostgreSQL 609, compileall/secret/diff passed. Separate
+local validation image built; Python 3.12 import/compile passed with no network.
 
 ## Next concrete work
 
-1. Finish Unicode-aware tokens for explicit Georgian/Armenian role queries,
-   preserving existing matching/scorer semantics and request bounds.
-2. Continue AM/GE relevance/curated aliases and source-evidence acceptance.
-3. Keep owner-only post-filter Telegram acceptance pending separately. Do not
-   close v3.5.7 or move versions based on HTTP 200/automated tests alone.
+1. Obtain owner agreement for updating the working Compose repo to this
+   tested candidate (latest user request makes production deployment a gate).
+   Do not rebuild/update runtime until agreement is explicit.
+2. After update, verify startup scan and source counts; owner checks /sources,
+   /jobs relocation, /jobs relocation below and updated /job cards.
+3. Evaluate real source relevance without inflating ratings; complete required
+   v3.5.7 acceptance before moving to v3.6. Curated cross-language translation
+   aliases remain unverified; Unicode support handles supplied same-language
+   text, not automatic translations.
 
 After v3.5.7 obligations: v3.6 candidate/vacancy fit, v3.7 application workspace,
 v3.8 recruiter/interview support, then v4 agent/multi-user/product work per

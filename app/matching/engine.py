@@ -35,12 +35,17 @@ _RESUME_GENERIC_TOKENS = {
     "опыт", "работа", "года", "лет",
 }
 
+# Unicode word characters, with the same technical punctuation and underscore
+# separation as the historical Latin/Cyrillic tokenizer. No translation or role
+# alias is inferred; the owner still supplies the actual query text.
+_ROLE_TOKEN_PATTERN = r"(?:[^\W_]|[+#.-])+"
+
 
 def _resume_content_overlap(job: Job, resume: ResumeProfile) -> int:
     job_tokens = {
         token
         for token in re.findall(
-            r"[a-zа-яё0-9+#.-]+",
+            _ROLE_TOKEN_PATTERN,
             f"{job.title} {job.description}".casefold(),
         )
         if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
@@ -48,7 +53,7 @@ def _resume_content_overlap(job: Job, resume: ResumeProfile) -> int:
     resume_tokens = {
         token
         for token in re.findall(
-            r"[a-zа-яё0-9+#.-]+",
+            _ROLE_TOKEN_PATTERN,
             str(resume.content or "").casefold(),
         )
         if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
@@ -68,7 +73,7 @@ def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
     ranked: list[tuple[int, int]] = []
     for resume in available:
         score = 0
-        for token in re.findall(r"[a-zа-яё0-9+#.-]+", resume.role.casefold()):
+        for token in re.findall(_ROLE_TOKEN_PATTERN, resume.role.casefold()):
             if len(token) >= 3 and token in hay:
                 score += 5
 
@@ -371,7 +376,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     }
     role_queries = [query.casefold() for query in discovery_queries(settings)]
     for query in role_queries:
-        all_tokens = [x for x in re.findall(r"[a-zа-я0-9+#.-]+", query) if len(x) >= 3]
+        all_tokens = [x for x in re.findall(_ROLE_TOKEN_PATTERN, query) if len(x) >= 3]
         meaningful = [x for x in all_tokens if x not in generic_role_tokens]
         tokens = meaningful or all_tokens
         if tokens and all(token in title_hay for token in tokens):

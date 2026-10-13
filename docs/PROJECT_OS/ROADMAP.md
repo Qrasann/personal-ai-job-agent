@@ -11,5 +11,6 @@ scan completed 21:53:38 UTC. No new production deployment/publication authorized
 Source-expiry cards and bounded remote support query planning are implemented
 locally. The curated GE SmartRecruiters/Devexperts feed is now wired and
 verified read-only, with exact requirement section parsing. Continue Unicode
-local-query support and remaining AM/GE relevance/owner acceptance. Owner-only Telegram acceptance stays separately pending.
+local-query support is implemented. Next gate is explicit working-runtime
+update approval and real source/Telegram acceptance; then v3.6. Owner-only Telegram acceptance stays separately pending.
 See BRIEF.md for concise verification and HANDOFF.md for transfer details.

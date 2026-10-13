@@ -20,7 +20,8 @@ salary, visa, relocation and candidate experience remain unknown.
 - Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
 - Resumed from clean `c829a5f`; HH recovery/summary follow-up committed as
   `5c4b959`, source listing-expiry/card stage `c516a77`, remote-query plan
-  `e7b56f6`, GE SmartRecruiters feed `5044e90`. Later stages stay local
+  `e7b56f6`, GE SmartRecruiters feed `5044e90`, exact requirement sections
+  `5d02cb2`. Later stages stay local
   until explicit publication approval.
   Read `git status` and `git log -3` before continuing; never reset user work.
 - Compose `repo` still runs the previously authorized c829a5f build. App up,
@@ -52,15 +53,23 @@ salary, visa, relocation and candidate experience remain unknown.
 - Exact Devexperts headings now identify required (`What we expect from
   candidates`) and preferred (`As a Plus`) sections. Existing skill vocabulary,
   scorer weights and thresholds are preserved; no nontechnical facts invented.
-- Checks: heading/parser/technical/source targeted 80 passed; full shared
-  candidate unit 585 passed / 3 skipped, PostgreSQL 588 passed;
-  compileall/secret/diff pass. All new stages remain undeployed.
+- Explicit Georgian/Armenian query and resume text now tokenize as Unicode
+  words in Georgia discovery and matching. Existing punctuation, generic-word
+  exclusions, scoring weights/caps/65 threshold are preserved. No translations
+  or owner-selected roles are introduced.
+- Latest verification: 606 unit passed / 3 skipped, PostgreSQL 609 passed;
+  compileall, secret scan and diff check pass. Separate local Docker validation
+  image built and Python 3.12 imports/compile passed without networking.
+  All new stages remain undeployed.
 
 ## Current priority
 
 Complete v3.5.7 practical relevance and source coverage before v3.6.
-Next implementation: Unicode role-token support for explicitly selected local
-queries, then remaining v3.5.7 owner acceptance/source relevance checks. Preserve score
+Current code candidate is ready for the authorized deployment/Telegram/source
+relevance gate. Owner approval is required to update the working Compose build
+under the latest request. Validate new source counts and scoped relocation
+output after that update before closing v3.5.7; do not claim Good/eligibility
+from adapter HTTP success. v3.6 follows the mandatory v3.5.7 acceptance. Preserve score
 rules and owner exclusions. Owner post-filter Telegram acceptance remains
 pending and does not block independent safe implementation.
 

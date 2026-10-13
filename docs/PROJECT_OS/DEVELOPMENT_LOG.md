@@ -20,6 +20,25 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Unicode explicit role/resume tokens and candidate build
+
+ASCII/Cyrillic tokenization made explicitly selected Georgian/Armenian query
+text empty in local discovery/matching. Switched those tokens and existing
+resume overlap/role selection to Unicode words, keeping original technical
+punctuation/underscore boundaries, generic exclusions, min length and all
+scoring weights/caps/threshold. No translations/aliases or stored preferences
+were changed. Regressions prove same role bonus/total as English for explicit
+local-language queries, no cross-language inference, retained English/Russian
+behavior and resume selection.
+
+Targeted Unicode/Georgia/resume/Staff 48 passed. Full unit 606 passed / 3 skipped;
+PostgreSQL 609 passed; compileall, secret scan, diff check passed. Built separate
+job-agent-validation:3.5.7-local image; Python 3.12 imports/compile passed in an
+ephemeral network-disabled container. Running repo services/volumes were not
+changed. Latest request requires explicit production deployment agreement; the
+working runtime is still c829a5f. Next gate is owner-approved runtime update,
+startup source-quality review and real scoped Telegram acceptance before v3.6.
+
 ## 2026-10-13 — Exact Devexperts qualification section boundaries
 
 The verified public support posting uses `What we expect from candidates:` and
