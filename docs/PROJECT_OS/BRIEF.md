@@ -19,7 +19,8 @@ salary, visa, relocation and candidate experience remain unknown.
 
 - Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
 - Resumed from clean `c829a5f`; HH recovery/summary follow-up committed as
-  `5c4b959`, source listing-expiry/card stage `c516a77`. Later stages stay local
+  `5c4b959`, source listing-expiry/card stage `c516a77`, remote-query plan
+  `e7b56f6`. Later stages stay local
   until explicit publication approval.
   Read `git status` and `git log -3` before continuing; never reset user work.
 - Compose `repo` still runs the previously authorized c829a5f build. App up,
@@ -40,15 +41,23 @@ salary, visa, relocation and candidate experience remain unknown.
   precede physical-work queries, keeping original text/group order, max four
   queries and existing market/cache bounds. Both GE/AM are searched; no new
   roles, preference/score/threshold change. Career query order is preserved.
-- Checks: remote planner/source/cache targeted 73 passed; shared candidate unit
-  568 passed / 3 skipped, PostgreSQL 571 passed; compileall/secret/diff pass.
-  Includes the independently prepared, not-yet-wired SmartRecruiters tests.
+- New curated SmartRecruiters/Devexperts feed is GE-only, public read-only,
+  selected-role scoped and source-toggle aware. One page max 100, max ten
+  relevant details, 10s request / 60s total budget, one transport retry and
+  six-hour scheduled cache. Verified partial results survive later budget
+  expiry; external cancellation propagates. Hybrid/GE-only remote remains
+  scoped, with salary/visa/relocation unknown unless explicitly offered.
+- Live read-only adapter probe found one customer-support-related posting in
+  GE/hybrid; visa/relocation unknown. It is a lead, not a Good/eligibility claim.
+- Checks: source/catalog/service/cache targeted 59 passed; full shared candidate
+  unit 585 passed / 3 skipped, PostgreSQL 588 passed; compileall/secret/diff
+  pass. Includes prepared independent exact-requirement-heading regressions.
 
 ## Current priority
 
 Complete v3.5.7 practical relevance and source coverage before v3.6.
-Next implementation: connect the verified GE-scoped Devexperts public Posting
-API, using only each profile's selected role queries and truthful scope. Preserve score
+Next implementation: finish exact Devexperts required/preferred section parsing,
+then curated multilingual role coverage and remaining v3.5.7 acceptance. Preserve score
 rules and owner exclusions. Owner post-filter Telegram acceptance remains
 pending and does not block independent safe implementation.
 

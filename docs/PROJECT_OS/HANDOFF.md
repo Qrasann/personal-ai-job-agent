@@ -5,7 +5,8 @@ Updated: 2026-10-13 (Europe/Moscow)
 ## Current source and runtime
 
 - Source 3.5.7 on `feature/v3.5.7-international-market-coverage`.
-- Latest completed local stages `5c4b959` (HH recovery), `c516a77` (expiry); obtain current HEAD with `git rev-parse --short HEAD`
+- Latest completed local stages `5c4b959` (HH recovery), `c516a77` (expiry),
+  `e7b56f6` (remote queries); obtain current HEAD with `git rev-parse --short HEAD`
   and inspect `git status --short`. Resumed clean; preserve in-flight stages.
 - Runtime remains the c829a5f Compose `repo` build from 00:52 Moscow. App up,
   PostgreSQL healthy; startup scan completed at 21:53:38 UTC / 00:53:38 Moscow.
@@ -48,10 +49,21 @@ regression. Targeted 73 passed; full shared worktree unit 568 passed / 3 skipped
 PostgreSQL 571 passed; compileall/secret/diff pass. SmartRecruiters tests are
 present but its catalog/service integration is the next independent stage.
 
+SmartRecruiters/Devexperts is now wired in GE catalog/registry/service/cache.
+One public page (max 100), max 10 matching details; request 10s / total 60s, one
+transport retry, six-hour scheduled cache. Partial usable details survive the
+source's total budget expiry; external cancellation propagates. Source toggles
+are respected. Read-only live adapter probe found one Application Support
+Engineer Level1 (GE/hybrid); salary/visa/relocation remain unknown. AM is not
+attributed to this GE-only feed. No private API, apply or messaging capability.
+Targeted source/catalog/service/cache 59 passed; shared candidate unit 585
+passed / 3 skipped, PostgreSQL 588 passed; compileall/secret/diff passed.
+Independent exact requirements-heading tests are included, not committed yet.
+
 ## Next concrete work
 
-1. Wire verified GE-scoped SmartRecruiters/Devexperts source, catalog, cache
-   and service integration; respect role queries and all owner exclusions.
+1. Finish exact Devexperts required/preferred heading parsing, preserving
+   scorer weights and treating unrecognized/nontechnical evidence as unknown.
 2. Continue AM/GE relevance/curated aliases and source-evidence acceptance.
 3. Keep owner-only post-filter Telegram acceptance pending separately. Do not
    close v3.5.7 or move versions based on HTTP 200/automated tests alone.

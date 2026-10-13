@@ -56,6 +56,7 @@ countries:
     local_sources:
       - {id: jobs_ge, name: JOBS.GE, url: "https://jobs.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true, available: false, availability_note: "временно приостановлен: сайт вернул HTTP 410 Gone"}
       - {id: hr_ge, name: HR.ge, url: "https://www.hr.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true}
+      - {id: smartrecruiters, name: SmartRecruiters · Devexperts, url: "https://jobs.smartrecruiters.com/Devexperts", transport: public_api, capability: discovery, enabled_by_default: true}
     manual_sources:
       - {id: ss_ge_manual, name: jobs.ss.ge · Georgia, url: "https://jobs.ss.ge/en/l/vacancies", scope: "Georgia · manual", availability_note: "broad local vacancies including entry-level work; no public job API or automated-reuse permission verified"}
       - {id: findjobs_ge_manual, name: Findjobs.ge · Georgia, url: "https://findjobs.ge/en/", scope: "Georgia · manual", availability_note: "AI assistants welcome; recurring extraction of substantial data requires written permission"}

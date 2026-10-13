@@ -20,6 +20,27 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Curated GE SmartRecruiters/Devexperts public feed
+
+Verified SmartRecruiters' documented public Posting API and an active Georgia
+Devexperts Application Support Engineer Level1 posting. Added GE-only curated
+adapter, catalog/registry/service wiring, six-hour scheduled cache and source
+controls. Each profile uses its own selected queries; no roles are injected.
+One PUBLIC/country=ge list page (max 100), max 10 relevant details, request 10s and
+whole 60s budget, one transport retry only. Strict ID/URL validation avoids
+feed-provided request targets. Partial verified details survive later request
+failure or own budget expiry; external cancellation propagates. Structured
+hybrid outranks prose about possible remote work; GE-only remote never becomes
+worldwide. Missing salary, visa and relocation remain unknown.
+
+Live read-only adapter execution found one support-related GE/hybrid posting
+with visa/relocation unknown. No employer/candidate contact or runtime deploy.
+Targeted source/catalog/service/cache 59 passed; full shared candidate unit 585
+passed / 3 skipped and PostgreSQL 588 passed; compileall/secret/diff passed.
+Prepared exact-heading parser tests are included but committed independently.
+Primary contract https://developers.smartrecruiters.com/reference/v1listpostings
+and https://developers.smartrecruiters.com/docs/authentication.
+
 ## 2026-10-13 — Bounded remote support query coverage
 
 Himalayas previously truncated the default Relocation-first seven roles to

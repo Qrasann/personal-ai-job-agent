@@ -2,14 +2,14 @@
 
 Last reviewed: 2026-10-13
 
-Latest local work: HH recovery/summary completion (`5c4b959`), source listing
-expiry/card evidence (`c516a77`), and bounded Himalayas query coverage for selected
-support roles in AM/GE. Latest targeted planner/source/cache suite 73 passed;
-shared candidate unit 568 passed / 3 skipped, PostgreSQL 571 passed; safety
-checks pass. New work is not deployed. Compose remains healthy at c829a5f,
-whose startup scan completed 21:53:38 UTC / 00:53:38 Moscow. Draft PR #18 remains
-at remote f9ed986 with passing CI for that commit only. Owner Telegram acceptance
-stays pending separately. Detailed milestones below retain historical evidence.
+Latest local work: HH recovery (`5c4b959`), listing-expiry cards (`c516a77`),
+bounded remote support queries (`e7b56f6`) and curated GE SmartRecruiters feed.
+Source/catalog/service/cache targeted 59 passed; shared unit 585 / 3 skipped,
+PostgreSQL 588; safety checks pass. Read-only adapter probe found one GE/hybrid
+support lead; eligibility and support remain unknown. New work is not deployed.
+Runtime c829a5f remains healthy, startup completed 21:53:38 UTC. Draft PR #18
+remains at remote f9ed986 with passing CI for that commit only. Owner Telegram
+acceptance stays pending. Milestones below retain historical evidence.
 
 ## Progress at a glance
 

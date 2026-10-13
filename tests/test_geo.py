@@ -1,5 +1,5 @@
 from app.geo.countries import normalize_country, local_sources
-from app.sources.registry import build_source_plan
+from app.sources.registry import build_source_plan, source_capabilities
 from app.telegram.source_display import manual_source_line
 
 
@@ -12,6 +12,18 @@ def test_country_aliases():
 def test_georgia_local_sources():
     ids = {x["id"] for x in local_sources("GE")}
     assert {"jobs_ge", "hr_ge"}.issubset(ids)
+
+
+def test_curated_smartrecruiters_feed_is_implemented_for_georgia_only():
+    ge_plan = {item.source_id: item for item in build_source_plan("RU", ["GE", "AM"])}
+    source = ge_plan["smartrecruiters"]
+    assert source.implemented and source.available and not source.manual
+    assert source.transport == "public_api"
+    assert source.scope == "country:GE"
+    assert "smartrecruiters" not in {item.source_id for item in build_source_plan("RU", ["AM"])}
+    capabilities = source_capabilities("smartrecruiters")
+    assert capabilities.discovery and capabilities.details
+    assert not capabilities.apply and not capabilities.messages
 
 
 def test_source_plan_keeps_international():

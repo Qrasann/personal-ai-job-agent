@@ -28,6 +28,7 @@ from app.sources.adapters.jobbank import JobBankSource
 from app.sources.adapters.eures import EuresSource
 from app.sources.adapters.greenhouse import GreenhouseSource
 from app.sources.adapters.lever import LeverSource
+from app.sources.adapters.smartrecruiters import SmartRecruitersSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
@@ -102,7 +103,7 @@ def _cache_ttl(source_id: str) -> int:
     if source_id == "remotive":
         # Remotive recommends at most four requests per day; refresh once daily.
         return REMOTIVE_CACHE_TTL_SECONDS
-    if source_id == "lever":
+    if source_id in {"lever", "smartrecruiters"}:
         # The curated employer board is refreshed periodically; avoid polling
         # it on every manual or scheduled scan.
         return LEVER_CACHE_TTL_SECONDS
@@ -404,6 +405,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(GreenhouseSource())
         if "lever" in source_ids:
             adapters.append(LeverSource())
+        if "smartrecruiters" in source_ids:
+            adapters.append(SmartRecruitersSource())
         if "jobs_ge" in source_ids:
             adapters.append(JobsGESource())
         if "hr_ge" in source_ids:

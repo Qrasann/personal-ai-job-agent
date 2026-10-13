@@ -28,7 +28,7 @@ def configure_scan(monkeypatch, sources, priorities=None):
         SimpleNamespace(source_id=name, implemented=True) for name in sources
     ])
     for name, factory in sources.items():
-        adapter = {"hh": "HHSource", "remoteok": "RemoteOKSource", "arbeitnow": "ArbeitnowSource"}[name]
+        adapter = {"hh": "HHSource", "remoteok": "RemoteOKSource", "arbeitnow": "ArbeitnowSource", "smartrecruiters": "SmartRecruitersSource"}[name]
         monkeypatch.setattr(services, adapter, factory)
 
 
@@ -179,6 +179,38 @@ def test_hh_failure_invalidates_old_cache_so_next_scheduled_scan_probes(monkeypa
     assert calls == ["hh", "hh", "hh"]
     assert summary["sources"]["hh"]["cache"] is False
     alerts.assert_not_awaited()
+
+
+def test_smartrecruiters_wiring_caches_discovery_and_respects_disabled_source(monkeypatch):
+    calls = []
+
+    class Source:
+        source_id = name = "smartrecruiters"
+
+        async def discover(self, context):
+            calls.append(context.user_id)
+            return [NormalizedJob(source=self.source_id, source_job_id="Devexperts:1", title="DevOps", country="GE")]
+
+    configure_scan(monkeypatch, {"smartrecruiters": Source})
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={"processed": 1}))
+    first = asyncio.run(services.scan_for_user(object(), 7))
+    second = asyncio.run(services.scan_for_user(object(), 7))
+    assert first["sources"]["smartrecruiters"]["found"] == 1
+    assert second["sources"]["smartrecruiters"]["cache"] is True
+    assert len(calls) == 1
+    assert services._cache_ttl("smartrecruiters") == 6 * 60 * 60
+
+    original_context = services._user_context
+
+    async def disabled_context(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches[0].settings["disabled_sources"] = ["smartrecruiters"]
+        return user, profile, searches
+
+    monkeypatch.setattr(services, "_user_context", disabled_context)
+    disabled = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    assert "smartrecruiters" not in disabled["sources"]
+    assert len(calls) == 1
 
 
 def test_concurrent_hh_failure_uses_one_probe_and_keeps_other_sources(monkeypatch):

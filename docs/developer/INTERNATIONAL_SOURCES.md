@@ -393,3 +393,22 @@
   and [Georgian labour migration law](https://www.matsne.gov.ge/en/document/view/2806732?publication=6).
   These links are references for source evidence, not a substitute for checking
   the candidate's actual status and the rules in force at application time.
+
+## SmartRecruiters / Devexperts — curated GE feed, 2026-10-13
+
+- Official public API: https://developers.smartrecruiters.com/reference/v1listpostings
+  and authentication docs https://developers.smartrecruiters.com/docs/authentication.
+  Public Posting API GETs need no credentials; apply endpoints are not used.
+- Curated Devexperts company only, country=ge, destination=PUBLIC; one page max 100
+  and ten role-matching unique details. GE must be current/selected; no AM scope
+  or role injection. Source preferences/disable controls and six-hour cache apply.
+- Request 10s / total 60s; one transport retry, no status-response retries; strict
+  numeric IDs and trusted posting URLs. Keep partial verified usable results on
+  later detail failure or own timeout; propagate external cancellation.
+- Live adapter check found one Application Support Engineer Level1 in GE/hybrid.
+  Publication releasedDate is preserved; no closing/application deadline inferred.
+  Structured hybrid/GE-only remote stays scoped. General perks/foreign-language
+  classes do not imply sponsorship, relocation or individual hiring eligibility.
+- Listing/details evidence is stored in existing source-ref JSON; salary and
+  legal/support signals remain unknown without explicit direct source evidence.
+  Read-only discovery capabilities; no applications, messaging or employer contact.

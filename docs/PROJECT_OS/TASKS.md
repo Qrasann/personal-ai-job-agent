@@ -87,6 +87,12 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Connect curated public SmartRecruiters/Devexperts feed for selected GE
+  only, respecting independent role queries/source toggles. Bound page/details,
+  transport retry/time budgets/cache; preserve verified partial results, and
+  keep hybrid/GE-only remote scope and support unknowns truthful. Read-only
+  live adapter probe found one relevant GE/hybrid support lead. Targeted 59,
+  full shared unit 585 / 3 skipped, PostgreSQL 588; safety checks pass. Not deployed.
 - [x] Plan bounded Himalayas queries so selected support roles no longer
   disappear behind the first four physical-work queries. Keep supplied query
   text, within-group order, max four, market/cache bounds, full parse-time role
