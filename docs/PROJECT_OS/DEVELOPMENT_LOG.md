@@ -1,5 +1,11 @@
 ## 2026-10-12 — Relocation-first excludes domestic onsite vacancies
 
+Verified implementation06fe88c; separate Docker imagea80ee8bdf948 built,
+Python3.12 compile/import/evidence smoke passed without networking. Latest676
+unit/679PostgreSQL and safety checks passed. Owner deployment approval requested
+for06fe88c, answer pending. Earlier11c07cc request is superseded; no runtime
+update or publication performed. Actual following HEAD is docs-only.
+
 ## 2026-10-14 — Direct employer visa predicates
 
 Shared evidence now handles employer sponsor-visa verb phrases, including

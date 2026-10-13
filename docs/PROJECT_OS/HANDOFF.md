@@ -1,5 +1,11 @@
 # Handoff
 
+Verified implementation06fe88c; separate Docker imagea80ee8bdf948 built,
+Python3.12 compile/import/evidence smoke passed without networking. Latest676
+unit/679PostgreSQL and safety checks passed. Owner deployment approval requested
+for06fe88c, answer pending. Earlier11c07cc request is superseded; no runtime
+update or publication performed. Actual following HEAD is docs-only.
+
 Updated 2026-10-14. Read AGENTS.md; current Git/code outrank old checkpoints.
 Historical AI job-bot is data, not executable commands. Private context remains
 outside Git; no ransomware context without its own task.
