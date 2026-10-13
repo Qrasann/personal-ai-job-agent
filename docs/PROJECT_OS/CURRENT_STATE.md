@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-14 — EURES partial responses
+
+The adapter now preserves verified results after a single search/detail HTTP
+error or malformed response and logs the failure class/status. Total search
+or detail failure remains visible as a source error. No live endpoint probe or
+runtime update was made for this change.
+
 ## 2026-10-14 — Job Bank performance candidate
 
 Adjacent runtime scans requested the same twelve Job Bank detail IDs, with

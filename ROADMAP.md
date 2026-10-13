@@ -53,6 +53,7 @@ One failed vacancy now preserves later results from the same source.
 Georgia source detail requests now require their own HTTPS host.
 Job Bank now has bounded one-hour detail reuse for repeated scheduled scans;
 post-deployment latency and relevance measurement remains pending.
+EURES now preserves partial results across individual HTTP and parse failures.
 Runtime acceptance and live HH ConnectError diagnosis remain open.
 
 ## Immediate gates

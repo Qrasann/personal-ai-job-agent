@@ -189,7 +189,7 @@ class EuresSource(JobSource):
             "Accept-Encoding": "identity",
         }
         found: dict[str, NormalizedJob] = {}
-        transport_errors: list[Exception] = []
+        source_errors: list[Exception] = []
         async with httpx.AsyncClient(timeout=25, follow_redirects=True, headers=headers) as client:
             successful_searches = 0
             for index, query in enumerate(queries[: self.max_queries], start=1):
@@ -197,30 +197,33 @@ class EuresSource(JobSource):
                     response = await self._request_with_retry(
                         client.post, self.search_endpoint, json=self.request_payload(query)
                     )
-                except (httpx.TransportError, ssl.SSLError) as exc:
-                    transport_errors.append(exc)
+                    parsed = self.parse_search(response.json(), query)
+                except (httpx.HTTPError, ssl.SSLError, ValueError, TypeError, KeyError, AttributeError) as exc:
+                    source_errors.append(exc)
                     log.warning(
-                        "EURES search %s failed after retries (%s); continuing",
-                        index, type(exc).__name__,
+                        "EURES search %s failed (%s); continuing",
+                        index, f"HTTP {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__,
                     )
                     continue
                 successful_searches += 1
-                for job in self.parse_search(response.json(), query):
+                for job in parsed:
                     found.setdefault(job.source_job_id, job)
-            if successful_searches == 0 and transport_errors:
-                raise transport_errors[-1]
+            if successful_searches == 0 and source_errors:
+                raise source_errors[-1]
             enriched = []
+            detail_errors: list[Exception] = []
             for job in list(found.values())[: self.max_details]:
                 try:
                     response = await self._request_with_retry(client.get, job.raw["evidence_url"])
-                except (httpx.TransportError, ssl.SSLError) as exc:
-                    transport_errors.append(exc)
+                    enriched_job = self.enrich(job, response.json())
+                except (httpx.HTTPError, ssl.SSLError, ValueError, TypeError, KeyError, AttributeError) as exc:
+                    detail_errors.append(exc)
                     log.warning(
-                        "EURES detail request failed after retries (%s); skipping vacancy",
-                        type(exc).__name__,
+                        "EURES detail request failed (%s); skipping vacancy",
+                        f"HTTP {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__,
                     )
                     continue
-                enriched.append(self.enrich(job, response.json()))
-            if not enriched and transport_errors:
-                raise transport_errors[-1]
+                enriched.append(enriched_job)
+            if not enriched and detail_errors:
+                raise detail_errors[-1]
             return enriched

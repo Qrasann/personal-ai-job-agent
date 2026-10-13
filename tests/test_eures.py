@@ -221,3 +221,45 @@ def test_discover_keeps_successful_queries_when_another_exhausts_retries(monkeyp
     assert [job.title for job in result] == ["Cloud Engineer"]
     assert posts == ["DevOps"] * 3 + ["Cloud"]
     assert len(gets) == 1
+
+
+@pytest.mark.parametrize("bad_kind", ["http", "contract"])
+def test_discover_keeps_second_query_after_first_bad_response(monkeypatch, bad_kind):
+    async def post(self, url, json=None, **kwargs):
+        query = json["keywords"][0]["keyword"]
+        status = 503 if query == "DevOps" and bad_kind == "http" else 200
+        payload = ({"error": "bad contract"} if query == "DevOps" and bad_kind == "contract"
+                   else {"jvs": [search_row(id="cloud", title="Cloud Engineer")]})
+        return httpx.Response(status, json=payload, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=details(title="Cloud Engineer"), request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps", "Cloud"])))
+    assert [job.title for job in result] == ["Cloud Engineer"]
+
+
+def test_discover_keeps_other_details_after_one_http_error(monkeypatch):
+    async def post(self, url, json=None, **kwargs):
+        rows = [search_row(id="first"), search_row(id="second")]
+        return httpx.Response(200, json={"jvs": rows}, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        status = 404 if "first" in url else 200
+        return httpx.Response(status, json=details(), request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps"])))
+    assert [job.source_job_id for job in result] == ["second"]
+
+
+def test_discover_reports_all_search_http_failures(monkeypatch):
+    async def post(self, url, json=None, **kwargs):
+        return httpx.Response(503, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps", "Cloud"])))

@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-10-14 — EURES partial failure contract
+
+Search queries and detail IDs are independent EURES work units. A single HTTP
+status or malformed response does not discard results from another unit. If
+all searches or all attempted details fail, the source reports an error.
+Transport retries remain bounded; HTTP statuses are not retried here.
+
 ## 2026-10-14 — bounded Job Bank detail cache
 
 Job Bank listing discovery remains fresh on normal source-cache expiry. Detail

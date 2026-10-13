@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-14 — EURES response isolation
+
+- [x] Keep other EURES queries/details after one HTTP or parse failure; keep
+  total failure visible and do not retry HTTP 4xx/5xx blindly.
+- [ ] **P1, source health:** expose partial EURES query/detail failure counts
+  in `/scanstatus` without changing vacancy scoring or hiding successful jobs.
+
 ## 2026-10-14 — Job Bank detail efficiency
 
 - [x] Measure repeated detail work from read-only runtime logs and cache

@@ -1,3 +1,16 @@
+## 2026-10-14 — EURES per-query and per-detail failures
+
+After `7581903`, tests reproduced whole-source failure on one EURES search
+HTTP 503 and one detail HTTP 404, losing verified results from other units.
+The adapter now catches transport, HTTP and malformed-response failures at
+each independent query/detail boundary, logs only class or HTTP status, and
+continues. If every search fails or every attempted detail fails, it still
+raises the last error. Existing bounded transport retry remains; HTTP statuses
+are not retried. Added regressions for partial HTTP, malformed search contract
+and total HTTP failure. No live EURES request, score change or deployment.
+Final checks: 739 unit passed / 4 isolated-DB skips; 743 passed with isolated
+PostgreSQL; compileall, secret scan and `git diff --check` passed.
+
 ## 2026-10-14 — Job Bank repeated detail cache
 
 After `c6fb2b7`, read-only `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent status`

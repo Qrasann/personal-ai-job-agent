@@ -1,5 +1,12 @@
 # Known Issues
 
+## 2026-10-14 — EURES response isolation
+
+Fixed locally: one EURES HTTP error or malformed search/detail response aborted
+the entire source and could discard verified jobs from other queries/details.
+The adapter now isolates those failures and still reports all-failed scans.
+Partial failure counts appear in logs, not yet in `/scanstatus`.
+
 ## 2026-10-14 — Job Bank repeat details
 
 Read-only runtime logs at 22:21 and 22:36 UTC showed the same twelve detail

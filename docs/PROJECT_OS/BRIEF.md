@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-14 — EURES partial response isolation
+
+EURES now continues independent search queries and detail IDs after a single
+HTTP status or malformed response, while raising an error when every search
+or every detail fails. Transport retries remain bounded; HTTP errors are not
+retried. Regression tests cover HTTP, malformed contracts and total failure.
+
 ## 2026-10-14 — Job Bank repeat detail work
 
 Read-only runtime logs showed 12 repeated Job Bank detail URLs at five-second

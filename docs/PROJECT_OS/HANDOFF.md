@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-10-14 — EURES HTTP/parse follow-up
+
+After `7581903`, EURES search/detail loops now continue after one HTTP status
+or parse failure; all-failed scans still raise. Tests reproduced lost partial
+results before the fix. Final local checks: 739 unit passed / 4 skipped,
+743 isolated PostgreSQL passed, compileall/secret scan/diff check passed. No
+runtime deployment or external EURES request occurred. Preserve the two
+untracked owner proposal files.
+
 ## 2026-10-14 — Job Bank detail cache candidate
 
 After `c6fb2b7`, read-only `repo` runtime logs showed 12 repeated Job Bank
