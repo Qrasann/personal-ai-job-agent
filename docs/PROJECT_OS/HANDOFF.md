@@ -1,5 +1,10 @@
 # Handoff
 
+Candidate 11c07cc also passed a separate Docker build (image8fc8cddae7d6)
+and Python3.12 import/compile/evidence smoke in a network-disabled ephemeral
+container. Repo runtime/volumes unchanged. Owner update approval requested for
+11c07cc; unanswered at this checkpoint. Any following checkpoint is docs-only.
+
 Updated: 2026-10-14 (Europe/Moscow)
 
 ## Current checkpoint — 2026-10-14
