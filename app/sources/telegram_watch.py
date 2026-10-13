@@ -139,7 +139,12 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
     for user in await repo.list_active_users():
         if only_user_id is not None and user.id != only_user_id:
             continue
-        if await repo.get_state(user.id, "paused", "false") == "true":
+        try:
+            if await repo.get_state(user.id, "paused", "false") == "true":
+                continue
+        except Exception as exc:
+            log.warning("Telegram watch pause state unavailable for subscriber %s (%s); skipped",
+                        user.id, type(exc).__name__)
             continue
         async with _LOCKS.setdefault(user.id, asyncio.Lock()):
             try:
@@ -154,8 +159,13 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
             # A username and its numeric ID may both be subscribed: union scopes,
             # process each search once and account the same delivery per alias.
             scopes = {item.get("scope", "both") for _, item in items}
-            profile = await repo.active_profile(user.id)
-            searches = await repo.list_search_profiles(profile.id) if profile else []
+            try:
+                profile = await repo.active_profile(user.id)
+                searches = await repo.list_search_profiles(profile.id) if profile else []
+            except Exception as exc:
+                log.warning("Telegram watch search profiles unavailable for subscriber %s (%s); skipped",
+                            user.id, type(exc).__name__)
+                continue
             searches = [search for search in searches if source_enabled(search.settings, "telegram")
                         and ("both" in scopes or search.kind in scopes
                              or (search.kind == "employment" and
@@ -214,15 +224,16 @@ async def retry_pending(bot, *, user_id: int | None = None, limit: int = 5) -> i
     for user in await repo.list_active_users():
         if user_id is not None and user.id != user_id:
             continue
-        if await repo.get_state(user.id, "paused", "false") == "true":
-            continue
         try:
+            if await repo.get_state(user.id, "paused", "false") == "true":
+                continue
             async with _LOCKS.setdefault(user.id, asyncio.Lock()):
                 state = await watch_state(user.id)
                 pending = list(state.get("pending", {}).values())
                 enabled = {key for key, item in state["channels"].items() if item.get("enabled")}
-        except RuntimeError:
-            log.warning("Telegram watch retry state unavailable; subscriber skipped")
+        except Exception as exc:
+            log.warning("Telegram watch retry state unavailable for subscriber %s (%s); skipped",
+                        user.id, type(exc).__name__)
             continue
         for event in pending:
             if attempted >= min(max(limit, 0), 10):

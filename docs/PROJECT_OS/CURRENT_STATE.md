@@ -1,5 +1,15 @@
 # Current State
 
+## Night development checkpoint — 2026-10-14
+
+Root roadmap reconciled with implementation and complete original product
+intent; proposed v3.5.8/v3.5.9 numbering does not change active 3.5.7 source.
+Watcher handles a failed pause/profile/retry-state lookup for one subscriber
+without blocking later users (four regression cases).
+Real channel access and deployment acceptance remain pending. Source and
+runtime status recorded in older sections below is historical unless checked
+again; see latest `HANDOFF.md` and `DEVELOPMENT_LOG.md`.
+
 ## Verified watcher checkpoint — cb1ba4a
 
 All three watcher stages committed: a6d67fa,3dffc39,cb1ba4a. Full716 unit/4

@@ -1,5 +1,16 @@
 # Codex Brief
 
+## Night development checkpoint — 2026-10-14
+
+Root `ROADMAP.md` now maps original v3.5.1–v4.x intent to verified code and
+proposed v3.5.8/v3.5.9 labels without changing `VERSION`. The selected-channel
+Watcher now skips a subscriber whose pause/profile or retry-state lookup fails
+and continues later users; regressions cover these failures. Full/isolated
+PostgreSQL results and final diff are in
+the latest `DEVELOPMENT_LOG.md` entry. Existing local runtime is untouched;
+real channel Bot API access and deployment approval remain the acceptance gate.
+The two untracked owner proposal files remain preserved and excluded.
+
 ## Verified watcher checkpoint — cb1ba4a
 
 All three watcher stages committed: a6d67fa,3dffc39,cb1ba4a. Full716 unit/4

@@ -1,5 +1,18 @@
 # Known Issues
 
+## Current gates — 2026-10-14
+
+- Channel Watcher code is locally tested, but no actual selected-channel Bot
+  API access or runtime acceptance is recorded. A pause/profile lookup failure
+  skips that subscriber, leaving the event unseen and outside the retry queue
+  because its scope cannot be verified. Bot API redelivery is not guaranteed.
+- Edited posts, history backfill, cross-process exactly-once delivery and
+  per-profile historical rescore remain unimplemented. They are not implied by
+  a configured `/channels` entry.
+- Relocation-first usefulness and eligibility remain open. Unknown country,
+  visa, employer support, hiring scope or salary is not a confirmed refusal.
+  A proposal document's 429-test snapshot is historical; use current tests.
+
 Current-state correction (2026-10-13): HH selected-market discovery was
 implemented in 61fe39d; older current-country-only notes below are historical.
 HH ConnectError is a silent skip with cooldown; the pending local follow-up

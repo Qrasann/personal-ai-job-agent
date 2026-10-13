@@ -1,5 +1,15 @@
 # Decisions
 
+## 2026-10-14 — roadmap reconciliation
+
+The complete original v3.5.1–v4.x product vision remains in canonical root
+`ROADMAP.md`; already released versions and historical milestone meanings are
+immutable. Proposed v3.5.8 Telegram Watcher and v3.5.9 Source Intelligence are
+planning labels, not a `VERSION` change or a claim of release. Capability status
+is tied to code, tests and runtime evidence. Career-first and Relocation-first
+remain independent, and missing hiring/visa/relocation evidence remains unknown.
+The two owner proposal Markdown files are reference input and remain untracked.
+
 1. main stays on v3.5.1 until v3.5.2 passes CI and smoke tests.
 2. testsbuild is reference/experimental work, not an automatic merge source.
 3. v3.5.2 Search Control lives in SearchProfile.settings to avoid premature DB migration.

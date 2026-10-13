@@ -1,44 +1,65 @@
 # Roadmap
 
-Telegram Watcher stages1–3 completed locally (720 PostgreSQL tests): scoped
-subscriptions/metadata/replay dedupe/statistics/persistent retries. Runtime and
-actual channel access acceptance remain separate; no history/edited-post claim.
+Canonical product roadmap. Reviewed against local source and tests on 2026-10-14.
+The active branch is `feature/v3.5.7-international-market-coverage` with
+`VERSION=3.5.7`; the latest formal release is v3.5.6. Older observations below
+are dated history, not current runtime or test claims. The two owner proposal
+files are reference material and remain untracked.
 
-Telegram Channel Watch stage1 implemented locally: per-user subscriptions,
-scoped Bot API ingestion, statistics and PostgreSQL replay dedupe (702 tests).
-Next parsing/provenance; access/history limitations documented.
+## Product direction and evidence rules
 
-Last reviewed: 2026-10-14
+The personal workflow is discover → normalize/deduplicate → evaluate → review →
+prepare → approve → apply → track → interview → offer. Career-first for
+DevOps/Infrastructure/SRE and Relocation-first for legally actionable work,
+including suitable non-IT work, remain independently configured. Remote work,
+country hiring, work authorization, visa support and relocation assistance are
+different facts. Unknown evidence stays unknown; no candidate experience,
+salary or employer promise is invented. A source registration or HTTP 200 is
+not proof of useful collection. Employer ATS facts should retain source links
+and provenance when later reconciled with board and Telegram copies.
 
-Latest direct visa evidence stage:676 unit/679 PostgreSQL; safety checks passed.
+## Capability and delivery map
 
-Previous Greenhouse evidence stage: 665 unit / 668 PostgreSQL, safety checks passed.
-Manychat review yielded no verified Armenian/support opening; no adapter added.
-
-Earlier stages: source salary/remote evidence af1ff56, Telegram evidence
-76b5661, numeric metadata resilience. Latest unit 658 / 3 skipped,
-PostgreSQL 661; compileall/secret/diff passed. Runtime update/acceptance remains
-pending; v3.5.7 stays active. No new Armenian feed verified yet.
-
-Historical local work: HH recovery (`5c4b959`), expiry cards (`c516a77`), bounded
-remote queries (`e7b56f6`), GE public feed (`5044e90`), requirement section parsing
-(`5d02cb2`), and Unicode explicit role/resume tokens. Latest unit 606 / 3 skipped,
-PostgreSQL 609 and safety checks passed; separate Docker/Python 3.12 validation
-passed. New work is not deployed. Runtime c829a5f remains healthy; startup
-completed 21:53:38 UTC. Draft PR #18 remains at remote f9ed986 with CI only for
-that commit. Next gate is owner-approved runtime update and real source/scoped
-Telegram acceptance before v3.6. Milestones below retain historical evidence.
-
-## Progress at a glance
-
-| Stage | Status | Completion criteria |
+| Stage | Verified state and remaining scope | Acceptance gate |
 | --- | --- | --- |
-| v3.5.6 — core personal workflow | Completed baseline | Independent profiles, candidate facts, manual resume import, review queues and scan status are implemented. |
-| v3.5.7 — international coverage and relevance | **In progress: independent result review** | Useful GE/AM and remote leads, correct restrictions, profile-specific scores and broader lower-barrier coverage. |
-| v3.6 — candidate and vacancy fit | Next | Evidence-based required-skill, language, work-eligibility and salary comparisons; personal affordability remains private. |
-| v3.7 — application workspace | Planned | Tailored CVs and manually confirmed application stages. |
-| v3.8 — recruiter and interview support | Planned | Grounded drafts and practice from confirmed facts and requirements. |
-| v4.x — agent and productization | Planned after personal workflow | Safe automation, multi-user/dashboard scope and monetization preparation after v3.5.7–v3.8 obligations. |
+| v3.5.1 foundation | Implemented baseline: bot, persistence, matching, review queues and source dedupe (`app/services.py`, `app/database`, `app/telegram`). | Maintain tests and working review flow. |
+| v3.5.2 Search Control Center | Core implemented in `SearchProfile.settings`, settings handlers and tests: source/market controls, independent strategies, salary inputs and blacklist. Per-source destination behavior is partial. | Test each source's actual market behavior; keep priority distinct from hard exclusion and explain that salary minimum is a scoring reference. |
+| v3.5.3 Fast Scan | Core implemented: bounded concurrent discovery, cache, `/scanstatus`, `/cancel` (`app/search`, `app/telegram`). Adaptive detail fetching is planned. | Preserve rate limits and cancellation semantics; measure useful results and latency. |
+| v3.5.4 Multi-Source vision | Historical v3.5.4 code milestone added EURES; broader original vision remains partial. Current branch also has HH, RemoteOK, Arbeitnow, Job Bank, HR.ge, selected ATS, Himalayas, Remotive and Telegram paths. JOBS.GE is paused. | Verify permitted, live, relevant results per source; expand only with an access contract. |
+| v3.5.5 Candidate Import | PDF/DOCX/TXT preview, explicit save, provenance and overlap handling implemented (`app/candidates`, import tests). Full per-conflict ADD/UPDATE/KEEP editing is planned. | Resolve conflicting facts visibly without upgrading lab or learning to commercial work. |
+| v3.5.6 Recommendation v2 | Explainable heuristic breakdown implemented (`app/matching/recommendation.py`); interview-risk is a fit-gap score, not calibrated interview probability. | Validate signals and missing data; preserve established threshold/notifications until deliberately changed and tested. |
+| v3.5.7 International / Relocation | Active candidate: GE/AM and remote adapters, scoped `/jobs`, conservative evidence parsing, 65-point threshold. Useful Relocation-first coverage and runtime acceptance remain partial. | Real source and scoped Telegram acceptance, eligibility evidence, full isolated DB/CI checks and owner release decision. |
+| Proposed v3.5.8 Telegram Channel Watcher | Bot API selected-channel posts/captions, scoped subscriptions, provenance, replay guard and bounded persistent retry implemented locally (`app/sources/telegram_watch.py`, watcher tests). Edited posts, history and arbitrary channel monitoring are not implemented. | Owner selects channels and grants Bot API access; separately authorized runtime check of `/channels`, new post, replay/retry and both profiles. |
+| Proposed v3.5.9 Source Intelligence | Planned: more authorized ATS/official feeds, company watchlist, canonical cross-source links, source quality and stale-feed metrics. | Attributed relevant vacancies and measurable source yield, not just enabled adapters. |
+| v3.6 Candidate + Vacancy Fit | Planned on candidate facts and requirement parsing: mandatory versus alternatives, language, eligibility, salary and private affordability; truthful tailored RU/EN resume with reviewable diffs. | Every material CV assertion traces to a confirmed fact and user approval. |
+| v3.7 Application Package / Workspace | Planned: per-vacancy CV, grounded cover letter/answers, missing-info checklist, export, exact submitted version and manual status. | Human approves each external action; audit trail identifies what was submitted. |
+| v3.8 Application + Recruiter Agent | Planned: application funnel, reminders, grounded reply drafts and follow-ups. Private HH access stays off without separate permission. | Correct transitions, no duplicate contact, explicit approval for outbound messages. |
+| v3.9 Practical Interview Agent | Planned: vacancy-specific Linux, Nginx, Docker, DNS, Kubernetes, CI and security incident exercises. | Reproducible scenarios and gap-to-learning feedback grounded in the vacancy. |
+| v4.x Productization | Optional later: web UI, multi-user separation, AI router/local models, observability and monetization after personal utility. | Privacy, cost, quality and consent measured before broad rollout. |
+
+The proposed v3.5.8/v3.5.9 numbers are planning labels only. `VERSION` and
+release history do not change from this roadmap sync. Cross-cutting work:
+official, dated relocation legal references with unknown/partial flags;
+source/candidate provenance; privacy and safe backups; bounded collection;
+AI Stack Watch with dated model/license/cost evidence; and an opt-in, reviewed,
+idempotent context-delta import. Current Context Watch does not imply live
+access to other chats. `docs/PROJECT_OS/` stays the portable handoff; this file
+is its sole canonical roadmap.
+
+## Immediate gates
+
+1. Validate selected Bot API channels and owner-approved runtime only after
+   explicit authorization; local watcher tests do not prove actual access.
+2. Review real Career-first and Relocation-first results, source permissions,
+   time-sensitive eligibility and scoped Telegram cards before v3.5.7 release.
+3. Expand permitted AM/GE and lower-barrier sources only after live relevance
+   and access evidence; retain unknowns and 65-point scoring integrity.
+
+## Historical v3.5.7 development notes
+
+The following entries preserve the dated development record. Where their
+phrasing says “current” or “next,” use the capability map and PROJECT_OS handoff
+above for the present state.
 
 The current v3.5.7 stage adds `/jobs career`, `/jobs relocation`, and
 `/jobs relocation below`. Each scoped list keeps its profile's own threshold
@@ -349,17 +370,6 @@ covered by regression tests rather than a live failure injection.
 - For near-term relocation decisions, keep opening status, application
   deadline, expected start date and work-eligibility evidence separate. Add
   these fields only when a source provides them; do not infer processing time.
-
-## Later stages
-
-- **v3.6 — Candidate and vacancy fit:** validate technical fit, relocation
-  viability, salary normalization and affordability with explicit evidence.
-- **v3.7 — Application workspace:** improve resume-to-vacancy tailoring and
-  track manually confirmed application stages; no automatic application.
-- **v3.8 — Recruiter and interview support:** prepare grounded recruiter replies
-  and interview practice from the vacancy and confirmed candidate facts.
-- **v4.x — Productization:** consider a dashboard or multi-user operation only
-  after the personal workflow is stable and the owner wants that scope.
 
 ## Release rules
 

@@ -1,3 +1,36 @@
+## 2026-10-14 — night development: watcher isolation and roadmap sync
+
+Starting branch `feature/v3.5.7-international-market-coverage` at `8781081`,
+ahead of its tracked remote by 45 commits. Tracked tree was clean; two
+untracked owner proposal Markdown files were preserved and excluded. Read
+BRIEF, root/PROJECT_OS roadmaps, proposal/prompt, watcher code/tests and
+relevant handoff/task history before editing.
+
+Stage 1: watcher baseline targeted suite passed 44, skipped 1. One user's
+pause state or active search-profile lookup could abort delivery to later
+subscribers; retry-state lookup could abort the retry tick. These lookups now
+skip only the affected user, log the exception type without post content, and
+continue. Four regression cases cover live pause/profile and retry isolation.
+Skipped live lookup events are not marked seen or queued because scope could
+not be verified; Bot API redelivery is not guaranteed. Existing queued retry
+entries are preserved. No score, schema, threshold or notification changes.
+
+Stage 2: canonical root ROADMAP now maps v3.5.1–v4.x complete vision to current
+implemented/partial/planned evidence and acceptance gates. Historical v3.5.4
+EURES milestone stays distinct from its broad Multi-Source vision; proposed
+v3.5.8/v3.5.9 numbers do not change `VERSION=3.5.7`. PROJECT_OS decisions,
+tasks, current state, brief, known issues, ideas and handoff synchronized.
+Relocation-first source expansion is pending a verified lawful feed and useful
+live results; no unsupported adapter or legal claim added.
+
+Verification after final code change: 720 unit passed / 4 isolated-DB skips;
+724 isolated PostgreSQL passed using `docker-compose.test.yml` postgres-test
+and the documented test URL. `compileall`, secret scan and `git diff --check`
+passed. Test PostgreSQL only; production Compose, volumes, Telegram runtime,
+VERSION, publication and external applications untouched. Real selected
+channels/Bot API access and separately authorized runtime acceptance remain
+owner gates. The two proposal files stay untracked and are not commit inputs.
+
 ## 2026-10-12 — Relocation-first excludes domestic onsite vacancies
 
 ## Verified watcher checkpoint — cb1ba4a

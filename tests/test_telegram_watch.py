@@ -192,6 +192,41 @@ def test_subscriber_failure_does_not_block_another_user(memory, monkeypatch):
     assert memory[2].call_args.kwargs["only_user_id"] == 2
 
 
+@pytest.mark.parametrize("failure", ["pause_state", "active_profile", "search_profiles"])
+def test_subscriber_lookup_failure_does_not_block_other_users(failure, memory, monkeypatch):
+    monkeypatch.setattr(watch.repo, "list_active_users", AsyncMock(return_value=[SimpleNamespace(id=1), SimpleNamespace(id=2)]))
+    original_get_state = watch.repo.get_state
+    original_search_profiles = watch.repo.list_search_profiles
+
+    async def get_state(user, key, default=""):
+        if failure == "pause_state" and user == 1 and key == "paused":
+            raise RuntimeError("unavailable")
+        return await original_get_state(user, key, default)
+
+    async def search_profiles(profile):
+        if failure == "search_profiles" and profile == 10:
+            raise RuntimeError("unavailable")
+        return await original_search_profiles(profile)
+
+    async def run():
+        await watch.change_subscription(1, "add", "@devopsjobs")
+        await watch.change_subscription(2, "add", "@devopsjobs")
+        await post()
+
+    # Give the users distinct profile IDs so only user 1 fails the lookup.
+    async def per_user_profile(user):
+        if failure == "active_profile" and user == 1:
+            raise RuntimeError("unavailable")
+        return SimpleNamespace(id=10 if user == 1 else 20)
+
+    monkeypatch.setattr(watch.repo, "get_state", get_state)
+    monkeypatch.setattr(watch.repo, "active_profile", per_user_profile)
+    monkeypatch.setattr(watch.repo, "list_search_profiles", search_profiles)
+    asyncio.run(run())
+    assert memory[2].await_count == 2
+    assert all(call.kwargs["only_user_id"] == 2 for call in memory[2].call_args_list)
+
+
 @pytest.mark.integration
 def test_watchlist_and_replay_dedupe_survive_postgres_reload(monkeypatch):
     import os
@@ -254,6 +289,27 @@ def test_retry_queue_persists_failed_post_and_recovers_without_redelivery(memory
         assert state["channels"]["@devopsjobs"]["stats"]["posts"] == 1
     asyncio.run(run())
     assert memory[2].await_count == 3
+
+
+def test_retry_skips_unavailable_subscriber_and_continues(memory, monkeypatch):
+    monkeypatch.setattr(watch.repo, "list_active_users", AsyncMock(return_value=[SimpleNamespace(id=1), SimpleNamespace(id=2)]))
+    memory[2].side_effect = [RuntimeError("temporary"), {"processed": 1}, {"processed": 1}]
+
+    async def prepare():
+        await watch.change_subscription(2, "add", "@devopsjobs")
+        await post()
+
+    asyncio.run(prepare())
+    original_get_state = watch.repo.get_state
+
+    async def get_state(user, key, default=""):
+        if user == 1 and key == "paused":
+            raise RuntimeError("unavailable")
+        return await original_get_state(user, key, default)
+
+    monkeypatch.setattr(watch.repo, "get_state", get_state)
+    assert asyncio.run(watch.retry_pending(None)) == 1
+    assert asyncio.run(watch.watch_state(2))["pending"] == {}
 
 
 @pytest.mark.parametrize("mode", ["off", "paused", "zero_limit"])

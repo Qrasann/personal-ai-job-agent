@@ -1,5 +1,31 @@
 # Tasks
 
+## Night development checkpoint — 2026-10-14
+
+- [x] Reconcile canonical roadmap with current v3.5.7 code/tests and original
+  v3.5.1–v4.x vision; keep proposed numbering separate from `VERSION`.
+- [x] Isolate one subscriber's pause/profile/retry-state lookup failure in
+  Channel Watcher so later subscribers still process; add four regressions.
+- [ ] **P0, owner access and separate deployment approval:** choose actual
+  channels, grant Bot API access, then check `/channels`, new post, replay,
+  retry, and both profile results in the authorized runtime. No history or
+  edited-post acceptance is implied by local tests.
+- [ ] **P0, v3.5.7 exit:** review useful GE/AM and remote results in both scoped
+  Telegram lists, verify current source restrictions and role/eligibility
+  evidence, run CI/isolated PostgreSQL suite and record owner release decision.
+- [ ] **P1, source coverage:** verify a permitted current Armenian employer
+  feed or explicit lawful alternative before adding a collector; measure
+  relevant vacancies, not HTTP success alone. Preserve lower-barrier
+  Relocation-first discovery and the 65-point threshold.
+- [ ] **P1, watcher follow-up:** design edited-post behavior and per-profile
+  replay/history policy before implementation; Bot API access and source
+  permissions are dependencies. No arbitrary history collection.
+- [ ] **P2, source intelligence:** canonical cross-source references and source
+  yield/health metrics after the v3.5.7 acceptance gate.
+
+Older stage task lists below are retained as historical records; current
+priority and dependencies are the list above and root `ROADMAP.md`.
+
 ## Verified watcher checkpoint — cb1ba4a
 
 All three watcher stages committed: a6d67fa,3dffc39,cb1ba4a. Full716 unit/4

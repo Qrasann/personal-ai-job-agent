@@ -1,5 +1,18 @@
 # Handoff
 
+## Night development checkpoint — 2026-10-14
+
+Current source branch still has `VERSION=3.5.7`; root roadmap now carries
+full product stages and status, with v3.5.8/v3.5.9 only proposed. Channel
+Watcher pause/profile/retry-state lookup failure is isolated per subscriber
+and covered by four regression cases; other behavior and thresholds remain.
+See latest `DEVELOPMENT_LOG.md` for
+full verification. Do not commit the two untracked owner proposal files.
+Next gate: owner-selected channels and Bot API access, separately approved
+runtime deployment, then actual incoming post/replay/retry and scoped-result
+acceptance. Continue permitted AM/GE Relocation-first source research if no
+owner gate is available. Do not modify production PostgreSQL or volumes.
+
 ## Verified watcher checkpoint — cb1ba4a
 
 All three watcher stages committed: a6d67fa,3dffc39,cb1ba4a. Full716 unit/4

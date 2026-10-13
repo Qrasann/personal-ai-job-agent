@@ -28,6 +28,12 @@ no seen record is written if processing fails, so a redelivered post can retry.
 Existing match/notification deduplication protects partial-profile retries.
 Errors are local warnings/counters, never raw post/credential logs. Corrupt
 configuration is preserved and that subscriber skipped, others continue.
+Pause-state and active-search-profile lookup errors also skip only that
+subscriber; later subscribers still receive the live post. A skipped lookup
+is not marked seen, so a later Bot API redelivery can try again. It is not
+added to the retry queue because the subscription/scope could not be verified.
+Retry-state lookup failures likewise skip that subscriber and continue the
+bounded queue for others; existing queued entries are preserved.
 
 Limitations: single polling process; no distributed/exactly-once guarantee.
 Scoring, seen records and statistics are separate transactions; crash windows
