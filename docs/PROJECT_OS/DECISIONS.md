@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-10-14 — bounded Job Bank detail cache
+
+Job Bank listing discovery remains fresh on normal source-cache expiry. Detail
+HTML for an ID still present in that listing may be reused for one hour in a
+256-entry in-memory cache. Manual force refresh bypasses detail cache. The
+documented five-second crawl interval remains unchanged.
+
 ## 2026-10-14 — fixed source host for Georgia details
 
 Listing HTML is untrusted input. HR.ge/JOBS.GE detail requests accept only

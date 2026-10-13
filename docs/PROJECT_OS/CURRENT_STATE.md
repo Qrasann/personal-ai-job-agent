@@ -1,5 +1,14 @@
 # Current State
 
+## 2026-10-14 — Job Bank performance candidate
+
+Adjacent runtime scans requested the same twelve Job Bank detail IDs, with
+roughly 55 seconds between first and last detail response due to permitted
+five-second pacing. Local branch now keeps a one-hour, 256-entry in-memory
+detail cache, only for IDs still present in a fresh listing. Explicit manual
+refresh bypasses it. No post-change runtime timing is available until an
+authorized update; the cache resets on restart.
+
 ## 2026-10-14 — Georgia detail URL boundary
 
 HR.ge and JOBS.GE detail fetches now require HTTPS on the source's own host,

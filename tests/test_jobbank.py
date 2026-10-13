@@ -34,6 +34,7 @@ def job():
 @pytest.fixture(autouse=True)
 def reset_jobbank_request_clock(monkeypatch):
     monkeypatch.setattr(jobbank_module, "_LAST_REQUEST_STARTED", None)
+    monkeypatch.setattr(jobbank_module, "_DETAIL_CACHE", {}, raising=False)
 
 
 def test_search_strips_session_and_preserves_explicit_salary():
@@ -323,3 +324,50 @@ def test_discovery_continues_after_a_query_transport_failure(monkeypatch):
 
     assert [item.source_job_id for item in jobs] == ["123"]
     assert calls_by_query == {"first": 2, "second": 1}
+
+
+def test_scheduled_discovery_reuses_recent_detail_but_forced_scan_refetches(monkeypatch):
+    calls = []
+    now = [0.0]
+    monkeypatch.setattr(jobbank_module.time, "monotonic", lambda: now[0])
+
+    async def fetch(self, client, url, **kwargs):
+        calls.append(url)
+        return SEARCH if url.endswith("/jobsearch/jobsearch") else detail("Warehouse duties")
+
+    monkeypatch.setattr(JobBankSource, "_fetch", fetch)
+    source = JobBankSource()
+    context = SourceContext(1, queries=["warehouse worker"])
+
+    assert len(asyncio.run(source.discover(context))) == 1
+    now[0] = 15 * 60
+    assert len(asyncio.run(source.discover(context))) == 1
+    assert sum(url.endswith("/123") for url in calls) == 1
+
+    forced = SourceContext(1, queries=["warehouse worker"], force_refresh=True)
+    assert len(asyncio.run(source.discover(forced))) == 1
+    assert sum(url.endswith("/123") for url in calls) == 2
+
+    now[0] = 15 * 60 + source.detail_cache_ttl + 1
+    assert len(asyncio.run(source.discover(context))) == 1
+    assert sum(url.endswith("/123") for url in calls) == 3
+
+
+def test_detail_cache_evicts_oldest_entry_at_limit(monkeypatch):
+    calls = []
+
+    async def fetch(self, client, url, **kwargs):
+        calls.append(url)
+        return SEARCH_TWO_JOBS if url.endswith("/jobsearch/jobsearch") else detail("Open position")
+
+    monkeypatch.setattr(JobBankSource, "_fetch", fetch)
+    source = JobBankSource()
+    source.max_cached_details = 1
+    context = SourceContext(1, queries=["warehouse worker"])
+
+    assert len(asyncio.run(source.discover(context))) == 2
+    assert len(jobbank_module._DETAIL_CACHE) == 1
+    assert next(iter(jobbank_module._DETAIL_CACHE)).endswith("/456")
+
+    assert len(asyncio.run(source.discover(context))) == 2
+    assert calls.count("https://www.jobbank.gc.ca/jobsearch/jobpostingtfw/123") == 2

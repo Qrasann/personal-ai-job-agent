@@ -14,6 +14,7 @@ from app.sources.base import JobSource, SourceContext
 
 _REQUEST_LOCK = asyncio.Lock()
 _LAST_REQUEST_STARTED: float | None = None
+_DETAIL_CACHE: dict[str, tuple[float, str]] = {}
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +41,8 @@ class JobBankSource(JobSource):
     origin = "https://www.jobbank.gc.ca"
     max_details = 12
     request_delay = 5  # Public robots.txt Crawl-delay.
+    detail_cache_ttl = 60 * 60
+    max_cached_details = 256
 
     async def _fetch(self, client: httpx.AsyncClient, url: str, **kwargs) -> str:
         """Fetch one page, retrying a single transport failure within the crawl lock."""
@@ -163,17 +166,28 @@ class JobBankSource(JobSource):
             detail_transport_errors: list[httpx.TransportError] = []
             successful_details = 0
             for job in list(jobs.values())[:self.max_details]:
-                try:
-                    detail = await self._fetch(client, job.url)
-                except httpx.TransportError as exc:
-                    detail_transport_errors.append(exc)
-                    logger.warning(
-                        "Job Bank detail request failed after retries (%s); skipping vacancy",
-                        type(exc).__name__,
-                    )
-                    continue
+                cached = _DETAIL_CACHE.get(job.url)
+                use_cache = (not context.force_refresh and cached is not None
+                             and time.monotonic() - cached[0] < self.detail_cache_ttl)
+                if use_cache:
+                    detail = cached[1]
+                else:
+                    try:
+                        detail = await self._fetch(client, job.url)
+                    except httpx.TransportError as exc:
+                        detail_transport_errors.append(exc)
+                        logger.warning(
+                            "Job Bank detail request failed after retries (%s); skipping vacancy",
+                            type(exc).__name__,
+                        )
+                        continue
                 successful_details += 1
                 job = self.enrich(job, detail)
+                if not use_cache:
+                    _DETAIL_CACHE.pop(job.url, None)
+                    _DETAIL_CACHE[job.url] = (time.monotonic(), detail)
+                    while len(_DETAIL_CACHE) > self.max_cached_details:
+                        _DETAIL_CACHE.pop(next(iter(_DETAIL_CACHE)))
                 if job.raw["international_candidates"] is not False:
                     result.append(job)
             if successful_details == 0 and detail_transport_errors:

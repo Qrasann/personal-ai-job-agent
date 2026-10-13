@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-14 — Job Bank detail efficiency
+
+- [x] Measure repeated detail work from read-only runtime logs and cache
+  recently verified Job Bank details with one-hour TTL, 256-entry cap and
+  forced-refresh bypass; keep the five-second request pacing.
+- [ ] **P1, acceptance:** after authorized deployment, compare Job Bank
+  `/scanstatus` duration and eligible results across adjacent scheduled scans;
+  verify a manual `/scan` still fetches current details.
+
 ## 2026-10-14 — Georgia source security
 
 - [x] Reproduce and block listing-provided cross-host detail URLs for HR.ge

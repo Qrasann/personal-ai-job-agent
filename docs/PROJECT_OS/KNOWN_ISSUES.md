@@ -1,5 +1,14 @@
 # Known Issues
 
+## 2026-10-14 — Job Bank repeat details
+
+Read-only runtime logs at 22:21 and 22:36 UTC showed the same twelve detail
+IDs requested again; the latter detail span was about 55 seconds. A local
+one-hour bounded cache now avoids that repeat work for scheduled scans while
+retaining fresh listings and forced manual detail fetches. Actual runtime
+improvement is unverified because no deployment occurred. Official pacing
+remains five seconds between request starts.
+
 ## 2026-10-14 — Georgia detail URL review
 
 Fixed locally: HR.ge and JOBS.GE accepted an absolute detail URL from listing

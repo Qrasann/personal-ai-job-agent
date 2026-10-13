@@ -1,3 +1,23 @@
+## 2026-10-14 — Job Bank repeated detail cache
+
+After `c6fb2b7`, read-only `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent status`
+showed 3.5.7 runtime healthy; last 120 app log lines showed HH API 403 followed
+by public web ConnectError in one scan, and another HH ConnectError on the next
+scan. The 900-second HH cooldown activated while EURES, Job Bank, RemoteOK,
+Arbeitnow and Greenhouse continued. The logs do not identify DNS/TLS/proxy as
+the root cause. No production state or external service was changed.
+
+The same twelve Job Bank detail IDs appeared in adjacent scans at 22:21 and
+22:36 UTC; in the later pass the first/last detail responses span about 55
+seconds. Added a bounded one-hour in-memory HTML cache, max 256 details,
+looked up only after a fresh listing includes the ID. Forced manual scans
+bypass detail cache, and expired entries refetch. A regression first showed
+two detail requests in adjacent scans, then one after the change. Existing
+five-second pacing and source/result limits remain. No post-change runtime
+timing or eligibility claim is made. Final checks: 735 unit passed / 4
+isolated-DB skips; 739 passed with isolated PostgreSQL; compileall, secret
+scan and `git diff --check` passed.
+
 ## 2026-10-14 — Georgia source detail host boundary
 
 After `d3a949b`, reviewed all active source detail fetch paths. HR.ge and

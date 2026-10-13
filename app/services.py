@@ -385,7 +385,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
         if not modes.get("relocation", True):
             source_ids.discard("jobbank")
             source_ids.discard("eures")
-        context = SourceContext(user_id=user.id, current_country=user.current_country, target_countries=targets, queries=queries)
+        context = SourceContext(user_id=user.id, current_country=user.current_country,
+                                target_countries=targets, queries=queries, force_refresh=force_refresh)
         search_summary = {"name": search.name, "sources": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
         summary["searches"][str(search.id)] = search_summary
 

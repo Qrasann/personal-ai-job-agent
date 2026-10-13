@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-14 — Job Bank repeat detail work
+
+Read-only runtime logs showed 12 repeated Job Bank detail URLs at five-second
+pacing in adjacent scheduled scans. Local code now caches verified detail HTML
+for one hour (max 256 entries), while a forced `/scan` refetches it. Targeted
+tests cover reuse, forced refresh and expiry. Runtime speed after deployment
+is unmeasured; the current runtime was not updated.
+
 ## 2026-10-14 — Georgia detail URL boundary
 
 HR.ge and paused JOBS.GE now accept listing-provided detail links only on their

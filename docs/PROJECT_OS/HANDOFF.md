@@ -1,5 +1,16 @@
 # Handoff
 
+## 2026-10-14 — Job Bank detail cache candidate
+
+After `c6fb2b7`, read-only `repo` runtime logs showed 12 repeated Job Bank
+details in adjacent scans and a roughly 55-second detail span. Local code now
+adds one-hour/256-entry in-memory detail caching for fresh-listing IDs;
+`force_refresh` bypasses it. Tests cover reuse, manual refresh and expiry.
+Final local checks: 735 unit passed / 4 skipped, 739 isolated PostgreSQL
+passed, compileall/secret scan/diff check passed. No runtime deployment or
+production data action occurred. Real post-change timing remains an acceptance
+task; preserve the two untracked roadmap proposal files.
+
 ## 2026-10-14 — Georgia SSRF follow-up
 
 After `d3a949b`, local Georgia adapters restrict listing detail links to the
