@@ -6,6 +6,7 @@ import httpx
 
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.support_evidence import support_evidence
 from app.sources.base import JobSource, SourceContext
 from app.geo.countries import normalize_country
 
@@ -65,6 +66,7 @@ class GreenhouseSource(JobSource):
 
     @staticmethod
     def _support_signals(description: str) -> tuple[bool | None, bool | None, dict[str, str]]:
+        supported = support_evidence(description)
         patterns = {
             "visa_sponsorship": (
                 r"\b(?:we|the company|employer) (?:offer|provide|sponsor(?:s)?)[^.!;]{0,80}\bvisa sponsorship\b",
@@ -80,14 +82,11 @@ class GreenhouseSource(JobSource):
         for key, (positive_pattern, negative_pattern) in patterns.items():
             refusal = re.search(negative_pattern, description, re.I)
             offer = re.search(positive_pattern, description, re.I)
-            if refusal:
-                values[key] = False
+            values[key] = supported[key]
+            if supported[key] is False and refusal:
                 evidence[key] = refusal.group(0)
-            elif offer:
-                values[key] = True
+            elif supported[key] is True and offer:
                 evidence[key] = offer.group(0)
-            else:
-                values[key] = None
         return values["visa_sponsorship"], values["relocation"], evidence
 
     @classmethod
@@ -129,10 +128,10 @@ class GreenhouseSource(JobSource):
             description = clean_html_text(str(row.get("content") or ""))
             visa_sponsorship, relocation, support_evidence = cls._support_signals(description)
             work_mode = None
-            if re.search(r"\bremote\b", location, re.I):
-                work_mode = "remote"
-            elif re.search(r"\bhybrid\b", location, re.I):
+            if re.search(r"\bhybrid\b", location, re.I):
                 work_mode = "hybrid"
+            elif re.search(r"\bremote\b", location, re.I):
+                work_mode = "remote"
 
             jobs.append(
                 NormalizedJob(
@@ -145,6 +144,7 @@ class GreenhouseSource(JobSource):
                     country=country,
                     city=city,
                     work_mode=work_mode,
+                    remote_scope=location[:128] if work_mode == "remote" else None,
                     visa_sponsorship=visa_sponsorship,
                     relocation=relocation,
                     raw={

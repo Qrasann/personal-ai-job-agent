@@ -109,6 +109,57 @@ def test_greenhouse_cleans_html_entities_in_posting_content():
     assert job.visa_sponsorship is True
 
 
+@pytest.mark.parametrize("description", [
+    "We offer visa sponsorship guidance.",
+    "We provide information about visa sponsorship.",
+    "We may offer visa sponsorship and relocation assistance.",
+    "Visa sponsorship is required.",
+])
+def test_greenhouse_guidance_and_conditional_support_remain_unknown(description):
+    job = GreenhouseSource.parse_payload(
+        {"jobs": [listing(42, "Infrastructure Engineer", "Tbilisi, Georgia", description)]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )[0]
+    assert job.visa_sponsorship is None
+    assert job.relocation is None
+    assert job.raw["support_evidence"] == {}
+
+
+def test_greenhouse_later_explicit_refusal_outranks_offer():
+    job = GreenhouseSource.parse_payload(
+        {"jobs": [listing(42, "Infrastructure Engineer", "Tbilisi, Georgia",
+                          "We offer visa sponsorship. We cannot provide visa sponsorship.")]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )[0]
+    assert job.visa_sponsorship is False
+    assert "visa_sponsorship" not in job.raw["support_evidence"]
+
+
+def test_greenhouse_hybrid_location_is_not_promoted_to_fully_remote():
+    job = GreenhouseSource.parse_payload(
+        {"jobs": [listing(42, "Infrastructure Engineer", "Tbilisi, Georgia (hybrid / remote)")]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )[0]
+    assert job.work_mode == "hybrid"
+    assert job.country == "GE"
+
+
+def test_greenhouse_remote_location_keeps_explicit_country_limit():
+    from app.agents.job_signals import analyze_job_signals
+    from app.database.models import Job
+
+    job = GreenhouseSource.parse_payload(
+        {"jobs": [listing(42, "Infrastructure Engineer", "Remote - Tbilisi, Georgia",
+                          "Work from anywhere.")]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )[0]
+    assert job.remote_scope == "Remote - Tbilisi, Georgia"
+    result = analyze_job_signals(Job(title=job.title, description=job.description,
+                                    country=job.country, work_mode=job.work_mode,
+                                    remote_scope=job.remote_scope))
+    assert result.remote_eligibility == "uncertain"
+
+
 def test_greenhouse_preserves_lineate_singular_qualification_heading():
     job = GreenhouseSource.parse_payload(
         {

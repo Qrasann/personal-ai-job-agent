@@ -412,3 +412,13 @@
 - Listing/details evidence is stored in existing source-ref JSON; salary and
   legal/support signals remain unknown without explicit direct source evidence.
   Read-only discovery capabilities; no applications, messaging or employer contact.
+
+## Manychat review — 2026-10-14
+
+Official https://careers.manychat.com/positions links current roles to Ashby;
+https://careers.manychat.com/office/yerevan confirms an Armenian office, not an
+opening or applicant eligibility. Read-only legacy Greenhouse list GET
+https://boards-api.greenhouse.io/v1/boards/manychat/jobs?content=true returned
+HTTP200 with no Yerevan/support matches. Current official positions also showed
+no Armenian/support match in this review. No adapter or job claim added; recheck
+actual public vacancies before integration.

@@ -2,7 +2,10 @@
 
 Last reviewed: 2026-10-14
 
-Latest stages: source salary/remote evidence af1ff56, Telegram evidence
+Latest Greenhouse evidence stage: 665 unit / 668 PostgreSQL, safety checks passed.
+Manychat review yielded no verified Armenian/support opening; no adapter added.
+
+Earlier stages: source salary/remote evidence af1ff56, Telegram evidence
 76b5661, numeric metadata resilience. Latest unit 658 / 3 skipped,
 PostgreSQL 661; compileall/secret/diff passed. Runtime update/acceptance remains
 pending; v3.5.7 stays active. No new Armenian feed verified yet.

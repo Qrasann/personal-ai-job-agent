@@ -1,5 +1,18 @@
 # Project roadmap
 
+## Latest stage — 2026-10-14: Greenhouse evidence
+
+Greenhouse uses shared tri-state support classification, so advice, conditional
+support and prerequisites no longer become employer sponsorship offers.
+Existing source snippets are retained only when consistent with the classified
+value. Hybrid wins over mixed hybrid/remote labels; explicit remote locations
+are preserved as bounded remote_scope. No new filters, weights or thresholds.
+Validated 665 unit / 3 skipped, PostgreSQL 668, compileall/secret/diff passed.
+Local implementation follows e4644b3; no deployment/publication. Next safe task:
+shared explicit sponsor-visa verb phrases and refusal precedence. Mandatory
+v3.5.7 runtime/Telegram acceptance remains pending; see HANDOFF.
+
+
 Candidate 11c07cc also passed a separate Docker build (image8fc8cddae7d6)
 and Python3.12 import/compile/evidence smoke in a network-disabled ephemeral
 container. Repo runtime/volumes unchanged. Owner update approval requested for
