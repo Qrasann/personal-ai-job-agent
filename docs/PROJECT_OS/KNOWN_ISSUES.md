@@ -1,5 +1,12 @@
 # Known Issues
 
+## 2026-10-14 — Georgia detail URL review
+
+Fixed locally: HR.ge and JOBS.GE accepted an absolute detail URL from listing
+HTML and could request another host, including loopback. Same-host HTTPS URL
+validation now blocks this SSRF path. Redirects are not followed by these
+clients. Live acceptance remains pending; JOBS.GE is still paused.
+
 ## 2026-10-14 — resume import callback boundary
 
 Concurrent duplicate confirmation callbacks previously could save the same

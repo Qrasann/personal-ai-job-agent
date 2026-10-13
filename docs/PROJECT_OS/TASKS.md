@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-14 — Georgia source security
+
+- [x] Reproduce and block listing-provided cross-host detail URLs for HR.ge
+  and JOBS.GE. Keep relative same-host links working.
+- [ ] **P1, source review:** verify remaining adapters' detail URL and redirect
+  boundaries when adding any new collector; only fetch permitted source hosts.
+
 ## 2026-10-14 — resume import follow-up
 
 - [x] Reproduce concurrent duplicate resume-confirmation writes and make the

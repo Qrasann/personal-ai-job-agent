@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-10-14 — fixed source host for Georgia details
+
+Listing HTML is untrusted input. HR.ge/JOBS.GE detail requests accept only
+HTTPS URLs on the source host and standard port. Any new HTML detail adapter
+must enforce its own source boundary before network fetches.
+
 ## 2026-10-14 — one-time resume import confirmation
 
 The pending import preview is claimed before its first persistence operation to

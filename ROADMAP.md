@@ -50,6 +50,7 @@ Local reliability/security follow-up (2026-10-14): per-user scheduled scan
 isolation, private-chat Telegram user routes, owner-only global HH applicant
 actions and safe source error summaries are implemented with regressions.
 One failed vacancy now preserves later results from the same source.
+Georgia source detail requests now require their own HTTPS host.
 Runtime acceptance and live HH ConnectError diagnosis remain open.
 
 ## Immediate gates

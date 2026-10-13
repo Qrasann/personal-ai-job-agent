@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-14 — Georgia detail URL boundary
+
+HR.ge and paused JOBS.GE now accept listing-provided detail links only on their
+own HTTPS host. A malicious absolute link previously sent the detail client to
+another host; both adapters have regressions. No live source query was made.
+
 ## 2026-10-14 — resume import callback replay
 
 Concurrent confirmation callbacks now claim one preview token before the first

@@ -1,3 +1,15 @@
+## 2026-10-14 — Georgia source detail host boundary
+
+After `d3a949b`, reviewed all active source detail fetch paths. HR.ge and
+JOBS.GE parsed listing hrefs, joined them to a base URL and fetched the result
+without verifying the host. A malicious absolute URL in either listing could
+send a request to loopback or an unrelated host. Two unit regressions reproduced
+the cross-host fetch before the fix. Added `_source_detail_url` to require HTTPS,
+the exact source host, standard port and no URL credentials. Relative same-host
+links still work. No live source or production access was used. Final checks:
+733 unit passed / 4 isolated-DB skips; 737 passed with isolated PostgreSQL;
+compileall, secret scan and `git diff --check` passed.
+
 ## 2026-10-14 — one-time resume confirmation
 
 After `7778de3`, reviewed candidate import and found duplicate Telegram

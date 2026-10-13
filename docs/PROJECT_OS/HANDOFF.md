@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-10-14 — Georgia SSRF follow-up
+
+After `d3a949b`, local Georgia adapters restrict listing detail links to the
+source's HTTPS host and standard port. Two regression cases reproduced
+cross-host fetches before the fix and pass afterward. No external or production
+request was made. Final local checks: 733 unit passed / 4 skipped, 737 isolated
+PostgreSQL passed, compileall/secret scan/diff check passed. Preserve the two
+untracked owner roadmap proposal files.
+
 ## 2026-10-14 — resume import follow-up
 
 After checkpoint `7778de3`, a local candidate-import fix claims the preview

@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-14 — Georgia detail URL boundary
+
+HR.ge and JOBS.GE detail fetches now require HTTPS on the source's own host,
+without alternate ports or URL credentials. Listing HTML cannot redirect the
+adapter's direct detail request to another host. Live source behavior still
+requires authorized runtime verification; JOBS.GE remains paused.
+
 ## 2026-10-14 — resume import callback replay
 
 Import preview tokens are now one-time claims before resume persistence operations.
