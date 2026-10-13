@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-14 — resume import follow-up
+
+- [x] Reproduce concurrent duplicate resume-confirmation writes and make the
+  pending preview token one-time before database work.
+- [ ] **P1, candidate import:** make resume plus proposed-fact persistence
+  transactional and add an idempotent retry path after partial DB failure.
+
 ## 2026-10-14 — reliability and security follow-up
 
 - [x] Isolate scheduled scan failures per user, with a regression proving the

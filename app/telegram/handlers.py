@@ -704,6 +704,11 @@ async def confirm_resume_import(callback: CallbackQuery) -> None:
     if action not in {"resume", "facts"}:
         await callback.answer("Неизвестное действие", show_alert=True)
         return
+    # Claim the preview before the first persistence await. Two Telegram callback
+    # deliveries must not save the same resume/facts concurrently.
+    if _PENDING_RESUME_IMPORTS.pop(token, None) is None:
+        await callback.answer("Импорт уже обрабатывается. Проверь /resumes.", show_alert=True)
+        return
     resumes = await repo.list_resumes(pending["profile_id"])
     if any(resume.external_id == pending["fingerprint"] for resume in resumes):
         _PENDING_RESUME_IMPORTS.pop(token, None)

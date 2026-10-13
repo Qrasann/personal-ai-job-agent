@@ -1,3 +1,15 @@
+## 2026-10-14 — one-time resume confirmation
+
+After `7778de3`, reviewed candidate import and found duplicate Telegram
+callbacks could both pass the pending preview check and write the same resume
+and facts. A concurrent regression reproduced two writes. The callback now
+claims the token before resume persistence; only one callback can proceed.
+No schema, profile facts or production data were touched. A mid-write failure
+still requires reupload and may leave a partial resume/facts set; transactional
+recovery is recorded as a separate task. Final checks: 731 unit passed / 4
+isolated-DB skips, 735 passed with documented isolated PostgreSQL; compileall,
+secret scan and `git diff --check` passed.
+
 ## 2026-10-14 — scheduled scan and security boundaries
 
 Started at `99ea166` on `feature/v3.5.7-international-market-coverage`, 46

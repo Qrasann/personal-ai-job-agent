@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-14 — resume import callback replay
+
+Import preview tokens are now one-time claims before resume persistence operations.
+Concurrent duplicate callbacks cannot both write the resume. A transient
+failure after the claim requires a new preview; transaction-level recovery of
+partially written resume/facts is not yet implemented.
+
 ## 2026-10-14 — reliability and security follow-up
 
 Local branch now isolates scheduled scans by user. Telegram user routes require

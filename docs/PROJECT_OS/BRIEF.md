@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-14 — resume import callback replay
+
+Concurrent confirmation callbacks now claim one preview token before the first
+resume persistence read, so the same resume and proposed facts cannot be inserted twice
+by a duplicate Telegram callback. If processing fails after the claim, the user
+must resend the document; existing partial-write recovery remains future work.
+
 ## 2026-10-14 — local reliability and security checkpoint
 
 Scheduled scans now continue after one user's scan raises. Telegram candidate

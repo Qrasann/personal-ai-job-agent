@@ -1,5 +1,16 @@
 # Handoff
 
+## 2026-10-14 — resume import follow-up
+
+After checkpoint `7778de3`, a local candidate-import fix claims the preview
+token before resume persistence, preventing duplicate concurrent callback
+inserts. Regression in `tests/test_candidate_import_telegram.py` reproduced the
+double write before the fix. Final local checks: 731 unit passed / 4 skipped,
+735 passed with isolated PostgreSQL, compileall/secret scan/diff check passed.
+A failure after token claim requires reupload;
+transactional resume/fact persistence is the next design task. Keep the two
+untracked owner proposal files out of commits and do not deploy/publish.
+
 ## 2026-10-14 — local reliability/security follow-up
 
 This checkpoint follows `99ea166` with fixes in services, HH provider and

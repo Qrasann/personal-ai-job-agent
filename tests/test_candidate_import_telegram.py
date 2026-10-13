@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import time
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -65,3 +66,36 @@ def test_resume_import_rejects_oversized_telegram_document_without_download(monk
 
     bot.download.assert_not_awaited()
     assert "8 МБ" in message.answer.await_args.args[0]
+
+
+def test_concurrent_resume_confirmations_do_not_write_twice(monkeypatch):
+    token = "concurrent-test"
+    handlers._PENDING_RESUME_IMPORTS[token] = {
+        "user_id": 7, "profile_id": 11, "content": "Skills\nLinux", "fingerprint": "hash",
+        "language": "en", "role": "DevOps", "proposals": (), "overlaps": (),
+        "created_at": time.time(),
+    }
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_resumes", AsyncMock(return_value=[]))
+
+    async def add_resume(*_args, **_kwargs):
+        await asyncio.sleep(0)
+        return SimpleNamespace(id=22)
+
+    save = AsyncMock(side_effect=add_resume)
+    monkeypatch.setattr(handlers.repo, "add_resume", save)
+
+    def callback():
+        message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock(), edit_reply_markup=AsyncMock())
+        return SimpleNamespace(data=f"rimp:resume:{token}", message=message, answer=AsyncMock())
+
+    async def confirm_both():
+        await asyncio.gather(handlers.confirm_resume_import(callback()),
+                             handlers.confirm_resume_import(callback()))
+
+    try:
+        asyncio.run(confirm_both())
+    finally:
+        handlers._PENDING_RESUME_IMPORTS.pop(token, None)
+
+    save.assert_awaited_once()

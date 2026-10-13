@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-10-14 — one-time resume import confirmation
+
+The pending import preview is claimed before its first persistence operation to
+prevent two Telegram callbacks from writing it concurrently. A failed claimed
+preview is re-created by resending the file; atomic resume/fact persistence
+requires a separate repository transaction design.
+
 ## 2026-10-14 — scoped reliability and security boundaries
 
 Candidate Telegram commands and callbacks are private-chat actions; selected

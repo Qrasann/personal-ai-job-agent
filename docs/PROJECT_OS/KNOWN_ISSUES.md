@@ -1,5 +1,12 @@
 # Known Issues
 
+## 2026-10-14 — resume import callback boundary
+
+Concurrent duplicate confirmation callbacks previously could save the same
+resume and facts twice. The token is now claimed before the first DB await.
+If saving fails partway through, the preview is consumed and the user must
+resend the document; an atomic resume-plus-facts transaction is still open.
+
 ## 2026-10-14 — security and reliability audit notes
 
 - Fixed locally: a scheduled `scan_all` exception for one user aborted later
