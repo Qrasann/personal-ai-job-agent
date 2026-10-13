@@ -66,7 +66,7 @@ def test_relocation_first_scores_its_own_role_queries():
 
 
 def test_telegram_parser_extracts_remote_and_salary():
-    job = parse_telegram_job("DevOps Engineer\nRemote worldwide\n$3000-4500\nDocker Kubernetes", source_ref="test")
+    job = parse_telegram_job("DevOps Engineer\nRemote worldwide\nUSD 3000-4500 per month\nDocker Kubernetes", source_ref="test")
     assert job.work_mode == "remote"
     assert job.salary_from == 3000
     assert job.salary_to == 4500

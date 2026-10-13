@@ -2,7 +2,20 @@
 
 Updated: 2026-10-14 (Europe/Moscow)
 
-## Current checkpoint — 2026-10-14
+## 2026-10-14 — Telegram source evidence
+
+Telegram ingestion now uses shared tri-state support evidence: absence unknown,
+explicit refusal false, affirmative employer support true. Negated remote and
+remote-server experience do not set remote work mode. Ambiguous currency,
+missing period and decimal salary remain source text; only explicit whole
+amounts/currency/period populate salary fields. No scoring formulas/threshold
+changes or migration. Updated the old parser fixture to explicit USD/monthly.
+21 targeted tests passed, full unit 646 / 3 skipped, PostgreSQL 649;
+compileall/secret/diff passed. Local stage follows af1ff56, not deployed.
+Next: bound malformed numeric source values to avoid losing valid source jobs.
+Runtime/deployment and Telegram acceptance gate remain as recorded in HANDOFF.
+
+## Prior implementation checkpoint — 2026-10-14
 
 Resumed from b228ea5 and preserved interrupted local edits. Source 3.5.7,
 branch feature/v3.5.7-international-market-coverage. Completed source-evidence
