@@ -1,5 +1,17 @@
 # Current State
 
+## 2026-10-14 — Direct employer visa predicates
+
+Shared evidence now handles employer sponsor-visa verb phrases, including
+plural, can/will and explicit refusal. Conditional/advice/non-employer claims
+remain unknown. Refusal wins over offers in either order, also in Telegram.
+84 targeted tests; full unit676/3 skipped, PostgreSQL679; compileall/secret/diff
+passed. No formulas, thresholds, migration or deployment. Prior stage02635d7
+complete. Compact BRIEF/HANDOFF now replaces duplicate current snapshots;
+original text remains Git history/DEVELOPMENT_LOG. Next mandatory gate: approved
+runtime/Telegram acceptance; independent AM feed discovery stays open.
+
+
 ## Latest stage — 2026-10-14: Greenhouse evidence
 
 Greenhouse uses shared tri-state support classification, so advice, conditional

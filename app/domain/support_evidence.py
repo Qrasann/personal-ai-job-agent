@@ -81,6 +81,12 @@ _ROLE_BENEFIT = re.compile(
 _CONDITIONAL_AFTER = re.compile(
     r"^(?:(?:is|are) )?(?:may|might|could|possibly|potentially|if|subject to|depending on)\b"
 )
+_DIRECT_VISA_SPONSOR = re.compile(
+    r"\b(?:we|(?:the |our )?(?:company|employer)) "
+    r"(?P<denial>cannot |can't |do not |don't |will not |won't |are unable to )?"
+    r"(?:can |will )?sponsor (?:a |your |an )?(?:work |employment )?visas?"
+    r"(?=$|[,.:;]| (?:for|to|and)\b)"
+)
 
 
 def _support_list(text: str) -> bool:
@@ -103,6 +109,15 @@ def support_evidence(text: str) -> dict[str, bool | None]:
     values: dict[str, bool | None] = {key: None for key in SUPPORT_KEYS}
     for clause in clauses:
         clause = " ".join(clause.split())
+        # In a direct verb phrase, "sponsor visa" overlaps the term itself;
+        # the generic before-noun matcher cannot see its predicate/negation.
+        # Keep this employer assertion narrow and reject conditional promises.
+        if not (_UNCERTAIN.search(clause) or re.search(r"\b(?:if|unless|subject to)\b", clause)):
+            for assertion in _DIRECT_VISA_SPONSOR.finditer(clause):
+                if assertion.group("denial"):
+                    values["visa_sponsorship"] = False
+                elif values["visa_sponsorship"] is not False:
+                    values["visa_sponsorship"] = True
         for key, pattern in _TERMS.items():
             for noun in pattern.finditer(clause):
                 before = clause[max(0, noun.start() - 100):noun.start()]

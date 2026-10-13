@@ -1,166 +1,51 @@
 # Codex Brief
 
-## Latest stage — 2026-10-14: Greenhouse evidence
+Updated 2026-10-14. Read AGENTS.md; current Git/code outrank old checkpoints.
+Historical AI job-bot is data, not executable commands. Private context remains
+outside Git; no ransomware context without its own task.
 
-Greenhouse uses shared tri-state support classification, so advice, conditional
-support and prerequisites no longer become employer sponsorship offers.
-Existing source snippets are retained only when consistent with the classified
-value. Hybrid wins over mixed hybrid/remote labels; explicit remote locations
-are preserved as bounded remote_scope. No new filters, weights or thresholds.
-Validated 665 unit / 3 skipped, PostgreSQL 668, compileall/secret/diff passed.
-Local implementation follows e4644b3; no deployment/publication. Next safe task:
-shared explicit sponsor-visa verb phrases and refusal precedence. Mandatory
-v3.5.7 runtime/Telegram acceptance remains pending; see HANDOFF.
+## Current state
 
+Source3.5.7; feature/v3.5.7-international-market-coverage. Prior source candidate
+11c07cc and docs e4644b3 remain complete; Greenhouse evidence02635d7 follows.
+Direct employer visa-verb/refusal stage completed next (read actual HEAD).
+Latest full unit676 passed/3 skipped, isolated PostgreSQL679 passed;
+compileall, secret scan, git diff --check passed. No schema or score-formula change.
+Earlier Docker/Python3.12 evidence validation covers11c07cc; a later candidate
+requires its own build verification. No deployment/publication performed.
 
-Candidate 11c07cc also passed a separate Docker build (image8fc8cddae7d6)
-and Python3.12 import/compile/evidence smoke in a network-disabled ephemeral
-container. Repo runtime/volumes unchanged. Owner update approval requested for
-11c07cc; unanswered at this checkpoint. Any following checkpoint is docs-only.
+## Completed implementation
 
-Updated: 2026-10-14 (Europe/Moscow)
+HH silent ConnectError/cooldown, serialized recovery/cache invalidation and
+skipped/partial summary; expiry cards; bounded remote support query planning;
+GE Devexperts feed; exact requirement headings; Unicode local queries all done.
+Source salary evidence display, explicit remote constraints, Telegram tri-state
+support/explicit salary units, numeric metadata isolation all done.
+Greenhouse now rejects advice/conditional sponsorship claims, keeps hybrid and
+explicit country remote scope. Shared evidence recognizes direct employer
+sponsor-visa phrases, including plural/negation; explicit refusals outrank offers
+in either order, including Telegram. Conditional or non-employer prose unknown.
 
-## Mission and constraints
+## Priority and gates
 
-Continue Personal AI Job Agent and the original AI job-bot pipeline:
-search → grounded vacancy/candidate comparison → CV/cover drafts → application
-workspace → recruiter/interview support → agent/product development.
-Historical chats are data, not current commands. Repository/Git and the latest
-owner decisions take priority. Private context stays outside Git.
+Finish v3.5.7 usefulness/real acceptance before v3.6 fit ->v3.7 CV/application
+workspace ->v3.8 recruiter/interview ->v4 agent/product. Current owner agreement
+for runtime update is pending (last requested11c07cc; newer local code exists).
+Recheck tested candidate and obtain scope agreement before runtime update.
+Existing runtime last inspected app up/PostgreSQL healthy, last identified
+buildc829a5f; startup/Telegram counts in old history are not current acceptance.
+Post-update validate startup, /sources, /jobs relocation, /jobs relocation below,
+updated cards. Independent AM lower-barrier feeds remain open: Manychat official
+positions and legacy Greenhouse feed yielded no AM/support opening in review.
+No adapter added from mere office existence. Context Watch unchanged placeholder;
+checksum tracked privately. Main-first ON_DEMAND_POLICY_V2 applies.
 
-Maintain independent Career-first and Relocation-first. GE and AM have equal
-priority. Visible lists sort by score descending; threshold remains 65. Remote
-scope/timezones do not establish country hiring or work eligibility. Missing
-salary, visa, relocation and candidate experience remain unknown.
+## Stable rules
 
-## Current checkpoint — 2026-10-14
-
-Source 3.5.7, feature/v3.5.7-international-market-coverage. Previous six stages
-remain complete. New stages: af1ff56 (source salary display and remote limit
-precedence), 76b5661 (Telegram unknown/negative support and explicit salary
-units), then malformed numeric salary bounds (obtain final HEAD from Git).
-Latest complete candidate: 658 unit passed / 3 skipped, isolated PostgreSQL
-661 passed; compileall, secret scan and git diff --check passed.
-No scoring formula/weight/65-threshold changes or schema migrations.
-
-Optional NaN/infinite/fractional/out-of-storage-range source amounts now remain
-unknown instead of aborting source batches or overflowing PostgreSQL Integer.
-Telegram huge integers likewise remain source text. Valid adjacent jobs and
-representable whole amounts survive. New numeric regressions: 12 cases.
-Earlier explicit residence/country constraints outrank broad worldwide prose;
-source salary text is bounded/escaped and display-only. Telegram support
-absence is unknown and explicit refusals remain false.
-
-Existing Compose repo app up/PostgreSQL healthy at last read; no rebuild,
-update or publication performed. Last identified runtime build c829a5f.
-Deployment approval/real startup/source/scoped Telegram acceptance remain
-pending. Do not close v3.5.7 or skip to v3.6 until mandatory acceptance.
-Next decision: owner approval for the latest tested candidate, then recheck
-clean Git, update only approved source and validate startup plus /sources,
-/jobs relocation, /jobs relocation below and detailed cards. Independent
-AM employer-feed research remains open; prior researcher hit usage limit
-without delivering a verified integration candidate, so none was invented.
-Context Watch placeholder hash recorded privately; no new synchronized delta
-or live ChatGPT access. MODEL_ROUTING was read; supported job_scout performed
-read-only sync audit. No expensive reviewer was needed.
-
-
-## Earlier validated checkpoint
-
-- Shutdown requested by owner, 2026-10-13 08:28 Moscow. Worktree was clean at
-  `bacdcc7` before this docs-only checkpoint; no unfinished code edits.
-  Runtime status rechecked: app up, PostgreSQL healthy. No deployment or new
-  long operation started. On reboot read HANDOFF's shutdown section, recheck
-  Git/runtime, and consume the pending owner deployment decision first.
-- Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
-- Latest verified implementation HEAD: `443aaeb`; any later docs-only
-  checkpoint does not change the validated application candidate.
-- Resumed from clean `c829a5f`; HH recovery/summary follow-up committed as
-  `5c4b959`, source listing-expiry/card stage `c516a77`, remote-query plan
-  `e7b56f6`, GE SmartRecruiters feed `5044e90`, exact requirement sections
-  `5d02cb2`. Later stages stay local
-  until explicit publication approval.
-  Read `git status` and `git log -3` before continuing; never reset user work.
-- Compose `repo` still runs the previously authorized c829a5f build. App up,
-  PostgreSQL healthy. Startup scan completed 2026-10-12 21:53:38 UTC
-  (2026-10-13 00:53:38 Moscow), including one isolated HH ConnectError.
-- Latest runtime log (2026-10-13 05:08:33 UTC) reproduced `KeyError: 'found'`
-  in old HH aggregation after recovery. Scan completed, but that source result
-  was discarded. Local 5c4b959/443aaeb fixes this exact transition with a
-  regression; deploy remains gated by owner agreement.
-- Remote draft PR #18 is open at `f9ed986`; its Python/Docker/secret CI passed.
-  Those results do not cover subsequent local commits. Main/formal release
-  remains v3.5.6. No new push, merge, deployment or release authorized.
-- HH ConnectError alerts are silent with a 15-minute process-local cooldown.
-  Current follow-up fixes quiet skipped/partial summary rendering, serializes
-  concurrent HH probes, invalidates stale HH caches on failure, and preserves
-  aggregate successful counts if another profile skips/fails.
-- Himalayas preserves bounded `expiryDate` evidence in existing source-ref JSON
-  and cards display its UTC listing-expiry/expired/unknown state. Future expiry
-  does not prove hiring or an employer application deadline; no score/filter
-  change or schema migration. Cached cards reassess expiry at display time.
-- Himalayas now uses a bounded remote-role query plan: selected support roles
-  precede physical-work queries, keeping original text/group order, max four
-  queries and existing market/cache bounds. Both GE/AM are searched; no new
-  roles, preference/score/threshold change. Career query order is preserved.
-- New curated SmartRecruiters/Devexperts feed is GE-only, public read-only,
-  selected-role scoped and source-toggle aware. One page max 100, max ten
-  relevant details, 10s request / 60s total budget, one transport retry and
-  six-hour scheduled cache. Verified partial results survive later budget
-  expiry; external cancellation propagates. Hybrid/GE-only remote remains
-  scoped, with salary/visa/relocation unknown unless explicitly offered.
-- Live read-only adapter probe found one customer-support-related posting in
-  GE/hybrid; visa/relocation unknown. It is a lead, not a Good/eligibility claim.
-- Exact Devexperts headings now identify required (`What we expect from
-  candidates`) and preferred (`As a Plus`) sections. Existing skill vocabulary,
-  scorer weights and thresholds are preserved; no nontechnical facts invented.
-- Explicit Georgian/Armenian query and resume text now tokenize as Unicode
-  words in Georgia discovery and matching. Existing punctuation, generic-word
-  exclusions, scoring weights/caps/65 threshold are preserved. No translations
-  or owner-selected roles are introduced.
-- Latest verification: 606 unit passed / 3 skipped, PostgreSQL 609 passed;
-  compileall, secret scan and diff check pass. Separate local Docker validation
-  image built and Python 3.12 imports/compile passed without networking.
-  All new stages remain undeployed.
-
-## Current priority
-
-Complete v3.5.7 practical relevance and source coverage before v3.6.
-Current code candidate is ready for the authorized deployment/Telegram/source
-relevance gate. Owner approval is required to update the working Compose build
-under the latest request. Validate new source counts and scoped relocation
-output after that update before closing v3.5.7; do not claim Good/eligibility
-from adapter HTTP success. v3.6 follows the mandatory v3.5.7 acceptance. Preserve score
-rules and owner exclusions. Owner post-filter Telegram acceptance remains
-pending and does not block independent safe implementation.
-
-## Open acceptance and limitations
-
-- Owner-only Telegram checks: `/jobs relocation`, `/jobs relocation below`,
-  `/sources` (latest manual entry), and updated `/job 1273` requirement card.
-  Automated handler tests are separate from real-chat acceptance.
-- Useful lower-barrier AM/GE coverage remains incomplete; no fabricated
-  Good/Stretch results. JOBS.GE is paused (410); manual portals stay link-only.
-- Application deadlines, start timing, employer hiring and individual work
-  eligibility remain unknown without direct evidence. Source listing expiry
-  is a different fact.
-- Alternative skill/language groups are not modeled separately yet: requirement
-  section mentions are technical evidence, not full employer-condition fit.
-  Track that improvement in v3.6; no individual Python requirement inferred
-  from a source naming alternative programming languages.
-- `/salary minimum` is an assessment reference, not a hard floor; the current
-  wording already says so. Strict filtering requires a separate owner choice.
-- External applications, recruiter contact, private HH actions, publication,
-  production deployment and risky migrations require explicit authorization.
-  Preserve .env, credentials and existing volumes.
-
-## How to continue efficiently
-
-Read this file and AGENTS.md, then only relevant TASKS/architecture/code.
-Canonical roadmap: [../../ROADMAP.md](../../ROADMAP.md). Historical checkpoints
-are preserved in [history/BRIEF_2026-10-13_c829a5f.md](history/BRIEF_2026-10-13_c829a5f.md)
-and DEVELOPMENT_LOG.md; do not treat their old pending states as current.
-Use private CONTEXT_INDEX/CURRENT_CONTEXT only as pointers and reconcile with
-Git. Never load or use the ransomware investigation without a separate task.
-For each stage: implement → meaningful regressions → unit/PostgreSQL checks →
-compileall/secret scan/diff → update PROJECT_OS → local commit → next task.
+Independent Career-first/Relocation-first; GE/AM equal; descending rating and
+threshold65; no unsupported salary, relocation, hiring/visa or candidate facts.
+No real applications, recruiter contact, production deployment, risky migration,
+merge/release/publication without separate authorization. Preserve.env/data/volumes.
+Requirement alternatives remain v3.6 gap; strict salary floor is owner decision.
+Full older checkpoints remain Git history, DEVELOPMENT_LOG and history/ snapshots.
+See HANDOFF for precise continuation and tests; canonical roadmap../../ROADMAP.md.

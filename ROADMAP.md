@@ -2,7 +2,9 @@
 
 Last reviewed: 2026-10-14
 
-Latest Greenhouse evidence stage: 665 unit / 668 PostgreSQL, safety checks passed.
+Latest direct visa evidence stage:676 unit/679 PostgreSQL; safety checks passed.
+
+Previous Greenhouse evidence stage: 665 unit / 668 PostgreSQL, safety checks passed.
 Manychat review yielded no verified Armenian/support opening; no adapter added.
 
 Earlier stages: source salary/remote evidence af1ff56, Telegram evidence
