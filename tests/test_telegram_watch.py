@@ -1,6 +1,6 @@
 import asyncio
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -158,7 +158,7 @@ def test_channels_command_uses_only_registered_users_state(monkeypatch):
     monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
     change = AsyncMock(return_value={"channels": {}})
     monkeypatch.setattr(handlers, "change_subscription", change)
-    asyncio.run(handlers.channels(message))
+    asyncio.run(handlers.channels(message, None))
     change.assert_awaited_once_with(7, "add", "@devopsjobs", "relocation")
     assert message.answer.call_args.kwargs["parse_mode"] is None
 
@@ -168,7 +168,7 @@ def test_unregistered_user_cannot_create_watchlist(monkeypatch):
     monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=None))
     change = AsyncMock()
     monkeypatch.setattr(handlers, "change_subscription", change)
-    asyncio.run(handlers.channels(SimpleNamespace(text="/channels add @devopsjobs")))
+    asyncio.run(handlers.channels(SimpleNamespace(text="/channels add @devopsjobs"), None))
     change.assert_not_awaited()
 
 
@@ -217,8 +217,15 @@ def test_watchlist_and_replay_dedupe_survive_postgres_reload(monkeypatch):
             for search in searches:
                 await watch.repo.update_search_settings(search.id, {**search.settings, "notify_min_score": 101})
             await watch.change_subscription(user.id, "add", "@devopsjobs")
+            original_ingest = services.ingest_and_match
+            monkeypatch.setattr(services, "ingest_and_match", AsyncMock(side_effect=RuntimeError("temporary")))
             await post()
+            assert (await watch.watch_state(user.id))["pending"]
+            watch._LOCKS.clear()
+            monkeypatch.setattr(services, "ingest_and_match", original_ingest)
+            assert await watch.retry_pending(None, user_id=user.id) == 1
             state = await watch.watch_state(user.id)
+            assert state["pending"] == {}
             assert state["channels"]["@devopsjobs"]["stats"]["processed"] == 2
             assert state["channels"]["@devopsjobs"]["stats"]["posts"] == 1
             watch._LOCKS.clear()
@@ -231,3 +238,62 @@ def test_watchlist_and_replay_dedupe_survive_postgres_reload(monkeypatch):
         finally:
             await engine.dispose()
     asyncio.run(run())
+
+
+def test_retry_queue_persists_failed_post_and_recovers_without_redelivery(memory):
+    memory[2].side_effect = [RuntimeError("temporary"), {"processed": 1}, {"processed": 1}]
+    async def run():
+        await watch.change_subscription(1, "add", "@devopsjobs")
+        await post()
+        state = await watch.watch_state(1)
+        assert list(state["pending"]) == ["channel:-100123:42"]
+        watch._LOCKS.clear()
+        assert await watch.retry_pending(None, user_id=1) == 1
+        state = await watch.watch_state(1)
+        assert state["pending"] == {}
+        assert state["channels"]["@devopsjobs"]["stats"]["posts"] == 1
+    asyncio.run(run())
+    assert memory[2].await_count == 3
+
+
+@pytest.mark.parametrize("mode", ["off", "paused", "zero_limit"])
+def test_retry_keeps_queue_when_processing_disabled(mode, memory):
+    memory[2].side_effect = RuntimeError("temporary")
+    async def run():
+        await watch.change_subscription(1, "add", "@devopsjobs")
+        await post()
+        if mode == "off":
+            await watch.change_subscription(1, "off", "@devopsjobs")
+        elif mode == "paused":
+            memory[0][(1, "paused")] = "true"
+        assert await watch.retry_pending(None, user_id=1, limit=0 if mode == "zero_limit" else 5) == 0
+        assert (await watch.watch_state(1))["pending"]
+    asyncio.run(run())
+    assert memory[2].await_count == 1
+
+
+def test_retry_bound_retains_overflow_evidence_without_evicting_existing_queue(memory, monkeypatch):
+    monkeypatch.setattr(watch, "MAX_PENDING", 1)
+    memory[2].side_effect = RuntimeError("temporary")
+    async def run():
+        await watch.change_subscription(1, "add", "@devopsjobs")
+        await post()
+        await watch.consume_channel_post(None, chat_id=-100123, username="devopsjobs", message_id=43, text="Support")
+        state = await watch.watch_state(1)
+        assert list(state["pending"]) == ["channel:-100123:42"]
+        assert state["retry_overflow"] == 1
+        assert "переполненной очереди: 1" in watch.render_subscriptions(state)
+    asyncio.run(run())
+
+
+def test_retry_scheduler_is_bounded_and_nonoverlapping(monkeypatch):
+    from app.main import _schedule_jobs
+    from app.sources.telegram_watch import retry_telegram_watch
+    from app.config import settings
+    monkeypatch.setattr(settings, "hh_private_api_enabled", False)
+    scheduler = SimpleNamespace(add_job=Mock())
+    _schedule_jobs(scheduler, None)
+    call = next(call for call in scheduler.add_job.call_args_list if call.args[0] is retry_telegram_watch)
+    assert call.kwargs["max_instances"] == 1
+    assert call.kwargs["coalesce"] is True
+    assert call.kwargs["minutes"] == 1

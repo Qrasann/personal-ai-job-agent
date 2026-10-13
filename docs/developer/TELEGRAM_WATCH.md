@@ -33,7 +33,7 @@ Limitations: single polling process; no distributed/exactly-once guarantee.
 Scoring, seen records and statistics are separate transactions; crash windows
 can replay processing or undercount counters, existing notifications still have
 their usual deduplication contract. Bot API does not promise a failed update
-will be redelivered; a persistent retry queue is a later stage. Edited-post
+will be redelivered; the persistent queue below handles recorded failures. Edited-post
 processing and rich post metadata are next; no historical backfill is claimed.
 
 ## Structured posts and forwarded provenance
@@ -48,3 +48,15 @@ and automatic delivery share a per-user lock/SeenMessage replay guard; paused
 manual processing with zero assessments does not consume a seen record.
 The seen marker is per-user/post (no historical rescore/backfill when changing
 subscription scope); per-profile historical rescore is a separate future task.
+
+## Bounded persistent retry
+
+Failed selected deliveries store source identity/body in RuntimeState JSON, max
+100 per user. Scheduler retries five posts total per minute; /channels retry
+retries up to five for the requesting user. Failed entries rotate; disabled
+subscriptions and paused users retain their queue, no hidden scope expansion.
+Overflow does not evict earlier entries: failures outside the full queue are
+counted visibly and need redelivery/manual forward. Bodies bounded16384 chars
+(Bot API messages/captions are smaller); no raw content in warning logs.
+Retry is recovery of accepted live updates, not reading channel history.
+Existing single-process/transaction caveats remain; edits are not implemented.

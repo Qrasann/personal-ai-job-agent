@@ -14,6 +14,7 @@ from app.sources.adapters.telegram_ingest import parse_telegram_job
 
 STATE_KEY = "telegram_channel_watch_v1"
 MAX_CHANNELS = 50
+MAX_PENDING = 100
 _COUNTERS = ("posts", "processed", "qualified", "stretch", "filtered", "notified", "duplicate", "replays", "errors")
 # One polling process, matching the existing deployment. Cross-process delivery
 # coordination is a later multi-worker concern; PostgreSQL seen records survive restart.
@@ -43,6 +44,8 @@ async def watch_state(user_id: int) -> dict:
         raise RuntimeError("Настройки Telegram Watch повреждены; требуется проверка, данные сохранены") from exc
     if not isinstance(state, dict) or not isinstance(state.get("channels"), dict):
         raise RuntimeError("Настройки Telegram Watch повреждены; данные сохранены")
+    if not isinstance(state.get("pending", {}), dict):
+        raise RuntimeError("Очередь Telegram Watch повреждена; данные сохранены")
     for key, item in state["channels"].items():
         if not isinstance(item, dict) or item.get("scope") not in {"career", "relocation", "both"}:
             raise RuntimeError("Настройки Telegram Watch повреждены; данные сохранены")
@@ -98,7 +101,10 @@ def render_subscriptions(state: dict) -> str:
             lines.append("Последний принятый пост: " + item["last_post_at"])
     if not state["channels"]:
         lines.append("Подписок пока нет.")
-    lines.extend(["", "/channels add @канал [career|relocation|both]", "/channels on|off|remove @канал", "Подписка сама не добавляет бота в канал. Для автоприёма добавьте бота в канал; иначе пересылайте посты вручную."])
+    lines.append(f"Ожидают повторной обработки: {len(state.get('pending', {}))}")
+    if state.get("retry_overflow"):
+        lines.append(f"Ошибок вне переполненной очереди: {state['retry_overflow']}")
+    lines.extend(["", "/channels add @канал [career|relocation|both]", "/channels on|off|remove @канал", "/channels retry — повторить до 5 неуспешных постов", "Подписка сама не добавляет бота в канал. Для автоприёма добавьте бота в канал; иначе пересылайте посты вручную."])
     return "\n".join(lines)
 
 
@@ -116,7 +122,8 @@ async def consume_forwarded_job(bot, user_id: int, job) -> bool:
         return True
 
 
-async def consume_channel_post(bot, *, chat_id: int, username: str | None, message_id: int, text: str) -> dict:
+async def consume_channel_post(bot, *, chat_id: int, username: str | None, message_id: int, text: str,
+                               only_user_id: int | None = None) -> dict:
     from app.services import ingest_and_match
 
     if not text.strip():
@@ -130,6 +137,8 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
     normalized.raw.update(channel_id=chat_id, channel_username=username, message_id=message_id)
     subscribers = 0
     for user in await repo.list_active_users():
+        if only_user_id is not None and user.id != only_user_id:
+            continue
         if await repo.get_state(user.id, "paused", "false") == "true":
             continue
         async with _LOCKS.setdefault(user.id, asyncio.Lock()):
@@ -157,6 +166,7 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
             if await repo.message_seen(user.id, identity, "telegram_watch"):
                 for _, item in items:
                     item.setdefault("stats", {})["replays"] = item.get("stats", {}).get("replays", 0) + 1
+                state.get("pending", {}).pop(identity, None)
                 await _save(user.id, state)
                 continue
             totals = {name: 0 for name in _COUNTERS}
@@ -174,11 +184,21 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                 for _, item in items:
                     stats = item.setdefault("stats", {})
                     stats["errors"] = stats.get("errors", 0) + 1
+                pending = state.setdefault("pending", {})
+                if identity in pending or len(pending) < MAX_PENDING:
+                    # Rotate failures to avoid starving later queued posts.
+                    pending.pop(identity, None)
+                    pending[identity] = {"chat_id": chat_id, "username": username,
+                                         "message_id": message_id, "text": text[:16384]}
+                else:
+                    state["retry_overflow"] = state.get("retry_overflow", 0) + 1
+                    log.warning("Telegram watch retry queue full; failure counted outside queue")
                 await _save(user.id, state)
                 # No seen record on failure. Existing pipeline suppresses repeat
                 # notifications if a retry follows partial profile success.
                 continue
             totals["posts"] = 1
+            state.get("pending", {}).pop(identity, None)
             for _, item in items:
                 stats = item.setdefault("stats", {})
                 for name, amount in totals.items():
@@ -186,3 +206,38 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                 item["last_post_at"] = datetime.now(timezone.utc).isoformat()
             await _save(user.id, state)
     return {"subscribers": subscribers}
+
+
+async def retry_pending(bot, *, user_id: int | None = None, limit: int = 5) -> int:
+    """Bounded retry of previously subscribed deliveries, never history search."""
+    attempted = 0
+    for user in await repo.list_active_users():
+        if user_id is not None and user.id != user_id:
+            continue
+        if await repo.get_state(user.id, "paused", "false") == "true":
+            continue
+        try:
+            async with _LOCKS.setdefault(user.id, asyncio.Lock()):
+                state = await watch_state(user.id)
+                pending = list(state.get("pending", {}).values())
+                enabled = {key for key, item in state["channels"].items() if item.get("enabled")}
+        except RuntimeError:
+            log.warning("Telegram watch retry state unavailable; subscriber skipped")
+            continue
+        for event in pending:
+            if attempted >= min(max(limit, 0), 10):
+                return attempted
+            if not isinstance(event, dict) or not isinstance(event.get("chat_id"), int) or not isinstance(event.get("message_id"), int) or not isinstance(event.get("text"), str):
+                log.warning("Telegram watch invalid retry entry preserved")
+                continue
+            keys = {str(event["chat_id"]), "@" + str(event.get("username") or "").casefold()}
+            if not enabled & keys:
+                continue
+            attempted += 1
+            await consume_channel_post(bot, chat_id=event["chat_id"], username=event.get("username"),
+                                       message_id=event["message_id"], text=event["text"], only_user_id=user.id)
+    return attempted
+
+
+async def retry_telegram_watch(bot) -> None:
+    await retry_pending(bot)

@@ -1,5 +1,9 @@
 # Roadmap
 
+Telegram Watcher stages1–3 completed locally (720 PostgreSQL tests): scoped
+subscriptions/metadata/replay dedupe/statistics/persistent retries. Runtime and
+actual channel access acceptance remain separate; no history/edited-post claim.
+
 Telegram Channel Watch stage1 implemented locally: per-user subscriptions,
 scoped Bot API ingestion, statistics and PostgreSQL replay dedupe (702 tests).
 Next parsing/provenance; access/history limitations documented.

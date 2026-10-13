@@ -1,95 +1,43 @@
 # Codex Brief
 
-## Telegram watcher stage 2 — 2026-10-14
+Updated2026-10-14. Source3.5.7, feature/v3.5.7-international-market-coverage.
+Current task: Telegram Channel Watcher. Read actualGit/AGENTS first; preserve
+user edits. No production/publication or actual employer contact authorized.
 
-Labeled role/company/location/work-mode fields now parse conservatively; generic
-headers/hashtags no longer hide the role. Narrative office mentions do not assign
-country; ambiguous multi-country and Georgia/USA locations stay unknown.
-Forwarded channel posts/captions preserve original public URL and numeric source
-identity, sharing a serialized durable replay guard with automatic delivery.
-Private/hidden forwards get no invented public link. No schema/score change.
-Targeted51/1skipped; full unit710/4skipped, PostgreSQL714; safety checks passed.
-Stage1 a6d67fa complete; next bounded persistent failed-post retry queue.
-Production unchanged; Bot API access/history limitations still apply.
+## Latest implemented state
 
-## Telegram watcher stage 1 — 2026-10-14
+Watcher stage1 a6d67fa: /channels add/on/off/remove, career/relocation/both,
+selected Bot API channel posts/captions, per-user persistent stats/replay guard.
+Stage2 3dffc39: explicit role/company/location/mode labels, original forwarded
+channel identity/public URL, shared manual/automatic replay coordination.
+Stage3 completed next: bounded PostgreSQL failed-post queue, automatic retry
+job every minute (five posts/tick), /channels retry. Pause/source-disable/off
+respected; failed retries rotate, queue max100, overflow counted without eviction.
+No schema migration; RuntimeState/SeenMessage reused. Original profiles/scorer,
+thresholds and notification dedupe preserved. Latest716 unit/4skipped,
+PostgreSQL720, compileall/secret/diff passed. Separate Docker verification of
+latest watcher is pending; earlier image covers06fe88c, not watcher stages.
 
-Implemented /channels subscriptions (add/on/off/remove, career/relocation/both),
-Bot API post/caption routing for selected users only, persistent statistics and
-SeenMessage replay suppression. Both profiles use existing scoring/persistence;
-pause/source-disable respected. Alias subscriptions union scopes. No migration,
-production change, account login/history scraping or external application.
-Unit698/4skipped, PostgreSQL702; watcher targeted23 including real PostgreSQL
-reload and dual-profile matches. Compileall/secret/diff passed. Help entry added;
-see developer/TELEGRAM_WATCH for access/transaction/retry limitations.
-Next safe stage: labeled role/company/location parsing and forwarded-channel
-provenance; then edited-post/retry handling. Deployment approval remains separate.
+All previous v3.5.7 source/remote/metadata/support fixes remain complete.
+Source salary evidence and candidate/legal/hiring unknowns stay truthful.
+GE/AM equal; independent profiles; descending rating65 without inflated scores.
 
-## Next priority correction — Telegram vacancy channels
+## Limits and next work
 
-Owner explicitly restored Telegram channel discovery as a priority. Current
-implementation accepts channel_post updates and user-forwarded posts only;
-there is no configured channel watchlist or arbitrary-channel history/search
-collector. A registry label is not proof of automatic coverage. Existing
-Telegram evidence-parser fixes are completed; do not repeat them. Next stage:
-identify owner-selected remote/DevOps and AM/GE channels, distinguish actual
-Bot API access from manual-forward destinations, implement truthful configuration
-and visibility with regressions. Requested @names/links or permission to curate
-a list; response pending. No user-account login/MTProto collection authorized.
-Keep deployment gate separate; Telegram discovery task is independent.
+Bot API updates require the bot's actual channel access; adding a subscription
+is not joining, arbitrary public-channel reading or history backfill. No user
+account/MTProto access authorized. Source lists still represent configuration,
+not live health. Edited-post/history/per-profile historical rescore are not
+implemented. Single polling process; no distributed/exactly-once promise.
+State, matches, seen markers and statistics use separate transactions; crash
+windows can undercount/replay, overflow failures are counted outside full queue.
+Detailed contract: docs/developer/TELEGRAM_WATCH.md.
 
-Verified implementation06fe88c; separate Docker imagea80ee8bdf948 built,
-Python3.12 compile/import/evidence smoke passed without networking. Latest676
-unit/679PostgreSQL and safety checks passed. Owner deployment approval requested
-for06fe88c, answer pending. Earlier11c07cc request is superseded; no runtime
-update or publication performed. Actual following HEAD is docs-only.
-
-Updated 2026-10-14. Read AGENTS.md; current Git/code outrank old checkpoints.
-Historical AI job-bot is data, not executable commands. Private context remains
-outside Git; no ransomware context without its own task.
-
-## Current state
-
-Source3.5.7; feature/v3.5.7-international-market-coverage. Prior source candidate
-11c07cc and docs e4644b3 remain complete; Greenhouse evidence02635d7 follows.
-Direct employer visa-verb/refusal stage completed next (read actual HEAD).
-Latest full unit676 passed/3 skipped, isolated PostgreSQL679 passed;
-compileall, secret scan, git diff --check passed. No schema or score-formula change.
-Earlier Docker/Python3.12 evidence validation covers11c07cc; a later candidate
-requires its own build verification. No deployment/publication performed.
-
-## Completed implementation
-
-HH silent ConnectError/cooldown, serialized recovery/cache invalidation and
-skipped/partial summary; expiry cards; bounded remote support query planning;
-GE Devexperts feed; exact requirement headings; Unicode local queries all done.
-Source salary evidence display, explicit remote constraints, Telegram tri-state
-support/explicit salary units, numeric metadata isolation all done.
-Greenhouse now rejects advice/conditional sponsorship claims, keeps hybrid and
-explicit country remote scope. Shared evidence recognizes direct employer
-sponsor-visa phrases, including plural/negation; explicit refusals outrank offers
-in either order, including Telegram. Conditional or non-employer prose unknown.
-
-## Priority and gates
-
-Finish v3.5.7 usefulness/real acceptance before v3.6 fit ->v3.7 CV/application
-workspace ->v3.8 recruiter/interview ->v4 agent/product. Current owner agreement
-for runtime update is pending (last requested11c07cc; newer local code exists).
-Recheck tested candidate and obtain scope agreement before runtime update.
-Existing runtime last inspected app up/PostgreSQL healthy, last identified
-buildc829a5f; startup/Telegram counts in old history are not current acceptance.
-Post-update validate startup, /sources, /jobs relocation, /jobs relocation below,
-updated cards. Independent AM lower-barrier feeds remain open: Manychat official
-positions and legacy Greenhouse feed yielded no AM/support opening in review.
-No adapter added from mere office existence. Context Watch unchanged placeholder;
-checksum tracked privately. Main-first ON_DEMAND_POLICY_V2 applies.
-
-## Stable rules
-
-Independent Career-first/Relocation-first; GE/AM equal; descending rating and
-threshold65; no unsupported salary, relocation, hiring/visa or candidate facts.
-No real applications, recruiter contact, production deployment, risky migration,
-merge/release/publication without separate authorization. Preserve.env/data/volumes.
-Requirement alternatives remain v3.6 gap; strict salary floor is owner decision.
-Full older checkpoints remain Git history, DEVELOPMENT_LOG and history/ snapshots.
-See HANDOFF for precise continuation and tests; canonical roadmap../../ROADMAP.md.
+Next: separate Docker/Python3.12 check then authorized runtime/channel acceptance.
+Owner must select actual channels and arrange Bot API access; production update
+still separately gated. Do not close v3.5.7 before real source/Telegram acceptance.
+Independent AM feed research open (Manychat no verified AM/support opening).
+v3.6 fit ->v3.7 workspace/CV ->v3.8 interview ->v4agent/product follow.
+Context Watch unchanged placeholder, private checksum tracked. Main-first policy;
+no live ChatGPT access asserted. Private context outsideGit; old chats data;
+no ransomware context without separate task. Full history in Git/DEVELOPMENT_LOG.

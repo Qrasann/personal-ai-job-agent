@@ -1,5 +1,18 @@
 # Project roadmap
 
+## 2026-10-14 — Telegram watcher persistent retries
+
+Failed deliveries persist in RuntimeState queue (max100 per user); retry job
+every minute handles max5 posts, /channels retry scoped to invoking user. Off,
+paused and source-disabled users stay protected. Existing queued entries never
+evicted for overflow; overflow separately counted. Success/seen replay clears
+queue; failures rotate; malformed entries preserved/logged. Real PostgreSQL
+integration now verifies queue recovery after reload, real dual-profile matching
+and replay suppression. Latest716unit/4skipped,720PostgreSQL; safety checks pass.
+Stage1 a6d67fa and stage2 3dffc39 complete; current stage local/undeployed.
+No schema/score change. Next separate Docker check then owner-approved runtime
+and real selected-channel acceptance; edits/history are not claimed.
+
 ## Telegram watcher stage 2 — 2026-10-14
 
 Labeled role/company/location/work-mode fields now parse conservatively; generic
