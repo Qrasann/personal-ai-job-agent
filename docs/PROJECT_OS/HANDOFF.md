@@ -6,7 +6,7 @@ Updated: 2026-10-13 (Europe/Moscow)
 
 - Source 3.5.7 on `feature/v3.5.7-international-market-coverage`.
 - Latest completed local stages `5c4b959` (HH recovery), `c516a77` (expiry),
-  `e7b56f6` (remote queries); obtain current HEAD with `git rev-parse --short HEAD`
+  `e7b56f6` (remote queries), `5044e90` (GE public feed); obtain current HEAD with `git rev-parse --short HEAD`
   and inspect `git status --short`. Resumed clean; preserve in-flight stages.
 - Runtime remains the c829a5f Compose `repo` build from 00:52 Moscow. App up,
   PostgreSQL healthy; startup scan completed at 21:53:38 UTC / 00:53:38 Moscow.
@@ -58,12 +58,17 @@ Engineer Level1 (GE/hybrid); salary/visa/relocation remain unknown. AM is not
 attributed to this GE-only feed. No private API, apply or messaging capability.
 Targeted source/catalog/service/cache 59 passed; shared candidate unit 585
 passed / 3 skipped, PostgreSQL 588 passed; compileall/secret/diff passed.
-Independent exact requirements-heading tests are included, not committed yet.
+Exact Devexperts required/preferred heading classification now passes 80
+targeted tests, with existing 85/15 technical weights intact. Nontechnical
+conditions stay unscored. Alternative-language groups remain a known v3.6 gap;
+do not turn a required-section Python mention into an individually mandatory
+Python hiring claim. Full unit 585 / 3 skipped, PostgreSQL 588 and safety checks
+passed. Unicode query-token support is the next local stage.
 
 ## Next concrete work
 
-1. Finish exact Devexperts required/preferred heading parsing, preserving
-   scorer weights and treating unrecognized/nontechnical evidence as unknown.
+1. Finish Unicode-aware tokens for explicit Georgian/Armenian role queries,
+   preserving existing matching/scorer semantics and request bounds.
 2. Continue AM/GE relevance/curated aliases and source-evidence acceptance.
 3. Keep owner-only post-filter Telegram acceptance pending separately. Do not
    close v3.5.7 or move versions based on HTTP 200/automated tests alone.

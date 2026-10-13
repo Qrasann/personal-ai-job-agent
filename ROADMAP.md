@@ -3,13 +3,12 @@
 Last reviewed: 2026-10-13
 
 Latest local work: HH recovery (`5c4b959`), listing-expiry cards (`c516a77`),
-bounded remote support queries (`e7b56f6`) and curated GE SmartRecruiters feed.
-Source/catalog/service/cache targeted 59 passed; shared unit 585 / 3 skipped,
-PostgreSQL 588; safety checks pass. Read-only adapter probe found one GE/hybrid
-support lead; eligibility and support remain unknown. New work is not deployed.
-Runtime c829a5f remains healthy, startup completed 21:53:38 UTC. Draft PR #18
-remains at remote f9ed986 with passing CI for that commit only. Owner Telegram
-acceptance stays pending. Milestones below retain historical evidence.
+bounded remote support queries (`e7b56f6`), GE public feed (`5044e90`) and exact
+required/preferred section parsing. Latest targeted heading/parser/source 80
+passed; shared unit 585 / 3 skipped and PostgreSQL 588, safety checks passed.
+New work is not deployed. Runtime c829a5f remains healthy; startup completed
+21:53:38 UTC. Draft PR #18 is at remote f9ed986 with CI for that commit only.
+Owner acceptance remains pending. Milestones below retain historical evidence.
 
 ## Progress at a glance
 

@@ -20,7 +20,7 @@ salary, visa, relocation and candidate experience remain unknown.
 - Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
 - Resumed from clean `c829a5f`; HH recovery/summary follow-up committed as
   `5c4b959`, source listing-expiry/card stage `c516a77`, remote-query plan
-  `e7b56f6`. Later stages stay local
+  `e7b56f6`, GE SmartRecruiters feed `5044e90`. Later stages stay local
   until explicit publication approval.
   Read `git status` and `git log -3` before continuing; never reset user work.
 - Compose `repo` still runs the previously authorized c829a5f build. App up,
@@ -49,15 +49,18 @@ salary, visa, relocation and candidate experience remain unknown.
   scoped, with salary/visa/relocation unknown unless explicitly offered.
 - Live read-only adapter probe found one customer-support-related posting in
   GE/hybrid; visa/relocation unknown. It is a lead, not a Good/eligibility claim.
-- Checks: source/catalog/service/cache targeted 59 passed; full shared candidate
-  unit 585 passed / 3 skipped, PostgreSQL 588 passed; compileall/secret/diff
-  pass. Includes prepared independent exact-requirement-heading regressions.
+- Exact Devexperts headings now identify required (`What we expect from
+  candidates`) and preferred (`As a Plus`) sections. Existing skill vocabulary,
+  scorer weights and thresholds are preserved; no nontechnical facts invented.
+- Checks: heading/parser/technical/source targeted 80 passed; full shared
+  candidate unit 585 passed / 3 skipped, PostgreSQL 588 passed;
+  compileall/secret/diff pass. All new stages remain undeployed.
 
 ## Current priority
 
 Complete v3.5.7 practical relevance and source coverage before v3.6.
-Next implementation: finish exact Devexperts required/preferred section parsing,
-then curated multilingual role coverage and remaining v3.5.7 acceptance. Preserve score
+Next implementation: Unicode role-token support for explicitly selected local
+queries, then remaining v3.5.7 owner acceptance/source relevance checks. Preserve score
 rules and owner exclusions. Owner post-filter Telegram acceptance remains
 pending and does not block independent safe implementation.
 
@@ -71,6 +74,10 @@ pending and does not block independent safe implementation.
 - Application deadlines, start timing, employer hiring and individual work
   eligibility remain unknown without direct evidence. Source listing expiry
   is a different fact.
+- Alternative skill/language groups are not modeled separately yet: requirement
+  section mentions are technical evidence, not full employer-condition fit.
+  Track that improvement in v3.6; no individual Python requirement inferred
+  from a source naming alternative programming languages.
 - `/salary minimum` is an assessment reference, not a hard floor; the current
   wording already says so. Strict filtering requires a separate owner choice.
 - External applications, recruiter contact, private HH actions, publication,

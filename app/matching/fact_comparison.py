@@ -186,6 +186,7 @@ _REQUIRED_HEADINGS = (
     "must-have",
     "required",
     "what we expect",
+    "what we expect from candidates",
 )
 
 _PREFERRED_HEADINGS = (
@@ -204,6 +205,7 @@ _PREFERRED_HEADINGS = (
     "preferred qualifications",
     "bonus",
     "would be a plus",
+    "as a plus",
 )
 
 _NEUTRAL_HEADINGS = (

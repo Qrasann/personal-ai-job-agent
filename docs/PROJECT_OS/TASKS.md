@@ -87,6 +87,11 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Recognize exact public Devexperts `What we expect from candidates`
+  required and `As a Plus` preferred section headings. Negative near-match,
+  HTML/inline, and optional-coverage regressions pass; vocabulary, weights
+  and thresholds unchanged. Targeted 80; unit 585 / 3 skipped, PostgreSQL 588;
+  safety checks passed. Alternative-language groups remain a v3.6 limitation.
 - [x] Connect curated public SmartRecruiters/Devexperts feed for selected GE
   only, respecting independent role queries/source toggles. Bound page/details,
   transport retry/time budgets/cache; preserve verified partial results, and
@@ -611,3 +616,11 @@
 - [x] Audit competition/applicant signals in connected public sources. Per-vacancy
   applicant counts are employer-only (HH and Job Bank); EURES exposes positions,
   not applicant volume. Keep candidate counts unknown instead of estimating them.
+
+## v3.6 follow-up — explicit requirement alternatives
+- [ ] Represent alternative requirements (e.g. knowledge of one programming
+  language from a list) separately from individually mandatory skills.
+  Current required/preferred extraction labels section mentions only; avoid
+  treating a Python mention among language alternatives as an employer's
+  individual Python requirement. Preserve truth and review scoring semantics
+  before changing approved weights or thresholds.

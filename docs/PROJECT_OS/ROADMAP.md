@@ -10,5 +10,6 @@ recovery are validated locally. Prior runtime c829a5f is healthy and its startup
 scan completed 21:53:38 UTC. No new production deployment/publication authorized.
 Source-expiry cards and bounded remote support query planning are implemented
 locally. The curated GE SmartRecruiters/Devexperts feed is now wired and
-verified read-only; continue exact requirements parsing and AM/GE relevance. Owner-only Telegram acceptance stays separately pending.
+verified read-only, with exact requirement section parsing. Continue Unicode
+local-query support and remaining AM/GE relevance/owner acceptance. Owner-only Telegram acceptance stays separately pending.
 See BRIEF.md for concise verification and HANDOFF.md for transfer details.

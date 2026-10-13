@@ -20,6 +20,23 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Exact Devexperts qualification section boundaries
+
+The verified public support posting uses `What we expect from candidates:` and
+`As a Plus:`. Exact section matching did not recognize either longer required
+label or preferred label. Added the two variants, preserving existing weights,
+skill vocabulary and thresholds. Regressions cover cleaned HTML, case/inline
+forms, negative near-matches, repeated required skills, and optional CI/CD in
+an explicitly synthetic example. The real posting is not claimed to mention
+CI/Jenkins. Nontechnical conditions remain unscored and no candidate facts are
+created. Existing alternative-language lists are not modeled yet; Python's
+required-section mention must not be presented as individually mandatory.
+
+Targeted parser/technical/source 80 passed; full shared unit 585 / 3 skipped,
+PostgreSQL 588 passed; compileall, secret scan and diff checks pass. Runtime
+remains c829a5f; no deployment/publication/applications. Next Unicode matching
+for explicitly selected local queries, then owner acceptance of v3.5.7.
+
 ## 2026-10-13 — Curated GE SmartRecruiters/Devexperts public feed
 
 Verified SmartRecruiters' documented public Posting API and an active Georgia
