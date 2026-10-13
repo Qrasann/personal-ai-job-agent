@@ -5,6 +5,8 @@ Updated: 2026-10-13 (Europe/Moscow)
 ## Current source and runtime
 
 - Source 3.5.7 on `feature/v3.5.7-international-market-coverage`.
+- Verified implementation HEAD is `443aaeb` (six local completed stages).
+  A following docs-only checkpoint may change Git HEAD; read the actual ref.
 - Latest completed local stages `5c4b959` (HH recovery), `c516a77` (expiry),
   `e7b56f6` (remote queries), `5044e90` (GE public feed),
   `5d02cb2` (exact required/preferred sections); obtain current HEAD with `git rev-parse --short HEAD`
@@ -77,6 +79,10 @@ local validation image built; Python 3.12 import/compile passed with no network.
 1. Obtain owner agreement for updating the working Compose repo to this
    tested candidate (latest user request makes production deployment a gate).
    Do not rebuild/update runtime until agreement is explicit.
+   Approval was requested for implementation `443aaeb` and is pending.
+   Once approved, ensure Git is clean and application/data files still match
+   that tested candidate, then `JOB_AGENT_COMPOSE_PROJECT=repo ./job-agent rebuild`,
+   inspect status/startup logs, and record actual acceptance.
 2. After update, verify startup scan and source counts; owner checks /sources,
    /jobs relocation, /jobs relocation below and updated /job cards.
 3. Evaluate real source relevance without inflating ratings; complete required

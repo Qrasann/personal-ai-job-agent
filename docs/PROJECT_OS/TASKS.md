@@ -93,8 +93,9 @@
   aliases invented. Targeted 48 passed; full unit 606 / 3 skipped, PostgreSQL 609;
   compileall/secret/diff pass. Separate Docker/Python 3.12 validation passed.
   Working runtime remains c829a5f pending owner deployment agreement.
-- [ ] Owner authorizes working-runtime candidate update, then real Telegram
-  and new source/scoped relocation acceptance; keep separate from unit tests.
+- [ ] Owner authorizes working-runtime implementation 443aaeb update (question
+  sent, answer pending), then real Telegram/new source/scoped relocation
+  acceptance; keep separate from unit tests.
 - [x] Recognize exact public Devexperts `What we expect from candidates`
   required and `As a Plus` preferred section headings. Negative near-match,
   HTML/inline, and optional-coverage regressions pass; vocabulary, weights

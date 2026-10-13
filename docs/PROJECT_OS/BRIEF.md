@@ -18,6 +18,8 @@ salary, visa, relocation and candidate experience remain unknown.
 ## Actual checkpoint
 
 - Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
+- Latest verified implementation HEAD: `443aaeb`; any later docs-only
+  checkpoint does not change the validated application candidate.
 - Resumed from clean `c829a5f`; HH recovery/summary follow-up committed as
   `5c4b959`, source listing-expiry/card stage `c516a77`, remote-query plan
   `e7b56f6`, GE SmartRecruiters feed `5044e90`, exact requirement sections

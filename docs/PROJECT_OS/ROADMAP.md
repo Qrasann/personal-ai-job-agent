@@ -14,3 +14,6 @@ verified read-only, with exact requirement section parsing. Continue Unicode
 local-query support is implemented. Next gate is explicit working-runtime
 update approval and real source/Telegram acceptance; then v3.6. Owner-only Telegram acceptance stays separately pending.
 See BRIEF.md for concise verification and HANDOFF.md for transfer details.
+
+Verified implementation candidate 443aaeb is committed; owner deployment
+approval is pending. See HANDOFF.md for precise continuation and runtime gate.
