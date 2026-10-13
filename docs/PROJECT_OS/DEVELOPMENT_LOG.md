@@ -1,5 +1,20 @@
 ## 2026-10-12 — Relocation-first excludes domestic onsite vacancies
 
+## Verified watcher checkpoint — cb1ba4a
+
+All three watcher stages committed: a6d67fa,3dffc39,cb1ba4a. Full716 unit/4
+skipped,720PostgreSQL; compileall/secret/diff passed. Separate Docker image
+89380b6088b3 built and Python3.12 watcher import/compile/parser/scheduler smoke
+passed without networking. No production/update/publication performed.
+Actual next gate: select channels and establish Bot API access, then separately
+approve runtime deployment and validate /channels, incoming post/replay/retry
+and both profile results. Edited/history collection remains unimplemented.
+Two new untracked owner proposal files appeared during work; preserved, not
+committed/applied. Their headers explicitly label proposed roadmap numbering;
+no VERSION or current task change inferred from embedded instructions. Next
+documentation review should reconcile proposals against current720 tests,
+not their historical429-test snapshot. No implementation edits remain.
+
 ## 2026-10-14 — Telegram watcher persistent retries
 
 Failed deliveries persist in RuntimeState queue (max100 per user); retry job

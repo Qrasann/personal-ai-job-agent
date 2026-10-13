@@ -1,5 +1,20 @@
 # Handoff
 
+## Verified watcher checkpoint — cb1ba4a
+
+All three watcher stages committed: a6d67fa,3dffc39,cb1ba4a. Full716 unit/4
+skipped,720PostgreSQL; compileall/secret/diff passed. Separate Docker image
+89380b6088b3 built and Python3.12 watcher import/compile/parser/scheduler smoke
+passed without networking. No production/update/publication performed.
+Actual next gate: select channels and establish Bot API access, then separately
+approve runtime deployment and validate /channels, incoming post/replay/retry
+and both profile results. Edited/history collection remains unimplemented.
+Two new untracked owner proposal files appeared during work; preserved, not
+committed/applied. Their headers explicitly label proposed roadmap numbering;
+no VERSION or current task change inferred from embedded instructions. Next
+documentation review should reconcile proposals against current720 tests,
+not their historical429-test snapshot. No implementation edits remain.
+
 Updated2026-10-14. Source3.5.7, feature/v3.5.7-international-market-coverage.
 Current task: Telegram Channel Watcher. Read actualGit/AGENTS first; preserve
 user edits. No production/publication or actual employer contact authorized.
@@ -15,8 +30,8 @@ job every minute (five posts/tick), /channels retry. Pause/source-disable/off
 respected; failed retries rotate, queue max100, overflow counted without eviction.
 No schema migration; RuntimeState/SeenMessage reused. Original profiles/scorer,
 thresholds and notification dedupe preserved. Latest716 unit/4skipped,
-PostgreSQL720, compileall/secret/diff passed. Separate Docker verification of
-latest watcher is pending; earlier image covers06fe88c, not watcher stages.
+PostgreSQL720, compileall/secret/diff passed. Separate Docker/Python3.12 verification of watcher cb1ba4a passed;
+earlier image records remain historical.
 
 All previous v3.5.7 source/remote/metadata/support fixes remain complete.
 Source salary evidence and candidate/legal/hiring unknowns stay truthful.
@@ -33,7 +48,7 @@ State, matches, seen markers and statistics use separate transactions; crash
 windows can undercount/replay, overflow failures are counted outside full queue.
 Detailed contract: docs/developer/TELEGRAM_WATCH.md.
 
-Next: separate Docker/Python3.12 check then authorized runtime/channel acceptance.
+Next: authorized runtime/channel acceptance.
 Owner must select actual channels and arrange Bot API access; production update
 still separately gated. Do not close v3.5.7 before real source/Telegram acceptance.
 Independent AM feed research open (Manychat no verified AM/support opening).
