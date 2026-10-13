@@ -1,5 +1,18 @@
 # Project roadmap
 
+## Next priority correction — Telegram vacancy channels
+
+Owner explicitly restored Telegram channel discovery as a priority. Current
+implementation accepts channel_post updates and user-forwarded posts only;
+there is no configured channel watchlist or arbitrary-channel history/search
+collector. A registry label is not proof of automatic coverage. Existing
+Telegram evidence-parser fixes are completed; do not repeat them. Next stage:
+identify owner-selected remote/DevOps and AM/GE channels, distinguish actual
+Bot API access from manual-forward destinations, implement truthful configuration
+and visibility with regressions. Requested @names/links or permission to curate
+a list; response pending. No user-account login/MTProto collection authorized.
+Keep deployment gate separate; Telegram discovery task is independent.
+
 Verified implementation06fe88c; separate Docker imagea80ee8bdf948 built,
 Python3.12 compile/import/evidence smoke passed without networking. Latest676
 unit/679PostgreSQL and safety checks passed. Owner deployment approval requested
