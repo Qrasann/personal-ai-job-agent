@@ -102,6 +102,20 @@ def render_subscriptions(state: dict) -> str:
     return "\n".join(lines)
 
 
+async def consume_forwarded_job(bot, user_id: int, job) -> bool:
+    """Share replay coordination with automatic channel delivery."""
+    from app.services import ingest_and_match
+    identity = job.raw.get("source_ref", "")
+    channel_origin = identity.startswith("channel:")
+    async with _LOCKS.setdefault(user_id, asyncio.Lock()):
+        if channel_origin and await repo.message_seen(user_id, identity, "telegram_watch"):
+            return False
+        result = await ingest_and_match(bot, job, only_user_id=user_id)
+        if channel_origin and result.get("processed", 0):
+            await repo.mark_message_seen(user_id, identity, identity.split(":")[1], "", "telegram_watch")
+        return True
+
+
 async def consume_channel_post(bot, *, chat_id: int, username: str | None, message_id: int, text: str) -> dict:
     from app.services import ingest_and_match
 
@@ -152,6 +166,8 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                                                     only_search_profile_id=search.id)
                     for name in totals:
                         totals[name] += result.get(name, 0)
+                if not totals["processed"]:
+                    continue
                 await repo.mark_message_seen(user.id, identity, str(chat_id), "", "telegram_watch")
             except Exception as exc:
                 log.warning("Telegram watch processing failed (%s); retry remains available", type(exc).__name__)

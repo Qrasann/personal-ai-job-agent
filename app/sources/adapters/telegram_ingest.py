@@ -5,6 +5,7 @@ from hashlib import sha256
 
 from app.domain.jobs import NormalizedJob
 from app.domain.support_evidence import support_evidence
+from app.sources.telegram_post import post_fields
 
 
 SALARY_RE = re.compile(
@@ -42,8 +43,8 @@ def _remote(text: str) -> bool:
 
 
 def parse_telegram_job(text: str, *, source_ref: str, source_url: str = "") -> NormalizedJob:
-    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
-    title = lines[0][:240] if lines else "Telegram vacancy"
+    fields = post_fields(text)
+    title = fields["title"]
     salary = SALARY_RE.search(text)
     symbols = {"€": "EUR", "₽": "RUB", "₾": "GEL"}
     period_match = _PERIOD.match(text[salary.end():]) if salary else None
@@ -54,9 +55,10 @@ def parse_telegram_job(text: str, *, source_ref: str, source_url: str = "") -> N
     high = _number(salary.group("high")) if salary else None
     structured = bool(salary and period and currency not in {"$", "£"}
                       and low and (not salary.group("high") or high))
-    remote = _remote(text)
+    mode = fields["work_mode"] or ("remote" if _remote(text) else None)
     support = support_evidence(text)
-    raw = {"source_ref": source_ref, "text": text, "support_evidence": support}
+    raw = {"source_ref": source_ref, "text": text, "support_evidence": support,
+           "source_location": fields.get("location")}
     if salary:
         raw["source_salary_text"] = text[salary.start():salary.end() + (period_match.end() if period_match else 0)]
     source_job_id = sha256(f"{source_ref}|{text}".encode()).hexdigest()[:24]
@@ -64,10 +66,13 @@ def parse_telegram_job(text: str, *, source_ref: str, source_url: str = "") -> N
         source="telegram",
         source_job_id=source_job_id,
         title=title,
+        company=fields.get("company", ""),
         description=text,
         url=source_url,
-        work_mode="remote" if remote else None,
-        remote_scope="unspecified" if remote else None,
+        country=fields["country"],
+        city=fields["city"],
+        work_mode=mode,
+        remote_scope=(fields.get("location") or "unspecified")[:128] if mode == "remote" else None,
         relocation=support["relocation"],
         visa_sponsorship=support["visa_sponsorship"],
         salary_from=low if structured else None,
@@ -76,3 +81,15 @@ def parse_telegram_job(text: str, *, source_ref: str, source_url: str = "") -> N
         salary_period=period if structured else None,
         raw=raw,
     )
+
+
+def parse_forwarded_job(text: str, *, chat_id: int, message_id: int, origin) -> NormalizedJob:
+    source_ref = f"forward:{chat_id}:{message_id}"
+    url = ""
+    if getattr(origin, "type", None) == "channel":
+        channel = origin.chat
+        source_ref = f"channel:{channel.id}:{origin.message_id}"
+        username = getattr(channel, "username", None)
+        if isinstance(username, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{4,31}", username):
+            url = f"https://t.me/{username}/{origin.message_id}"
+    return parse_telegram_job(text, source_ref=source_ref, source_url=url)

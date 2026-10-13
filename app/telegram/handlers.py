@@ -23,8 +23,8 @@ from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
-from app.sources.adapters.telegram_ingest import parse_telegram_job
-from app.sources.telegram_watch import change_subscription, consume_channel_post, render_subscriptions, watch_state
+from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
+from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, watch_state
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
@@ -1688,6 +1688,7 @@ async def channels(message: Message) -> None:
 
 
 @router.message(F.text)
+@router.message(F.caption, F.forward_origin)
 async def generic_text(message: Message, bot: Bot) -> None:
     user = await _user(message)
     if not user:
@@ -1695,7 +1696,7 @@ async def generic_text(message: Message, bot: Bot) -> None:
     pending = await repo.get_state(user.id, "manual_hh_reply", "")
     if pending:
         chat_id, _ = pending.split(":", 1)
-        if str(message.chat.id) == settings.telegram_admin_chat_id.strip():
+        if message.text and str(message.chat.id) == settings.telegram_admin_chat_id.strip():
             await hh_client.send_chat_message(chat_id, message.text)
             await repo.set_state(user.id, "manual_hh_reply", "")
             await message.answer("✅ Сообщение отправлено в HH.")
@@ -1703,7 +1704,9 @@ async def generic_text(message: Message, bot: Bot) -> None:
 
     # Forwarded Telegram vacancy: aiogram exposes forward_origin on modern Bot API.
     if getattr(message, "forward_origin", None) is not None:
-        source_ref = f"forward:{message.chat.id}:{message.message_id}"
-        job = parse_telegram_job(message.text, source_ref=source_ref)
-        await ingest_and_match(bot, job, only_user_id=user.id)
+        job = parse_forwarded_job(message.text or message.caption or "", chat_id=message.chat.id,
+                                  message_id=message.message_id, origin=message.forward_origin)
+        if not await consume_forwarded_job(bot, user.id, job):
+            await message.answer("♻️ Этот пост канала уже обработан для твоего профиля.")
+            return
         await message.answer("✅ Пересланный пост добавлен в общий pipeline и оценён для твоего профиля.")

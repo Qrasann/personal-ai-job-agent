@@ -1,5 +1,17 @@
 # Handoff
 
+## Telegram watcher stage 2 — 2026-10-14
+
+Labeled role/company/location/work-mode fields now parse conservatively; generic
+headers/hashtags no longer hide the role. Narrative office mentions do not assign
+country; ambiguous multi-country and Georgia/USA locations stay unknown.
+Forwarded channel posts/captions preserve original public URL and numeric source
+identity, sharing a serialized durable replay guard with automatic delivery.
+Private/hidden forwards get no invented public link. No schema/score change.
+Targeted51/1skipped; full unit710/4skipped, PostgreSQL714; safety checks passed.
+Stage1 a6d67fa complete; next bounded persistent failed-post retry queue.
+Production unchanged; Bot API access/history limitations still apply.
+
 ## Telegram watcher stage 1 — 2026-10-14
 
 Implemented /channels subscriptions (add/on/off/remove, career/relocation/both),

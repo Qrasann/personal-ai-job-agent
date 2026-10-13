@@ -35,3 +35,16 @@ can replay processing or undercount counters, existing notifications still have
 their usual deduplication contract. Bot API does not promise a failed update
 will be redelivered; a persistent retry queue is a later stage. Edited-post
 processing and rich post metadata are next; no historical backfill is claimed.
+
+## Structured posts and forwarded provenance
+
+Explicit Role/Position/Вакансия, Company/Компания, Location/Локация and
+Work mode/Формат labels are used; free-text offices are not location evidence.
+Country/city scope remains source evidence, not work permission. Generic
+headers and hashtag-only lines are skipped for title extraction.
+Channel forwards preserve original numeric channel/message identity and public
+URL if provided. Photo captions also route through manual ingestion. Manual
+and automatic delivery share a per-user lock/SeenMessage replay guard; paused
+manual processing with zero assessments does not consume a seen record.
+The seen marker is per-user/post (no historical rescore/backfill when changing
+subscription scope); per-profile historical rescore is a separate future task.
