@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-10-14 — patched dependency minimums
+
+Set minimum pypdf 6.20.1 and python-multipart 0.0.31 based on upstream
+security advisories. This keeps compatible newer releases within the existing
+major-version policy; reproducible locking needs a separate reviewed process.
+
 ## 2026-10-14 — EURES partial failure contract
 
 Search queries and detail IDs are independent EURES work units. A single HTTP

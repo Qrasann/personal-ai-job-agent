@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-14 — dependency floor checkpoint
+
+After `292e6d2`, checked official pypdf and python-multipart advisories.
+Raised pypdf floor to 6.20.1 and python-multipart to 0.0.31; local venv pypdf
+was upgraded to 6.20.1. Running Docker image was not rebuilt. Final local
+checks: 739 unit passed / 4 skipped, 743 isolated PostgreSQL passed, pip
+check/compileall/secret scan/diff check passed. The advisory's tree-item removal path is not proven
+reachable in text extraction; do not claim an exploited runtime issue. Preserve
+the two untracked proposal files.
+
 ## 2026-10-14 — EURES HTTP/parse follow-up
 
 After `7581903`, EURES search/detail loops now continue after one HTTP status

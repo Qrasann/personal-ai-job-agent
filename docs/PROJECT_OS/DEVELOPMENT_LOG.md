@@ -1,3 +1,21 @@
+## 2026-10-14 — dependency advisory floors
+
+After `292e6d2`, local `pip list` showed pypdf 6.20.0 and python-multipart
+0.0.32. Official pypdf advisory GHSA-9mx8-4j7g-633p affects <6.20.1 with a
+possible infinite loop during tree-item removal; pypdf 6.20.1 was published
+Oct 12. Our PDF resume path uses `PdfReader` and text extraction, so this
+specific tree-item operation is not proven reachable. Official
+python-multipart advisory GHSA-v9pg-7xvm-68hf affects <0.0.31, and other
+published parser advisories affect older versions. Raised the minimums in
+`requirements.txt` to pypdf 6.20.1 and python-multipart 0.0.31, then installed
+pypdf 6.20.1 into the local test venv. The running Docker image and all data
+remained unchanged. Sources:
+https://github.com/py-pdf/pypdf/security/advisories/GHSA-9mx8-4j7g-633p
+and https://github.com/advisories/GHSA-v9pg-7xvm-68hf.
+Final checks on local pypdf 6.20.1: 739 unit passed / 4 isolated-DB skips,
+743 isolated PostgreSQL passed, `pip check` found no broken requirements,
+compileall/secret scan/`git diff --check` passed.
+
 ## 2026-10-14 — EURES per-query and per-detail failures
 
 After `7581903`, tests reproduced whole-source failure on one EURES search

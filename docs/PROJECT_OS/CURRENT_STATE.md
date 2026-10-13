@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-14 — dependency floors
+
+`requirements.txt` now requires pypdf >=6.20.1 and python-multipart >=0.0.31.
+The local test venv has the patched pypdf 6.20.1; production image was not
+rebuilt. Broad dependency ranges remain a supply-chain reproducibility issue.
+
 ## 2026-10-14 — EURES partial responses
 
 The adapter now preserves verified results after a single search/detail HTTP

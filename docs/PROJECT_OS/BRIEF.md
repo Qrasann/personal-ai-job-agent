@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-14 — dependency floor review
+
+Raised `pypdf` minimum to 6.20.1 after checking its Oct 12 upstream advisory;
+the local test venv was upgraded from 6.20.0. Raised `python-multipart` minimum
+to 0.0.31, while local 0.0.32 already satisfied it. These are dependency
+floors, not a lockfile or proof of the runtime image's installed versions.
+
 ## 2026-10-14 — EURES partial response isolation
 
 EURES now continues independent search queries and detail IDs after a single

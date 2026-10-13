@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-14 — dependency security
+
+- [x] Raise pypdf/python-multipart lower bounds past checked upstream
+  advisories; validate locally with patched pypdf.
+- [ ] **P1, build reproducibility:** design a reviewed lock or constraints
+  process with hash/upgrade checks for runtime and CI images before deployment.
+- [ ] **P1, acceptance:** after authorized image rebuild, verify installed
+  package versions in the separate runtime image and run its import smoke test.
+
 ## 2026-10-14 — EURES response isolation
 
 - [x] Keep other EURES queries/details after one HTTP or parse failure; keep

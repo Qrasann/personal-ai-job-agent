@@ -1,5 +1,15 @@
 # Known Issues
 
+## 2026-10-14 — dependency advisory review
+
+Local pypdf 6.20.0 was below the upstream 6.20.1 fix for a possible infinite
+loop in tree-item removal; our resume path reads/extracts text, so direct
+reachability of that specific operation is unproven. `requirements.txt` now
+requires the fixed floor and the test venv uses 6.20.1. The previous
+python-multipart floor allowed versions affected by published parser DoS
+advisories; it now requires >=0.0.31, with local 0.0.32 already present.
+The running image remains unchanged and broad version ranges lack a lock.
+
 ## 2026-10-14 — EURES response isolation
 
 Fixed locally: one EURES HTTP error or malformed search/detail response aborted
