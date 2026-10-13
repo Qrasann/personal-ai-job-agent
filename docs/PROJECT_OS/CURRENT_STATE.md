@@ -4,6 +4,12 @@ Updated: 2026-10-13. Read [BRIEF.md](BRIEF.md) first; it is the compact current
 checkpoint. [HANDOFF.md](HANDOFF.md) contains continuation and verification.
 Git/code/runtime are authoritative; historical checkpoints are not live state.
 
+Owner requested shutdown checkpoint at 08:28 Moscow on 2026-10-13. Git was
+clean at bacdcc7; tested implementation remains 443aaeb, with no unfinished
+code changes. This stop changes documentation only. Read-only runtime status
+again confirmed app up/PostgreSQL healthy; recheck after reboot. No new suite,
+build, deployment or background continuation started. Approval is still pending.
+
 Source is 3.5.7 on `feature/v3.5.7-international-market-coverage`. The last
 inspected runtime is the c829a5f build, app up and PostgreSQL healthy. Startup
 scan completed 2026-10-12 21:53:38 UTC with HH skipped and other sources working.

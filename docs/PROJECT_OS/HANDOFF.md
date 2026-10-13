@@ -2,6 +2,34 @@
 
 Updated: 2026-10-13 (Europe/Moscow)
 
+## Shutdown checkpoint — 08:28 Moscow
+
+Owner requested a safe stop for powering off the PC. No new implementation,
+test suite, build or deployment started. Before this documentation checkpoint,
+Git HEAD was `bacdcc794862125f7c6404e119b767547bf11eb0`, with a clean worktree;
+application/data/build inputs still match tested implementation `443aaeb`.
+The checkpoint commit itself is docs-only; obtain its exact HEAD from Git.
+There are no unfinished code edits or uncommitted implementation stages.
+
+Read-only status: `repo` app up, PostgreSQL healthy; isolated `postgres-test`
+also healthy. No services were stopped/rebuilt and no data or volumes touched.
+These are pre-shutdown observations: recheck after the next boot. Test DB is
+disposable tmpfs and may be empty after restart; it is not the user's DB.
+
+Latest completed candidate checks remain 606 unit passed / 3 skipped,
+609 PostgreSQL passed, compileall, secret scan, diff check and separate
+Python 3.12/Docker validation passed. Suites were not rerun for this docs-only
+stop. Publication/CI remains as last recorded below, not rechecked now.
+For this docs-only checkpoint, secret scan and `git diff --check` passed.
+
+On resume: read BRIEF/AGENTS, Git status/log, private CONTEXT_INDEX and
+CURRENT_CONTEXT, then this handoff. Preserve new user edits. Recheck runtime
+status before any action; do not repeat the six completed stages. Deployment
+approval for `443aaeb` is still unanswered; powering off is not approval.
+Continue at the explicit deployment and real v3.5.7 acceptance gate below.
+Development is stopped at the owner's request; no background Codex continuation
+or post-reboot automation has been configured.
+
 ## Current source and runtime
 
 - Source 3.5.7 on `feature/v3.5.7-international-market-coverage`.
@@ -9,7 +37,8 @@ Updated: 2026-10-13 (Europe/Moscow)
   A following docs-only checkpoint may change Git HEAD; read the actual ref.
 - Latest completed local stages `5c4b959` (HH recovery), `c516a77` (expiry),
   `e7b56f6` (remote queries), `5044e90` (GE public feed),
-  `5d02cb2` (exact required/preferred sections); obtain current HEAD with `git rev-parse --short HEAD`
+  `5d02cb2` (exact required/preferred sections), `443aaeb` (Unicode tokens);
+  obtain current HEAD with `git rev-parse --short HEAD`
   and inspect `git status --short`. Resumed clean; preserve in-flight stages.
 - Runtime remains the c829a5f Compose `repo` build from 00:52 Moscow. App up,
   PostgreSQL healthy; startup scan completed at 21:53:38 UTC / 00:53:38 Moscow.
@@ -54,8 +83,8 @@ four supplied queries with support/IT roles ahead of physical-work roles, stable
 inside each group. Original preferences and all parse-time role matching stay
 intact; no EURES or scoring changes. Both AM and GE are covered by the request
 regression. Targeted 73 passed; full shared worktree unit 568 passed / 3 skipped,
-PostgreSQL 571 passed; compileall/secret/diff pass. SmartRecruiters tests are
-present but its catalog/service integration is the next independent stage.
+PostgreSQL 571 passed; compileall/secret/diff pass. These are historical
+stage-specific results; SmartRecruiters integration is completed below.
 
 SmartRecruiters/Devexperts is now wired in GE catalog/registry/service/cache.
 One public page (max 100), max 10 matching details; request 10s / total 60s, one

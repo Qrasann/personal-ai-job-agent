@@ -20,6 +20,22 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-13 — Owner-requested shutdown checkpoint
+
+At 08:28 Moscow inspected clean Git at bacdcc7 on the existing v3.5.7 branch.
+Application/data/build inputs match tested implementation 443aaeb; no unfinished
+code edits. Read-only Compose status confirms repo app up/PostgreSQL healthy
+and separate postgres-test healthy. Updated BRIEF, CURRENT_STATE, TASKS,
+ROADMAP and HANDOFF with stop/resume instructions, pending deployment approval,
+and earlier verified results: 606 unit / 3 skipped, 609 PostgreSQL, compileall,
+secret/diff and separate Docker/Python 3.12 validation. No full suite rerun for
+documentation-only stop. Corrected two stale stage descriptions; detailed
+history remains in Git and previous snapshots. No deployment, publication,
+service stop, data/volume removal or new long task. Private context refreshed
+outside Git, retaining 600 file permissions. Next gate remains approved runtime
+update and real source/Telegram acceptance before closing v3.5.7.
+Shutdown documentation validation: secret scan and git diff --check passed.
+
 ## 2026-10-13 — Live confirmation of old HH aggregate recovery bug
 
 Fresh read-only repo logs show HH source 2 failed at 05:08:33.606 UTC with

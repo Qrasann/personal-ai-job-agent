@@ -17,6 +17,11 @@ salary, visa, relocation and candidate experience remain unknown.
 
 ## Actual checkpoint
 
+- Shutdown requested by owner, 2026-10-13 08:28 Moscow. Worktree was clean at
+  `bacdcc7` before this docs-only checkpoint; no unfinished code edits.
+  Runtime status rechecked: app up, PostgreSQL healthy. No deployment or new
+  long operation started. On reboot read HANDOFF's shutdown section, recheck
+  Git/runtime, and consume the pending owner deployment decision first.
 - Source version 3.5.7; branch `feature/v3.5.7-international-market-coverage`.
 - Latest verified implementation HEAD: `443aaeb`; any later docs-only
   checkpoint does not change the validated application candidate.

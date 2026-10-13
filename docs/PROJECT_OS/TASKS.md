@@ -87,6 +87,11 @@
   since this live scan had no transport failure.
 
 ## v3.5.7 International Market Coverage — active candidate
+- [x] Save owner-requested shutdown checkpoint (2026-10-13 08:28 Moscow):
+  clean Git at bacdcc7 before docs update, tested implementation 443aaeb,
+  no unfinished code edits, runtime still c829a5f/app up/PostgreSQL healthy.
+  Preserve prior test evidence; no new long operations, deployment or data
+  changes. HANDOFF contains exact reboot/continuation and approval gate.
 - [x] Make explicit Georgian/Armenian role/resume text tokenization Unicode
   aware in Georgia discovery/matching. Preserve generic exclusions, technical
   punctuation, weights/caps/threshold and supplied preferences; no translation
@@ -136,11 +141,9 @@
   and retry after expiry. Targeted tests: 18 passed; unit suite: 444 passed,
   3 skipped; isolated PostgreSQL suite: 447 passed; compileall, secret scan
   and diff check pass. Compose `repo` rebuilt at 00:52 Moscow; runtime 3.5.7
-  is up and PostgreSQL healthy. The startup scan is in progress; the inspected
-  initial window shows HH's ordinary web fallback and other providers returning
-  HTTP 200. This run did not reproduce `ConnectError`, so the silent failure
-  path is verified by regression tests. Commit c829a5f; startup scan completed
-  at 21:53:38 UTC and reproduced one locally logged HH connection failure.
+  was up and PostgreSQL healthy. Commit c829a5f startup scan completed
+  at 21:53:38 UTC and reproduced one locally logged HH connection failure;
+  other sources continued. Silent failure handling also has regression tests.
 - [x] Add jobs.ss.ge as a selected-Georgia manual-search destination after
   confirming that it exposes broad vacancy listings but no verified reusable
   public API or automated-collection permission. Keep it link-only. Targeted
