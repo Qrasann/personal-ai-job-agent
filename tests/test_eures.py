@@ -158,9 +158,11 @@ def test_discover_retries_transient_transport_failure(monkeypatch):
 
     monkeypatch.setattr(httpx.AsyncClient, "post", post)
     monkeypatch.setattr("app.sources.adapters.eures.asyncio.sleep", no_wait)
-    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps"])))
+    source = EuresSource()
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps"])))
     assert result == []
     assert len(calls) == 2
+    assert source.retry_count == 1
 
 
 def test_request_does_not_retry_http_status_errors():
@@ -217,10 +219,12 @@ def test_discover_keeps_successful_queries_when_another_exhausts_retries(monkeyp
     monkeypatch.setattr(httpx.AsyncClient, "post", post)
     monkeypatch.setattr(httpx.AsyncClient, "get", get)
     monkeypatch.setattr("app.sources.adapters.eures.asyncio.sleep", no_wait)
-    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps", "Cloud"])))
+    source = EuresSource()
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps", "Cloud"])))
     assert [job.title for job in result] == ["Cloud Engineer"]
     assert posts == ["DevOps"] * 3 + ["Cloud"]
     assert len(gets) == 1
+    assert source.partial_failures == 1
 
 
 @pytest.mark.parametrize("bad_kind", ["http", "contract"])
@@ -252,8 +256,10 @@ def test_discover_keeps_other_details_after_one_http_error(monkeypatch):
 
     monkeypatch.setattr(httpx.AsyncClient, "post", post)
     monkeypatch.setattr(httpx.AsyncClient, "get", get)
-    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps"])))
+    source = EuresSource()
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps"])))
     assert [job.source_job_id for job in result] == ["second"]
+    assert source.partial_failures == 1
 
 
 def test_discover_reports_all_search_http_failures(monkeypatch):

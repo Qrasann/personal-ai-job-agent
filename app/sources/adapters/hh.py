@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup, Tag
 from app.config import settings
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.job_text import clean_html_text, parse_salary_text, salary_fragment
+from app.sources.diagnostics import classify_source_error
 from app.providers.hh import HHAPIForbidden, HHCaptchaRequired, HHClient
 from app.sources.base import JobSource, SourceContext
 
@@ -306,6 +307,16 @@ class HHSource(JobSource):
         return out
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.discovery_diagnostics = []
+        self.fallback_count = 0
+        baseline = getattr(self.client, "public_search_retry_count", 0)
+        try:
+            return await self._discover(context)
+        finally:
+            # Public HH discovery is serialized by the service's HH lock.
+            self.retry_count = getattr(self.client, "public_search_retry_count", 0) - baseline
+
+    async def _discover(self, context: SourceContext) -> list[NormalizedJob]:
         queries: list[str] = []
         seen_queries: set[str] = set()
         for raw in context.queries or []:
@@ -347,10 +358,12 @@ class HHSource(JobSource):
                         per_page=max(1, min(100, settings.hh_public_per_page)),
                         area=area,
                     )
-                except HHAPIForbidden:
+                except HHAPIForbidden as exc:
                     if not settings.hh_web_fallback_enabled:
                         raise
                     log.warning("HH API returned 403; using ordinary public HH web search fallback")
+                    self.fallback_count += 1
+                    self.discovery_diagnostics.append(classify_source_error(exc, action="fallback"))
                     api_available = False
                     break
 

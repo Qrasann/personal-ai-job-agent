@@ -12,6 +12,7 @@ from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.support_evidence import support_evidence
 from app.geo.countries import normalize_country
+from app.sources.diagnostics import SourceInvalidResponse, classify_source_error
 from app.sources.base import JobSource, SourceContext
 
 
@@ -122,7 +123,7 @@ class SmartRecruitersSource(JobSource):
         job_ad = row.get("jobAd")
         sections = job_ad.get("sections") if isinstance(job_ad, dict) else None
         if not isinstance(sections, dict):
-            raise ValueError("SmartRecruiters posting details contract unavailable")
+            raise SourceInvalidResponse("SmartRecruiters posting details contract unavailable")
         parts: list[str] = []
         for key in ("companyDescription", "jobDescription", "qualifications", "additionalInformation"):
             section = sections.get(key)
@@ -150,7 +151,7 @@ class SmartRecruitersSource(JobSource):
     def parse_payload(cls, payload: object, context: SourceContext) -> list[NormalizedJob]:
         rows = payload.get("content") if isinstance(payload, dict) else None
         if not isinstance(rows, list):
-            raise ValueError("SmartRecruiters Posting API contract unavailable")
+            raise SourceInvalidResponse("SmartRecruiters Posting API contract unavailable")
         if not cls._selected(context):
             return []
 
@@ -213,6 +214,7 @@ class SmartRecruitersSource(JobSource):
             except httpx.TransportError:
                 if attempt == self.transport_retries:
                     raise
+                self.retry_count = getattr(self, "retry_count", 0) + 1
                 await asyncio.sleep(self.retry_delay_seconds)
         raise AssertionError("unreachable request retry state")
 
@@ -227,7 +229,7 @@ class SmartRecruitersSource(JobSource):
             payload = response.json()
             rows = payload.get("content") if isinstance(payload, dict) else None
             if not isinstance(rows, list):
-                raise ValueError("SmartRecruiters Posting API contract unavailable")
+                raise SourceInvalidResponse("SmartRecruiters Posting API contract unavailable")
 
             errors: list[Exception] = []
             seen: set[str] = set()
@@ -246,18 +248,23 @@ class SmartRecruitersSource(JobSource):
                     detail = await self._get(client, f"{self.endpoint}/{posting_id}")
                     posting = detail.json()
                     if not isinstance(posting, dict) or self._posting_id(posting) != posting_id:
-                        raise ValueError("SmartRecruiters posting details contract unavailable")
+                        raise SourceInvalidResponse("SmartRecruiters posting details contract unavailable")
                     parsed = self.parse_payload({"content": [posting]}, context)
                     successful_details += 1
                     verified_jobs.extend(parsed)
                 except (httpx.TransportError, httpx.HTTPStatusError, ValueError) as exc:
                     errors.append(exc)
+                    self.partial_failures += 1
+                    self.discovery_diagnostics.append({**classify_source_error(exc, action="continue_partial"), "operation": "detail_request"})
                     log.warning("SmartRecruiters posting %s unavailable (%s)", posting_id, type(exc).__name__)
             if errors and not successful_details:
                 raise errors[-1]
             return verified_jobs
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.partial_failures = 0
+        self.discovery_diagnostics = []
+        self.retry_count = 0
         if not self._selected(context):
             return []
         verified_jobs: list[NormalizedJob] = []
@@ -265,10 +272,12 @@ class SmartRecruitersSource(JobSource):
         try:
             async with budget:
                 return await self._discover(context, verified_jobs)
-        except TimeoutError:
+        except TimeoutError as exc:
             # Keep only already validated, usable postings on our own budget
             # expiry. External task cancellation must continue to propagate.
             if not budget.expired() or not verified_jobs:
                 raise
+            self.partial_failures += 1
+            self.discovery_diagnostics.append(classify_source_error(exc, action="continue_partial"))
             log.warning("SmartRecruiters discovery budget expired; keeping %d verified posting(s)", len(verified_jobs))
             return verified_jobs

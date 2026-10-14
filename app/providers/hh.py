@@ -67,6 +67,7 @@ class HHClient:
                     "HH public-search transport failure (%s); retry %s/%s",
                     type(exc).__name__, attempt + 1, self.public_search_retries,
                 )
+                self.public_search_retry_count = getattr(self, "public_search_retry_count", 0) + 1
                 await asyncio.sleep(0.5)
 
     async def _request(self, method: str, url: str, **kwargs) -> httpx.Response:

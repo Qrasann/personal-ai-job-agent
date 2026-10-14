@@ -8,6 +8,7 @@ import httpx
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.support_evidence import support_evidence
+from app.sources.diagnostics import SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
 
@@ -39,6 +40,8 @@ class ArbeitnowSource(JobSource):
 
     @staticmethod
     def parse_payload(payload: dict, context: SourceContext) -> list[NormalizedJob]:
+        if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+            raise SourceInvalidResponse("Arbeitnow API contract unavailable")
         query_groups = [
             _query_phrases(str(query))
             for query in (context.queries or [])
@@ -80,6 +83,7 @@ class ArbeitnowSource(JobSource):
         return jobs
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.retry_count = 0
         headers = {"User-Agent": "JobAgentV3/0.1 (job discovery client)"}
         async with httpx.AsyncClient(timeout=self.request_timeout_seconds) as client:
             for attempt in range(self.request_retries + 1):
@@ -95,5 +99,6 @@ class ArbeitnowSource(JobSource):
                         "Arbeitnow transport failure (%s); retry %s/%s",
                         type(exc).__name__, attempt + 1, self.request_retries,
                     )
+                    self.retry_count += 1
                     await asyncio.sleep(0.5 * (2 ** attempt))
         return self.parse_payload(payload, context)

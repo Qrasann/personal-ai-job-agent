@@ -4,6 +4,7 @@ import httpx
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.sources.base import JobSource, SourceContext
+from app.sources.diagnostics import SourceInvalidResponse
 
 
 class RemoteOKSource(JobSource):
@@ -14,10 +15,13 @@ class RemoteOKSource(JobSource):
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
         headers = {"User-Agent": "JobAgentV3/0.1 (job discovery client)"}
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=30, read=30, write=30, pool=30)) as client:
             response = await client.get(self.endpoint, headers=headers)
             response.raise_for_status()
             payload = response.json()
+
+        if not isinstance(payload, list):
+            raise SourceInvalidResponse("RemoteOK expected a list")
 
         queries = [q.casefold() for q in (context.queries or [])]
         generic_role_tokens = {

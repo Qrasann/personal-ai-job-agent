@@ -9,6 +9,7 @@ import httpx
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.geo.countries import load_country_catalog, normalize_country
+from app.sources.diagnostics import SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
 
@@ -92,7 +93,7 @@ class RemotiveSource(JobSource):
     def parse_payload(cls, payload: object, context: SourceContext) -> list[NormalizedJob]:
         rows = payload.get("jobs") if isinstance(payload, dict) else None
         if not isinstance(rows, list):
-            raise ValueError("Remotive public API contract unavailable")
+            raise SourceInvalidResponse("Remotive public API contract unavailable")
 
         market_values = context.target_countries or [context.current_country]
         selected = list(dict.fromkeys(
@@ -186,9 +187,9 @@ class RemotiveSource(JobSource):
         try:
             root = ET.fromstring(content)
         except ET.ParseError as exc:
-            raise ValueError("Remotive RSS feed is malformed") from exc
+            raise SourceInvalidResponse("Remotive RSS feed is malformed") from exc
         if cls._local_name(root.tag) != "rss":
-            raise ValueError("Remotive RSS feed contract unavailable")
+            raise SourceInvalidResponse("Remotive RSS feed contract unavailable")
 
         rows: list[dict] = []
         for item in root.iter():

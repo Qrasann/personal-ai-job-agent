@@ -244,12 +244,15 @@ def test_himalayas_keeps_successes_when_one_market_request_fails(monkeypatch):
 
     monkeypatch.setattr(httpx.AsyncClient, "get", get)
     monkeypatch.setattr(asyncio, "sleep", no_wait)
+    source = HimalayasSource()
     jobs = asyncio.run(
-        HimalayasSource().discover(
+        source.discover(
             SourceContext(user_id=1, target_countries=["GE", "AM"], queries=["DevOps Engineer"])
         )
     )
 
+    assert source.partial_failures == 1
+    assert source.discovery_diagnostics[0]["code"] == "NETWORK_CONNECT_TIMEOUT"
     assert [job.source_job_id for job in jobs] == ["ge"]
 
 

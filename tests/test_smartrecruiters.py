@@ -204,7 +204,11 @@ def test_smartrecruiters_partial_detail_failure_preserves_other_successes(monkey
         return response(url, posting("3"))
 
     monkeypatch.setattr(httpx.AsyncClient, "get", get)
-    jobs = asyncio.run(SmartRecruitersSource().discover(context()))
+    source = SmartRecruitersSource()
+    jobs = asyncio.run(source.discover(context()))
+    assert source.partial_failures == 1
+    assert source.retry_count == 1
+    assert source.discovery_diagnostics[0]["code"] == "NETWORK_READ_TIMEOUT"
     assert [job.source_job_id for job in jobs] == ["Devexperts:3"]
     assert calls.count(f"{SmartRecruitersSource.endpoint}/1") == 2
 

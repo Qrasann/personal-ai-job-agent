@@ -9,6 +9,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.sources.diagnostics import SourceInvalidResponse, classify_source_error
 from app.sources.base import JobSource, SourceContext
 
 
@@ -58,6 +59,7 @@ class JobBankSource(JobSource):
                 except httpx.TransportError as exc:
                     if attempt == 1:
                         raise
+                    self.retry_count = getattr(self, "retry_count", 0) + 1
                     logger.warning(
                         "Job Bank transport failure (%s); retry 1/1",
                         type(exc).__name__,
@@ -68,7 +70,7 @@ class JobBankSource(JobSource):
     def parse_search(cls, html: str) -> list[NormalizedJob]:
         soup = BeautifulSoup(html, "html.parser")
         if soup.select_one("#results-list-content") is None:
-            raise ValueError("Job Bank search contract unavailable")
+            raise SourceInvalidResponse("Job Bank search contract unavailable")
         jobs = []
         for card in soup.select("a.resultJobItem"):
             match = re.match(r"/jobsearch/jobposting(?:tfw)?/(\d+)", str(card.get("href", "")))
@@ -95,7 +97,7 @@ class JobBankSource(JobSource):
         soup = BeautifulSoup(html, "html.parser")
         body = soup.select_one(".job-posting-details-body")
         if body is None:
-            raise ValueError("Job Bank detail contract unavailable")
+            raise SourceInvalidResponse("Job Bank detail contract unavailable")
         # Avoid navigation/footer text and source-wide immigration guidance.
         job.description = body.get_text(" ", strip=True)
         eligibility = body.select_one(".job-posting-detail-apply")
@@ -133,8 +135,11 @@ class JobBankSource(JobSource):
         return job
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.partial_failures = 0
+        self.discovery_diagnostics = []
+        self.retry_count = 0
         jobs = {}
-        search_transport_errors: list[httpx.TransportError] = []
+        search_errors: list[Exception] = []
         successful_searches = 0
         async with httpx.AsyncClient(timeout=30, follow_redirects=True,
                                      headers={"User-Agent": "JobAgentV3/0.1 (public job discovery)"}) as client:
@@ -145,44 +150,53 @@ class JobBankSource(JobSource):
                         f"{self.origin}/jobsearch/jobsearch",
                         params={"fsrc": "32", "fglo": "1", "searchstring": query, "sort": "M"},
                     )
-                except httpx.TransportError as exc:
-                    search_transport_errors.append(exc)
+                    parsed = self.parse_search(page)
+                except (httpx.TransportError, httpx.HTTPStatusError, SourceInvalidResponse) as exc:
+                    search_errors.append(exc)
+                    self.partial_failures += 1
+                    restricted = isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code in {403, 429}
+                    self.discovery_diagnostics.append({**classify_source_error(exc, action="stop_source" if restricted else "continue_partial"), "operation": "search_request"})
+                    if restricted:
+                        raise
                     logger.warning(
                         "Job Bank search failed after retries (%s); continuing",
                         type(exc).__name__,
                     )
                     continue
                 successful_searches += 1
-                for job in self.parse_search(page):
+                for job in parsed:
                     jobs.setdefault(job.source_job_id, job)
                 if len(jobs) >= self.max_details:
                     break
             if not jobs:
-                if search_transport_errors and successful_searches == 0:
-                    raise search_transport_errors[-1]
+                if search_errors and successful_searches == 0:
+                    raise search_errors[-1]
                 return []
 
             result = []
-            detail_transport_errors: list[httpx.TransportError] = []
+            detail_errors: list[Exception] = []
             successful_details = 0
             for job in list(jobs.values())[:self.max_details]:
                 cached = _DETAIL_CACHE.get(job.url)
                 use_cache = (not context.force_refresh and cached is not None
                              and time.monotonic() - cached[0] < self.detail_cache_ttl)
-                if use_cache:
-                    detail = cached[1]
-                else:
-                    try:
-                        detail = await self._fetch(client, job.url)
-                    except httpx.TransportError as exc:
-                        detail_transport_errors.append(exc)
-                        logger.warning(
-                            "Job Bank detail request failed after retries (%s); skipping vacancy",
-                            type(exc).__name__,
-                        )
-                        continue
+                try:
+                    detail = cached[1] if use_cache else await self._fetch(client, job.url)
+                    job = self.enrich(job, detail)
+                except (httpx.TransportError, httpx.HTTPStatusError, SourceInvalidResponse) as exc:
+                    detail_errors.append(exc)
+                    self.partial_failures += 1
+                    restricted = isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code in {403, 429}
+                    self.discovery_diagnostics.append({**classify_source_error(exc, action="stop_source" if restricted else "continue_partial"), "operation": "detail_request"})
+                    if use_cache:
+                        _DETAIL_CACHE.pop(job.url, None)
+                    logger.warning("Job Bank detail unavailable (%s); retaining verified results", type(exc).__name__)
+                    if restricted:
+                        if successful_details:
+                            return result
+                        raise
+                    continue
                 successful_details += 1
-                job = self.enrich(job, detail)
                 if not use_cache:
                     _DETAIL_CACHE.pop(job.url, None)
                     _DETAIL_CACHE[job.url] = (time.monotonic(), detail)
@@ -190,6 +204,6 @@ class JobBankSource(JobSource):
                         _DETAIL_CACHE.pop(next(iter(_DETAIL_CACHE)))
                 if job.raw["international_candidates"] is not False:
                     result.append(job)
-            if successful_details == 0 and detail_transport_errors:
-                raise detail_transport_errors[-1]
+            if successful_details == 0 and detail_errors:
+                raise detail_errors[-1]
             return result

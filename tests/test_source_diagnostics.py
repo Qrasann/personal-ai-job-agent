@@ -1,0 +1,142 @@
+import json
+import socket
+import ssl
+
+import httpx
+import pytest
+
+from app.sources.diagnostics import classify_source_error, render_source_notice, SourceInvalidResponse
+from app.search.source_summary import aggregate_source, scan_outcome, SourceSummaryError, render_source_summary
+
+
+@pytest.mark.parametrize('error,code,stage', [
+    (httpx.ConnectTimeout('secret URL'), 'NETWORK_CONNECT_TIMEOUT', 'connection'),
+    (httpx.ReadTimeout('secret URL'), 'NETWORK_READ_TIMEOUT', 'read'),
+    (httpx.PoolTimeout('secret URL'), 'NETWORK_POOL_TIMEOUT', 'pool'),
+    (httpx.ProxyError('secret credentials'), 'NETWORK_PROXY_ERROR', 'proxy'),
+    (socket.gaierror(-2, 'secret hostname'), 'DNS_RESOLUTION_FAILED', 'dns'),
+    (ssl.SSLCertVerificationError('secret cert'), 'TLS_VALIDATION_FAILED', 'tls'),
+    (SourceInvalidResponse('secret body'), 'SOURCE_INVALID_RESPONSE', 'response'),
+    (json.JSONDecodeError('secret', 'secret body', 0), 'SOURCE_INVALID_RESPONSE', 'response'),
+    (RuntimeError('secret token'), 'SOURCE_PROCESSING_FAILED', 'discovery'),
+])
+def test_classification_never_uses_exception_payload(error, code, stage):
+    item = classify_source_error(error)
+    assert (item['code'], item['stage']) == (code, stage)
+    assert 'secret' not in str(item)
+    assert 'secret' not in render_source_notice(['Relocation-first'], 'Remote OK', item)
+
+
+@pytest.mark.parametrize('status,code', [(403,'HTTP_403_FORBIDDEN'), (429,'HTTP_429_RATE_LIMITED'), (503,'HTTP_5XX_SERVER_ERROR')])
+def test_http_is_not_a_connection_failure(status, code):
+    request = httpx.Request('GET', 'https://example.test/?token=secret')
+    response = httpx.Response(status, request=request)
+    item = classify_source_error(httpx.HTTPStatusError('secret', request=request, response=response))
+    assert item['code'] == code
+    assert item['stage'] == 'http'
+    assert 'secret' not in str(item)
+
+
+@pytest.mark.parametrize('first,second,status,found,failed', [
+    ('failed','success','partial',2,1), ('success','failed','partial',2,1),
+    ('failed','failed','failed',0,2), ('success','success','success',4,0),
+])
+def test_independent_attempts_keep_counts_and_failure_history(first,second,status,found,failed):
+    sources = {}
+    for profile, attempt_status in enumerate([first,second]):
+        info = {'status':attempt_status, 'profile_id':profile, 'found':2 if attempt_status=='success' else 0,
+                'processed':1 if attempt_status=='success' else 0,
+                'diagnostics':[classify_source_error(httpx.ConnectTimeout('secret'))] if attempt_status=='failed' else []}
+        aggregate_source(sources,'hh',info)
+    info = sources['hh']
+    assert (info['status'],info['found'],info['failed']) == (status,found,failed)
+    assert len(info['history']) == 2
+    assert len(info['diagnostics']) == failed
+    assert scan_outcome({'sources':sources}) == ('completed' if status=='success' else status)
+
+
+def test_legacy_found_defect_reproduced_and_fixed():
+    sources = {'hh':{'error':'ConnectTimeout','duration_ms':0}}
+    legacy = sources['hh'].copy()
+    with pytest.raises(KeyError, match='found'):
+        legacy['found'] += 2
+    aggregate_source(sources,'hh',{'found':2})
+    assert sources['hh']['status']=='partial'
+    assert sources['hh']['found']==2
+    assert sources['hh']['diagnostics'][0]['code']=='NETWORK_CONNECT_TIMEOUT'
+
+
+def test_success_missing_found_is_explicit_application_contract_error():
+    with pytest.raises(SourceSummaryError):
+        aggregate_source({}, 'hh', {'status':'success'})
+    item=classify_source_error(KeyError('found'),stage='summary')
+    assert item['code']=='SOURCE_SUMMARY_MISSING_FIELD'
+    assert item['stage']=='summary'
+
+
+def test_cache_reuse_deduplicates_eures_observation_but_independent_attempt_does_not():
+    sources={}
+    for observation in ['a','a','b']:
+        aggregate_source(sources,'eures',{'found':2,'partial':True,'cache':True,
+                         'partial_failures':1,'partial_failure_observations':{observation:1}})
+    assert sources['eures']['found']==6
+    assert sources['eures']['partial_failures']==2
+    assert sources['eures']['cache']
+    assert sources['eures']['attempts']==3
+
+
+def test_legacy_entities_and_payload_never_escape_into_dashboard():
+    line=render_source_summary('hh',{'error':'&#x27;found&#x27;'})
+    assert 'SOURCE_SUMMARY_MISSING_FIELD' in line
+    assert '&#x27;' not in line
+    line=render_source_summary('hh',{'error':'https://secret.test/?token=private'})
+    assert 'private' not in line
+    notice=render_source_notice(['Career-first','Career-first','Relocation-first'],'Remote OK', classify_source_error(httpx.ConnectTimeout('private')))
+    assert notice.count('Career-first')==1
+    assert 'Причина устанавливается' in notice
+    assert '&quot;' not in notice
+
+
+def test_dense_dashboard_is_bounded_without_breaking_html_entities():
+    import html
+    from app.search.source_summary import render_source_dashboard
+    items={f'source_{n}':{'found':3,'partial':True,'name':'<API> & feed',
+                       'diagnostics':[{'code':code,'profiles':['Career-first','Relocation-first']} for code in
+                       ['NETWORK_CONNECT_TIMEOUT','HTTP_403_FORBIDDEN','HTTP_429_RATE_LIMITED','HTTP_5XX_SERVER_ERROR']]}
+           for n in range(13)}
+    view=render_source_dashboard(items)
+    assert len(view)<=2600
+    assert '…' in view
+    assert '&amp;lt;' not in view
+    decoded=html.unescape(view)
+    assert '<API> & feed' in decoded
+    assert html.escape(decoded)==view
+
+
+@pytest.mark.parametrize('source', ['eures','jobbank','himalayas','remotive','greenhouse','lever','smartrecruiters','arbeitnow'])
+def test_adapter_contract_failures_are_response_errors_not_internal_errors(source):
+    from app.sources.base import SourceContext
+    from app.sources.adapters.eures import EuresSource
+    from app.sources.adapters.jobbank import JobBankSource
+    from app.sources.adapters.himalayas import HimalayasSource
+    from app.sources.adapters.remotive import RemotiveSource
+    from app.sources.adapters.greenhouse import GreenhouseSource
+    from app.sources.adapters.lever import LeverSource
+    from app.sources.adapters.smartrecruiters import SmartRecruitersSource
+    from app.sources.adapters.arbeitnow import ArbeitnowSource
+    ctx=SourceContext(user_id=1)
+    parsers={
+        'eures':lambda:EuresSource.parse_search({},'DevOps'),
+        'jobbank':lambda:JobBankSource.parse_search('<html>unexpected response</html>'),
+        'himalayas':lambda:HimalayasSource.parse_payload({},ctx),
+        'remotive':lambda:RemotiveSource.parse_payload({},ctx),
+        'greenhouse':lambda:GreenhouseSource.parse_payload({},ctx),
+        'lever':lambda:LeverSource.parse_payload({},ctx),
+        'smartrecruiters':lambda:SmartRecruitersSource.parse_payload({},ctx),
+        'arbeitnow':lambda:ArbeitnowSource.parse_payload({},ctx),
+    }
+    with pytest.raises(SourceInvalidResponse) as failure:
+        parsers[source]()
+    item=classify_source_error(failure.value)
+    assert item['code']=='SOURCE_INVALID_RESPONSE'
+    assert item['stage']=='response'

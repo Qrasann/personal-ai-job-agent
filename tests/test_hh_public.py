@@ -274,8 +274,10 @@ def test_hh_public_api_retries_one_transient_transport_failure(monkeypatch):
 
     monkeypatch.setattr(hh_provider.asyncio, "sleep", no_sleep)
 
-    result = asyncio.run(hh_provider.HHClient().search("DevOps"))
+    provider = hh_provider.HHClient()
+    result = asyncio.run(provider.search("DevOps"))
 
+    assert provider.public_search_retry_count == 1
     assert result == {"items": []}
     assert client.calls == 2
 
@@ -429,6 +431,9 @@ def test_hh_403_fallback_pages_roles_dedupes_and_stops(monkeypatch):
     )
     jobs = asyncio.run(source.discover(ctx))
 
+    assert source.fallback_count == 1
+    assert source.discovery_diagnostics[0]["code"] == "HTTP_403_FORBIDDEN"
+    assert source.discovery_diagnostics[0]["action"] == "fallback"
     assert fake.api_calls == ["DevOps Engineer"]
     assert fake.web_calls == [
         ("DevOps Engineer", 0, "113"),
@@ -441,3 +446,16 @@ def test_hh_403_fallback_pages_roles_dedupes_and_stops(monkeypatch):
         ("Infrastructure Engineer", 1, "113"),
     ]
     assert [job.source_job_id for job in jobs] == ["11", "12", "13", "22", "23", "31"]
+
+
+def test_hh_source_retry_metric_is_current_discovery_delta():
+    class Provider:
+        public_search_retry_count=7
+        async def search(self,*args,**kwargs):
+            self.public_search_retry_count+=1
+            return {'items':[]}
+    provider=Provider()
+    source=HHSource(provider)
+    asyncio.run(source.discover(SourceContext(user_id=1,current_country='RU',queries=['DevOps'])))
+    assert source.retry_count==provider.public_search_retry_count-7
+    assert source.retry_count>0

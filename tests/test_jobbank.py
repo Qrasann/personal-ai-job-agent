@@ -140,7 +140,9 @@ def test_fetch_retries_transport_failure_once_and_keeps_request_delay(monkeypatc
     monkeypatch.setattr("app.sources.adapters.jobbank.asyncio.sleep", sleep)
 
     client = Client()
-    assert asyncio.run(JobBankSource()._fetch(client, "https://example.test/job")) == "ok"
+    source = JobBankSource()
+    assert asyncio.run(source._fetch(client, "https://example.test/job")) == "ok"
+    assert source.retry_count == 1
     assert client.calls == 2
     sleep.assert_awaited_once()
     assert sleep.await_args.args[0] == pytest.approx(5, abs=0.01)
@@ -371,3 +373,73 @@ def test_detail_cache_evicts_oldest_entry_at_limit(monkeypatch):
 
     assert len(asyncio.run(source.discover(context))) == 2
     assert calls.count("https://www.jobbank.gc.ca/jobsearch/jobpostingtfw/123") == 2
+
+
+@pytest.mark.parametrize('failure',['http','schema'])
+def test_jobbank_detail_response_error_retains_previously_verified_job(monkeypatch,failure):
+    async def get(client,url,**kwargs):
+        if url.endswith('/jobsearch/jobsearch'):
+            body=SEARCH_TWO_JOBS
+        elif url.endswith('/123'):
+            body=detail('Warehouse duties')
+        elif failure=='http':
+            return httpx.Response(503,request=httpx.Request('GET',url))
+        else:
+            body='<html>unexpected schema</html>'
+        return httpx.Response(200,text=body,request=httpx.Request('GET',url))
+    monkeypatch.setattr(httpx.AsyncClient,'get',get)
+    monkeypatch.setattr(jobbank_module.asyncio,'sleep',AsyncMock())
+    source=JobBankSource()
+    jobs=asyncio.run(source.discover(SourceContext(1,queries=['warehouse worker'])))
+    assert [job.source_job_id for job in jobs]==['123']
+    assert source.partial_failures==1
+    assert source.retry_count==0
+    assert source.discovery_diagnostics[0]['code']==('HTTP_5XX_SERVER_ERROR' if failure=='http' else 'SOURCE_INVALID_RESPONSE')
+
+
+@pytest.mark.parametrize('status',[403,429])
+def test_jobbank_access_restriction_stops_requests_and_keeps_verified_results(monkeypatch,status):
+    calls=[]
+    three_jobs=SEARCH_TWO_JOBS.replace('</div>','<a class="resultJobItem" href="/jobsearch/jobpostingtfw/789"><span class="noctitle">cleaner</span></a></div>')
+    async def get(client,url,**kwargs):
+        calls.append(url)
+        if url.endswith('/jobsearch/jobsearch'):
+            body=three_jobs
+        elif url.endswith('/123'):
+            body=detail('Warehouse duties')
+        elif url.endswith('/456'):
+            return httpx.Response(status,request=httpx.Request('GET',url))
+        else:
+            pytest.fail('must stop after access restriction')
+        return httpx.Response(200,text=body,request=httpx.Request('GET',url))
+    monkeypatch.setattr(httpx.AsyncClient,'get',get)
+    monkeypatch.setattr(jobbank_module.asyncio,'sleep',AsyncMock())
+    source=JobBankSource()
+    jobs=asyncio.run(source.discover(SourceContext(1,queries=['warehouse worker'])))
+    assert [job.source_job_id for job in jobs]==['123']
+    assert len(calls)==3
+    assert source.retry_count==0
+    assert source.partial_failures==1
+    assert source.discovery_diagnostics[0]['action']=='stop_source'
+
+
+@pytest.mark.parametrize('failure',['http','schema'])
+def test_jobbank_bad_query_response_does_not_discard_independent_query(monkeypatch,failure):
+    async def get(client,url,**kwargs):
+        if url.endswith('/jobsearch/jobsearch'):
+            if kwargs['params']['searchstring']=='bad':
+                if failure=='http':
+                    return httpx.Response(503,request=httpx.Request('GET',url))
+                body='<html>unexpected response</html>'
+            else:
+                body=SEARCH
+        else:
+            body=detail('Warehouse duties')
+        return httpx.Response(200,text=body,request=httpx.Request('GET',url))
+    monkeypatch.setattr(httpx.AsyncClient,'get',get)
+    monkeypatch.setattr(jobbank_module.asyncio,'sleep',AsyncMock())
+    source=JobBankSource()
+    jobs=asyncio.run(source.discover(SourceContext(1,queries=['bad','warehouse'])))
+    assert [job.source_job_id for job in jobs]==['123']
+    assert source.partial_failures==1
+    assert source.discovery_diagnostics[0]['operation']=='search_request'

@@ -47,3 +47,25 @@ def test_remoteok_does_not_turn_unspecified_country_eligibility_into_worldwide(m
         )
     )
     assert signals.remote_eligibility == "uncertain"
+
+
+def test_remoteok_invalid_schema_is_not_reported_as_zero_results(monkeypatch):
+    import pytest
+    from app.sources.diagnostics import SourceInvalidResponse
+    async def get(self,url,**kwargs):
+        return httpx.Response(200,json={'error':'private body'},request=httpx.Request('GET',url))
+    monkeypatch.setattr(httpx.AsyncClient,'get',get)
+    with pytest.raises(SourceInvalidResponse):
+        asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1)))
+
+
+def test_remoteok_connect_timeout_preserves_type_and_phase_budget(monkeypatch):
+    import pytest
+    async def get(self,url,**kwargs):
+        assert self.timeout.connect==30
+        assert self.timeout.read==30
+        assert self.timeout.pool==30
+        raise httpx.ConnectTimeout('private endpoint')
+    monkeypatch.setattr(httpx.AsyncClient,'get',get)
+    with pytest.raises(httpx.ConnectTimeout):
+        asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1)))

@@ -8,6 +8,7 @@ import httpx
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.geo.countries import normalize_country
+from app.sources.diagnostics import SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
 
@@ -89,7 +90,7 @@ class LeverSource(JobSource):
     @classmethod
     def parse_payload(cls, payload: object, context: SourceContext) -> list[NormalizedJob]:
         if not isinstance(payload, list):
-            raise ValueError("Lever Postings API contract unavailable")
+            raise SourceInvalidResponse("Lever Postings API contract unavailable")
 
         selected = {
             normalized

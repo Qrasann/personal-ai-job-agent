@@ -13,6 +13,7 @@ from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.remote_evidence import remote_residence_requirement
 from app.domain.vacancy_availability import listing_expiry_metadata, source_datetime
 from app.geo.countries import normalize_country
+from app.sources.diagnostics import SourceInvalidResponse, classify_source_error
 from app.sources.base import JobSource, SourceContext
 from app.sources.query_plan import remote_discovery_queries
 
@@ -100,7 +101,7 @@ class HimalayasSource(JobSource):
     def parse_payload(cls, payload: dict, context: SourceContext) -> list[NormalizedJob]:
         rows = payload.get("jobs") if isinstance(payload, dict) else None
         if not isinstance(rows, list):
-            raise ValueError("Himalayas Jobs API contract unavailable")
+            raise SourceInvalidResponse("Himalayas Jobs API contract unavailable")
 
         markets = cls._markets(context)
         selected_countries = {country for country in markets if country}
@@ -194,6 +195,8 @@ class HimalayasSource(JobSource):
         return [current] if current else [None]
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.partial_failures = 0
+        self.discovery_diagnostics = []
         queries = remote_discovery_queries(context.queries, limit=self.max_queries)
         markets = self._markets(context)
         headers = {"User-Agent": self.user_agent, "Accept": "application/json"}
@@ -217,15 +220,17 @@ class HimalayasSource(JobSource):
                         payload = response.json()
                         rows = payload.get("jobs") if isinstance(payload, dict) else None
                         if not isinstance(rows, list):
-                            raise ValueError("Himalayas Jobs API contract unavailable")
+                            raise SourceInvalidResponse("Himalayas Jobs API contract unavailable")
                         successful_requests += 1
                         for row in rows[: self.results_per_request]:
                             if isinstance(row, dict):
                                 key = str(row.get("guid") or row.get("applicationLink") or "")
                                 if key:
                                     unique_rows[key] = row
-                    except (httpx.TransportError, httpx.HTTPStatusError) as exc:
+                    except (httpx.TransportError, httpx.HTTPStatusError, SourceInvalidResponse) as exc:
                         transport_errors.append(exc)
+                        self.partial_failures += 1
+                        self.discovery_diagnostics.append({**classify_source_error(exc, action="continue_partial"), "operation": "search_request"})
                         log.warning(
                             "Himalayas search failed for query=%r country=%s (%s)",
                             query,

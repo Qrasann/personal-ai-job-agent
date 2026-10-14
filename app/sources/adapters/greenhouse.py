@@ -7,6 +7,7 @@ import httpx
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.support_evidence import support_evidence
+from app.sources.diagnostics import SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 from app.geo.countries import normalize_country
 
@@ -93,7 +94,7 @@ class GreenhouseSource(JobSource):
     def parse_payload(cls, payload: dict, context: SourceContext) -> list[NormalizedJob]:
         rows = payload.get("jobs") if isinstance(payload, dict) else None
         if not isinstance(rows, list):
-            raise ValueError("Greenhouse Job Board API contract unavailable")
+            raise SourceInvalidResponse("Greenhouse Job Board API contract unavailable")
 
         selected_countries = {
             normalized

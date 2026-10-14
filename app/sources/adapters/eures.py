@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.job_text import clean_html_text
+from app.sources.diagnostics import classify_source_error, SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
 log = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ class EuresSource(JobSource):
                     "EURES transport failure (%s); retry %s/%s",
                     type(exc).__name__, attempt + 1, self.request_retries,
                 )
+                self.retry_count = getattr(self, "retry_count", 0) + 1
                 await asyncio.sleep(0.5 * (2 ** attempt))
 
     @staticmethod
@@ -78,8 +80,8 @@ class EuresSource(JobSource):
 
     @classmethod
     def parse_search(cls, payload: dict, query: str) -> list[NormalizedJob]:
-        if not isinstance(payload.get("jvs"), list):
-            raise ValueError("EURES search contract unavailable")
+        if not isinstance(payload, dict) or not isinstance(payload.get("jvs"), list):
+            raise SourceInvalidResponse("EURES search contract unavailable")
         tokens = cls._query_tokens(query)
         jobs = []
         for row in payload["jvs"]:
@@ -125,10 +127,12 @@ class EuresSource(JobSource):
 
     @classmethod
     def enrich(cls, job: NormalizedJob, payload: dict) -> NormalizedJob:
-        profiles = payload.get("jvProfiles") or {}
+        if not isinstance(payload, dict) or not isinstance(payload.get("jvProfiles"), dict):
+            raise SourceInvalidResponse("EURES detail contract unavailable")
+        profiles = payload["jvProfiles"]
         profile = profiles.get("en") or next(iter(profiles.values()), {})
         if not isinstance(profile, dict) or not profile:
-            raise ValueError("EURES detail contract unavailable")
+            raise SourceInvalidResponse("EURES detail contract unavailable")
         job.title = str(profile.get("title") or job.title)
         job.description = clean_html_text(str(profile.get("description") or job.description))
         locations = profile.get("locations") or []
@@ -177,6 +181,9 @@ class EuresSource(JobSource):
         return job
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.partial_failures = 0
+        self.retry_count = 0
+        self.discovery_diagnostics = []
         queries = list(dict.fromkeys(str(q).strip() for q in (context.queries or []) if str(q).strip()))
         if not queries:
             return []
@@ -200,6 +207,8 @@ class EuresSource(JobSource):
                     parsed = self.parse_search(response.json(), query)
                 except (httpx.HTTPError, ssl.SSLError, ValueError, TypeError, KeyError, AttributeError) as exc:
                     source_errors.append(exc)
+                    self.discovery_diagnostics.append({**classify_source_error(exc, action="continue_partial"), "operation": "search_request"})
+                    self.partial_failures += 1
                     log.warning(
                         "EURES search %s failed (%s); continuing",
                         index, f"HTTP {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__,
@@ -218,6 +227,8 @@ class EuresSource(JobSource):
                     enriched_job = self.enrich(job, response.json())
                 except (httpx.HTTPError, ssl.SSLError, ValueError, TypeError, KeyError, AttributeError) as exc:
                     detail_errors.append(exc)
+                    self.discovery_diagnostics.append({**classify_source_error(exc, action="continue_partial"), "operation": "detail_request"})
+                    self.partial_failures += 1
                     log.warning(
                         "EURES detail request failed (%s); skipping vacancy",
                         f"HTTP {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__,

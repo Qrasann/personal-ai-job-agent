@@ -80,8 +80,10 @@ def test_arbeitnow_retries_transient_transport_failure(monkeypatch):
     monkeypatch.setattr("app.sources.adapters.arbeitnow.asyncio.sleep", fake_sleep)
     monkeypatch.setattr("app.sources.adapters.arbeitnow.httpx.AsyncClient", Client)
 
-    jobs = asyncio.run(ArbeitnowSource().discover(SourceContext(user_id=1, queries=[])))
+    source = ArbeitnowSource()
+    jobs = asyncio.run(source.discover(SourceContext(user_id=1, queries=[])))
 
+    assert source.retry_count == 1
     assert jobs == []
     assert delays == [0.5]
 
