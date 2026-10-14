@@ -1,4 +1,5 @@
 import asyncio
+import ssl
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -28,7 +29,7 @@ def configure_scan(monkeypatch, sources, priorities=None):
         SimpleNamespace(source_id=name, implemented=True) for name in sources
     ])
     for name, factory in sources.items():
-        adapter = {"hh": "HHSource", "remoteok": "RemoteOKSource", "arbeitnow": "ArbeitnowSource", "smartrecruiters": "SmartRecruitersSource"}[name]
+        adapter = {"hh": "HHSource", "remoteok": "RemoteOKSource", "arbeitnow": "ArbeitnowSource", "smartrecruiters": "SmartRecruitersSource", "eures": "EuresSource"}[name]
         monkeypatch.setattr(services, adapter, factory)
 
 
@@ -38,16 +39,38 @@ def test_scheduled_scan_continues_after_one_user_fails(monkeypatch, caplog):
 
     monkeypatch.setattr(services.repo, "list_active_users", AsyncMock(return_value=users))
 
+    monkeypatch.setattr(services.repo, "set_state", AsyncMock())
+
     async def scan(bot, user_id):
         seen.append(user_id)
         if user_id == 1:
             raise RuntimeError("temporary database failure")
+        return {"sources": {}}
 
     monkeypatch.setattr(services, "scan_for_user", scan)
     asyncio.run(services.scan_all(object()))
 
     assert seen == [1, 2]
     assert "scheduled scan failed for user 1" in caplog.text
+
+
+def test_raw_tls_failure_is_safe_in_logs_summary_and_alert(monkeypatch, caplog):
+    class Eures:
+        source_id = name = "eures"
+
+        async def discover(self, context):
+            raise ssl.SSLError("https://feed.test/?token=private-value")
+
+    configure_scan(monkeypatch, {"eures": Eures})
+    alerts = AsyncMock()
+    monkeypatch.setattr(services, "notify_chat", alerts)
+
+    summary = asyncio.run(services.scan_for_user(object(), 7))
+
+    assert summary["sources"]["eures"]["error"] == "TLS_CONNECTION_FAILED"
+    assert "category=tls" in caplog.text
+    assert "private-value" not in caplog.text
+    assert "private-value" not in alerts.await_args.args[2]
 
 
 def test_source_timeout_and_error_do_not_discard_successful_discovery(monkeypatch):
@@ -89,8 +112,8 @@ def test_source_timeout_and_error_do_not_discard_successful_discovery(monkeypatc
     assert cancelled == ["arbeitnow"]
     assert summary["processed"] == 1
     assert summary["sources"]["hh"]["found"] == 1
-    assert summary["sources"]["remoteok"]["error"] == "remote feed unavailable"
-    assert summary["sources"]["arbeitnow"]["error"] == "TimeoutError"
+    assert summary["sources"]["remoteok"]["error"] == "SOURCE_PROCESSING_FAILED"
+    assert summary["sources"]["arbeitnow"]["error"] == "SOURCE_DISCOVERY_TIMEOUT"
     assert all("duration_ms" in info for info in summary["sources"].values())
     assert alerts.await_count == 2
     assert set(summary["searches"]["11"]["sources"]) == {"hh", "remoteok", "arbeitnow"}
@@ -121,6 +144,99 @@ def test_one_bad_vacancy_does_not_discard_later_results_from_source(monkeypatch)
     assert summary["sources"]["remoteok"]["found"] == 2
     assert summary["sources"]["remoteok"]["partial"] is True
     assert summary["searches"]["11"]["sources"]["remoteok"]["processing_errors"] == 1
+
+
+def test_partial_source_failures_are_preserved_in_scan_summary(monkeypatch):
+    class Eures:
+        source_id = name = "eures"
+
+        def __init__(self, *args):
+            self.partial_failures = 0
+
+        async def discover(self, context):
+            self.partial_failures = 2
+            return [NormalizedJob(source="eures", source_job_id="partial-1", title="DevOps Engineer")]
+
+    configure_scan(monkeypatch, {"eures": Eures})
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={"processed": 1}))
+    monkeypatch.setattr(services, "notify_chat", AsyncMock())
+
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={"queries": ["DevOps"]}))
+        return user, profile, searches
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+
+    summary = asyncio.run(services.scan_for_user(object(), 7))
+
+    assert summary["sources"]["eures"]["partial"] is True
+    assert summary["sources"]["eures"]["partial_failures"] == 2
+    assert summary["searches"]["11"]["sources"]["eures"]["partial_failures"] == 2
+    assert summary["searches"]["12"]["sources"]["eures"]["partial_failures"] == 2
+
+
+def test_later_profile_success_preserves_source_processing_errors(monkeypatch):
+    class Source:
+        source_id = name = "remoteok"
+
+        async def discover(self, context):
+            return [NormalizedJob(source="remoteok", source_job_id="same", title="DevOps")]
+
+    configure_scan(monkeypatch, {"remoteok": Source})
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={"queries": ["DevOps"]}))
+        return user, profile, searches
+
+    async def ingest(bot, job, *, only_user_id, only_search_profile_id):
+        if only_search_profile_id == 11:
+            raise ValueError("profile-specific malformed result")
+        return {"processed": 1}
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+    monkeypatch.setattr(services, "ingest_and_match", ingest)
+
+    summary = asyncio.run(services.scan_for_user(object(), 7))
+
+    assert summary["processed"] == 1
+    assert summary["sources"]["remoteok"]["partial"] is True
+    assert summary["sources"]["remoteok"]["processing_errors"] == 1
+    assert summary["searches"]["11"]["sources"]["remoteok"]["processing_errors"] == 1
+
+
+def test_distinct_cached_discoveries_keep_all_partial_failure_counts(monkeypatch):
+    class Eures:
+        source_id = name = "eures"
+
+        async def discover(self, context):
+            self.partial_failures = 2 if context.queries == ["DevOps"] else 3
+            return []
+
+    configure_scan(monkeypatch, {"eures": Eures})
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={"queries": ["Cloud"]}))
+        return user, profile, searches
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+
+    async def scenario():
+        live = await services.scan_for_user(object(), 7)
+        cached = await services.scan_for_user(object(), 7)
+        return live, cached
+
+    live, cached = asyncio.run(scenario())
+
+    assert live["sources"]["eures"]["partial_failures"] == 5
+    assert cached["sources"]["eures"]["cache"] is True
+    assert cached["sources"]["eures"]["partial_failures"] == 5
 
 
 def test_ingestion_respects_source_priority_when_discovery_finishes_out_of_order(monkeypatch):
@@ -190,8 +306,9 @@ def test_hh_connect_error_is_silent_and_rechecked_after_cooldown(monkeypatch):
     assert calls.count("hh") == 1
     assert calls.count("remoteok") == 2
     assert alerts.await_count == 0
-    assert summary["sources"]["hh"]["skipped"] == "ConnectError"
-    assert summary["searches"]["12"]["sources"]["hh"]["skipped"] == "connection cooldown"
+    assert summary["sources"]["hh"]["failed"] == 1
+    assert summary["sources"]["hh"]["skipped"] == 1
+    assert summary["searches"]["12"]["sources"]["hh"]["status"] == "skipped"
 
     calls.clear()
     asyncio.run(asyncio.sleep(0.06))
@@ -326,8 +443,220 @@ def test_hh_recovery_between_profiles_retains_count_and_marks_partial(monkeypatc
 
     assert summary["sources"]["hh"]["found"] == 1
     assert summary["sources"]["hh"]["partial"] is True
-    assert "skipped" not in summary["sources"]["hh"]
-    assert "skipped" in summary["searches"]["11"]["sources"]["hh"]
+    assert summary["sources"]["hh"]["skipped"] == 0
+    assert summary["sources"]["hh"]["failed"] == 1
+    assert summary["searches"]["11"]["sources"]["hh"]["status"] == "failed"
     assert summary["searches"]["12"]["sources"]["hh"]["found"] == 1
     assert summary["processed"] == 1
     alerts.assert_not_awaited()
+
+
+def test_two_profile_timeouts_have_one_safe_alert_and_two_observations(monkeypatch):
+    class Remote:
+        source_id = 'remoteok'
+        name = 'Remote OK'
+        async def discover(self, context):
+            raise httpx.ConnectTimeout('https://private.test/?token=secret')
+    configure_scan(monkeypatch, {'remoteok':Remote})
+    original = services._user_context
+    async def context(user_id):
+        user, profile, searches = await original(user_id)
+        searches.append(SimpleNamespace(id=12, name='Relocation-first', settings={'queries':['DevOps']}))
+        return user, profile, searches
+    monkeypatch.setattr(services,'_user_context',context)
+    alerts = AsyncMock()
+    monkeypatch.setattr(services,'notify_chat',alerts)
+    summary=asyncio.run(services.scan_for_user(object(),7,force_refresh=True))
+    info=summary['sources']['remoteok']
+    assert info['failed']==2
+    assert info['found']==0
+    assert len(info['history'])==2
+    assert len(info['diagnostics'])==2
+    assert alerts.await_count==1
+    text=alerts.await_args.args[2]
+    assert 'Career-first / Relocation-first' in text
+    assert 'NETWORK_CONNECT_TIMEOUT' in text
+    assert 'secret' not in text
+    assert '&#' not in text
+    assert alerts.await_args.kwargs['parse_mode'] is None
+
+
+def test_prefilter_failure_keeps_other_jobs_and_classifies_processing(monkeypatch):
+    class Remote:
+        source_id=name='remoteok'
+        async def discover(self, context):
+            return [NormalizedJob(source='remoteok',source_job_id=str(n),title='DevOps') for n in (1,2)]
+    configure_scan(monkeypatch,{'remoteok':Remote})
+    def allowed(job,*args,**kwargs):
+        if job.source_job_id=='1':
+            raise KeyError('private field')
+        return True
+    monkeypatch.setattr(services,'vacancy_allowed',allowed)
+    ingest=AsyncMock(return_value={'processed':1,'qualified':1})
+    monkeypatch.setattr(services,'ingest_and_match',ingest)
+    monkeypatch.setattr(services,'notify_chat',AsyncMock())
+    summary=asyncio.run(services.scan_for_user(object(),7))
+    info=summary['sources']['remoteok']
+    assert summary['processed']==1
+    assert info['status']=='partial'
+    assert info['processing_errors']==1
+    assert info['processed']==info['qualified']==1
+    assert info['diagnostics'][0]['stage']=='processing'
+    assert 'private field' not in str(summary)
+
+
+def test_summary_failure_does_not_become_provider_failure(monkeypatch):
+    class Remote:
+        source_id=name='remoteok'
+        async def discover(self, context):
+            return [NormalizedJob(source='remoteok',source_job_id='1',title='DevOps')]
+    configure_scan(monkeypatch,{'remoteok':Remote})
+    monkeypatch.setattr(services,'ingest_and_match',AsyncMock(return_value={'processed':1}))
+    monkeypatch.setattr(services,'_aggregate_source',lambda *args: (_ for _ in ()).throw(KeyError('found')))
+    alerts=AsyncMock()
+    monkeypatch.setattr(services,'notify_chat',alerts)
+    summary=asyncio.run(services.scan_for_user(object(),7))
+    info=summary['sources']['remoteok']
+    assert info['found']==info['processed']==1
+    assert info['status']=='partial'
+    assert info['failed']==0
+    assert info['diagnostics'][0]['code']=='SOURCE_SUMMARY_MISSING_FIELD'
+    assert 'статистика приложения' in alerts.await_args.args[2]
+
+
+def test_scheduled_summary_persists_partial_history_per_user(monkeypatch):
+    import json
+    monkeypatch.setattr(services.repo,'list_active_users',AsyncMock(return_value=[SimpleNamespace(id=7)]))
+    summary={'sources':{'remoteok':{'found':2,'partial':True,'diagnostics':[]}}}
+    monkeypatch.setattr(services,'scan_for_user',AsyncMock(return_value=summary))
+    save=AsyncMock()
+    monkeypatch.setattr(services.repo,'set_state',save)
+    asyncio.run(services.scan_all(object()))
+    assert save.await_args.args[:2]==(7,'scheduled_scan_dashboard')
+    state=json.loads(save.await_args.args[2])
+    assert state['status']=='partial'
+    assert state['kind']=='scheduled'
+    assert state['summary']==summary
+    assert state['started_at']<=state['finished_at']
+
+
+def test_scheduled_history_write_failure_does_not_stop_next_user(monkeypatch,caplog):
+    monkeypatch.setattr(services.repo,'list_active_users',AsyncMock(return_value=[SimpleNamespace(id=1),SimpleNamespace(id=2)]))
+    scan=AsyncMock(return_value={'sources':{}})
+    monkeypatch.setattr(services,'scan_for_user',scan)
+    save=AsyncMock(side_effect=[RuntimeError('private database credentials'),None])
+    monkeypatch.setattr(services.repo,'set_state',save)
+    asyncio.run(services.scan_all(object()))
+    assert scan.await_count==2
+    assert save.await_count==2
+    assert 'private database credentials' not in caplog.text
+
+
+def test_fallback_observation_does_not_hide_later_connection_timeout(monkeypatch):
+    from app.sources.diagnostics import diagnostic
+    class HH:
+        source_id='hh'
+        name='HeadHunter'
+        async def discover(self,context):
+            self.fallback_count=1
+            self.discovery_diagnostics=[diagnostic('HTTP_403_FORBIDDEN',stage='http',action='fallback')]
+            raise httpx.ConnectTimeout('private fallback URL')
+    configure_scan(monkeypatch,{'hh':lambda *args:HH()})
+    alerts=AsyncMock()
+    monkeypatch.setattr(services,'notify_chat',alerts)
+    summary=asyncio.run(services.scan_for_user(object(),7))
+    info=summary['sources']['hh']
+    assert info['status']=='failed'
+    assert info['fallback']==1
+    assert {item['code'] for item in info['diagnostics']}=={'HTTP_403_FORBIDDEN','NETWORK_CONNECT_TIMEOUT'}
+    assert alerts.await_count==2
+    assert any('NETWORK_CONNECT_TIMEOUT' in call.args[2] for call in alerts.await_args_list)
+    assert 'private fallback URL' not in str(summary)
+
+
+def test_hh_certificate_failure_is_not_hidden_by_quiet_cooldown(monkeypatch):
+    class HH:
+        source_id='hh'
+        name='HeadHunter'
+        async def discover(self,context):
+            exc=httpx.ConnectError('secret request URL')
+            exc.__cause__=ssl.SSLCertVerificationError('secret certificate data')
+            raise exc
+    configure_scan(monkeypatch,{'hh':lambda *args:HH()})
+    alerts=AsyncMock()
+    monkeypatch.setattr(services,'notify_chat',alerts)
+    summary=asyncio.run(services.scan_for_user(object(),7))
+    assert summary['sources']['hh']['status']=='failed'
+    assert alerts.await_count==1
+    assert 'TLS_VALIDATION_FAILED' in alerts.await_args.args[2]
+    assert 'secret' not in alerts.await_args.args[2]
+    assert services._HH_CONNECT_RETRY_AFTER>0
+
+
+def test_cached_discovery_does_not_merge_independent_profile_processing_failures(monkeypatch):
+    calls=[]
+    class Remote:
+        source_id=name='remoteok'
+        async def discover(self,context):
+            calls.append(1)
+            return [NormalizedJob(source='remoteok',source_job_id='1',title='DevOps')]
+    configure_scan(monkeypatch,{'remoteok':Remote})
+    original=services._user_context
+    async def context(user_id):
+        user,profile,searches=await original(user_id)
+        searches.append(SimpleNamespace(id=12,name='Relocation-first',settings={'queries':['DevOps']}))
+        return user,profile,searches
+    monkeypatch.setattr(services,'_user_context',context)
+    monkeypatch.setattr(services,'ingest_and_match',AsyncMock(side_effect=RuntimeError('private data')))
+    alerts=AsyncMock()
+    monkeypatch.setattr(services,'notify_chat',alerts)
+    summary=asyncio.run(services.scan_for_user(object(),7))
+    info=summary['sources']['remoteok']
+    assert len(calls)==1
+    assert info['processing_errors']==2
+    assert len(info['diagnostics'])==2
+    assert len({item['observation_id'] for item in info['diagnostics']})==2
+    assert alerts.await_count==1
+    assert 'Career-first / Relocation-first' in alerts.await_args.args[2]
+
+
+def test_partial_metadata_survives_generic_source_cache_without_double_counting(monkeypatch):
+    from app.sources.diagnostics import classify_source_error
+    class Remote:
+        source_id=name='remoteok'
+        async def discover(self,context):
+            self.partial_failures=1
+            self.retry_count=2
+            self.discovery_diagnostics=[classify_source_error(httpx.ReadTimeout('private'),action='continue_partial')]
+            return [NormalizedJob(source='remoteok',source_job_id='1',title='DevOps')]
+    configure_scan(monkeypatch,{'remoteok':Remote})
+    original=services._user_context
+    async def context(user_id):
+        user,profile,searches=await original(user_id)
+        searches.append(SimpleNamespace(id=12,name='Relocation-first',settings={'queries':['DevOps']}))
+        return user,profile,searches
+    monkeypatch.setattr(services,'_user_context',context)
+    monkeypatch.setattr(services,'ingest_and_match',AsyncMock(return_value={'processed':1}))
+    monkeypatch.setattr(services,'notify_chat',AsyncMock())
+    summary=asyncio.run(services.scan_for_user(object(),7))
+    info=summary['sources']['remoteok']
+    assert info['partial_failures']==1
+    assert info['partial_attempts']==2
+    assert info['retry']==2
+    assert len(info['diagnostics'])==1
+    assert info['diagnostics'][0]['profiles']==['Career-first','Relocation-first']
+    assert summary['searches']['12']['sources']['remoteok']['cache']
+    assert summary['searches']['12']['sources']['remoteok']['status']=='partial'
+
+
+def test_progress_callback_error_does_not_log_sensitive_payload(monkeypatch,caplog):
+    class Remote:
+        source_id=name='remoteok'
+        async def discover(self,context):
+            return []
+    configure_scan(monkeypatch,{'remoteok':Remote})
+    callback=AsyncMock(side_effect=RuntimeError('https://private.test/?token=private-value'))
+    summary=asyncio.run(services.scan_for_user(object(),7,callback))
+    assert summary['sources']['remoteok']['status']=='success'
+    assert 'scan progress update failed (RuntimeError)' in caplog.text
+    assert 'private-value' not in caplog.text

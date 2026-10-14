@@ -97,6 +97,16 @@ def test_legacy_entities_and_payload_never_escape_into_dashboard():
     assert '&quot;' not in notice
 
 
+def test_source_dashboard_shows_stretch_yield_per_source():
+    line = render_source_summary("eures", {
+        "name": "EURES", "found": 4, "processed": 4,
+        "qualified": 1, "stretch": 2,
+    })
+
+    assert "Good: 1" in line
+    assert "Stretch: 2" in line
+
+
 def test_dense_dashboard_is_bounded_without_breaking_html_entities():
     import html
     from app.search.source_summary import render_source_dashboard

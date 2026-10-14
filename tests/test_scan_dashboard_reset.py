@@ -34,6 +34,8 @@ def test_new_scan_does_not_display_previous_run_results(monkeypatch, outcome):
     observed = []
 
     async def get_state(user_id, key, default=""):
+        if key == "scheduled_scan_dashboard":
+            return "{}"
         assert (user_id, key) == (7, "scan_dashboard")
         return stored
 
@@ -80,7 +82,7 @@ def test_new_scan_does_not_display_previous_run_results(monkeypatch, outcome):
     assert "999" not in "\n".join(observed)
     assert "Источники ещё не завершили поиск." in observed[0]
     if outcome == "completed":
-        assert "hh: 2 вакансий (1.0 с)" in observed[-1]
+        assert "hh: готово · 2 вакансий (1.0 с)" in observed[-1]
     else:
         assert "summary" not in state
     assert handlers._ACTIVE_SCAN_TASKS == {}

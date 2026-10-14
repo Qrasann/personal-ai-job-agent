@@ -1016,29 +1016,9 @@ async def scan(message: Message, bot: Bot) -> None:
         except asyncio.CancelledError:
             pass
 
-        await _save_scan_dashboard(user.id, status="completed", stage="Готово", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()), summary=summary)
-        source_bits = []
-
-        for source_id, info in (summary.get("sources") or {}).items():
-            if "error" in info:
-                source_bits.append(
-                    f"• {html.escape(source_id)}: ошибка"
-                )
-            elif "skipped" in info:
-                source_bits.append(f"• {html.escape(source_id)}: пропущен")
-            else:
-                freshness = "кэш" if info.get("cache") else "live"
-                partial_label = " · частично" if info.get("partial") else ""
-                source_bits.append(
-                    f"• {html.escape(source_id)}: "
-                    f"{int(info.get('found', 0))} ({freshness}, {int(info.get('duration_ms', 0)) / 1000:.1f} с)"
-                    + partial_label
-                )
-
-        details = (
-            "\n".join(source_bits)
-            or "• активных источников нет"
-        )
+        outcome = scan_outcome(summary)
+        await _save_scan_dashboard(user.id, status=outcome, stage="Готово" if outcome == "completed" else "Завершено с неполными результатами", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()), summary=summary)
+        details = render_source_dashboard(summary.get("sources") or {}) or "• активных источников нет"
         profile_bits = []
         for info in (summary.get("searches") or {}).values():
             profile_bits.append(
@@ -1050,7 +1030,7 @@ async def scan(message: Message, bot: Bot) -> None:
         profile_details = "\n\n<b>Профили поиска</b>\n" + "\n".join(profile_bits) if profile_bits else ""
 
         await progress.edit_text(
-            "✅ <b>Проход поиска завершён</b>\n\n"
+            ("✅ <b>Проход поиска завершён</b>\n\n" if outcome == "completed" else "⚠️ <b>Поиск завершён с неполными результатами</b>\n\n")
             + details
             + profile_details
             + f"\n\nОбработано: {int(summary.get('processed', 0))}"
@@ -1078,9 +1058,10 @@ async def scan(message: Message, bot: Bot) -> None:
             await heartbeat_task
         except asyncio.CancelledError:
             pass
-        await _save_scan_dashboard(user.id, status="failed", stage=str(exc)[:500], finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
+        issue = classify_source_error(exc, stage="scan")
+        await _save_scan_dashboard(user.id, status="failed", stage=issue["code"], finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
         await progress.edit_text(
-            f"⚠ {html.escape(str(exc))}",
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",
         )
     finally:
@@ -1097,25 +1078,27 @@ async def scan_status(message: Message) -> None:
         state = json.loads(await repo.get_state(user.id, "scan_dashboard", "{}"))
     except (TypeError, ValueError):
         state = {}
+    try:
+        scheduled = json.loads(await repo.get_state(user.id, "scheduled_scan_dashboard", "{}"))
+    except (TypeError, ValueError):
+        scheduled = {}
+    state = select_scan_dashboard(state, scheduled)
     if not state:
         await message.answer("Истории сканирования пока нет. Запусти /scan.")
         return
+    if state.get("status") == "failed":
+        state["stage"] = legacy_diagnostic(state.get("stage"))["code"]
     summary = state.get("summary") or {}
-    sources = []
-    for name, info in (summary.get("sources") or {}).items():
-        if info.get("error"):
-            sources.append(f"• {html.escape(name)}: ошибка ({int(info.get('duration_ms', 0)) / 1000:.1f} с)")
-        elif "skipped" in info:
-            sources.append(f"• {html.escape(name)}: пропущен")
-        else:
-            partial_label = " · частично" if info.get("partial") else ""
-            sources.append(f"• {html.escape(name)}: {int(info.get('found', 0))} вакансий ({int(info.get('duration_ms', 0)) / 1000:.1f} с)" + partial_label)
+    if state.get("status") == "completed" and summary:
+        state["status"] = scan_outcome(summary)
+    sources = render_source_dashboard(summary.get("sources") or {})
     await message.answer(
-        f"📊 Сканирование: <b>{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
+        ("📊 Плановое сканирование: <b>" if state.get("kind") == "scheduled" else "📊 Сканирование: <b>")
+        + f"{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
         f"Начато: {html.escape(str(state.get('started_at', '—')))}\n"
         f"Завершено: {html.escape(str(state.get('finished_at', '—')))}\n"
         f"Этап: {html.escape(str(state.get('stage', '—')))}\n"
-        + ("\n".join(sources) if sources else "Источники ещё не завершили поиск."),
+        + (sources if sources else "Источники ещё не завершили поиск."),
         parse_mode="HTML",
     )
 
@@ -1358,7 +1341,7 @@ async def job_details(message: Message) -> None:
         )
     except Exception as exc:
         await progress.edit_text(
-            f"⚠ {html.escape(str(exc))}",
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",
         )
 
@@ -1403,7 +1386,7 @@ async def compare_job(message: Message) -> None:
         )
     except Exception as exc:
         await progress.edit_text(
-            f"⚠ {html.escape(str(exc))}",
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",
         )
 
@@ -1683,7 +1666,7 @@ async def compare_callback(callback: CallbackQuery) -> None:
         )
     except Exception as exc:
         await callback.message.answer(
-            f"⚠ {html.escape(str(exc))}",
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",
         )
 

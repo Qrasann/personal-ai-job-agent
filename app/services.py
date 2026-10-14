@@ -18,6 +18,7 @@ from app.domain.job_text import clean_html_text, format_salary
 from app.geo.countries import normalize_country
 from app.matching.engine import score_job
 from app.matching.fact_comparison import compare_facts
+from app.matching.language_fit import compare_english_level
 from app.providers.hh import HHClient, HHError
 from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
@@ -32,6 +33,9 @@ from app.sources.adapters.smartrecruiters import SmartRecruitersSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
+from app.sources.network_errors import TRANSPORT_ERROR_TYPES, transport_failure_category
+from app.search.source_summary import aggregate_source, normalize_attempt, scan_outcome
+from app.sources.diagnostics import classify_source_error, diagnostic, render_source_notice
 from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
@@ -39,7 +43,7 @@ log = logging.getLogger(__name__)
 hh_client = HHClient()
 _DISCOVERY_CACHE: dict[
     tuple[str, tuple[str, ...], str | None, tuple[str, ...]],
-    tuple[float, list[NormalizedJob]],
+    tuple,
 ] = {}
 CACHE_TTL_SECONDS = 600
 GEORGIA_CACHE_TTL_SECONDS = 6 * 60 * 60
@@ -65,35 +69,20 @@ async def _discover_hh(adapter: HHSource, context: SourceContext) -> list[Normal
             return None
         try:
             jobs = await adapter.discover(context)
-        except httpx.ConnectError:
+        except httpx.ConnectError as exc:
             _HH_CONNECT_RETRY_AFTER = time.monotonic() + HH_CONNECT_RECHECK_SECONDS
             for key in list(_DISCOVERY_CACHE):
                 if key[0] == "hh":
                     del _DISCOVERY_CACHE[key]
-            log.warning("source hh connection failed; skipping for %d seconds", HH_CONNECT_RECHECK_SECONDS)
+            log.warning("source hh connection failed (category=%s); skipping for %d seconds",
+                        transport_failure_category(exc), HH_CONNECT_RECHECK_SECONDS)
             raise
         _HH_CONNECT_RETRY_AFTER = 0.0
         return jobs
 
 
 def _aggregate_source(sources: dict, source_id: str, info: dict) -> None:
-    """Keep successful counts visible when another profile fails or skips."""
-    previous = sources.get(source_id)
-    if previous is None:
-        sources[source_id] = dict(info)
-        return
-    duration = max(previous.get("duration_ms", 0), info.get("duration_ms", 0))
-    if "found" in info:
-        sources[source_id] = {
-            "found": previous.get("found", 0) + info["found"],
-            "cache": bool(previous.get("cache", True) and info.get("cache", False)),
-            "duration_ms": duration,
-            "partial": bool(previous.get("partial") or "found" not in previous),
-        }
-    elif "found" in previous:
-        previous.update(partial=True, duration_ms=duration)
-    else:
-        previous["duration_ms"] = duration
+    aggregate_source(sources, source_id, info)
 
 
 def _cache_ttl(source_id: str) -> int:
@@ -340,13 +329,8 @@ async def ingest_and_match(
 
 
 def _error_text(exc: Exception) -> str:
-    if isinstance(exc, httpx.HTTPStatusError):
-        return f"HTTP {exc.response.status_code}"
-    if isinstance(exc, httpx.TransportError):
-        # HTTPX may include a full request URL (and its query) in the message.
-        return type(exc).__name__
-    message = str(exc).strip()
-    return message or type(exc).__name__
+    """Compatibility helper: controlled diagnostic code, never exception text."""
+    return classify_source_error(exc)["code"]
 
 
 async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False) -> dict:
@@ -356,8 +340,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             return
         try:
             await progress_callback(text)
-        except Exception:
-            log.warning("scan progress update failed", exc_info=True)
+        except Exception as exc:
+            log.warning("scan progress update failed (%s)", type(exc).__name__)
 
     ctx = await _user_context(user_id)
     if not ctx:
@@ -439,8 +423,18 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 and (not force_refresh or adapter.source_id in {"himalayas", "remotive"})
             )
             if cache_hit:
+                adapter.discovery_observation = cached[3] if len(cached) > 3 else str(cached[0])
+                adapter.discovery_diagnostics = cached[4] if len(cached) > 4 else []
+                adapter.partial_failures = cached[2] if len(cached) > 2 else 0
+                if adapter.source_id == "eures":
+                    adapter.partial_failures = cached[2] if len(cached) > 2 else 0
+                    adapter.partial_failure_observation = cached[3] if len(cached) > 3 else str(cached[0])
                 return adapter, cached[1], True, None, 0, False
             started = time.monotonic()
+            observation_id = str(time.monotonic_ns())
+            adapter.discovery_observation = observation_id
+            if adapter.source_id == "eures":
+                adapter.partial_failure_observation = observation_id
             try:
                 async with semaphore:
                     if adapter.source_id == "remotive":
@@ -459,7 +453,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                         fetched_mono = time.monotonic()
                 # A context-specific projection must expire with its provider
                 # response, including when that response came from disk.
-                _DISCOVERY_CACHE[cache_key] = (fetched_mono, jobs)
+                partial_failures = int(getattr(adapter, "partial_failures", 0) or 0)
+                _DISCOVERY_CACHE[cache_key] = (fetched_mono, jobs, partial_failures, observation_id, list(getattr(adapter, "discovery_diagnostics", [])))
                 return adapter, jobs, source_cache_hit, None, int((time.monotonic() - started) * 1000), False
             except Exception as exc:
                 return adapter, [], False, exc, int((time.monotonic() - started) * 1000), False
@@ -469,72 +464,136 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
 
         discovered = await asyncio.gather(*(discover(adapter) for adapter in adapters))
         for adapter, jobs, cache_hit, discovery_error, duration_ms, skipped in discovered:
-            if skipped:
-                info = {"skipped": "connection cooldown", "duration_ms": duration_ms}
-                search_summary["sources"][adapter.source_id] = info
-                _aggregate_source(summary["sources"], adapter.source_id, info)
-                continue
-            try:
+            attempt_observation = str(time.monotonic_ns())
+            observation = getattr(adapter, "discovery_observation", None) or attempt_observation
+            info = {"name": adapter.name, "profile_id": search.id, "profile_name": search.name,
+                    "found": 0, "duration_ms": duration_ms, "cache": cache_hit,
+                    "retry": 0 if cache_hit else int(getattr(adapter, "retry_count", 0)),
+                    "fallback": 0 if cache_hit else int(getattr(adapter, "fallback_count", 0)),
+                    "diagnostics": []}
+            partial_failures = int(getattr(adapter, "partial_failures", 0) or 0)
+            if partial_failures:
+                info.update(partial_failures=partial_failures, partial_failure_observations={observation: partial_failures})
+            def add_error(item):
+                for previous in info["diagnostics"]:
+                    if all(previous.get(key) == item.get(key) for key in ("code", "stage", "action", "operation")):
+                        previous["count"] += item.get("count", 1)
+                        return
+                info["diagnostics"].append({**item, "profiles": [search.name], "observation_id": attempt_observation if item["stage"] in {"processing", "summary"} else observation})
+
+            silent_hh = adapter.source_id == "hh" and isinstance(discovery_error, httpx.ConnectError)
+            if skipped or silent_hh:
+                info["status"] = "failed" if silent_hh else "skipped"
+                for prior in getattr(adapter, "discovery_diagnostics", []):
+                    add_error(prior)
+                item = (classify_source_error(discovery_error, action="cooldown") if discovery_error
+                        else diagnostic("SOURCE_CONNECTION_COOLDOWN", action="cooldown"))
+                add_error(item)
                 if discovery_error:
-                    raise discovery_error
-                jobs = [job for job in jobs if vacancy_allowed(job, settings_map, current_country=user.current_country)]
-                jobs.sort(key=lambda job: job_priority(job, settings_map, current_country=user.current_country), reverse=True)
-                info = {"found": len(jobs), "cache": cache_hit, "duration_ms": duration_ms}
-                search_summary["sources"][adapter.source_id] = info
-                _aggregate_source(summary["sources"], adapter.source_id, info)
+                    info["failure_category"] = transport_failure_category(discovery_error)
+            elif discovery_error:
+                info["status"] = "failed"
+                for item in getattr(adapter, "discovery_diagnostics", []):
+                    add_error(item)
+                fatal = classify_source_error(discovery_error)
+                if not any(item["code"] == fatal["code"] and item["stage"] == fatal["stage"] and item["action"] != "fallback" for item in info["diagnostics"]):
+                    add_error(fatal)
+                log.error("source %s failed for search %s (%s; category=%s)",
+                          adapter.source_id, search.id, type(discovery_error).__name__, transport_failure_category(discovery_error))
+            else:
+                info["status"] = "success"
+                partial_failures = int(getattr(adapter, "partial_failures", 0) or 0)
+                if partial_failures:
+                    info.update(status="partial", partial_failures=partial_failures,
+                                partial_failure_observations={observation: partial_failures})
+                for item in getattr(adapter, "discovery_diagnostics", []):
+                    add_error(item)
+                if partial_failures and not info["diagnostics"]:
+                    add_error(diagnostic("SOURCE_PARTIAL_RESULTS", action="continue_partial", count=partial_failures))
+                # Isolate malformed jobs before scoring; valid jobs from the same
+                # response must still be processed and retained.
+                eligible = []
+                processing_errors = 0
+                for job in jobs:
+                    try:
+                        if vacancy_allowed(job, settings_map, current_country=user.current_country):
+                            eligible.append((job_priority(job, settings_map, current_country=user.current_country), job))
+                    except Exception as exc:
+                        processing_errors += 1
+                        add_error(classify_source_error(exc, stage="processing", action="continue_partial"))
+                eligible.sort(key=lambda pair: pair[0], reverse=True)
+                jobs = [job for _, job in eligible]
+                info["found"] = len(jobs)
                 cache_label = " (кэш)" if cache_hit else ""
                 await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · {duration_ms / 1000:.1f} с")
-                processing_errors = 0
                 for index, job in enumerate(jobs, start=1):
                     try:
                         counters = await ingest_and_match(bot, job, only_user_id=user.id, only_search_profile_id=search.id)
                     except Exception as exc:
                         processing_errors += 1
-                        log.error("source %s vacancy processing failed for search %s (%s)",
-                                  adapter.source_id, search.id, type(exc).__name__)
+                        add_error(classify_source_error(exc, stage="processing", action="continue_partial"))
+                        log.error("source %s vacancy processing failed for search %s (%s)", adapter.source_id, search.id, type(exc).__name__)
                         continue
-                    else:
-                        for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
-                            value = counters.get(key, 0)
-                            summary[key] += value
-                            search_summary[key] += value
+                    for key in ("processed", "qualified", "stretch", "notified", "filtered", "duplicate"):
+                        value = counters.get(key, 0)
+                        summary[key] += value
+                        search_summary[key] += value
+                        info[key] = info.get(key, 0) + value
                     if index % 5 == 0 or index == len(jobs):
                         await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
                 if processing_errors:
-                    info.update(partial=True, processing_errors=processing_errors)
-                    summary["sources"][adapter.source_id]["partial"] = True
-                    summary["sources"][adapter.source_id]["processing_errors"] = (
-                        summary["sources"][adapter.source_id].get("processing_errors", 0) + processing_errors
-                    )
-            except Exception as exc:
-                silent_hh_connect_error = (
-                    discovery_error is exc
-                    and adapter.source_id == "hh"
-                    and isinstance(exc, httpx.ConnectError)
-                )
-                if not silent_hh_connect_error:
-                    if isinstance(exc, httpx.TransportError):
-                        log.error("source %s transport failure for search %s (%s)",
-                                  adapter.source_id, search.id, type(exc).__name__)
-                    else:
-                        log.exception("source %s failed for search %s", adapter.source_id, search.id)
-                error = _error_text(exc)
-                if silent_hh_connect_error:
-                    info = {"skipped": "ConnectError", "duration_ms": duration_ms}
-                else:
-                    info = {"error": error, "duration_ms": duration_ms}
-                    await notify_chat(bot, user.telegram_chat_id, f"⚠️ {search.name} · источник {adapter.name}: {html.escape(error)}")
-                search_summary["sources"][adapter.source_id] = info
+                    info.update(status="partial", processing_errors=processing_errors)
+            info = normalize_attempt(info)
+            search_summary["sources"][adapter.source_id] = info
+            # Summary errors belong to application telemetry, not the provider.
+            try:
                 _aggregate_source(summary["sources"], adapter.source_id, info)
+            except Exception as exc:
+                info["diagnostics"].append({**classify_source_error(exc, stage="summary"), "profiles": [search.name], "observation_id": attempt_observation})
+                if info["status"] == "success":
+                    info["status"] = "partial"
+                rebuilt = {}
+                for entry in summary["searches"].values():
+                    if adapter.source_id in entry["sources"]:
+                        aggregate_source(rebuilt, adapter.source_id, entry["sources"][adapter.source_id])
+                summary["sources"][adapter.source_id] = rebuilt[adapter.source_id]
+                log.error("source summary reconstruction for %s (%s)", adapter.source_id, type(exc).__name__)
+    # One alert per distinct issue in this pass; retain independent observations
+    # in the summary rather than sending one message for every profile or job.
+    for source_id, info in summary["sources"].items():
+        notices = {}
+        for item in info.get("diagnostics", []):
+            if item["action"] == "cooldown" and item["code"] != "TLS_VALIDATION_FAILED":
+                continue
+            key = (item["code"], item["stage"], item["action"], item.get("operation"))
+            notice = notices.setdefault(key, {**item, "profiles": []})
+            notice["profiles"] = list(dict.fromkeys(notice["profiles"] + item.get("profiles", [])))
+        for item in notices.values():
+            try:
+                await notify_chat(bot, user.telegram_chat_id, render_source_notice(item["profiles"], info["name"], item, preserved=bool(info["processed"])), parse_mode=None)
+            except Exception as exc:
+                log.error("source diagnostic notification failed (%s)", type(exc).__name__)
     return summary
 
 
 async def scan_all(bot: Bot) -> None:
     for user in await repo.list_active_users():
+        started = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+        state = {"kind": "scheduled", "started_at": started}
         try:
-            await scan_for_user(bot, user.id)
+            summary = await scan_for_user(bot, user.id)
+            outcome = scan_outcome(summary)
+            state.update(status=outcome, stage="Готово" if outcome == "completed" else "Завершено с неполными результатами", summary=summary)
         except Exception as exc:
+            issue = classify_source_error(exc, stage="scan")
+            state.update(status="failed", stage=issue["code"], diagnostic=issue)
             log.error("scheduled scan failed for user %s (%s); continuing", user.id, type(exc).__name__)
+        state["finished_at"] = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+        try:
+            # A separate state key cannot replace an active manual dashboard.
+            await repo.set_state(user.id, "scheduled_scan_dashboard", json.dumps(state, ensure_ascii=False))
+        except Exception as exc:
+            log.error("scheduled diagnostic persistence failed for user %s (%s); continuing", user.id, type(exc).__name__)
 
 
 async def refresh_match_score(match, job, *, technical_text: str = ""):
@@ -686,10 +745,16 @@ async def get_vacancy_comparison(
     )
 
     comparison = compare_facts(vacancy_text, facts)
+    profile = await repo.get_profile(match.profile_id)
+    language_fit = compare_english_level(
+        vacancy_text,
+        profile.english_level if profile else None,
+    )
 
     return {
         **payload,
         "comparison": comparison,
+        "language_fit": language_fit,
         "facts": facts,
     }
 
