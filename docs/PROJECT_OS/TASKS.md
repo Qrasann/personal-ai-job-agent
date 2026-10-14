@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
+
+- [x] Add deterministic exercises for Terraform, Ansible, AWS, Grafana and Helm.
+- [x] Cover safe/reversible operations, least privilege and evidence checks.
+- [x] Verify focused interview/command tests (31) and isolated PostgreSQL (913).
+- [ ] Define privacy-safe answer retention and feedback rubric before adding
+  interactive answer capture or scoring.
+
 ## 2026-10-15 — source publication-date field coverage
 
 - [x] Count nonempty and absent publication-date fields per source attempt.

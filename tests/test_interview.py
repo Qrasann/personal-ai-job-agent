@@ -72,3 +72,20 @@ def test_interview_agent_covers_dns_tls_and_safe_security_response():
     assert "TTL" in by_skill["DNS"]["criteria"][1]
     assert "SNI" in by_skill["TLS"]["task"]
     assert any("Preserve logs" in item for item in by_skill["Security Operations"]["criteria"])
+
+
+def test_interview_agent_has_curated_exercises_for_infrastructure_as_code_cloud_and_observability():
+    comparison = compare_facts(
+        "Requirements: Terraform, Ansible, AWS, Grafana and Helm.",
+        [],
+    )
+
+    plan = build_interview_plan(comparison, limit=8)
+    by_skill = {item["skill"]: item for item in plan}
+
+    assert set(by_skill) == {"Terraform", "Ansible", "AWS", "Grafana", "Helm"}
+    assert "Do not apply" in by_skill["Terraform"]["criteria"][0]
+    assert "idempotent" in by_skill["Ansible"]["criteria"][2]
+    assert "CloudTrail" in by_skill["AWS"]["criteria"][2]
+    assert "missing samples" in by_skill["Grafana"]["criteria"][1]
+    assert "rendered resources" in by_skill["Helm"]["criteria"][1]

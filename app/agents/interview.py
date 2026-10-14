@@ -29,6 +29,31 @@ _EXERCISES: dict[str, tuple[str, str, tuple[str, ...]]] = {
         "Explain which objects and events you would inspect, and how you would roll back safely.",
         ("Inspect rollout status, Pod events and previous container logs", "Check probes, config and resource limits", "Use a controlled rollback and verify readiness"),
     ),
+    "Terraform": (
+        "A Terraform plan unexpectedly wants to replace a production database resource.",
+        "Explain how you would inspect the plan, state, provider changes and lifecycle before taking action.",
+        ("Do not apply the destructive plan", "Compare configuration, state and provider versions", "Correct or import state, then require reviewed plan output"),
+    ),
+    "Ansible": (
+        "An Ansible playbook succeeds on one host but reports changes on every repeated run elsewhere.",
+        "Trace inventory, variables, privilege escalation and task idempotency without exposing secrets.",
+        ("Compare effective inventory and host variables", "Use check mode and diff where safe", "Make tasks idempotent and keep secrets in approved secret stores"),
+    ),
+    "AWS": (
+        "An application loses access to one AWS service after an IAM policy change.",
+        "Find the denied action and resource, then propose the narrowest reversible correction.",
+        ("Check the exact principal, action, resource and denial context", "Review role trust and policy boundaries", "Avoid wildcard permissions and verify CloudTrail evidence"),
+    ),
+    "Grafana": (
+        "A Grafana dashboard shows gaps while an alert based on the same service remains healthy.",
+        "Compare dashboard query, labels, time range, scrape health and alert evaluation.",
+        ("Inspect query and label matching", "Distinguish missing samples from zero values", "Check scrape gaps and alert window before changing thresholds"),
+    ),
+    "Helm": (
+        "A Helm upgrade renders a different Service and would interrupt live traffic.",
+        "Compare values and rendered manifests, then describe a safe review and rollback path.",
+        ("Inspect merged values and chart version", "Diff rendered resources before upgrade", "Keep the prior release available and verify readiness after rollback"),
+    ),
     "Networking": (
         "A service intermittently fails to reach another host by name but works by IP.",
         "Build a diagnostic path from DNS resolution through routing and the application port.",

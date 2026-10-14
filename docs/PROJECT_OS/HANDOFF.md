@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
+
+At start: HEAD `487aa0b`, feature branch 84 commits ahead; VERSION 3.5.7.
+Added curated vacancy-specific practice for Terraform, Ansible, AWS, Grafana
+and Helm. No answers are stored or evaluated. Focused interview/command tests:
+31 passed; full isolated PostgreSQL suite: 913 passed. Next: checkpoint/backup,
+then continue Candidate Fit and source quality; live Telegram acceptance remains
+separate. Owner proposals remain untracked.
+
 ## 2026-10-15 — source publication-date field coverage
 
 At start: HEAD `e0e74a5`, feature branch 83 commits ahead; VERSION 3.5.7.

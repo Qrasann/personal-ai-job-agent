@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
+
+Added curated vacancy-specific exercises for Terraform, Ansible, AWS, Grafana
+and Helm, including safe plan/state review, idempotency, least privilege,
+missing metric samples and rendered-manifest review. No candidate answers are
+collected or scored. Focused tests: 31 passed; full isolated PostgreSQL: 913.
+
 ## 2026-10-15 — source publication-date field coverage
 
 Per-source scan summaries now show how many discovered vacancies have a

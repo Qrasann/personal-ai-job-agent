@@ -1,3 +1,10 @@
+## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
+
+Expanded curated exercises to match already recognized requirements for
+Terraform, Ansible, AWS, Grafana and Helm. Scenarios emphasize reviewed plans,
+idempotence, least privilege, telemetry gaps and reversible release checks.
+Focused interview/command tests: 31; isolated PostgreSQL: 913 passed.
+
 ## 2026-10-15 — source publication-date field coverage
 
 Added per-source `publication_date_provided` and `publication_date_missing`

@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
+
+Interview practice now has curated templates for Terraform, Ansible, AWS,
+Grafana and Helm. They favor safe, reversible troubleshooting and make no
+candidate evaluation. Focused tests: 31 passed; isolated PostgreSQL: 913.
+
 ## 2026-10-15 — source publication-date field coverage
 
 Source summaries report nonempty publication-date-field coverage as a
