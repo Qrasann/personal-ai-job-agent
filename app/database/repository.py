@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.database.db import SessionLocal
 from app.database.models import (
     Application,
+    ApplicationStatusEvent,
     CandidateFact,
     CandidateProfile,
     Job,
@@ -515,6 +516,12 @@ async def save_application(**kwargs) -> Application:
     async with SessionLocal() as session:
         item = Application(**kwargs)
         session.add(item)
+        await session.flush()
+        session.add(ApplicationStatusEvent(
+            application_id=item.id,
+            user_id=item.user_id,
+            status=item.status,
+        ))
         await session.commit()
         await session.refresh(item)
         return item
@@ -543,9 +550,37 @@ async def set_application_status(user_id: int, application_id: int, status: str)
         )
         if not item:
             return False
+        if item.status == status:
+            return True
         item.status = status
+        session.add(ApplicationStatusEvent(
+            application_id=item.id,
+            user_id=item.user_id,
+            status=status,
+        ))
         await session.commit()
         return True
+
+
+async def application_status_history(user_id: int, application_id: int) -> list[ApplicationStatusEvent] | None:
+    async with SessionLocal() as session:
+        application = await session.scalar(
+            select(Application.id).where(
+                Application.id == application_id,
+                Application.user_id == user_id,
+            )
+        )
+        if application is None:
+            return None
+        rows = await session.scalars(
+            select(ApplicationStatusEvent)
+            .where(
+                ApplicationStatusEvent.application_id == application_id,
+                ApplicationStatusEvent.user_id == user_id,
+            )
+            .order_by(ApplicationStatusEvent.id)
+        )
+        return list(rows)
 
 
 async def message_seen(user_id: int, message_id: str, source: str) -> bool:

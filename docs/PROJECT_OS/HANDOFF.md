@@ -1,5 +1,17 @@
 # Handoff
 
+## 2026-10-15 — append-only application status history
+
+At start: HEAD `96a87ed`, feature branch 73 commits ahead; VERSION 3.5.7.
+Added additive schema v5 table `application_status_events`; the prepared draft
+and each changed manual status append an event. `/application <id> history`
+returns events only for the owning user. No-op status repeats do not append.
+Focused migration/status set: 40 passed; full isolated `job-agent-tests`
+PostgreSQL suite: 892 passed. No production DB, runtime or volumes touched.
+Next: commit and synchronize backup; then exact resume-content snapshot/export
+and explicit audit of what was actually submitted. Generated drafts must remain
+distinct from submissions.
+
 ## 2026-10-15 — persisted draft versions and manual status
 
 At start: HEAD `83cb1ad`, feature branch 72 commits ahead; VERSION 3.5.7. The

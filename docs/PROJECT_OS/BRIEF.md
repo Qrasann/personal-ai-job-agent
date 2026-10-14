@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — append-only application status history
+
+Schema v5 adds `application_status_events`; prepared drafts and actual manual
+status changes append owner-scoped events. `/application <id> history` shows the
+timeline, and repeated status values do not create duplicate events. Isolated
+PostgreSQL full suite: 892 passed; focused migration/status tests: 40 passed.
+
 ## 2026-10-15 — saved draft versions and manual application tracking
 
 The existing applications table now records each user-confirmed prepared

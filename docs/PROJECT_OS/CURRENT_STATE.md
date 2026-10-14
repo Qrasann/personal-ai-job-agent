@@ -1,5 +1,14 @@
 # Current State
 
+## 2026-10-15 — append-only application status history
+
+Schema v5 adds `application_status_events`. Saving a prepared draft and each
+actual manual status change append a timestamped event. `/application <id>
+history` checks ownership before listing the timeline; no-op status repeats do
+not create an event. PostgreSQL integration covers migration, chronology,
+ownership and repeated updates. Full isolated suite: 892 passed; focused set: 40
+passed.
+
 ## 2026-10-15 — persisted draft versions and manual application status
 
 Selecting “Prepare response” stores the cover-letter text, resume ID, source

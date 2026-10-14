@@ -30,7 +30,7 @@ from app.matching.language_fit import normalize_cefr
 from app.services import apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_application_package, render_applications, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_history, render_application_package, render_applications, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
@@ -1441,10 +1441,19 @@ async def application_status_command(message: Message) -> None:
     parts = (message.text or "").split()
     if len(parts) != 3 or not parts[1].isdigit():
         await message.answer(
-            "Использование: /application <id> reviewed|submitted|interview|offer|rejected|withdrawn"
+            "Использование: /application <id> history|reviewed|submitted|interview|offer|rejected|withdrawn"
         )
         return
     status = parts[2].casefold()
+    if status == "history":
+        events = await repo.application_status_history(user.id, int(parts[1]))
+        await message.answer(
+            "❌ Отклик не найден в твоём профиле."
+            if events is None
+            else render_application_history(events),
+            parse_mode="HTML",
+        )
+        return
     if status not in repo.MANUAL_APPLICATION_STATUSES:
         await message.answer(
             "Допустимые статусы: reviewed, submitted, interview, offer, rejected, withdrawn"

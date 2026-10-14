@@ -2113,3 +2113,11 @@ the match `prepared`. `/applications` displays the user's saved records;
 status. Integration tests verify stored text, status transitions and isolation
 from another user. Existing schema reused; no migration or outbound action.
 Full isolated PostgreSQL suite: 890 passed.
+
+## 2026-10-15 — append-only application status history
+
+Schema v5 adds an additive `application_status_events` table. Initial prepared
+status and real manual transitions append events; owner-scoped `/application
+<id> history` reads them in order. Repeating the current status creates no
+duplicate event. Isolated PostgreSQL integration verifies the migration, event
+chronology, ownership and updates. Full suite: 892 passed; focused: 40 passed.

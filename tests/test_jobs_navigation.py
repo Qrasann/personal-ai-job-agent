@@ -371,3 +371,16 @@ def test_application_status_command_uses_explicit_manual_status(monkeypatch):
 
     update.assert_awaited_once_with(7, 42, "submitted")
     assert "вручную" in message.answer.await_args.args[0]
+
+
+def test_application_status_command_displays_owner_scoped_history(monkeypatch):
+    _mock_profiles(monkeypatch)
+    history = AsyncMock(return_value=[SimpleNamespace(status="prepared")])
+    monkeypatch.setattr(handlers.repo, "application_status_history", history)
+    monkeypatch.setattr(handlers, "render_application_history", lambda events: "HISTORY")
+    message = SimpleNamespace(text="/application 42 history", answer=AsyncMock())
+
+    asyncio.run(handlers.application_status_command(message))
+
+    history.assert_awaited_once_with(7, 42)
+    assert message.answer.await_args.args[0] == "HISTORY"

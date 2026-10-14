@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 4
+CURRENT_SCHEMA_VERSION = 5
 
 
 @dataclass(frozen=True)
@@ -59,6 +59,23 @@ MIGRATIONS: tuple[Migration, ...] = (
         name="job_match_recommendation_scores",
         statements=(
             "ALTER TABLE job_matches ADD COLUMN IF NOT EXISTS recommendation_scores JSONB NOT NULL DEFAULT '{}'::jsonb",
+        ),
+    ),
+    Migration(
+        version=5,
+        name="application_status_history",
+        statements=(
+            "CREATE TABLE IF NOT EXISTS application_status_events ("
+            "id SERIAL PRIMARY KEY, "
+            "application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE, "
+            "user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, "
+            "status VARCHAR(64) NOT NULL, "
+            "created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP"
+            ")",
+            "CREATE INDEX IF NOT EXISTS ix_application_status_events_application_id "
+            "ON application_status_events(application_id)",
+            "CREATE INDEX IF NOT EXISTS ix_application_status_events_user_id "
+            "ON application_status_events(user_id)",
         ),
     ),
 )

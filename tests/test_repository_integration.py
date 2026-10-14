@@ -147,12 +147,17 @@ async def _repository_review_flow(monkeypatch):
         assert package.status == "prepared"
         assert package.message == "Exact reviewed draft text"
         assert [item.id for item in await repo.list_applications(user.id)] == [package.id]
+        assert [item.status for item in await repo.application_status_history(user.id, package.id)] == ["prepared"]
         assert await repo.set_application_status(user.id + 1, package.id, "submitted") is False
+        assert await repo.application_status_history(user.id + 1, package.id) is None
         assert await repo.set_application_status(user.id, package.id, "invalid") is False
         assert await repo.set_application_status(user.id, package.id, "reviewed") is True
         assert (await repo.list_applications(user.id))[0].status == "reviewed"
+        assert await repo.set_application_status(user.id, package.id, "reviewed") is True
+        assert [item.status for item in await repo.application_status_history(user.id, package.id)] == ["prepared", "reviewed"]
         assert await repo.set_application_status(user.id, package.id, "submitted") is True
         assert (await repo.list_applications(user.id))[0].message == "Exact reviewed draft text"
+        assert [item.status for item in await repo.application_status_history(user.id, package.id)] == ["prepared", "reviewed", "submitted"]
         assert await repo.list_applications(user.id + 1) == []
 
         concurrent = await asyncio.gather(*[

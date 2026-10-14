@@ -196,6 +196,16 @@ class Application(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
+class ApplicationStatusEvent(Base):
+    __tablename__ = "application_status_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("applications.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+
+
 class SeenMessage(Base):
     __tablename__ = "seen_messages"
     __table_args__ = (UniqueConstraint("user_id", "source", "message_id", name="uq_user_source_message"),)

@@ -1,5 +1,16 @@
 # Tasks
 
+## 2026-10-15 — append-only application status history
+
+- [x] Add schema v5 application status events as an additive migration/table.
+- [x] Append initial `prepared` status and each actual manual change; skip
+  duplicate events for unchanged status.
+- [x] Add owner-scoped `/application <id> history` and integration coverage for
+  chronology, invalid/wrong-owner changes and hidden wrong-owner history.
+- [x] Run focused 40 tests and full isolated PostgreSQL suite (892 passed).
+- [ ] Next: exact resume-content snapshot/export and per-application audit of
+  what was actually submitted; do not infer submission from generated drafts.
+
 ## 2026-10-15 — persisted draft versions and manual application status
 
 - [x] Persist each prepared cover-letter text with user, job, selected resume,

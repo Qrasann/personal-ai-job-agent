@@ -615,5 +615,27 @@ def render_applications(applications: list) -> str:
         if snippet:
             lines.append(html.escape(snippet))
         lines.append("")
-    lines.append("Статус меняется вручную: /application <id> reviewed|submitted|interview|offer|rejected|withdrawn")
+    lines.append("Статус: /application <id> reviewed|submitted|interview|offer|rejected|withdrawn · История: /application <id> history")
+    return "\n".join(lines)
+
+
+def render_application_history(events: list) -> str:
+    labels = {
+        "prepared": "черновик создан",
+        "reviewed": "отмечен как проверенный",
+        "submitted": "отмечен отправленным вручную",
+        "interview": "отмечено интервью",
+        "offer": "отмечен оффер",
+        "rejected": "отмечен отказ",
+        "withdrawn": "отмечен снятым",
+        "sent": "отправлен",
+    }
+    if not events:
+        return "История статусов пуста."
+    lines = ["🕓 <b>История статусов</b>", ""]
+    for event in events:
+        timestamp = getattr(event, "created_at", None)
+        timestamp_text = timestamp.strftime("%Y-%m-%d %H:%M UTC") if timestamp else "время неизвестно"
+        label = labels.get(event.status, event.status)
+        lines.append(f"{html.escape(timestamp_text)} — {html.escape(label)}")
     return "\n".join(lines)
