@@ -1,5 +1,16 @@
 # Handoff
 
+## 2026-10-15 — isolated parenthesized skill alternatives
+
+At start: HEAD `321f601`, feature branch 91 commits ahead; VERSION 3.5.7.
+Candidate Fit now groups only explicit parenthesized alternatives such as
+`Linux and (Docker or Kubernetes)`, preserving Linux as an independent
+requirement. Slash alternatives and skills repeated outside the parentheses
+remain ungrouped. Focused fit tests: 67 passed; full isolated PostgreSQL:
+928 passed. Next:
+checkpoint/backup, then continue source quality and package fidelity. Owner
+proposal files remain untracked.
+
 ## Latest verified checkpoint — 2026-10-15
 
 HEAD `bda5b6b` on `feature/v3.5.7-international-market-coverage`, 90 commits

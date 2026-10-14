@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import pytest
+
 from app.domain.job_text import clean_html_text
 from app.matching.fact_comparison import (
     compare_facts,
@@ -318,6 +320,30 @@ def test_oxford_comma_skill_alternatives_are_one_choice():
 
 def test_comma_separated_required_skills_are_not_alternatives():
     comparison = compare_facts("Requirements: Linux, Kubernetes.", [])
+
+    assert comparison.alternative_groups == ()
+
+
+def test_parenthesized_alternative_can_coexist_with_an_independent_requirement():
+    from app.matching.technical_score import score_technical_v2
+
+    text = "Requirements: Linux and (Docker or Kubernetes)."
+    comparison = compare_facts(text, [fact(1, "Commercial Linux and Docker administration", "commercial")])
+
+    assert comparison.alternative_groups == (("Docker", "Kubernetes"),)
+    assert score_technical_v2(
+        text, [fact(1, "Commercial Linux and Docker administration", "commercial")]
+    ) == 100
+
+
+@pytest.mark.parametrize("text", [
+    "Requirements: Linux and (Docker/Kubernetes).",
+    "Requirements: Linux and (Docker or Kubernetes or Docker).",
+    "Requirements: Linux and (Docker or Kubernetes); Docker also required.",
+    "Responsibilities: Linux and (Docker or Kubernetes).",
+])
+def test_parenthesized_alternatives_remain_conservative(text):
+    comparison = compare_facts(text, [])
 
     assert comparison.alternative_groups == ()
 

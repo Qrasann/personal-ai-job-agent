@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — isolated parenthesized skill alternatives
+
+Candidate Fit recognizes an explicit parenthesized choice beside another
+requirement, such as `Linux and (Docker or Kubernetes)`: Linux remains
+independent and Docker/Kubernetes form one alternative. Repeated skills outside
+the group, ambiguous forms, and slash syntax remain ungrouped. Focused tests:
+67 passed; isolated PostgreSQL: 928 passed.
+
 ## 2026-10-15 — keep extra alternative CV claims reviewable
 
 An OR requirement can be satisfied by one confirmed option, while an additional

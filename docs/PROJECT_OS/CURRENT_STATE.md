@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — isolated parenthesized skill alternatives
+
+Explicit parenthesized `or/или` choices can now coexist with an independent
+skill in the same requirement clause. Slash alternatives, repeated skills
+outside the parentheses, and responsibility-only mentions remain ungrouped.
+Focused tests: 67; full isolated PostgreSQL: 928.
+
 ## 2026-10-15 — keep extra alternative CV claims reviewable
 
 Alternative-group comparison now shows unsupported extra CV options even when

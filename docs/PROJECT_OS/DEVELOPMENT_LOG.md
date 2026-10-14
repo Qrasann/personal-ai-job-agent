@@ -1,3 +1,11 @@
+## 2026-10-15 — isolated parenthesized skill alternatives
+
+Extended alternative parsing to a narrowly scoped parenthesized group when
+each option maps to exactly one known skill and appears only once. Independent
+skills in the same clause stay separate; repeated skills outside the group and
+ambiguous punctuation remain ungrouped. Focused Candidate Fit tests: 67;
+isolated PostgreSQL: 928 passed.
+
 ## 2026-10-15 — keep extra alternative CV claims reviewable
 
 Added explicit handling for a confirmed OR group with additional unsupported

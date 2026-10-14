@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-15 — isolated parenthesized skill alternatives
+
+- [x] Recognize explicit parenthesized alternatives next to an independent
+  requirement without grouping that independent skill.
+- [x] Keep slash, repeated, and responsibilities-section examples ungrouped.
+- [x] Verify focused fit/scoring/resume tests (67) and isolated PostgreSQL (928).
+- [ ] Extend nested parentheses or multiple compound clauses only with
+  separate grammar and scoring regressions.
+
 ## 2026-10-15 — keep extra alternative CV claims reviewable
 
 - [x] Preserve a satisfied alternative group while flagging extra CV options

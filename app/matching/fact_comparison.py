@@ -400,32 +400,46 @@ def extract_skill_alternatives(
         for skill in line_skills
     }
     groups: list[tuple[str, ...]] = []
+    skill_specs = {spec.name: spec for spec in SKILLS}
+
+    def explicit_options(expression: str, candidates: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = re.sub(r",\s*(?=(?:or|или)\b)", " ", expression, flags=re.IGNORECASE)
+        if not re.search(r"\b(?:or|или)\b", normalized, flags=re.IGNORECASE):
+            return ()
+        options = [option.strip() for option in re.split(r"\b(?:or|или)\b|,\s*", normalized, flags=re.IGNORECASE)]
+        if any(re.match(r"^(?:and|и)\b", option, flags=re.IGNORECASE) for option in options):
+            return ()
+        if len(options) != len(candidates):
+            return ()
+        option_skills = [
+            [skill for skill in candidates if _matches_skill(option, skill_specs[skill])]
+            for option in options
+        ]
+        return tuple(option[0] for option in option_skills) if all(len(option) == 1 for option in option_skills) else ()
+
     for line, line_skills in zip(section_lines, mentions):
         if len(line_skills) < 2 or any(counts[skill] != 1 for skill in line_skills):
             continue
         # Only word connectors count. A slash also occurs inside names such
         # as CI/CD and can mean a combined skill rather than a choice.
-        normalized_line = re.sub(
-            r",\s*(?=(?:or|или)\b)", " ", line, flags=re.IGNORECASE
-        )
-        if not re.search(r"\b(?:or|или)\b", normalized_line, flags=re.IGNORECASE):
-            continue
-        options = re.split(
-            r"\b(?:or|или)\b|,\s*", normalized_line, flags=re.IGNORECASE
-        )
-        options = [option.strip() for option in options]
-        if any(re.match(r"^(?:and|и)\b", option, flags=re.IGNORECASE) for option in options):
-            continue
-        if len(options) != len(line_skills):
-            continue
-        skill_specs = {spec.name: spec for spec in SKILLS}
-        option_skills = [
-            [skill for skill in line_skills if _matches_skill(option, skill_specs[skill])]
-            for option in options
-        ]
-        if all(len(option) == 1 for option in option_skills):
-            groups.append(tuple(option[0] for option in option_skills))
-    return tuple(groups)
+        whole_line_group = explicit_options(line, line_skills)
+        if whole_line_group:
+            groups.append(whole_line_group)
+        # Parentheses let an explicit choice coexist with a separate skill in
+        # the same clause, e.g. "Linux and (Docker or Kubernetes)".
+        for match in re.finditer(r"\(([^()]*)\)", line):
+            expression = match.group(1)
+            candidates = tuple(
+                skill for skill in line_skills
+                if _matches_skill(expression, skill_specs[skill])
+            )
+            outside = line[:match.start()] + line[match.end():]
+            repeated_outside = any(_matches_skill(outside, skill_specs[skill]) for skill in candidates)
+            if len(candidates) >= 2 and not repeated_outside and all(counts[skill] == 1 for skill in candidates):
+                parenthesized_group = explicit_options(expression, candidates)
+                if parenthesized_group:
+                    groups.append(parenthesized_group)
+    return tuple(dict.fromkeys(groups))
 
 
 def extract_technical_requirements(text: str) -> list[str]:
