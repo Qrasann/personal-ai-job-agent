@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — keep extra alternative CV claims reviewable
+
+- [x] Preserve a satisfied alternative group while flagging extra CV options
+  that have no Candidate Fact support.
+- [x] Verify both `/resumediff` and `/prepare` presentation.
+- [x] Focused comparison tests: 63; isolated PostgreSQL: 923 passed.
+
 ## 2026-10-15 — recruiter sensitive-context fallback
 
 - [x] Require human review for sensitive markers in the supplied conversation

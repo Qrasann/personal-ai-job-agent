@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — keep extra alternative CV claims reviewable
+
+Alternative-group comparison now shows unsupported extra CV options even when
+another option correctly satisfies the group in both sources. Focused tests:
+63 passed; isolated PostgreSQL suite: 923 passed.
+
 ## 2026-10-15 — recruiter sensitive-context fallback
 
 Sensitive salary, identity-document, availability and similar topics in any

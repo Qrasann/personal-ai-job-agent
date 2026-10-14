@@ -572,7 +572,10 @@ def render_application_package(payload: dict) -> str:
         lines.append("• Альтернатива: " + html.escape(_alternative_group_summary(item)))
     if not any(diff.get(key) for key in (
         "supported_missing_from_resume", "resume_only_unconfirmed", "missing_from_both",
-    )) and not any(item.get("status") != "confirmed" for item in alternative_groups):
+    )) and not any(
+        item.get("status") != "confirmed" or item.get("unconfirmed_resume_options")
+        for item in alternative_groups
+    ):
         lines.append("• По распознанным навыкам дополнительных расхождений нет.")
     source_url = str(payload.get("url") or "").strip()
     parsed_url = urlsplit(source_url)
@@ -603,7 +606,9 @@ def _alternative_group_summary(item: dict) -> str:
     facts = " / ".join(str(skill) for skill in item.get("candidate_fact_options", ()))
     status = item.get("status")
     if status == "confirmed":
-        return f"{options}: один и тот же вариант есть в CV и Candidate Facts ({confirmed})."
+        extras = " / ".join(str(skill) for skill in item.get("unconfirmed_resume_options", ()))
+        suffix = f" В CV также есть неподтверждённое: {extras}. Проверь точность." if extras else ""
+        return f"{options}: один и тот же вариант есть в CV и Candidate Facts ({confirmed}).{suffix}"
     if status == "resume_unconfirmed":
         suffix = f" Candidate Facts подтверждают: {facts}." if facts else " Candidate Facts не подтверждают варианты."
         return f"{options}: вариант в CV ({resume}), но совпадающего подтверждения нет.{suffix} Проверь точность."

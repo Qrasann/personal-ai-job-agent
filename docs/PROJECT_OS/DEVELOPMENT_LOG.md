@@ -1,3 +1,9 @@
+## 2026-10-15 — keep extra alternative CV claims reviewable
+
+Added explicit handling for a confirmed OR group with additional unsupported
+CV options. The group remains satisfied, while the extra claim stays visible
+in resume diff and package preview. Focused tests: 63; isolated PostgreSQL: 923.
+
 ## 2026-10-15 — recruiter sensitive-context fallback
 
 Expanded sensitive-topic detection to include the full recruiter context and

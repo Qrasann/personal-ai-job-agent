@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-10-15 — keep extra alternative CV claims reviewable
+
+At start: HEAD `210a4a3`, feature branch 88 commits ahead; VERSION 3.5.7.
+Confirmed alternatives still surface extra CV skills lacking Candidate Fact
+support, including in `/prepare`, so satisfying one required option cannot hide
+another unsupported claim. Focused tests: 63 passed; full isolated PostgreSQL:
+923 passed. Next: checkpoint/backup; continue Candidate Fit and source quality.
+Owner proposals remain untracked.
+
 ## 2026-10-15 — recruiter sensitive-context fallback
 
 At start: HEAD `10b30af`, feature branch 87 commits ahead; VERSION 3.5.7.

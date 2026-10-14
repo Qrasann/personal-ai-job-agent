@@ -42,6 +42,7 @@ def compare_resume_coverage(comparison: FactComparison, resume_text: str) -> dic
         )
         resume_options = tuple(skill for skill in group if skill in resume_skills)
         confirmed_options = tuple(skill for skill in group if skill in fact_options and skill in resume_options)
+        unconfirmed_resume_options = tuple(skill for skill in resume_options if skill not in fact_options)
         if confirmed_options:
             status = "confirmed"
         elif resume_options:
@@ -56,6 +57,7 @@ def compare_resume_coverage(comparison: FactComparison, resume_text: str) -> dic
             "candidate_fact_options": fact_options,
             "resume_options": resume_options,
             "confirmed_options": confirmed_options,
+            "unconfirmed_resume_options": unconfirmed_resume_options,
         })
     return {
         **{key: tuple(values) for key, values in result.items()},

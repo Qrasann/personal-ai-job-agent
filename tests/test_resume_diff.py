@@ -51,6 +51,7 @@ def test_resume_diff_treats_alternative_skills_as_one_confirmed_requirement():
         "candidate_fact_options": ("Linux",),
         "resume_options": ("Linux",),
         "confirmed_options": ("Linux",),
+        "unconfirmed_resume_options": (),
     },)
 
 
@@ -70,6 +71,23 @@ def test_resume_diff_does_not_cross_confirm_different_alternative_options():
     assert group["resume_options"] == ("Docker",)
     assert "совпадающего подтверждения нет" in text
     assert "Не найдено ни в резюме" not in text
+
+
+def test_resume_diff_flags_extra_cv_option_without_matching_candidate_fact():
+    comparison = compare_facts("Requirements: Linux or Docker.", [_fact(1, "Linux administration")])
+
+    result = compare_resume_coverage(comparison, "Linux and Docker")
+    text = render_resume_diff({
+        "job": SimpleNamespace(id=25, title="DevOps"),
+        "resume": SimpleNamespace(id=7, name="CV"),
+        "resume_diff": result,
+    })
+
+    group = result["alternative_groups"][0]
+    assert group["status"] == "confirmed"
+    assert group["confirmed_options"] == ("Linux",)
+    assert group["unconfirmed_resume_options"] == ("Docker",)
+    assert "неподтверждённое: Docker" in text
 
 
 def test_resume_diff_view_escapes_labels_and_disclaims_generated_claims():
@@ -175,6 +193,32 @@ def test_application_package_preview_explains_alternative_group_consistency():
 
     assert "один и тот же вариант есть в CV и Candidate Facts (Linux)" in text
     assert "Не найдено в CV и Candidate Facts: Linux, Docker" not in text
+
+
+def test_application_package_preview_keeps_unconfirmed_extra_alternative_visible():
+    text = render_application_package({
+        "job": SimpleNamespace(id=25, title="DevOps", company="Example"),
+        "resume": SimpleNamespace(id=5, name="CV"),
+        "resume_diff": {
+            "supported_in_resume": (),
+            "supported_missing_from_resume": (),
+            "resume_only_unconfirmed": (),
+            "missing_from_both": (),
+            "alternative_groups": ({
+                "options": ("Linux", "Docker"),
+                "status": "confirmed",
+                "candidate_fact_options": ("Linux",),
+                "resume_options": ("Linux", "Docker"),
+                "confirmed_options": ("Linux",),
+                "unconfirmed_resume_options": ("Docker",),
+            },),
+        },
+        "url": "https://example.com/job",
+        "cover_letter": "Draft",
+    })
+
+    assert "неподтверждённое: Docker" in text
+    assert "дополнительных расхождений нет" not in text
 
 
 def test_application_package_preview_is_bounded_for_telegram():
