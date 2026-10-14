@@ -312,6 +312,7 @@ def test_job_details_separates_source_data_from_agent_score():
     ("Salary: 80 000–100 000 USD per year", "annual"),
     ("Salary: 20 000 GEL", None),
     ("20.50 hourly", None),
+    ("100 000 ₽; review contract in one month", None),
 ])
 def test_salary_period_is_extracted_only_from_explicit_nearby_evidence(evidence, expected):
     assert salary_period_from_text(evidence) == expected

@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — tighten salary-period text boundary
+
+- [x] Require a recognized period unit immediately after the salary amount.
+- [x] Add regression for unrelated nearby date text.
+- [x] Verify focused salary tests (83) and isolated PostgreSQL (914).
+
 ## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
 
 - [x] Add deterministic exercises for Terraform, Ansible, AWS, Grafana and Helm.

@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-15 — tighten salary-period text boundary
+
+Salary-period display now requires the explicit unit immediately after the
+currency amount, avoiding unrelated nearby dates such as a review in one
+month. Focused salary tests: 83 passed; full isolated PostgreSQL: 914 passed.
+
 ## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
 
 Added curated vacancy-specific exercises for Terraform, Ansible, AWS, Grafana

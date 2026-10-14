@@ -78,14 +78,17 @@ def salary_period_from_text(value: str) -> str | None:
     match = _SALARY_FRAGMENT_RE.search(text)
     if not match:
         return None
-    context = text[max(0, match.start() - 32):match.end() + 48].casefold()
+    # Only accept the unit immediately after the currency-bearing amount.
+    # A broad surrounding window can mistake unrelated text (for example,
+    # "review in one month") for the salary period.
+    suffix = text[match.end():match.end() + 36].casefold()
     patterns = (
-        ("annual", r"\b(?:per\s+year|per\s+annum|yearly|annually|annual|year)\b|(?:в|за)\s+год|ежегодно|годовой"),
-        ("monthly", r"\b(?:per\s+month|monthly|month)\b|(?:в|за)\s+месяц|ежемесячно"),
-        ("weekly", r"\b(?:per\s+week|weekly|week)\b|(?:в|за)\s+неделю|еженедельно"),
-        ("hourly", r"\b(?:per\s+hour|hourly|hour)\b|(?:в|за)\s+час|почасово"),
+        ("annual", r"^[\s,:()/-]*(?:per\s+year|per\s+annum|yearly|annually|annual|year)\b|^[\s,:()/-]*(?:в|за)\s+год|^[\s,:()/-]*(?:ежегодно|годовой)"),
+        ("monthly", r"^[\s,:()/-]*(?:per\s+month|monthly|month)\b|^[\s,:()/-]*(?:в|за)\s+месяц|^[\s,:()/-]*ежемесячно"),
+        ("weekly", r"^[\s,:()/-]*(?:per\s+week|weekly|week)\b|^[\s,:()/-]*(?:в|за)\s+неделю|^[\s,:()/-]*еженедельно"),
+        ("hourly", r"^[\s,:()/-]*(?:per\s+hour|hourly|hour)\b|^[\s,:()/-]*(?:в|за)\s+час|^[\s,:()/-]*почасово"),
     )
-    return next((period for period, pattern in patterns if re.search(pattern, context)), None)
+    return next((period for period, pattern in patterns if re.search(pattern, suffix)), None)
 
 
 def format_salary(

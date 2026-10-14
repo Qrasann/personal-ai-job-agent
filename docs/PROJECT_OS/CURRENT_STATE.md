@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — tighten salary-period text boundary
+
+The display-only salary-period parser accepts an explicit unit immediately
+after the currency-bearing value. It ignores unrelated time references in
+surrounding description text. Focused tests: 83; isolated PostgreSQL: 914.
+
 ## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
 
 Interview practice now has curated templates for Terraform, Ansible, AWS,

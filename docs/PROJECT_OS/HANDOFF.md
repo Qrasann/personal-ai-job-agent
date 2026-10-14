@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-10-15 — tighten salary-period text boundary
+
+At start: HEAD `bd28786`, feature branch 85 commits ahead; VERSION 3.5.7.
+Narrowed display-only salary period detection to an explicit suffix directly
+after the currency-bearing amount; unrelated nearby time references no longer
+count. Focused salary tests: 83 passed; full isolated PostgreSQL: 914 passed.
+Next: checkpoint/backup; continue Candidate Fit/source-quality work.
+Owner proposal files remain untracked.
+
 ## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
 
 At start: HEAD `487aa0b`, feature branch 84 commits ahead; VERSION 3.5.7.

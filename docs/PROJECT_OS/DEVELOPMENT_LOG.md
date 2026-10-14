@@ -1,3 +1,9 @@
+## 2026-10-15 — tighten salary-period text boundary
+
+Follow-up regression narrowed explicit salary-period recognition to the
+adjacent suffix, rejecting unrelated time phrases. Focused salary tests: 83;
+full isolated PostgreSQL: 914 passed.
+
 ## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
 
 Expanded curated exercises to match already recognized requirements for
