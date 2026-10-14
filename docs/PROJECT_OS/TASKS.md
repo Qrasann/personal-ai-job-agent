@@ -14,7 +14,7 @@
 
 - [x] Verify feature branch HEAD `37633fc`, tracked upstream and dirty status.
 - [x] Keep both proposal files untracked and refresh the exact handoff.
-- [ ] Create local and GitHub backup-branch copies of the verified snapshot;
+- [x] Create local and GitHub backup-branch copies of the verified snapshot;
   never point the backup at release/main or create a release/tag.
 
 ## 2026-10-15 — conservative multi-option skill alternatives

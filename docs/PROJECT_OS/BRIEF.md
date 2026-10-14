@@ -8,11 +8,11 @@ compare. No matching/deduplication behavior changed. Source diagnostics tests:
 30 passed; full isolated PostgreSQL suite: 878 passed. The personal runtime
 database and volumes were not used.
 
-The verified code checkpoint is `9001040` and its source-yield documentation
-checkpoint is `37633fc` on the v3.5.7 feature branch. A dedicated backup branch
-is being created for recoverable local/GitHub snapshots; the two owner proposal
-files remain excluded. VERSION remains 3.5.7, and v3.5.6 remains the latest
-formal release.
+The verified code checkpoint is `9001040` and the current documentation
+checkpoint is `80932ab` on the v3.5.7 feature branch. Local and GitHub backup
+branch `backup/v3.5.7-20261015` preserves the same snapshot; the two owner
+proposal files remain excluded. VERSION remains 3.5.7, and v3.5.6 remains the
+latest formal release.
 
 # 2026-10-15 — Candidate/Vacancy multi-option fit
 

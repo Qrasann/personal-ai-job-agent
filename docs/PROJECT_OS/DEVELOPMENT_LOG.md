@@ -2073,5 +2073,6 @@ tax-basis remains a review item.
 Verified the current feature branch at `37633fc` (65 commits ahead of its
 tracked origin), with VERSION 3.5.7 and two untracked owner proposal files.
 Refreshed HANDOFF with the exact verification/checkpoint history and preserved
-the proposals outside Git. A dedicated branch snapshot is being made for local
-and GitHub recovery; no release, tag, merge or deployment is involved.
+the proposals outside Git. Dedicated local and GitHub backup branch
+`backup/v3.5.7-20261015` points to the verified snapshot; no release, tag, merge
+or deployment is involved.
