@@ -1674,6 +1674,9 @@ async def manual(callback: CallbackQuery) -> None:
     user = await repo.get_user_by_chat(callback.message.chat.id)
     if not user:
         return
+    if str(callback.message.chat.id) != settings.telegram_admin_chat_id.strip():
+        await callback.answer("HH-переписка доступна только владельцу.", show_alert=True)
+        return
     _, chat_id, msg_id = callback.data.split(":", 2)
     await repo.set_state(user.id, "manual_hh_reply", f"{chat_id}:{msg_id}")
     await callback.answer()
@@ -1735,6 +1738,10 @@ async def generic_text(message: Message, bot: Bot) -> None:
         return
     pending = await repo.get_state(user.id, "manual_hh_reply", "")
     if pending:
+        if str(message.chat.id) != settings.telegram_admin_chat_id.strip():
+            await repo.set_state(user.id, "manual_hh_reply", "")
+            await message.answer("HH-переписка доступна только владельцу. Ожидающий ответ отменён.")
+            return
         chat_id, _ = pending.split(":", 1)
         if message.text and str(message.chat.id) == settings.telegram_admin_chat_id.strip():
             await hh_client.send_chat_message(chat_id, message.text)

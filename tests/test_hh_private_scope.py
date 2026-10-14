@@ -5,6 +5,60 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app import services
+from app.telegram import handlers
+
+
+def test_non_owner_cannot_start_manual_hh_reply(monkeypatch):
+    monkeypatch.setattr(handlers.settings, "telegram_admin_chat_id", "111")
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=2)))
+    store = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "set_state", store)
+    message = SimpleNamespace(chat=SimpleNamespace(id=222), answer=AsyncMock())
+    callback = SimpleNamespace(data="manual:hh-chat:message", message=message, answer=AsyncMock())
+
+    asyncio.run(handlers.manual(callback))
+
+    store.assert_not_awaited()
+    assert callback.answer.await_args.kwargs["show_alert"] is True
+
+
+def test_non_owner_stale_manual_hh_reply_is_cleared_without_sending(monkeypatch):
+    monkeypatch.setattr(handlers.settings, "telegram_admin_chat_id", "111")
+    monkeypatch.setattr(handlers, "_user", AsyncMock(return_value=SimpleNamespace(id=2)))
+    monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(return_value="hh-chat:message"))
+    store = AsyncMock()
+    send = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "set_state", store)
+    monkeypatch.setattr(handlers, "hh_client", SimpleNamespace(send_chat_message=send))
+    message = SimpleNamespace(chat=SimpleNamespace(id=222), text="private text", answer=AsyncMock())
+
+    asyncio.run(handlers.generic_text(message, object()))
+
+    send.assert_not_awaited()
+    store.assert_awaited_once_with(2, "manual_hh_reply", "")
+
+
+def test_owner_manual_hh_reply_preserves_explicit_flow(monkeypatch):
+    monkeypatch.setattr(handlers.settings, "telegram_admin_chat_id", "111")
+    user = SimpleNamespace(id=1)
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=user))
+    monkeypatch.setattr(handlers, "_user", AsyncMock(return_value=user))
+    monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(return_value="hh-chat:message"))
+    store, send = AsyncMock(), AsyncMock()
+    monkeypatch.setattr(handlers.repo, "set_state", store)
+    monkeypatch.setattr(handlers, "hh_client", SimpleNamespace(send_chat_message=send))
+    message = SimpleNamespace(chat=SimpleNamespace(id=111), text="approved text", answer=AsyncMock())
+    callback = SimpleNamespace(data="manual:hh-chat:message", message=message, answer=AsyncMock())
+
+    async def scenario():
+        await handlers.manual(callback)
+        await handlers.generic_text(message, object())
+
+    asyncio.run(scenario())
+
+    send.assert_awaited_once_with("hh-chat", "approved text")
+    assert store.await_args_list[0].args == (1, "manual_hh_reply", "hh-chat:message")
+    assert store.await_args_list[-1].args == (1, "manual_hh_reply", "")
 
 
 def test_global_hh_applicant_credential_is_not_available_to_other_users(monkeypatch):
