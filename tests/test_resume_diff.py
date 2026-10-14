@@ -159,11 +159,15 @@ def test_application_export_includes_exact_saved_resume_and_cover_text():
             message="Exact cover letter v1",
         ),
         SimpleNamespace(title="DevOps", company="Example"),
+        [SimpleNamespace(status="prepared", created_at=None), SimpleNamespace(status="submitted", created_at=None)],
     )
 
     assert "Exact CV v1" in text
     assert "Exact cover letter v1" in text
     assert "hh-resume-5" in text
+    assert "Recorded status history" in text
+    assert "time unknown — prepared" in text
+    assert "time unknown — submitted" in text
 
 
 def test_old_application_export_says_when_resume_snapshot_is_unavailable():

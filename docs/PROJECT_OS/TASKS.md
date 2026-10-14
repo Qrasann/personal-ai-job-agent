@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — application export audit trail
+
+- [x] Include recorded, owner-scoped status events in explicit package export.
+- [x] Cover ordered status text and handler lookup with regressions.
+- [x] Focused suites: 35 passed; full isolated PostgreSQL: 905 passed.
+- [ ] Continue exact package fidelity where provider-side attachment evidence
+  can be recorded without implying a manual status is externally verified.
+
 ## 2026-10-15 — recruiter draft failure fallback
 
 - [x] Convert recruiter LLM failure into a safe manual-response notification;

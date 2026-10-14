@@ -412,6 +412,8 @@ def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkey
     lookup = AsyncMock(return_value=application)
     monkeypatch.setattr(handlers.repo, "get_application", lookup)
     monkeypatch.setattr(handlers.repo, "get_job", AsyncMock(return_value=_job(25, "DevOps")))
+    history = AsyncMock(return_value=[SimpleNamespace(status="prepared", created_at=None)])
+    monkeypatch.setattr(handlers.repo, "application_status_history", history)
     message = SimpleNamespace(
         text="/application 42 export",
         answer=AsyncMock(),
@@ -421,6 +423,7 @@ def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkey
     asyncio.run(handlers.application_status_command(message))
 
     lookup.assert_awaited_once_with(7, 42)
+    history.assert_awaited_once_with(7, 42)
     document = message.answer_document.await_args.args[0]
     assert document.filename == "application-42.txt"
     assert "Пакет #42" in message.answer_document.await_args.kwargs["caption"]

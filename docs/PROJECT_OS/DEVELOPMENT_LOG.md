@@ -1,3 +1,10 @@
+## 2026-10-15 — application export audit trail
+
+Added recorded status events to explicit application-package text exports.
+Export uses the owner-scoped status-history repository lookup; missing history
+is labeled rather than inferred. Focused tests: 35 passed; isolated PostgreSQL
+suite: 905 passed. No schema change.
+
 ## 2026-10-15 — per-source Stretch yield
 
 Per-source scan output now displays the existing processed, Good, Stretch,

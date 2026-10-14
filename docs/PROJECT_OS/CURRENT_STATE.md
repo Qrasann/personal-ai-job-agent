@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — application export audit trail
+
+Application text exports now include the recorded status timeline. The handler
+retrieves events through the same user-scoped repository function as the
+history command; tests verify export content and ownership lookup. Focused
+suite: 35 passed; full isolated PostgreSQL: 905 passed.
+
 ## 2026-10-15 — recruiter draft failure fallback
 
 If recruiter-reply generation fails, the HH inbox scan stores an empty draft

@@ -641,7 +641,7 @@ def render_application_history(events: list) -> str:
     return "\n".join(lines)
 
 
-def render_application_export(application, job) -> str:
+def render_application_export(application, job, events: list | None = None) -> str:
     created = getattr(application, "created_at", None)
     created_text = created.strftime("%Y-%m-%d %H:%M UTC") if created else "unknown"
     lines = [
@@ -663,6 +663,16 @@ def render_application_export(application, job) -> str:
     else:
         lines.append("No resume was selected for this record.")
     lines.extend(["", "=== Saved cover-letter text ===", application.message or "No cover-letter text."])
+    lines.extend(["", "=== Recorded status history ==="])
+    if events is None:
+        lines.append("Status history unavailable.")
+    elif not events:
+        lines.append("No status events recorded.")
+    else:
+        for event in events:
+            timestamp = getattr(event, "created_at", None)
+            timestamp_text = timestamp.strftime("%Y-%m-%d %H:%M UTC") if timestamp else "time unknown"
+            lines.append(f"{timestamp_text} — {event.status}")
     return "\n".join(lines)
 
 

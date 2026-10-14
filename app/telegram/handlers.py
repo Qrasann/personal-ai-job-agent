@@ -1497,7 +1497,8 @@ async def application_status_command(message: Message) -> None:
         if not job:
             await message.answer("❌ Вакансия для этого пакета больше не найдена.")
             return
-        content = render_application_export(application, job).encode("utf-8")
+        events = await repo.application_status_history(user.id, application.id)
+        content = render_application_export(application, job, events).encode("utf-8")
         if len(content) > MAX_DOCUMENT_BYTES:
             await message.answer("❌ Пакет превышает безопасный размер экспорта 8 MiB.")
             return

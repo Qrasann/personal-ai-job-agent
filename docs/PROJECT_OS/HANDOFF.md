@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — application export audit trail
+
+At start: HEAD `2d0d7a0`, feature branch 81 commits ahead; VERSION 3.5.7.
+Explicit application-package export now includes the owner-scoped status
+timeline with the saved resume and cover-letter text. Focused tests: 35 passed;
+full isolated PostgreSQL suite: 905 passed. Compileall, diff-check and secret
+scan passed. No schema change. Next: checkpoint/backup, then continue package
+fidelity and independent source-quality or Candidate Fit tasks. The two owner
+proposal files remain untracked and excluded.
+
 ## 2026-10-15 — recruiter draft failure fallback
 
 At start: HEAD `baa3bf8`, feature branch 80 commits ahead; VERSION 3.5.7.

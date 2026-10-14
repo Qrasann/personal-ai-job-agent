@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-15 — include status timeline in application export
+
+`/application <id> export` now includes the saved owner-scoped status history
+alongside the exact CV-text snapshot and cover-letter text. Focused tests: 35
+passed; full isolated PostgreSQL suite: 905 passed. No migration was needed.
+
 ## 2026-10-15 — recruiter draft failure fallback
 
 HH recruiter-message handling now catches model-generation and authorized
