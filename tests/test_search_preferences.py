@@ -21,9 +21,9 @@ def test_strict_salary_floor_only_excludes_proven_comparable_below_minimum():
         "strict_salary_floor": True,
         "minimum_salary": {"USD": 3000},
     }
-    assert not vacancy_allowed(make_job(salary_from=2000, salary_to=2500, salary_currency="USD"), settings)
+    assert not vacancy_allowed(make_job(salary_from=2000, salary_to=2500, salary_currency="USD", salary_period="monthly"), settings)
     assert vacancy_allowed(make_job(salary_from=2000, salary_to=3200, salary_currency="USD"), settings)
-    assert not vacancy_allowed(make_job(salary_to=2500, salary_currency="USD"), settings)
+    assert not vacancy_allowed(make_job(salary_to=2500, salary_currency="USD", salary_period="monthly"), settings)
     assert vacancy_allowed(make_job(salary_from=2000, salary_currency="USD"), settings)
     assert vacancy_allowed(make_job(salary_from=2500, salary_to=29000, salary_currency="EUR"), settings)
     assert vacancy_allowed(make_job(salary_from=2000, salary_to=2500, salary_currency="USD", salary_period="hourly"), settings)
@@ -45,6 +45,21 @@ def test_strict_salary_floor_supports_annual_salary_and_rur_alias():
 def test_strict_salary_floor_is_opt_in():
     job = make_job(salary_from=1000, salary_to=2000, salary_currency="USD")
     assert vacancy_allowed(job, {"minimum_salary": {"USD": 3000}})
+
+
+def test_strict_salary_floor_keeps_values_with_unknown_period_reviewable():
+    settings = {"strict_salary_floor": True, "minimum_salary": {"USD": 3000}}
+
+    assert vacancy_allowed(
+        make_job(
+            source="remoteok",
+            salary_from=20,
+            salary_to=30,
+            salary_currency="USD",
+            salary_period=None,
+        ),
+        settings,
+    )
 
 
 def test_current_and_selected_city_scope():

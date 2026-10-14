@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — strict salary filter requires a known period
+
+At start: HEAD `977a0ec`, feature branch 77 commits ahead; VERSION 3.5.7.
+Fixed the strict floor's implicit-monthly fallback. When a structured amount has
+no supported salary period, the optional filter leaves it visible for review;
+explicit monthly/yearly amounts preserve prior behavior. Focused salary/scoring
+suite: 66 passed; full isolated PostgreSQL: 902 passed. Next: checkpoint/backup,
+then continue evidence-based salary normalization without guessing provider
+units or tax basis.
+
 ## 2026-10-15 — Interview Agent DNS/TLS/security coverage
 
 At start: HEAD `8686795`, feature branch 76 commits ahead; VERSION 3.5.7.

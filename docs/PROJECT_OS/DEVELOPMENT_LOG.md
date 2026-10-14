@@ -2148,3 +2148,10 @@ Operations aliases and added corresponding practice scenarios. Prompts focus on
 resolver/TTL diagnosis, certificate chain/SNI verification and proportionate
 incident response preserving logs. No broad generic security inference.
 Focused fit/scoring/interview tests: 52 passed; full isolated PostgreSQL: 901.
+
+## 2026-10-15 — strict salary filter requires a known period
+
+Removed the strict-floor fallback that treated any missing `salary_period` as
+monthly. Values from adapters without explicit period evidence remain eligible;
+known monthly and annual comparisons are unchanged. Focused salary/scoring
+tests: 66 passed; full isolated PostgreSQL suite: 902 passed.

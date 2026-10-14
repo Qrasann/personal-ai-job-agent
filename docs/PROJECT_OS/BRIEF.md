@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — strict salary filter requires a known period
+
+Fixed a confirmed comparison risk: strict monthly floors no longer assume a
+missing `salary_period` means monthly. Structured values without a period remain
+eligible for review; explicit monthly/yearly values retain existing behavior.
+Focused salary/scoring tests: 66 passed; full isolated PostgreSQL suite: 902.
+
 ## 2026-10-15 — Interview Agent DNS/TLS/security coverage
 
 Expanded Candidate Fact vocabulary and practice templates with DNS, TLS and

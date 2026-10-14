@@ -190,7 +190,7 @@ def strict_salary_floor_allows(job: NormalizedJob, settings: dict | None) -> boo
         upper = int(upper) if upper is not None else None
     except (TypeError, ValueError):
         return True
-    period = str(getattr(job, "salary_period", None) or "monthly").strip().casefold()
+    period = str(getattr(job, "salary_period", None) or "").strip().casefold()
     if period in {"annual", "yearly", "per-year"}:
         divisor = 12
     elif period in {"monthly", "per-month"}:

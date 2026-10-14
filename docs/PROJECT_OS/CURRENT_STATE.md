@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — strict salary filter requires a known period
+
+An OFF-by-default strict floor now leaves structured salary values with no
+recognized period eligible for review instead of assuming monthly. Explicit
+monthly/yearly periods still compare against the monthly profile minimum.
+Focused salary/scoring suite: 66 passed; full isolated PostgreSQL: 902 passed.
+
 ## 2026-10-15 — Interview Agent DNS/TLS/security coverage
 
 Candidate Fact comparison now recognizes DNS, TLS and explicit Security

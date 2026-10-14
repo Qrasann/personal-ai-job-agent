@@ -1,5 +1,15 @@
 # Tasks
 
+## 2026-10-15 — strict salary floor requires a known period
+
+- [x] Stop assuming missing `salary_period` is monthly in the opt-in strict
+  salary filter; keep unknown-period salaries reviewable.
+- [x] Preserve explicit monthly/yearly behavior and add a regression for an
+  adapter record without period evidence.
+- [x] Focused salary/scoring suite: 66 passed; isolated PostgreSQL: 902 passed.
+- [ ] Review provider-specific tax-basis/period evidence before adding more
+  automatic conversions.
+
 ## 2026-10-15 — Interview Agent DNS/TLS/security coverage
 
 - [x] Recognize DNS, TLS and explicit Security Operations requirements in
