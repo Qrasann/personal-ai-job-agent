@@ -1,5 +1,43 @@
 # Handoff
 
+## 2026-10-15 — verified local development checkpoint
+
+HEAD is `fca12ba` on `feature/v3.5.7-international-market-coverage`, 62 commits
+ahead; VERSION remains 3.5.7. Local checkpoints: `a4ac2b1` candidate profile and
+resume import controls; `bdd4b28` source outcomes; `4c6eb28` secret scan;
+`fca12ba` vacancy fit and mobility evidence. The full isolated
+`job-agent-tests` PostgreSQL suite passed: 878 tests. Focused fit/scoring/detail
+tests: 102 passed. Compileall, staged/worktree diff checks and
+staged/worktree/history secret scan passed. No changes to the personal runtime
+database/volumes, VERSION, deployment, or external services.
+
+Candidate fit recognizes explicit multi-option `or/или` chains and Oxford-comma
+lists, while comma-only, repeated or ambiguous options remain ungrouped.
+Per-source dashboard details show existing Stretch yield beside Good. The two
+historical proposal files remain untracked and excluded. Next: review the
+remaining roadmap for source freshness/yield and complete Candidate Fact DB
+acceptance where a meaningful uncovered case exists; continue with independent
+safe work. The `AGENTS.md` workflow update and PROJECT_OS/roadmap reconciliation
+are in the current documentation checkpoint.
+
+## 2026-10-15 — Candidate/Vacancy multi-option fit
+
+Historical HEAD before this increment: `c188e7f` on
+`feature/v3.5.7-international-market-coverage`, 58 commits ahead. Explicit
+two-or-more-option `or/или` chains now count as one scoring choice when every
+operand maps to one known skill and no skill repeats. Independent requirements
+remain separate; score weights/thresholds are unchanged. Focused tests: 45
+passed. Full local unit suite: 871 passed, 4 skipped; PostgreSQL was unavailable
+because Docker API access returned `permission denied`. Compileall,
+staged/worktree diff checks and staged/worktree/history secret scan passed. A
+candidate/profile checkpoint is already staged alongside
+unstaged edits, but local commit creation is blocked by read-only
+`.git/index.lock`; do not reset or restage the index. Two historical proposal
+files remain untracked and must stay excluded. Next: review the full worktree;
+continue evidence-based Relocation-first
+utility and source intelligence while PostgreSQL/Git metadata remain blocked.
+No runtime, production DB/volume, VERSION, or external action was changed.
+
 ## 2026-10-15 — opt-in strict salary floor
 
 Added OFF-by-default strict_salary_floor and /salary strict on|off for all

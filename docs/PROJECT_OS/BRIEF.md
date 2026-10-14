@@ -1,5 +1,26 @@
 # Codex Brief
 
+## 2026-10-15 — per-source Relocation-first yield
+
+Per-source scan details now display the already tracked Stretch count beside
+Good, making below-threshold relevant leads attributable to each source. This
+does not change selection or scores. Source diagnostics tests: 30 passed; full
+local suite after the latest fit parser fix: 874 passed, 4 PostgreSQL tests
+skipped. The isolated `job-agent-tests` PostgreSQL suite then passed with 878
+tests; the personal runtime database and volumes were not used.
+
+# 2026-10-15 — Candidate/Vacancy multi-option fit
+
+Candidate/Vacancy fit now treats explicit `or/или` chains and Oxford-comma
+lists as one scoring choice in a required or preferred section. Comma-only
+lists stay independent requirements; ambiguous and repeated options do not
+group. Weights and thresholds are unchanged. Focused matching, scoring and
+Recommendation v2 tests: 52 passed; the current full local suite: 874 passed,
+4 PostgreSQL tests skipped before the final isolated run. The full isolated
+PostgreSQL suite passed with 878 tests. Compileall, staged/worktree diff checks
+and staged/worktree/history secret scan passed. Local commits now record the
+feature and reliability increments; docs checkpoint is next.
+
 ## 2026-10-15 — salary reference wording and final verification
 
 Clarified `/salary` and `/settings`: the monthly minimum is a scoring reference,

@@ -1,3 +1,26 @@
+## 2026-10-15 — per-source Stretch yield
+
+Source scan details showed Good output but omitted the already-counted Stretch
+outcomes for each source. Added the count to each source dashboard line with a
+regression; overall/profile totals, selection and scores are unchanged. Source
+diagnostics: 30 passed. Full isolated PostgreSQL suite after current changes:
+878 passed. No personal runtime database or volume was used.
+
+## 2026-10-15 — conservative multi-option Candidate/Vacancy fit
+
+Expanded the existing explicit alternatives parser from exactly two skills to
+an explicit chain of two or more `or/или` options. Each option must contain one
+known skill; repeated skills remain ambiguous and ungrouped. Added regressions
+showing a three-option choice counts as one scoring item while an independent
+required skill remains separate. Existing score weights and thresholds are
+unchanged. Added conservative Oxford-comma support; comma-only skill lists
+remain separate. A full suite initially exposed that boundary regression, which
+was fixed and retained as a regression test. Focused matching/scoring/
+Recommendation v2 tests: 52 passed; full local suite: 874 passed, 4 PostgreSQL
+tests skipped. Isolated PostgreSQL rerun is blocked by Docker API permission
+denial. Compileall, staged/worktree diff checks and staged/worktree/history
+secret scan passed.
+
 ## 2026-10-14 — flattened requirement sections
 
 Reproduced one-line `Requirements: Linux. Nice to have: Docker.` being treated

@@ -1,5 +1,24 @@
 # Tasks
 
+## 2026-10-15 — per-source Stretch yield
+
+- [x] Include the existing `stretch` outcome count in each source's scan
+  dashboard line beside Good; profile and overall totals remain unchanged.
+- [x] Add a source-summary regression and verify the full local suite.
+- [ ] Continue toward broader source quality/freshness metrics only when the
+  underlying observations are well-defined.
+
+## 2026-10-15 — conservative multi-option skill alternatives
+
+- [x] Recognize explicit two-or-more-option `or/или` chains, including
+  Oxford-comma lists, in one required or preferred clause as a single choice.
+- [x] Keep repeated skills and clauses with non-matching/ambiguous options
+  ungrouped; comma-only skill lists and independent requirements remain separate.
+- [x] Preserve existing score weights; regressions cover multi-option choices
+  and comma-only requirements.
+- [ ] Extend beyond isolated connector chains only with conservative grammar
+  and scoring regressions.
+
 ## 2026-10-15 — salary setting clarity
 
 - [x] State that salary minimum is a scoring reference, not a hard vacancy
