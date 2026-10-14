@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — preserve alternatives in resume comparison
+
+`/resumediff` and `/prepare` now treat recognized `or/или` alternatives as one
+group. A group is confirmed only when the same option appears in the selected
+CV and Candidate Facts; different options are shown as an evidence mismatch
+instead of a false gap/confirmation. Focused tests: 61 passed; isolated
+PostgreSQL suite: 917 passed.
+
 ## 2026-10-15 — tighten salary-period text boundary
 
 Salary-period display now requires the explicit unit immediately after the

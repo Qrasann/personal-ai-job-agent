@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — preserve alternatives in resume comparison
+
+Resume/Application Package checks now retain explicit OR groups: they only
+count as confirmed if the same option is present in the selected CV and
+Candidate Facts. Mismatched CV/fact options remain reviewable. Focused suite:
+61 passed; isolated PostgreSQL: 917 passed.
+
 ## 2026-10-15 — tighten salary-period text boundary
 
 The display-only salary-period parser accepts an explicit unit immediately

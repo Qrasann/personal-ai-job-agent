@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-15 — preserve alternatives in resume comparison
+
+- [x] Carry required/preferred OR groups into resume coverage comparison.
+- [x] Require one same option in both Candidate Facts and selected CV for
+  confirmation; disclose different or missing evidence without false claims.
+- [x] Verify focused comparison/command tests (61) and isolated PostgreSQL (917).
+- [ ] Extend to nested/compound alternatives only with conservative extraction
+  and fit/application regressions.
+
 ## 2026-10-15 — tighten salary-period text boundary
 
 - [x] Require a recognized period unit immediately after the salary amount.

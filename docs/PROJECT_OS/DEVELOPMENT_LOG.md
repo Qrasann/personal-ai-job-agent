@@ -1,3 +1,10 @@
+## 2026-10-15 — preserve alternatives in resume comparison
+
+Fixed a mismatch where scoring recognized an explicit alternative requirement
+but CV review treated every option independently. Resume diff and prepare now
+show a group as confirmed only when one same option is supported in both
+sources. Focused tests: 61; isolated PostgreSQL: 917 passed.
+
 ## 2026-10-15 — tighten salary-period text boundary
 
 Follow-up regression narrowed explicit salary-period recognition to the

@@ -522,7 +522,8 @@ def render_resume_diff(payload: dict) -> str:
         f"Резюме: <b>{html.escape(_clip(str(resume.name or ''), 100))}</b> (ID {resume.id})",
         "",
     ]
-    has_detected_requirements = any(diff.get(key) for key, _ in headings)
+    alternative_groups = diff.get("alternative_groups") or ()
+    has_detected_requirements = any(diff.get(key) for key, _ in headings) or bool(alternative_groups)
     if not has_detected_requirements:
         lines.append("Поддерживаемый словарь не распознал в вакансии технические требования.")
     else:
@@ -530,6 +531,10 @@ def render_resume_diff(payload: dict) -> str:
             skills = diff.get(key) or ()
             if skills:
                 lines.extend([heading, "• " + ", ".join(html.escape(skill) for skill in skills), ""])
+        if alternative_groups:
+            lines.extend(["🔀 Альтернативные требования (достаточно одного варианта)"])
+            lines.extend("• " + html.escape(_alternative_group_summary(item)) for item in alternative_groups)
+            lines.append("")
     lines.append(
         "Это автоматическая сверка известных технических терминов: она не редактирует резюме "
         "и не подтверждает опыт. Проверяй каждое изменение перед отправкой."
@@ -562,9 +567,12 @@ def render_application_package(payload: dict) -> str:
     if diff.get("missing_from_both"):
         skills = ", ".join(html.escape(skill) for skill in diff["missing_from_both"])
         lines.append(f"• Не найдено в CV и Candidate Facts: {skills}. Не добавляй без подтверждённого опыта.")
+    alternative_groups = diff.get("alternative_groups") or ()
+    for item in alternative_groups:
+        lines.append("• Альтернатива: " + html.escape(_alternative_group_summary(item)))
     if not any(diff.get(key) for key in (
         "supported_missing_from_resume", "resume_only_unconfirmed", "missing_from_both",
-    )):
+    )) and not any(item.get("status") != "confirmed" for item in alternative_groups):
         lines.append("• По распознанным навыкам дополнительных расхождений нет.")
     source_url = str(payload.get("url") or "").strip()
     parsed_url = urlsplit(source_url)
@@ -586,6 +594,22 @@ def render_application_package(payload: dict) -> str:
         "Черновик не отправлен. Проверь факты, язык и содержание и отправь сам.",
     ])
     return "\n".join(lines)
+
+
+def _alternative_group_summary(item: dict) -> str:
+    options = " или ".join(str(skill) for skill in item.get("options", ()))
+    confirmed = " / ".join(str(skill) for skill in item.get("confirmed_options", ()))
+    resume = " / ".join(str(skill) for skill in item.get("resume_options", ()))
+    facts = " / ".join(str(skill) for skill in item.get("candidate_fact_options", ()))
+    status = item.get("status")
+    if status == "confirmed":
+        return f"{options}: один и тот же вариант есть в CV и Candidate Facts ({confirmed})."
+    if status == "resume_unconfirmed":
+        suffix = f" Candidate Facts подтверждают: {facts}." if facts else " Candidate Facts не подтверждают варианты."
+        return f"{options}: вариант в CV ({resume}), но совпадающего подтверждения нет.{suffix} Проверь точность."
+    if status == "facts_not_in_resume":
+        return f"{options}: Candidate Facts подтверждают {facts}, но этот вариант не найден в CV."
+    return f"{options}: ни один вариант не найден в CV или Candidate Facts."
 
 
 def render_applications(applications: list) -> str:

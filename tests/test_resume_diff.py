@@ -34,7 +34,42 @@ def test_resume_diff_separates_confirmed_resume_and_unconfirmed_evidence():
         "supported_missing_from_resume": ("Terraform",),
         "resume_only_unconfirmed": ("Kubernetes",),
         "missing_from_both": ("Docker",),
+        "alternative_groups": (),
     }
+
+
+def test_resume_diff_treats_alternative_skills_as_one_confirmed_requirement():
+    comparison = compare_facts("Requirements: Linux or Docker.", [_fact(1, "Linux administration")])
+
+    result = compare_resume_coverage(comparison, "Linux operations")
+
+    assert result["supported_in_resume"] == ()
+    assert result["missing_from_both"] == ()
+    assert result["alternative_groups"] == ({
+        "options": ("Linux", "Docker"),
+        "status": "confirmed",
+        "candidate_fact_options": ("Linux",),
+        "resume_options": ("Linux",),
+        "confirmed_options": ("Linux",),
+    },)
+
+
+def test_resume_diff_does_not_cross_confirm_different_alternative_options():
+    comparison = compare_facts("Requirements: Linux or Docker.", [_fact(1, "Linux administration")])
+
+    result = compare_resume_coverage(comparison, "Docker operations")
+    text = render_resume_diff({
+        "job": SimpleNamespace(id=25, title="DevOps"),
+        "resume": SimpleNamespace(id=7, name="CV"),
+        "resume_diff": result,
+    })
+
+    group = result["alternative_groups"][0]
+    assert group["status"] == "resume_unconfirmed"
+    assert group["candidate_fact_options"] == ("Linux",)
+    assert group["resume_options"] == ("Docker",)
+    assert "совпадающего подтверждения нет" in text
+    assert "Не найдено ни в резюме" not in text
 
 
 def test_resume_diff_view_escapes_labels_and_disclaims_generated_claims():
@@ -115,6 +150,31 @@ def test_application_package_preview_escapes_and_rejects_unsafe_links():
     assert "<a href=\"javascript:" not in text
     assert "не отправлен" in text
     assert "Draft &lt;script&gt;" in text
+
+
+def test_application_package_preview_explains_alternative_group_consistency():
+    text = render_application_package({
+        "job": SimpleNamespace(id=25, title="DevOps", company="Example"),
+        "resume": SimpleNamespace(id=5, name="CV"),
+        "resume_diff": {
+            "supported_in_resume": (),
+            "supported_missing_from_resume": (),
+            "resume_only_unconfirmed": (),
+            "missing_from_both": (),
+            "alternative_groups": ({
+                "options": ("Linux", "Docker"),
+                "status": "confirmed",
+                "candidate_fact_options": ("Linux",),
+                "resume_options": ("Linux",),
+                "confirmed_options": ("Linux",),
+            },),
+        },
+        "url": "https://example.com/job",
+        "cover_letter": "Draft",
+    })
+
+    assert "один и тот же вариант есть в CV и Candidate Facts (Linux)" in text
+    assert "Не найдено в CV и Candidate Facts: Linux, Docker" not in text
 
 
 def test_application_package_preview_is_bounded_for_telegram():

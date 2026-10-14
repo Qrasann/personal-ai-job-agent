@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — preserve alternatives in resume comparison
+
+At start: HEAD `811a809`, feature branch 86 commits ahead; VERSION 3.5.7.
+`/resumediff` and `/prepare` now keep explicit OR groups intact. An option is
+confirmed only when the same skill is in the selected CV and Candidate Facts;
+CV-only and fact-only option combinations are exposed as mismatched evidence.
+Focused tests: 61 passed; full isolated PostgreSQL: 917 passed. Next:
+checkpoint/backup, continue Candidate Fit and source-quality tasks. Owner
+proposal files remain untracked.
+
 ## 2026-10-15 — tighten salary-period text boundary
 
 At start: HEAD `bd28786`, feature branch 85 commits ahead; VERSION 3.5.7.
