@@ -95,7 +95,7 @@ def render_source_summary(source_id: str, info: dict) -> str:
         line += " · кэш"
     if info.get("partial_failures"):
         line += f" · сбои: {int(info['partial_failures'])}"
-    for key, title in (("processed", "обработано"), ("qualified", "Good"), ("stretch", "Stretch"), ("failed", "ошибок попыток"), ("skipped", "пропусков"), ("processing_errors", "ошибок обработки"), ("partial_attempts", "частичных попыток"), ("retry", "повторов"), ("fallback", "fallback")):
+    for key, title in (("processed", "обработано"), ("qualified", "Good"), ("stretch", "Stretch"), ("filtered", "отфильтровано"), ("duplicate", "дубликатов"), ("failed", "ошибок попыток"), ("skipped", "пропусков"), ("processing_errors", "ошибок обработки"), ("partial_attempts", "частичных попыток"), ("retry", "повторов"), ("fallback", "fallback")):
         if isinstance(info.get(key), int) and info[key]:
             line += f" · {title}: {info[key]}"
     items = info.get("diagnostics", []) or ([legacy_diagnostic(info["error"])] if info.get("error") else [])
