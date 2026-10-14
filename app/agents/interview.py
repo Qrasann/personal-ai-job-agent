@@ -34,6 +34,21 @@ _EXERCISES: dict[str, tuple[str, str, tuple[str, ...]]] = {
         "Build a diagnostic path from DNS resolution through routing and the application port.",
         ("Compare resolver answers and TTL", "Check routes and firewall path", "Test the target port and correlate timestamps"),
     ),
+    "DNS": (
+        "A service intermittently resolves a hostname to an unexpected address after a deployment.",
+        "Trace the answer from the client resolver to the authoritative record and explain how you would verify cache and TTL effects.",
+        ("Compare answers from the host and a trusted resolver", "Inspect record type, TTL and recent changes", "Avoid changing records until the affected cache and rollback path are known"),
+    ),
+    "TLS": (
+        "Clients report TLS handshake failures after a certificate renewal.",
+        "Check hostname, certificate chain, expiry, SNI and listener configuration before making changes.",
+        ("Inspect the presented chain and SAN", "Check SNI and configured certificate path", "Validate configuration before reload and verify a client handshake"),
+    ),
+    "Security Operations": (
+        "A server may have a compromised account, but the scope is not yet known.",
+        "Describe a proportionate containment and evidence-preservation plan, including who you would notify.",
+        ("Follow the incident response owner and access controls", "Preserve logs and record a timeline before cleanup", "Contain narrowly, rotate affected credentials and verify recovery"),
+    ),
     "PostgreSQL": (
         "A production query became slow while database CPU and connection counts increased.",
         "Explain how you would distinguish a bad plan, lock contention and connection pressure.",

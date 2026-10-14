@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — Interview Agent DNS/TLS/security coverage
+
+Expanded Candidate Fact vocabulary and practice templates with DNS, TLS and
+Security Operations. Scenarios include cache/TTL tracing, certificate chain/SNI
+verification, and proportionate incident containment with evidence retention.
+Security mentions remain scoped to explicit operations terms. Focused fit,
+scoring and interview tests: 52 passed; full isolated PostgreSQL: 901 passed.
+
 ## 2026-10-15 — Interview Agent troubleshooting practice
 
 Added `/interview <vacancy_id> [career|relocation]` with up to five curated

@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — Interview Agent DNS/TLS/security coverage
+
+At start: HEAD `8686795`, feature branch 76 commits ahead; VERSION 3.5.7.
+Added DNS, TLS and explicitly scoped Security Operations to fit vocabulary and
+the practice catalog. Scenarios cover resolver/TTL, certificate chain/SNI and
+proportionate incident response with evidence retention. No generic security
+inference. Focused fit/scoring/interview tests: 52 passed; full isolated
+PostgreSQL suite: 901 passed. Next: checkpoint/backup, then improve interactive
+practice carefully; live Telegram acceptance remains open.
+
 ## 2026-10-15 — Interview Agent troubleshooting practice
 
 At start: HEAD `c3be38c`, feature branch 75 commits ahead; VERSION 3.5.7.

@@ -57,3 +57,18 @@ def test_interview_view_labels_templates_and_escapes_vacancy_title():
     assert "Candidate Fact: commercial" in text
     assert "не предсказание вопросов" in text
     assert "<Lead>" not in text
+
+
+def test_interview_agent_covers_dns_tls_and_safe_security_response():
+    comparison = compare_facts(
+        "Requirements: DNS, TLS and cybersecurity.",
+        [],
+    )
+
+    plan = build_interview_plan(comparison)
+    by_skill = {item["skill"]: item for item in plan}
+
+    assert {"DNS", "TLS", "Security Operations"} <= set(by_skill)
+    assert "TTL" in by_skill["DNS"]["criteria"][1]
+    assert "SNI" in by_skill["TLS"]["task"]
+    assert any("Preserve logs" in item for item in by_skill["Security Operations"]["criteria"])

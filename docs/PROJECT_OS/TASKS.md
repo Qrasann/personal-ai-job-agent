@@ -1,5 +1,16 @@
 # Tasks
 
+## 2026-10-15 — Interview Agent DNS/TLS/security coverage
+
+- [x] Recognize DNS, TLS and explicit Security Operations requirements in
+  Candidate/Vacancy fit without broadening to generic security wording.
+- [x] Add exercises for DNS cache/TTL, certificate chain/SNI, and safe incident
+  containment with evidence preservation.
+- [x] Verify focused fit/scoring/interview tests (52) and full isolated suite
+  (901 passed).
+- [ ] Continue curated failure scenarios for Nginx, Docker, Kubernetes and CI;
+  add interactive feedback only when evidence/retention are defined.
+
 ## 2026-10-15 — Interview Agent troubleshooting practice
 
 - [x] Add `/interview <vacancy_id> [career|relocation]` based on recognized

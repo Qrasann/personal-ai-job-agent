@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — Interview Agent DNS/TLS/security coverage
+
+Candidate Fact comparison now recognizes DNS, TLS and explicit Security
+Operations terms; the interview planner has corresponding exercises for
+resolver/cache diagnosis, certificate chain/SNI checks and safe incident
+response/evidence preservation. Focused tests: 52 passed; isolated PostgreSQL
+full suite: 901 passed. Broader security vocabulary is intentionally not inferred.
+
 ## 2026-10-15 — Interview Agent troubleshooting practice
 
 `/interview <vacancy_id> [career|relocation]` returns up to five deterministic

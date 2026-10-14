@@ -2140,3 +2140,11 @@ checklists. Mandatory requirements precede preferred ones, and each item shows
 the stored Candidate Fact type. No model/API request, persisted answer,
 prediction or candidate score is involved. Focused tests: 29 passed; full
 isolated PostgreSQL suite: 900 passed.
+
+## 2026-10-15 — Interview Agent DNS/TLS/security coverage
+
+Extended the technical vocabulary with DNS, TLS and explicit Security
+Operations aliases and added corresponding practice scenarios. Prompts focus on
+resolver/TTL diagnosis, certificate chain/SNI verification and proportionate
+incident response preserving logs. No broad generic security inference.
+Focused fit/scoring/interview tests: 52 passed; full isolated PostgreSQL: 901.

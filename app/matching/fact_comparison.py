@@ -63,6 +63,12 @@ SKILLS: tuple[SkillSpec, ...] = (
     SkillSpec("GCP", ("gcp", "google cloud", "google cloud platform")),
     SkillSpec("Active Directory", ("active directory", "active directory domain", "ad ds")),
     SkillSpec("VPN", ("vpn", "wireguard", "openvpn")),
+    SkillSpec("DNS", ("dns", "domain name system", "domain name resolution")),
+    SkillSpec("TLS", ("tls", "ssl", "tls ssl", "tls/ssl")),
+    SkillSpec(
+        "Security Operations",
+        ("security operations", "cybersecurity", "information security", "информационная безопасность"),
+    ),
     SkillSpec(
         "Networking",
         (
