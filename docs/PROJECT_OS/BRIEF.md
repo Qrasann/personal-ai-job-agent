@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — display explicit salary period evidence
+
+Salary text with a nearby explicit period now displays that period beside the
+amount. Unknown units remain unnormalized; this is presentation only and does
+not change strict filtering. Focused tests: 82 passed; full isolated PostgreSQL
+suite: 910 passed.
+
 ## 2026-10-15 — include status timeline in application export
 
 `/application <id> export` now includes the saved owner-scoped status history

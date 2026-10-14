@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — display explicit salary period evidence
+
+- [x] Show explicit nearby periods in formatted vacancy salary text.
+- [x] Preserve structured-period precedence and leave unknown periods alone.
+- [x] Verify focused salary/display tests (82) and isolated PostgreSQL (910).
+- [ ] Review source-specific gross/net and currency-conversion evidence before
+  allowing any cross-basis strict comparison.
+
 ## 2026-10-15 — application export audit trail
 
 - [x] Include recorded, owner-scoped status events in explicit package export.

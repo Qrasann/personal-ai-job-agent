@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — display explicit salary period evidence
+
+Vacancy salary display now shows explicit nearby periods such as monthly,
+weekly, hourly or annual. Structured period fields take precedence. Missing or
+ambiguous periods stay unknown, and filtering/scoring are unchanged. Focused
+suite: 82 passed; isolated PostgreSQL suite: 910 passed.
+
 ## 2026-10-15 — application export audit trail
 
 Application text exports now include the recorded status timeline. The handler

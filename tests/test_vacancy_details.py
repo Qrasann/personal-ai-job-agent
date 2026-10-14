@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
+from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake, salary_period_from_text
 from app.sources.adapters.hh import HHSource
 from app.telegram.vacancy_view import render_job_details, render_jobs_list
 
@@ -128,7 +128,7 @@ def test_text_helpers_clean_html_repair_mojibake_and_format_salary():
     assert clean_html_text("<p>Linux</p><ul><li>Docker</li></ul>") == "Linux\nDocker"
     assert clean_html_text("&lt;p&gt;&lt;strong&gt;Linux&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Docker &amp; Git&lt;/li&gt;&lt;/ul&gt;") == "Linux\nDocker & Git"
     assert format_salary(None, 300000, "RUR") == "до 300 000 ₽"
-    assert format_salary(None, None, None, fallback_text="175 000 – 300 000 ₽ за месяц") == "175 000–300 000 ₽"
+    assert format_salary(None, None, None, fallback_text="175 000 – 300 000 ₽ за месяц") == "175 000–300 000 ₽ в месяц"
     assert extract_experience("DevOps. Опыт 1-3 года. Linux") == "1-3 года"
     assert (
         extract_experience(
@@ -142,7 +142,7 @@ def test_text_helpers_clean_html_repair_mojibake_and_format_salary():
 def test_format_salary_ignores_legacy_bare_numbers_and_prefers_currency_text():
     assert format_salary(14, None, None, fallback_text="DevOps 14 отзывов") == "не указана"
     assert format_salary(585, 736, None, fallback_text="585, Холдинг 4.2 • 736 отзывов") == "не указана"
-    assert format_salary(14, None, None, fallback_text="от 160 000 ₽ за месяц") == "от 160 000 ₽"
+    assert format_salary(14, None, None, fallback_text="от 160 000 ₽ за месяц") == "от 160 000 ₽ в месяц"
 
 
 def test_non_salary_description_numbers_are_not_used_without_explicit_fallback():
@@ -297,7 +297,7 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "&lt;p&gt;" not in text
     assert "CI/CD" in text
     assert "Оценка Job Agent" in text
-    assert "💰 175 000–300 000 ₽" in text
+    assert "💰 175 000–300 000 ₽ в месяц" in text
     assert "Technical: 54/100" in text
     assert "Recommendation v2" in text
     assert "Рост: н/д" in text
@@ -305,6 +305,23 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "23.08.2026 10:38" in text
     assert "Открыть оригинал вакансии" in text
     assert "Профиль: Relocation-first &lt;manual&gt;" in text
+
+
+@pytest.mark.parametrize(("evidence", "expected"), [
+    ("175 000–300 000 ₽ за месяц", "monthly"),
+    ("Salary: 80 000–100 000 USD per year", "annual"),
+    ("Salary: 20 000 GEL", None),
+    ("20.50 hourly", None),
+])
+def test_salary_period_is_extracted_only_from_explicit_nearby_evidence(evidence, expected):
+    assert salary_period_from_text(evidence) == expected
+
+
+def test_display_uses_explicit_text_period_but_does_not_override_structured_period():
+    assert format_salary(175000, 300000, "RUR", fallback_text="175 000–300 000 ₽ за месяц") == "175 000–300 000 ₽ в месяц"
+    assert format_salary(
+        175000, 300000, "RUR", period="annual", fallback_text="175 000–300 000 ₽ за месяц"
+    ) == "175 000–300 000 ₽ в год"
 
 
 def test_job_details_separate_mobility_evidence_from_personal_eligibility():

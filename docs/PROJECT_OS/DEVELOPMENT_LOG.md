@@ -1,3 +1,10 @@
+## 2026-10-15 — display explicit salary period evidence
+
+Added conservative display-only extraction of explicit salary periods near a
+currency-bearing value. Structured period fields win; unknown evidence is not
+normalized or used by the strict filter. Focused tests: 82 passed; isolated
+PostgreSQL suite: 910 passed.
+
 ## 2026-10-15 — application export audit trail
 
 Added recorded status events to explicit application-package text exports.

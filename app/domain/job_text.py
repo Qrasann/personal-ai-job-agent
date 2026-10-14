@@ -72,6 +72,22 @@ def parse_salary_text(value: str) -> tuple[int | None, int | None, str | None]:
     return nums[0], None, currency
 
 
+def salary_period_from_text(value: str) -> str | None:
+    """Read an explicitly stated period near a currency-bearing salary value."""
+    text = repair_mojibake(value or "").replace("\u202f", " ").replace("\xa0", " ")
+    match = _SALARY_FRAGMENT_RE.search(text)
+    if not match:
+        return None
+    context = text[max(0, match.start() - 32):match.end() + 48].casefold()
+    patterns = (
+        ("annual", r"\b(?:per\s+year|per\s+annum|yearly|annually|annual|year)\b|(?:в|за)\s+год|ежегодно|годовой"),
+        ("monthly", r"\b(?:per\s+month|monthly|month)\b|(?:в|за)\s+месяц|ежемесячно"),
+        ("weekly", r"\b(?:per\s+week|weekly|week)\b|(?:в|за)\s+неделю|еженедельно"),
+        ("hourly", r"\b(?:per\s+hour|hourly|hour)\b|(?:в|за)\s+час|почасово"),
+    )
+    return next((period for period, pattern in patterns if re.search(pattern, context)), None)
+
+
 def format_salary(
     salary_from: int | None,
     salary_to: int | None,
@@ -119,6 +135,7 @@ def format_salary(
     else:
         return "не указана"
 
+    display_period = period or salary_period_from_text(fallback_text)
     period_suffix = {
         "hourly": "в час",
         "weekly": "в неделю",
@@ -130,7 +147,7 @@ def format_salary(
         "per-month": "в месяц",
         "per-week": "в неделю",
         "per-hour": "в час",
-    }.get((period or "").strip().casefold())
+    }.get((display_period or "").strip().casefold())
     return f"{formatted} {period_suffix}" if period_suffix else formatted
 
 

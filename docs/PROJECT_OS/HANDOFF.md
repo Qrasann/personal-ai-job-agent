@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — display explicit salary period evidence
+
+At start: HEAD `37b9673`, feature branch 82 commits ahead; VERSION 3.5.7.
+Salary formatting now displays only an explicitly stated period near a
+currency-bearing value; structured period fields take precedence. It does not
+change salary score or the strict filter. Focused tests: 82 passed; full
+isolated PostgreSQL suite: 910 passed. Next: checkpoint/backup, then continue
+source-quality and Candidate Fit work. Keep raw salary tax-basis and conversion
+unknown. The owner proposal files remain untracked.
+
 ## 2026-10-15 — application export audit trail
 
 At start: HEAD `2d0d7a0`, feature branch 81 commits ahead; VERSION 3.5.7.
