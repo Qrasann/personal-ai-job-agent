@@ -1,5 +1,15 @@
 # Current State
 
+## 2026-10-15 — persisted draft versions and manual application status
+
+Selecting “Prepare response” stores the cover-letter text, resume ID, source
+URL, timestamp and `prepared` status as a new row in the existing applications
+table. `/applications` lists the user's records and `/application <id> <status>`
+sets only an allowlisted manual status after user-scoped ownership lookup. A
+prepared or submitted status does not trigger any external action. PostgreSQL
+integration covers snapshot persistence, owner isolation and status changes;
+full isolated suite: 890 passed. No schema migration was required.
+
 ## 2026-10-15 — reviewed application package preview
 
 Existing `/prepare` now includes the selected saved resume, grounded draft

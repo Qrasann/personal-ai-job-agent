@@ -586,3 +586,34 @@ def render_application_package(payload: dict) -> str:
         "Черновик не отправлен. Проверь факты, язык и содержание и отправь сам.",
     ])
     return "\n".join(lines)
+
+
+def render_applications(applications: list) -> str:
+    status_labels = {
+        "prepared": "черновик",
+        "reviewed": "проверен",
+        "submitted": "отправлен вручную",
+        "interview": "интервью",
+        "offer": "оффер",
+        "rejected": "отказ",
+        "withdrawn": "снят",
+        "sent": "отправлен",
+    }
+    lines = ["📂 <b>Отклики</b>", ""]
+    if not applications:
+        return "📂 <b>Откликов пока нет.</b> Подготовь пакет из вакансии через кнопку «Подготовить отклик»."
+    for item in applications:
+        created = getattr(item, "created_at", None)
+        created_text = created.strftime("%Y-%m-%d") if created else "дата неизвестна"
+        snippet = _clip(str(getattr(item, "message", "") or "").replace("\n", " "), 120)
+        lines.append(
+            f"<b>#{item.id}</b> · вакансия #{item.job_id} · "
+            f"{html.escape(status_labels.get(item.status, item.status))} · {html.escape(created_text)}"
+        )
+        if item.resume_id:
+            lines.append(f"Резюме ID {item.resume_id}")
+        if snippet:
+            lines.append(html.escape(snippet))
+        lines.append("")
+    lines.append("Статус меняется вручную: /application <id> reviewed|submitted|interview|offer|rejected|withdrawn")
+    return "\n".join(lines)

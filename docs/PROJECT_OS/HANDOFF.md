@@ -1,5 +1,18 @@
 # Handoff
 
+## 2026-10-15 — persisted draft versions and manual status
+
+At start: HEAD `83cb1ad`, feature branch 72 commits ahead; VERSION 3.5.7. The
+prepare button now stores each exact cover-letter draft with user/job/resume ID,
+source URL and `prepared` status in the existing Application table; match status
+becomes `prepared`. Added `/applications` and owner-scoped allowlisted manual
+status updates through `/application <id> <status>`. No schema migration, submit
+or outbound action. PostgreSQL integration tests cover stored text, status
+transitions and wrong-user isolation; full isolated suite: 890 passed. Next:
+checkpoint and sync backup, then support exact resume-content snapshots/export
+and richer manual application history. Proposal files remain untracked; live
+Telegram acceptance remains open.
+
 ## 2026-10-15 — reviewed application package preview
 
 At start: HEAD `6c915f1`, feature branch 71 commits ahead; VERSION remains

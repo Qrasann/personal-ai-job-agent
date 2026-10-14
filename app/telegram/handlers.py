@@ -30,7 +30,7 @@ from app.matching.language_fit import normalize_cefr
 from app.services import apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_application_package, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_package, render_applications, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
@@ -155,6 +155,8 @@ def _main_menu_text() -> str:
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
         "/resumediff 25 [resume_id] — сверить CV с вакансией\n"
+        "/applications — сохранённые пакеты и отклики\n"
+        "/application <id> <status> — вручную обновить статус\n"
         "/english [A1–C2|unknown] — уровень английского\n"
         "/facts — факты кандидата\n"
         "/import — импортировать резюме PDF/DOCX/TXT\n"
@@ -1422,6 +1424,40 @@ async def resume_diff_command(message: Message) -> None:
         )
 
 
+@router.message(Command("applications"))
+async def applications_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    applications = await repo.list_applications(user.id, limit=12)
+    await message.answer(render_applications(applications), parse_mode="HTML")
+
+
+@router.message(Command("application"))
+async def application_status_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if len(parts) != 3 or not parts[1].isdigit():
+        await message.answer(
+            "Использование: /application <id> reviewed|submitted|interview|offer|rejected|withdrawn"
+        )
+        return
+    status = parts[2].casefold()
+    if status not in repo.MANUAL_APPLICATION_STATUSES:
+        await message.answer(
+            "Допустимые статусы: reviewed, submitted, interview, offer, rejected, withdrawn"
+        )
+        return
+    updated = await repo.set_application_status(user.id, int(parts[1]), status)
+    await message.answer(
+        "✅ Статус обновлён вручную."
+        if updated
+        else "❌ Отклик не найден в твоём профиле."
+    )
+
+
 @router.message(Command("chats"))
 async def chats(message: Message, bot: Bot) -> None:
     user = await _require_user(message)
@@ -1728,8 +1764,22 @@ async def prepare_callback(callback: CallbackQuery) -> None:
     await callback.answer("Готовлю…")
     try:
         result = await prepare_match(match_id, user.id)
+        cover = str(result.get("cover_letter") or "")
+        application = await repo.save_application(
+            user_id=user.id,
+            job_id=result["job"].id,
+            source_id=str(result.get("source") or "manual")[:64],
+            source_application_id=None,
+            external_url=str(result.get("url") or "") or None,
+            resume_id=result["resume"].id if result.get("resume") else None,
+            message=cover,
+            status="prepared",
+        )
+        await repo.set_match_status(match_id, "prepared")
+        preview = render_application_package(result)
+        preview += f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
         await callback.message.answer(
-            render_application_package(result),
+            preview,
             parse_mode="HTML",
             disable_web_page_preview=True,
         )

@@ -1,5 +1,17 @@
 # Tasks
 
+## 2026-10-15 — persisted draft versions and manual application status
+
+- [x] Persist each prepared cover-letter text with user, job, selected resume,
+  source URL, timestamp and `prepared` status in the existing Application model.
+- [x] Add user-scoped `/applications` and allowlisted manual status updates via
+  `/application <id> <status>`; verify wrong-user and invalid-status rejection.
+- [x] Update the match to `prepared`; preserve preview-only behavior with no
+  submit, recruiter contact or schema migration.
+- [x] Run PostgreSQL integration checks for record and status persistence;
+  full isolated suite: 890 passed.
+- [ ] Add exact resume-content snapshot/export and richer application history.
+
 ## 2026-10-15 — reviewed application package preview
 
 - [x] Extend `/prepare` with Candidate Fact/CV skill consistency review beside
@@ -9,8 +21,8 @@
   size. Keep preview manual; do not submit or create application status.
 - [x] Verify focused tests (28) and isolated PostgreSQL suite (888); compileall,
   diff-check and secret scan passed.
-- [ ] Next: build a retained per-vacancy package revision and manually managed
-  application status; keep exact submission tracking separate from preview.
+- [x] Save the prepared cover-letter version and selected resume reference;
+  separately tracked exact resume export/submission evidence remains planned.
 
 ## 2026-10-15 — read-only vacancy-to-resume diff
 

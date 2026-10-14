@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — saved draft versions and manual application tracking
+
+The existing applications table now records each user-confirmed prepared
+preview's cover-letter text, resume ID, source URL and timestamp. `/applications`
+lists records; `/application <id> <status>` applies an allowlisted user-scoped
+manual status. It does not send, submit or contact anyone. PostgreSQL integration
+covers snapshots, status changes and ownership; full isolated suite: 890 passed.
+
 ## 2026-10-15 — reviewed application package preview
 
 Extended existing `/prepare` with a vacancy-to-CV/Candidate Facts checklist,

@@ -336,6 +336,10 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
     prepare = AsyncMock(return_value={"job": _job(25, "DevOps"), "resume_diff": {}})
     monkeypatch.setattr(handlers, "prepare_match", prepare)
+    save_application = AsyncMock(return_value=SimpleNamespace(id=3))
+    monkeypatch.setattr(handlers.repo, "save_application", save_application)
+    update_match = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "set_match_status", update_match)
     monkeypatch.setattr(handlers, "render_application_package", lambda payload: "REVIEW PREVIEW")
     answer = AsyncMock()
     callback = SimpleNamespace(
@@ -347,6 +351,23 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
     asyncio.run(handlers.prepare_callback(callback))
 
     prepare.assert_awaited_once_with(51, 7)
+    save_application.assert_awaited_once_with(
+        user_id=7, job_id=25, source_id="manual", source_application_id=None,
+        external_url=None, resume_id=None, message="", status="prepared",
+    )
+    update_match.assert_awaited_once_with(51, "prepared")
     answer.assert_awaited_once()
-    assert answer.await_args.args[0] == "REVIEW PREVIEW"
+    assert answer.await_args.args[0] == "REVIEW PREVIEW\n\n💾 Черновик письма сохранён как отклик #3. /applications"
     assert answer.await_args.kwargs["disable_web_page_preview"] is True
+
+
+def test_application_status_command_uses_explicit_manual_status(monkeypatch):
+    _mock_profiles(monkeypatch)
+    update = AsyncMock(return_value=True)
+    monkeypatch.setattr(handlers.repo, "set_application_status", update)
+    message = SimpleNamespace(text="/application 42 submitted", answer=AsyncMock())
+
+    asyncio.run(handlers.application_status_command(message))
+
+    update.assert_awaited_once_with(7, 42, "submitted")
+    assert "вручную" in message.answer.await_args.args[0]

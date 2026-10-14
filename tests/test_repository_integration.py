@@ -134,6 +134,27 @@ async def _repository_review_flow(monkeypatch):
             status="notified",
         )
 
+        package = await repo.save_application(
+            user_id=user.id,
+            job_id=job.id,
+            source_id="integration",
+            source_application_id=None,
+            external_url="https://example.invalid/job-1001",
+            resume_id=resume.id,
+            message="Exact reviewed draft text",
+            status="prepared",
+        )
+        assert package.status == "prepared"
+        assert package.message == "Exact reviewed draft text"
+        assert [item.id for item in await repo.list_applications(user.id)] == [package.id]
+        assert await repo.set_application_status(user.id + 1, package.id, "submitted") is False
+        assert await repo.set_application_status(user.id, package.id, "invalid") is False
+        assert await repo.set_application_status(user.id, package.id, "reviewed") is True
+        assert (await repo.list_applications(user.id))[0].status == "reviewed"
+        assert await repo.set_application_status(user.id, package.id, "submitted") is True
+        assert (await repo.list_applications(user.id))[0].message == "Exact reviewed draft text"
+        assert await repo.list_applications(user.id + 1) == []
+
         concurrent = await asyncio.gather(*[
             repo.save_match(
                 job_id=job.id,

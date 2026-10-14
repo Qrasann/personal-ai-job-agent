@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 from app.matching.fact_comparison import compare_facts
 from app.matching.resume_diff import compare_resume_coverage
-from app.telegram.vacancy_view import render_application_package, render_resume_diff
+from app.telegram.vacancy_view import render_application_package, render_applications, render_resume_diff
 from app import services
 
 
@@ -132,3 +132,19 @@ def test_application_package_preview_is_bounded_for_telegram():
     })
 
     assert len(text) < 4096
+
+
+def test_application_list_shows_private_snapshot_metadata_and_escapes_text():
+    text = render_applications([SimpleNamespace(
+        id=3,
+        job_id=25,
+        status="prepared",
+        created_at=None,
+        resume_id=5,
+        message="Draft <script>",
+    )])
+
+    assert "#3" in text and "вакансия #25" in text
+    assert "черновик" in text and "Резюме ID 5" in text
+    assert "Draft &lt;script&gt;" in text
+    assert "<script>" not in text

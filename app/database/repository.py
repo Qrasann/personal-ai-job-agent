@@ -21,6 +21,9 @@ from app.domain.jobs import NormalizedJob
 from app.candidates.fact_types import normalize_experience_type
 
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
+MANUAL_APPLICATION_STATUSES = frozenset({
+    "reviewed", "submitted", "interview", "offer", "rejected", "withdrawn",
+})
 
 
 class FactUpdateConflict(ValueError):
@@ -515,6 +518,34 @@ async def save_application(**kwargs) -> Application:
         await session.commit()
         await session.refresh(item)
         return item
+
+
+async def list_applications(user_id: int, limit: int = 20) -> list[Application]:
+    async with SessionLocal() as session:
+        rows = await session.scalars(
+            select(Application)
+            .where(Application.user_id == user_id)
+            .order_by(Application.created_at.desc(), Application.id.desc())
+            .limit(max(1, min(int(limit), 100)))
+        )
+        return list(rows)
+
+
+async def set_application_status(user_id: int, application_id: int, status: str) -> bool:
+    if status not in MANUAL_APPLICATION_STATUSES:
+        return False
+    async with SessionLocal() as session:
+        item = await session.scalar(
+            select(Application).where(
+                Application.id == application_id,
+                Application.user_id == user_id,
+            )
+        )
+        if not item:
+            return False
+        item.status = status
+        await session.commit()
+        return True
 
 
 async def message_seen(user_id: int, message_id: str, source: str) -> bool:

@@ -2103,3 +2103,13 @@ skills found only in the CV and recognized job requirements missing from both
 CV and facts. The link renderer accepts only credential-free HTTP(S) URLs and
 the preview stays within Telegram's message limit. No submit/status write was
 added. Focused tests: 28 passed; full isolated PostgreSQL: 888 passed.
+
+## 2026-10-15 — persisted draft versions and manual application status
+
+The prepare callback now persists each cover-letter draft as a separate
+`Application` row, linked to its selected resume and source vacancy, and marks
+the match `prepared`. `/applications` displays the user's saved records;
+`/application <id> <status>` changes only an allowlisted, user-owned manual
+status. Integration tests verify stored text, status transitions and isolation
+from another user. Existing schema reused; no migration or outbound action.
+Full isolated PostgreSQL suite: 890 passed.
