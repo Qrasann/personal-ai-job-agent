@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — Candidate Fact traceability
+
+`/compare` links each matched skill to the strongest Candidate Fact ID and its
+escaped provenance label, with `/facts` and `/fact` review/edit commands. Missing
+skills receive no fact citation and scoring is unchanged. Focused tests: 23
+passed; full isolated PostgreSQL suite: 879 passed.
+
 ## 2026-10-15 — per-source Relocation-first yield
 
 Per-source scan details show processed, Good, Stretch, filtered and duplicate

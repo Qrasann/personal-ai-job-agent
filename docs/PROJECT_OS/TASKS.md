@@ -1,5 +1,16 @@
 # Tasks
 
+## 2026-10-15 — Candidate Fact traceability
+
+- [x] Show matched skill references to the strongest Candidate Fact IDs and
+  provenance labels in `/compare`; leave missing skills uncited.
+- [x] Escape provenance output and point to `/facts` and `/fact` review/edit
+  paths; keep scoring unchanged.
+- [x] Verify focused comparison tests (23) and the isolated PostgreSQL suite
+  (879); compileall, diff-check and secret scan passed.
+- [ ] Continue truthful tailored-resume diffs and the first reviewed
+  Application Package slice, with every statement grounded in Candidate Facts.
+
 ## 2026-10-15 — per-source Stretch yield
 
 - [x] Include the existing `stretch` outcome count in each source's scan

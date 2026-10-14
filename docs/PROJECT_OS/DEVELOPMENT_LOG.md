@@ -2076,3 +2076,12 @@ Refreshed HANDOFF with the exact verification/checkpoint history and preserved
 the proposals outside Git. Dedicated local and GitHub backup branch
 `backup/v3.5.7-20261015` points to the verified snapshot; no release, tag, merge
 or deployment is involved.
+
+## 2026-10-15 — Candidate Fact traceability
+
+Vacancy `/compare` now cites the strongest matched Candidate Fact ID and its
+provenance label beside each skill, and points to `/facts` and `/fact` for
+review/correction. Unknown or missing skills remain uncited. Provenance output
+is HTML-escaped; scoring is unchanged. Focused comparison suite: 23 passed;
+full isolated PostgreSQL suite: 879 passed. Compileall, diff-check and secret
+scan passed.

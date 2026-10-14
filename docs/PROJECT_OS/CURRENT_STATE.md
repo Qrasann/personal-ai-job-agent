@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — Candidate Fact traceability in vacancy comparison
+
+`/compare` now shows the ID and provenance of the strongest Candidate Fact
+behind each matched skill, plus existing `/facts` and `/fact` correction paths.
+Provenance text is HTML-escaped; unmatched/missing skills are not given a
+fabricated fact reference. Scoring is unchanged. Focused comparison tests: 23
+passed; isolated PostgreSQL full suite: 879 passed.
+
 ## 2026-10-15 — opt-in strict salary floor
 
 Implemented locally: strict structured salary filtering is OFF by default and

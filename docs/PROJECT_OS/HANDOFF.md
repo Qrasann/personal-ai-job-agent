@@ -1,5 +1,17 @@
 # Handoff
 
+## 2026-10-15 — Candidate Fact traceability increment
+
+At start: HEAD `8ec7b39`, feature branch 69 commits ahead, VERSION 3.5.7.
+`/compare` now cites the strongest matched Candidate Fact ID and provenance
+beside each skill, with `/facts` and `/fact` review paths. Output is escaped;
+missing skills have no fabricated reference; scores are unchanged. Focused
+tests: 23 passed. Full isolated `job-agent-tests` PostgreSQL suite: 879 passed.
+Compileall, diff-check and secret scan passed. No production data, runtime or
+volumes changed. Next: commit this increment, update local/GitHub backup branch,
+then work on a grounded tailored-resume diff or reviewed Application Package
+slice. Proposal files stay untracked. Live Telegram/legal evidence remain open.
+
 ## 2026-10-15 — verified local development checkpoint
 
 HEAD at the start of this handoff refresh is `eb56824` on

@@ -368,6 +368,11 @@ def render_fact_comparison(payload: dict) -> str:
     job = payload["job"]
     comparison = payload["comparison"]
     language_fit = payload.get("language_fit")
+    facts_by_id = {
+        int(fact.id): fact
+        for fact in payload.get("facts", [])
+        if getattr(fact, "id", None) is not None
+    }
 
     title = _clip(repair_mojibake(str(job.title or "")), 120)
 
@@ -390,6 +395,7 @@ def render_fact_comparison(payload: dict) -> str:
         f"#{job.id} · {html.escape(title)}",
         "",
     ]
+    rendered_fact_references = False
 
     if comparison.total == 0 and language_fit is None:
         lines.extend([
@@ -435,20 +441,36 @@ def render_fact_comparison(payload: dict) -> str:
         ])
 
         for status, status_heading in status_groups:
-            skills = [
+            matched = [
                 item.skill
-                for item in items
-                if item.status == status
+                for item in items if item.status == status
             ]
 
-            if not skills:
+            if not matched:
                 continue
 
             lines.extend(["", status_heading])
-            lines.extend(
-                f"• {html.escape(skill)}"
-                for skill in skills
-            )
+            for item in items:
+                if item.status != status:
+                    continue
+                line = f"• {html.escape(item.skill)}"
+                references = []
+                for fact_id in item.fact_ids:
+                    fact = facts_by_id.get(fact_id)
+                    if fact is None:
+                        continue
+                    provenance = str(getattr(fact, "provenance", "") or "").strip()
+                    reference = f"факт #{fact_id}"
+                    if provenance:
+                        reference += f" · {html.escape(_clip(provenance, 32))}"
+                    references.append(reference)
+                if references:
+                    rendered_fact_references = True
+                    line += " <i>(" + "; ".join(references) + ")</i>"
+                lines.append(line)
+
+    if rendered_fact_references:
+        lines.extend(["", "ID фактов можно проверить и изменить командами /facts и /fact."])
 
     if language_fit is not None:
         candidate = language_fit.candidate_level or "не указан"

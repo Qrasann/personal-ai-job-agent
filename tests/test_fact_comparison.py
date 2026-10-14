@@ -233,6 +233,23 @@ def test_render_fact_comparison_separates_truth_levels():
     assert "4/5" in text
 
 
+def test_comparison_links_matched_skills_to_fact_ids_and_escapes_provenance():
+    from app.telegram.vacancy_view import render_fact_comparison
+
+    source_fact = fact(42, "Commercial Linux administration.", "commercial")
+    source_fact.provenance = "resume_import<script>"
+    comparison = compare_facts("Requirements: Linux", [source_fact])
+    text = render_fact_comparison({
+        "job": SimpleNamespace(id=124, title="Linux Administrator"),
+        "comparison": comparison,
+        "facts": [source_fact],
+    })
+
+    assert "Linux <i>(факт #42 · resume_import&lt;script&gt;)</i>" in text
+    assert "командами /facts и /fact" in text
+    assert "<script>" not in text
+
+
 def test_render_fact_comparison_explains_alternative_score():
     from app.telegram.vacancy_view import render_fact_comparison
 
