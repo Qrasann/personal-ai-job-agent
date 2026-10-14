@@ -61,9 +61,9 @@ SOURCE OF TRUTH — только эти факты кандидата:
 
 
 def recruiter_reply(question: str, facts: list[CandidateFact], context: str = "") -> tuple[str, float, bool, str]:
-    lowered = question.casefold()
+    lowered = f"{question}\n{context}".casefold()
     sensitive_markers = [
-        "паспорт", "document", "bank", "банков", "инн", "снилс", "salary", "зарплат", "оклад",
+        "паспорт", "passport", "document", "bank", "банков", "инн", "снилс", "salary", "зарплат", "оклад",
         "interview", "интервью", "созвон", "meeting", "дата выхода", "start date", "offer", "оффер",
         "relocation", "релокац", "when can", "когда сможете",
     ]
@@ -95,10 +95,13 @@ QUESTION:
     raw = response.output_text.strip().removeprefix("```json").removesuffix("```").strip()
     try:
         data = json.loads(raw)
+        requested_human = data.get("requires_human")
+        if isinstance(requested_human, str):
+            requested_human = requested_human.strip().casefold() == "true"
         return (
             str(data.get("reply", "")).strip(),
             float(data.get("confidence", 0)),
-            bool(data.get("requires_human")) or sensitive,
+            requested_human is not False or sensitive,
             str(data.get("reason", "")),
         )
     except Exception:

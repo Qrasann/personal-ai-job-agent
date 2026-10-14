@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — recruiter sensitive-context fallback
+
+- [x] Require human review for sensitive markers in the supplied conversation
+  context as well as the latest recruiter question.
+- [x] Recognize English `passport` and parse JSON string booleans explicitly.
+- [x] Verify focused recruiter tests (13) and isolated PostgreSQL (921).
+- [ ] Keep outbound auto-reply disabled by default and separately verified.
+
 ## 2026-10-15 — preserve alternatives in resume comparison
 
 - [x] Carry required/preferred OR groups into resume coverage comparison.

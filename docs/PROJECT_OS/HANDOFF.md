@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — recruiter sensitive-context fallback
+
+At start: HEAD `10b30af`, feature branch 87 commits ahead; VERSION 3.5.7.
+Sensitive markers across both the latest question and supplied recruiter
+context now require human review; English `passport` was missing and is added.
+JSON `requires_human: "false"` is parsed as false rather than truthy text.
+Focused tests: 13 passed; full isolated PostgreSQL: 921 passed. Next:
+checkpoint/backup; continue recruiter/package safety and source/Candidate Fit.
+Owner proposal files remain untracked.
+
 ## 2026-10-15 — preserve alternatives in resume comparison
 
 At start: HEAD `811a809`, feature branch 86 commits ahead; VERSION 3.5.7.

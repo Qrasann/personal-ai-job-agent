@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — recruiter sensitive-context fallback
+
+Sensitive salary, identity-document, availability and similar topics in any
+provided recruiter context now force a human response; English `passport` is
+recognized. String `"false"` from valid JSON no longer relies on Python
+truthiness. Focused tests: 13; isolated PostgreSQL: 921 passed.
+
 ## 2026-10-15 — preserve alternatives in resume comparison
 
 Resume/Application Package checks now retain explicit OR groups: they only

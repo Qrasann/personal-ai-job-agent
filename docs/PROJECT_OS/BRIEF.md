@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — recruiter sensitive-context fallback
+
+Recruiter replies now force human review when sensitive topics appear anywhere
+in the supplied conversation context, not only the latest message. Added the
+missing English `passport` marker and parse JSON boolean strings explicitly.
+Focused tests: 13 passed; full isolated PostgreSQL: 921 passed.
+
 ## 2026-10-15 — preserve alternatives in resume comparison
 
 `/resumediff` and `/prepare` now treat recognized `or/или` alternatives as one

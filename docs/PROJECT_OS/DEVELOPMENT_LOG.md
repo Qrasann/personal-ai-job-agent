@@ -1,3 +1,10 @@
+## 2026-10-15 — recruiter sensitive-context fallback
+
+Expanded sensitive-topic detection to include the full recruiter context and
+English passport references; parse JSON booleans without treating the string
+`false` as true. Tests cover sensitive context and non-sensitive false response.
+Focused tests: 13; isolated PostgreSQL: 921 passed.
+
 ## 2026-10-15 — preserve alternatives in resume comparison
 
 Fixed a mismatch where scoring recognized an explicit alternative requirement
