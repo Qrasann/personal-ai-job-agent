@@ -2,10 +2,10 @@
 
 ## Latest verified checkpoint — 2026-10-15
 
-HEAD `453e05d` on `feature/v3.5.7-international-market-coverage`, 89 commits
+HEAD `bda5b6b` on `feature/v3.5.7-international-market-coverage`, 90 commits
 ahead of its feature upstream. `VERSION=3.5.7`; latest formal release is
 v3.5.6. Local and GitHub branch `backup/v3.5.7-20261015` both point to
-`453e05d`. The full suite against the isolated PostgreSQL database passed:
+`bda5b6b`. The code at this checkpoint passed the full isolated PostgreSQL suite:
 923 tests. Compileall, `git diff --check`, and the secret scan passed. The only
 untracked files are the two owner proposal documents; they remain excluded.
 
