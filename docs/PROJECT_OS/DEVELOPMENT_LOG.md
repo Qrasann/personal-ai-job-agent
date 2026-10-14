@@ -2034,3 +2034,13 @@ whose connector wraps to an adjacent line. Other independent skills remain
 independent, and repeated skill mentions leave the choice ungrouped. Focused
 comparison/matching: 43 passed; isolated PostgreSQL: 869 passed. Compileall and
 diff-check passed. No scoring weights or thresholds changed.
+
+## 2026-10-15 — opt-in strict salary floor
+
+Added an OFF-by-default strict salary floor and a /salary strict on|off
+setting for both active search directions. Filter exclusions require a
+structured same-currency value, supported monthly/yearly period and an upper
+bound below the configured minimum. Unknown and incomplete evidence stays
+eligible. Focused salary/preferences tests: 52 passed; full isolated PostgreSQL
+suite: 873 passed. Compileall, diff-check and secret scan passed. Provider
+tax-basis remains a review item.

@@ -1,5 +1,16 @@
 # Handoff
 
+## 2026-10-15 — opt-in strict salary floor
+
+Added OFF-by-default strict_salary_floor and /salary strict on|off for all
+active search profiles. Only same-currency structured values in supported
+monthly/yearly periods can be excluded, and a range is excluded only when its
+upper bound is below the configured minimum. Missing, unsupported or incomplete
+evidence remains eligible. Focused salary/preferences suite: 52 passed. Full
+isolated PostgreSQL suite: 873 passed in 5.81s; compileall, diff-check and
+secret scan passed. Code/docs checkpoint is next; do not include proposals.
+Review provider normalization and tax-basis evidence before widening semantics.
+
 ## 2026-10-15 — line-wrapped alternative requirements
 
 HEAD remains `d7a68d8`; preserve the mixed dirty worktree, both untracked owner

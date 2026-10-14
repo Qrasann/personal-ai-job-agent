@@ -16,6 +16,37 @@ def test_source_filter_is_backward_compatible():
     assert not source_enabled({"disabled_sources": ["hh"]}, "hh")
 
 
+def test_strict_salary_floor_only_excludes_proven_comparable_below_minimum():
+    settings = {
+        "strict_salary_floor": True,
+        "minimum_salary": {"USD": 3000},
+    }
+    assert not vacancy_allowed(make_job(salary_from=2000, salary_to=2500, salary_currency="USD"), settings)
+    assert vacancy_allowed(make_job(salary_from=2000, salary_to=3200, salary_currency="USD"), settings)
+    assert not vacancy_allowed(make_job(salary_to=2500, salary_currency="USD"), settings)
+    assert vacancy_allowed(make_job(salary_from=2000, salary_currency="USD"), settings)
+    assert vacancy_allowed(make_job(salary_from=2500, salary_to=29000, salary_currency="EUR"), settings)
+    assert vacancy_allowed(make_job(salary_from=2000, salary_to=2500, salary_currency="USD", salary_period="hourly"), settings)
+    assert vacancy_allowed(make_job(salary_from=None, salary_to=None, salary_currency=None), settings)
+
+
+def test_strict_salary_floor_supports_annual_salary_and_rur_alias():
+    settings = {"strict_salary_floor": True, "minimum_salary": {"RUB": 100000}}
+    assert not vacancy_allowed(
+        make_job(salary_from=900000, salary_to=1_100_000, salary_currency="RUR", salary_period="annual"),
+        settings,
+    )
+    assert vacancy_allowed(
+        make_job(salary_from=1_200_000, salary_currency="RUB", salary_period="annual"),
+        settings,
+    )
+
+
+def test_strict_salary_floor_is_opt_in():
+    job = make_job(salary_from=1000, salary_to=2000, salary_currency="USD")
+    assert vacancy_allowed(job, {"minimum_salary": {"USD": 3000}})
+
+
 def test_current_and_selected_city_scope():
     cfg = {"local_city": "Tver", "selected_cities": ["Moscow"], "geography": {"configured": True, "include_current_city": True, "include_other_cities": False, "include_other_countries": False, "worldwide": False}}
     assert vacancy_allowed(make_job(city="Tver"), cfg, current_country="RU")

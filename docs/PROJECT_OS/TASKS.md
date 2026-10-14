@@ -6,8 +6,8 @@
   filter; document that only structured salary values are compared.
 - [x] Update `/salary` and `/settings` labels and verify both with regression
   coverage; full isolated PostgreSQL suite passed (866 tests).
-- [ ] Decide separately whether a strict salary floor is desirable before
-  implementing any exclusion behavior.
+- [x] Keep strict filtering opt-in and default OFF; the owner requested the
+  option while preserving scoring-only behavior for existing users.
 
 ## 2026-10-15 — CEFR requirement wording
 
@@ -26,6 +26,17 @@
   focused 43 and full isolated PostgreSQL 869 passed.
 - [ ] Extend to nested/multi-line clauses only with conservative grammar and
   score regressions.
+
+## 2026-10-15 — salary evidence and strict floor
+
+- [x] Add an OFF-by-default strict filter that excludes only comparable
+  structured values proven below the monthly floor; retain unknown evidence.
+- [x] Add /salary strict on|off across active Career-first/Relocation-first
+  searches and cover same-currency, annual, ranged, missing and unsupported data.
+- [x] Verify full isolated PostgreSQL suite: 873 passed; compileall,
+  diff-check and secret scan passed.
+- [ ] Review salary tax-basis and provider normalization evidence before
+  broadening strict comparisons.
 
 ## 2026-10-14 — explicit language and mobility evidence
 

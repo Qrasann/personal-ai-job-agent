@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — opt-in strict salary floor
+
+Implemented locally: strict structured salary filtering is OFF by default and
+only rejects comparable monthly/yearly values whose upper bound is below the
+minimum. Missing salary and unsupported currency/period remain eligible.
+/salary strict on|off applies to both active search tracks. Focused 52 and full
+isolated PostgreSQL 873 passed; compileall, diff-check and secret scan passed.
+
 ## 2026-10-15 — line-wrapped alternative requirement
 
 The v3.6 Candidate + Vacancy Fit parser now groups an explicit isolated

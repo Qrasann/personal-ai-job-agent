@@ -270,15 +270,42 @@ async def salary_command(message: Message) -> None:
         await message.answer("❌ Профиль поиска не найден.")
         return
     text = (message.text or "").strip()
+    parts = text.split()
+    if len(parts) == 3 and parts[1].casefold() == "strict":
+        enabled_text = parts[2].casefold()
+        if enabled_text not in {"on", "off"}:
+            await message.answer("Формат: /salary strict on|off")
+            return
+        enabled = enabled_text == "on"
+        for search in searches:
+            updated = dict(search.settings or {})
+            if enabled:
+                updated["strict_salary_floor"] = True
+            else:
+                updated.pop("strict_salary_floor", None)
+            await repo.update_search_settings(
+                search.id, updated,
+            )
+        await message.answer(
+            "✅ Строгий зарплатный фильтр " + ("включён." if enabled else "выключен.")
+            + " Исключаются только вакансии с подтверждённой структурированной "
+            "зарплатой ниже месячного минимума; неизвестные данные остаются."
+        )
+        return
     if len(text.split()) == 1:
         cfg = searches[0].settings or {}
         def show(key: str) -> str:
             values = cfg.get(f"{key}_salary") or (cfg.get("minimum_salary", {}) if key == "minimum" else {})
             return ", ".join(f"{currency} {amount:,}".replace(",", " ") for currency, amount in sorted(values.items())) or "не задана"
         await message.answer(
-            "💰 Зарплатные ориентиры\n"
+            "💰 Зарплатные ориентиры для оценки совпадения\n"
             f"Текущая: {show('current')}\nЖелаемая: {show('desired')}\nМесячный минимум для оценки: {show('minimum')}\n\n"
-            "Формат: /salary current|desired|minimum USD 3000; очистить: /salary desired USD clear"
+            f"Строгий фильтр: {'включён' if cfg.get('strict_salary_floor') is True else 'выключен'}\n"
+            "Обычный минимум только влияет на оценку и не скрывает вакансии. "
+            "Строгий режим удаляет только подтверждённо ниже минимума структурированные зарплаты. "
+            "Суммы только в тексте объявления не пересчитываются и не сравниваются.\n\n"
+            "Формат: /salary current|desired|minimum USD 3000; очистить: /salary desired USD clear; "
+            "строгий фильтр: /salary strict on|off"
         )
         return
     try:
@@ -414,7 +441,8 @@ async def search_settings(message: Message) -> None:
         f"Переезд по РФ: {'ON' if cfg.get('domestic_relocation', False) else 'OFF'}\n"
         f"International remote: {'ON' if modes.get('remote_international', True) else 'OFF'}\n"
         f"Relocation: {'ON' if modes.get('relocation', True) else 'OFF'}\n"
-        f"Мин. РФ зарплата: {minimum or 'не задана'} RUB net\n"
+        f"Ориентир зарплаты для оценки: {minimum or 'не задан'} RUB net (не фильтр)\n"
+        f"Строгий зарплатный фильтр: {'ON' if cfg.get('strict_salary_floor') is True else 'OFF'}\n"
         f"Notify score: {cfg.get('notify_min_score', 65)}+"
     )
     await message.answer(text, parse_mode="HTML")

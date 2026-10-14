@@ -17,6 +17,16 @@ the clause ungrouped as ambiguous. Focused matching/comparison tests passed
 43/43; the full isolated PostgreSQL suite passed 869 tests. No score weights or
 thresholds changed. Nested and more complex clauses remain planned.
 
+## 2026-10-15 — opt-in strict salary floor
+
+/salary strict on|off configures both active search tracks; it is OFF by
+default. When enabled it excludes only structured salary evidence in the same
+currency and a supported monthly/yearly period whose upper bound is below the
+configured minimum. Unknown or incomplete values remain eligible. Focused
+salary/preferences tests passed 52/52; the full isolated PostgreSQL gate passed
+with 873 tests. Compileall, diff-check and secret scan passed. No score weights
+changed.
+
 ## 2026-10-15 — CEFR requirement wording
 
 Vacancy CEFR comparison now labels a level as required or preferred only when

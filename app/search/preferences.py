@@ -155,6 +155,57 @@ def relocation_first_allows(job: NormalizedJob, settings: dict | None, *, curren
     )
 
 
+def strict_salary_floor_allows(job: NormalizedJob, settings: dict | None) -> bool:
+    """Exclude only a structured, comparable salary proven below the floor.
+
+    Missing, incomplete or unsupported salary evidence stays eligible for
+    review. For a range, its upper bound must be below the minimum to exclude.
+    """
+    cfg = search_config(settings)
+    if cfg.get("strict_salary_floor") is not True:
+        return True
+    currency = _norm_code(getattr(job, "salary_currency", None))
+    currency = "RUB" if currency == "RUR" else currency
+    minimums = _dict(cfg.get("minimum_salary"))
+    minimum = next(
+        (value for key, value in minimums.items()
+         if ("RUB" if _norm_code(str(key)) == "RUR" else _norm_code(str(key))) == currency),
+        None,
+    )
+    if not currency or minimum is None:
+        return True
+    try:
+        minimum = int(minimum)
+    except (TypeError, ValueError):
+        return True
+    if minimum <= 0:
+        return True
+
+    lower = getattr(job, "salary_from", None)
+    upper = getattr(job, "salary_to", None)
+    if lower is None and upper is None:
+        return True
+    try:
+        lower = int(lower) if lower is not None else None
+        upper = int(upper) if upper is not None else None
+    except (TypeError, ValueError):
+        return True
+    period = str(getattr(job, "salary_period", None) or "monthly").strip().casefold()
+    if period in {"annual", "yearly", "per-year"}:
+        divisor = 12
+    elif period in {"monthly", "per-month"}:
+        divisor = 1
+    else:
+        return True
+
+    # A lower bound alone cannot prove the offer's maximum is below the floor.
+    # If it already meets the floor, it is safe to keep; otherwise it is unknown.
+    comparable_upper = upper if upper is not None else lower
+    if upper is None and lower is not None and lower < minimum * divisor:
+        return True
+    return comparable_upper >= minimum * divisor
+
+
 def vacancy_allowed(job: NormalizedJob, settings: dict | None, *, current_country: str | None = None) -> bool:
     cfg = search_config(settings)
     job_country = _norm_code(job.country)
@@ -197,7 +248,7 @@ def vacancy_allowed(job: NormalizedJob, settings: dict | None, *, current_countr
             return False
         if policy == "exclude" and signals[key]:
             return False
-    return True
+    return strict_salary_floor_allows(job, cfg)
 
 
 def job_priority(job: NormalizedJob, settings: dict | None, *, current_country: str | None = None) -> int:

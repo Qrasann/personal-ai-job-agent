@@ -116,3 +116,47 @@ def test_sources_shows_market_sources_for_each_active_profile(monkeypatch):
     assert "JOBS.GE" in text
     assert "временно приостановлен" in text
     assert "HTTP 410 Gone" in text
+
+
+def test_salary_settings_explain_minimum_is_scoring_reference_not_filter(monkeypatch):
+    user = SimpleNamespace(id=7)
+    profile = SimpleNamespace(id=3, target_role="DevOps Engineer")
+    search = SimpleNamespace(id=9, settings={"minimum_salary": {"RUB": 100000}})
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=user))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=profile))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=[search]))
+    monkeypatch.setattr(handlers, "_first_search", AsyncMock(return_value=(profile, search)))
+    salary_message = SimpleNamespace(text="/salary", answer=AsyncMock())
+
+    asyncio.run(handlers.salary_command(salary_message))
+
+    salary_text = salary_message.answer.await_args.args[0]
+    assert "не скрывает вакансии" in salary_text
+    assert "структурированные зарплаты" in salary_text
+    assert "не сравниваются" in salary_text
+
+    settings_message = SimpleNamespace(answer=AsyncMock())
+    asyncio.run(handlers.search_settings(settings_message))
+    assert "не фильтр" in settings_message.answer.await_args.args[0]
+
+
+def test_salary_strict_toggle_updates_each_search_profile(monkeypatch):
+    user = SimpleNamespace(id=7)
+    profile = SimpleNamespace(id=3)
+    career = SimpleNamespace(id=9, settings={"minimum_salary": {"RUB": 100000}})
+    relocation = SimpleNamespace(id=10, settings={})
+    update = AsyncMock()
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=user))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=profile))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=[career, relocation]))
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+
+    message = SimpleNamespace(text="/salary strict on", answer=AsyncMock())
+    asyncio.run(handlers.salary_command(message))
+
+    assert update.await_count == 2
+    assert update.await_args_list[0].args == (
+        9, {"minimum_salary": {"RUB": 100000}, "strict_salary_floor": True}
+    )
+    assert update.await_args_list[1].args == (10, {"strict_salary_floor": True})
+    assert "Строгий зарплатный фильтр включён" in message.answer.await_args.args[0]
