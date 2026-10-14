@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — reviewed application package preview
+
+Extended existing `/prepare` with a vacancy-to-CV/Candidate Facts checklist,
+selected resume, bounded cover-letter draft and safe HTTP(S) source link. The
+preview warns about CV-only assertions and missing evidence, and states that it
+was not sent. No application state or external action is created. Focused tests:
+28 passed; full isolated PostgreSQL suite: 888 passed.
+
 ## 2026-10-15 — read-only vacancy-to-resume diff
 
 Added `/resumediff <vacancy_id> [resume_id]` to compare recognized vacancy

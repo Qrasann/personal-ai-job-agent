@@ -330,3 +330,23 @@ def test_resume_diff_command_accepts_explicit_resume_and_renders_result(monkeypa
 
     builder.assert_awaited_once_with(7, 25, resume_id=9)
     assert progress.edit_text.await_args.args[0] == "CV DIFF"
+
+
+def test_prepare_callback_sends_reviewable_preview_without_sending_application(monkeypatch):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    prepare = AsyncMock(return_value={"job": _job(25, "DevOps"), "resume_diff": {}})
+    monkeypatch.setattr(handlers, "prepare_match", prepare)
+    monkeypatch.setattr(handlers, "render_application_package", lambda payload: "REVIEW PREVIEW")
+    answer = AsyncMock()
+    callback = SimpleNamespace(
+        data="prepare:51",
+        answer=AsyncMock(),
+        message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=answer),
+    )
+
+    asyncio.run(handlers.prepare_callback(callback))
+
+    prepare.assert_awaited_once_with(51, 7)
+    answer.assert_awaited_once()
+    assert answer.await_args.args[0] == "REVIEW PREVIEW"
+    assert answer.await_args.kwargs["disable_web_page_preview"] is True

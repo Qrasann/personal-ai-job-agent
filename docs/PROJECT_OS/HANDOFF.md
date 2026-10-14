@@ -1,5 +1,17 @@
 # Handoff
 
+## 2026-10-15 — reviewed application package preview
+
+At start: HEAD `6c915f1`, feature branch 71 commits ahead; VERSION remains
+3.5.7. Existing `/prepare` now includes the selected saved resume, comparison
+of recognized vacancy skills against Candidate Facts and CV, and review warnings
+for CV-only terms and gaps. The draft cover letter and credential-free HTTP(S)
+vacancy link remain a manual preview; no submit or application-status write was
+added. Message output is bounded. Focused tests: 28 passed; isolated PostgreSQL
+suite: 888 passed. Compileall, diff-check and secret scan passed. Next: checkpoint
+and sync the backup branch; then add retained per-vacancy revisions/manual
+application status. Live Telegram acceptance remains open.
+
 ## 2026-10-15 — read-only vacancy-to-resume diff
 
 At start: HEAD `0472b9f`, feature branch 70 commits ahead; VERSION remains

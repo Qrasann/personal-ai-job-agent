@@ -800,6 +800,11 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
     resumes = await repo.list_resumes(match.profile_id)
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
     cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
+    comparison = compare_facts(job.description or "", facts)
+    resume_diff = compare_resume_coverage(
+        comparison,
+        chosen.content if chosen else "",
+    )
     refs = []
     for source_id in ("hh", "remoteok", "himalayas", "arbeitnow", "telegram"):
         ref = await repo.source_ref(job.id, source_id)
@@ -810,6 +815,7 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
         "job": job,
         "resume": chosen,
         "cover_letter": cover,
+        "resume_diff": resume_diff,
         "url": source_ref.url if source_ref else "",
         "source": source_ref.source_id if source_ref else "",
     }

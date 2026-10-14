@@ -2094,3 +2094,12 @@ Facts. It exposes only a checklist and does not produce or edit claims. Resume
 IDs are looked up inside the authorized match profile. Fixed confirmed
 undefined error diagnostic references in `/job`, `/compare`, and the compare
 callback. Focused suites: 47 passed; full isolated PostgreSQL: 884 passed.
+
+## 2026-10-15 — reviewed application package preview
+
+Extended `/prepare` to return a selected-resume/Candidate Fact checklist with
+the existing grounded cover-letter draft and source link. Review flags cover
+skills found only in the CV and recognized job requirements missing from both
+CV and facts. The link renderer accepts only credential-free HTTP(S) URLs and
+the preview stays within Telegram's message limit. No submit/status write was
+added. Focused tests: 28 passed; full isolated PostgreSQL: 888 passed.

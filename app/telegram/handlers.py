@@ -30,7 +30,7 @@ from app.matching.language_fit import normalize_cefr
 from app.services import apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_package, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
@@ -1728,19 +1728,11 @@ async def prepare_callback(callback: CallbackQuery) -> None:
     await callback.answer("Готовлю…")
     try:
         result = await prepare_match(match_id, user.id)
-        job = result["job"]
-        resume = result.get("resume")
-        cover = result.get("cover_letter") or ""
-        url = result.get("url") or ""
-        text = (
-            f"📝 <b>Отклик подготовлен</b>\n\n"
-            f"<b>{html.escape(job.title)}</b> — {html.escape(job.company)}\n"
-            f"Резюме: <b>{html.escape(resume.name if resume else 'не выбрано')}</b>\n\n"
-            f"<b>Сопроводительное:</b>\n{html.escape(cover)}"
+        await callback.message.answer(
+            render_application_package(result),
+            parse_mode="HTML",
+            disable_web_page_preview=True,
         )
-        if url:
-            text += f"\n\n<a href=\"{html.escape(url, quote=True)}\">Открыть вакансию и отправить вручную</a>"
-        await callback.message.answer(text[:4096], parse_mode="HTML", disable_web_page_preview=True)
     except Exception as exc:
         await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
 

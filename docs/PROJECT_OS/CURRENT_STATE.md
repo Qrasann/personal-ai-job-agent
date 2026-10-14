@@ -1,5 +1,15 @@
 # Current State
 
+## 2026-10-15 — reviewed application package preview
+
+Existing `/prepare` now includes the selected saved resume, grounded draft
+cover letter, recognized vacancy skill comparison against Candidate Facts/CV,
+and an HTTP(S)-only vacancy link. It highlights unconfirmed CV-only terms and
+requirements unsupported by either source. Output is bounded and explicitly a
+manual preview; it does not submit or save application status. Focused tests:
+28 passed; isolated PostgreSQL: 888 passed. Export, exact sent version and
+application tracking remain open.
+
 ## 2026-10-15 — read-only vacancy-to-resume diff
 
 `/resumediff <vacancy_id> [resume_id]` compares recognized requirements with

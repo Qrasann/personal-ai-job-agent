@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 from datetime import datetime
+from urllib.parse import urlsplit
 
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
 from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
@@ -533,4 +534,55 @@ def render_resume_diff(payload: dict) -> str:
         "Это автоматическая сверка известных технических терминов: она не редактирует резюме "
         "и не подтверждает опыт. Проверяй каждое изменение перед отправкой."
     )
+    return "\n".join(lines)
+
+
+def render_application_package(payload: dict) -> str:
+    job = payload["job"]
+    resume = payload.get("resume")
+    diff = payload.get("resume_diff") or {}
+    title = _clip(repair_mojibake(str(job.title or "")), 120)
+    company = _clip(repair_mojibake(str(job.company or "")), 100)
+    lines = [
+        "📝 <b>Черновик пакета отклика</b>",
+        f"{html.escape(title)}" + (f" — {html.escape(company)}" if company else ""),
+        f"Резюме: <b>{html.escape(_clip(str(resume.name or ''), 100))}</b> (ID {resume.id})"
+        if resume else "Резюме: не выбрано",
+        "",
+        "<b>Проверь перед отправкой</b>",
+    ]
+    if not resume:
+        lines.append("• Выбери и сохрани подходящее резюме через /resumes.")
+    if diff.get("supported_missing_from_resume"):
+        skills = ", ".join(html.escape(skill) for skill in diff["supported_missing_from_resume"])
+        lines.append(f"• В Candidate Facts есть, в CV не найдено: {skills}. Добавляй только после своей проверки.")
+    if diff.get("resume_only_unconfirmed"):
+        skills = ", ".join(html.escape(skill) for skill in diff["resume_only_unconfirmed"])
+        lines.append(f"• В CV есть, в Candidate Facts нет: {skills}. Проверь точность этих формулировок.")
+    if diff.get("missing_from_both"):
+        skills = ", ".join(html.escape(skill) for skill in diff["missing_from_both"])
+        lines.append(f"• Не найдено в CV и Candidate Facts: {skills}. Не добавляй без подтверждённого опыта.")
+    if not any(diff.get(key) for key in (
+        "supported_missing_from_resume", "resume_only_unconfirmed", "missing_from_both",
+    )):
+        lines.append("• По распознанным навыкам дополнительных расхождений нет.")
+    source_url = str(payload.get("url") or "").strip()
+    parsed_url = urlsplit(source_url)
+    if (
+        parsed_url.scheme.casefold() in {"http", "https"}
+        and parsed_url.hostname
+        and not parsed_url.username
+        and not parsed_url.password
+    ):
+        url = html.escape(_clip(source_url, 600), quote=True)
+        lines.append(f'<a href="{url}">Открыть вакансию для ручной отправки</a>')
+    else:
+        lines.append("• Прямая ссылка на источник не сохранена; найди вакансию вручную перед откликом.")
+    lines.extend([
+        "",
+        "<b>Черновик сопроводительного</b>",
+        html.escape(_clip(str(payload.get("cover_letter") or ""), 1600)) or "Черновик отсутствует.",
+        "",
+        "Черновик не отправлен. Проверь факты, язык и содержание и отправь сам.",
+    ])
     return "\n".join(lines)

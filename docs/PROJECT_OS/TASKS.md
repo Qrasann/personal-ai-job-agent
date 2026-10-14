@@ -1,5 +1,17 @@
 # Tasks
 
+## 2026-10-15 — reviewed application package preview
+
+- [x] Extend `/prepare` with Candidate Fact/CV skill consistency review beside
+  the existing grounded cover-letter preview and selected resume.
+- [x] Warn on CV-only terms and recognized requirements missing from both
+  sources; validate vacancy links as credential-free HTTP(S) and bound message
+  size. Keep preview manual; do not submit or create application status.
+- [x] Verify focused tests (28) and isolated PostgreSQL suite (888); compileall,
+  diff-check and secret scan passed.
+- [ ] Next: build a retained per-vacancy package revision and manually managed
+  application status; keep exact submission tracking separate from preview.
+
 ## 2026-10-15 — read-only vacancy-to-resume diff
 
 - [x] Add `/resumediff <vacancy_id> [resume_id]` for a selected saved resume;
@@ -10,8 +22,8 @@
   compare callback with sanitized diagnostics.
 - [x] Verify focused tests (47), full isolated PostgreSQL (884), compileall,
   diff-check and secret scan. Telegram live acceptance remains open.
-- [ ] Next: review a manually selected vacancy/resume in Telegram, then extend
-  this read-only evidence checklist toward the reviewed Application Package.
+- [x] Use this checklist in the `/prepare` review preview; live Telegram
+  acceptance remains a separately recorded gate.
 
 ## 2026-10-15 — Candidate Fact traceability
 
