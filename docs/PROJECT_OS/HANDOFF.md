@@ -2,23 +2,28 @@
 
 ## 2026-10-15 — verified local development checkpoint
 
-HEAD is `fca12ba` on `feature/v3.5.7-international-market-coverage`, 62 commits
-ahead; VERSION remains 3.5.7. Local checkpoints: `a4ac2b1` candidate profile and
+HEAD is `9001040` on `feature/v3.5.7-international-market-coverage`, 64 commits
+ahead; VERSION remains 3.5.7. Checkpoints: `a4ac2b1` candidate profile and
 resume import controls; `bdd4b28` source outcomes; `4c6eb28` secret scan;
-`fca12ba` vacancy fit and mobility evidence. The full isolated
-`job-agent-tests` PostgreSQL suite passed: 878 tests. Focused fit/scoring/detail
-tests: 102 passed. Compileall, staged/worktree diff checks and
-staged/worktree/history secret scan passed. No changes to the personal runtime
-database/volumes, VERSION, deployment, or external services.
+`fca12ba` vacancy fit/mobility; `b62835e` roadmap/handoff sync;
+`9001040` per-source processed/Good/Stretch/filtered/duplicate metrics. The full
+isolated `job-agent-tests` PostgreSQL suite passed: 878 tests. Focused
+fit/scoring/detail tests: 102 passed; source summary: 30 passed. Compileall,
+staged/worktree diff checks and staged/worktree/history secret scan passed. No
+changes to the personal runtime database/volumes, VERSION, deployment, or
+external services.
 
 Candidate fit recognizes explicit multi-option `or/или` chains and Oxford-comma
 lists, while comma-only, repeated or ambiguous options remain ungrouped.
-Per-source dashboard details show existing Stretch yield beside Good. The two
+Per-source dashboard details show existing processed, Good, Stretch, filtered
+and duplicate counts. The two
 historical proposal files remain untracked and excluded. Next: review the
 remaining roadmap for source freshness/yield and complete Candidate Fact DB
 acceptance where a meaningful uncovered case exists; continue with independent
 safe work. The `AGENTS.md` workflow update and PROJECT_OS/roadmap reconciliation
-are in the current documentation checkpoint.
+are committed in `b62835e`; the current source-yield status update is pending a
+documentation checkpoint. Live Telegram acceptance and jurisdiction-specific
+legal eligibility remain separate evidence gates.
 
 ## 2026-10-15 — Candidate/Vacancy multi-option fit
 

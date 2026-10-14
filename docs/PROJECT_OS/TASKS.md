@@ -4,7 +4,9 @@
 
 - [x] Include the existing `stretch` outcome count in each source's scan
   dashboard line beside Good; profile and overall totals remain unchanged.
-- [x] Add a source-summary regression and verify the full local suite.
+- [x] Include existing filtered and duplicate counts, with source-summary
+  regression coverage; do not change matching or deduplication behavior.
+- [x] Run the full isolated PostgreSQL suite after the display changes.
 - [ ] Continue toward broader source quality/freshness metrics only when the
   underlying observations are well-defined.
 

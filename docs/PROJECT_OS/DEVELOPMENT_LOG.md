@@ -1,10 +1,10 @@
 ## 2026-10-15 — per-source Stretch yield
 
-Source scan details showed Good output but omitted the already-counted Stretch
-outcomes for each source. Added the count to each source dashboard line with a
-regression; overall/profile totals, selection and scores are unchanged. Source
-diagnostics: 30 passed. Full isolated PostgreSQL suite after current changes:
-878 passed. No personal runtime database or volume was used.
+Per-source scan output now displays the existing processed, Good, Stretch,
+filtered and duplicate counters. Added rendering coverage; scan selection,
+deduplication and scores are unchanged. Source diagnostics: 30 passed. Full
+isolated PostgreSQL suite: 878 passed. No personal runtime database or volume
+was used.
 
 ## 2026-10-15 — conservative multi-option Candidate/Vacancy fit
 

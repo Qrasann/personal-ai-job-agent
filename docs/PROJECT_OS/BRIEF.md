@@ -2,12 +2,11 @@
 
 ## 2026-10-15 — per-source Relocation-first yield
 
-Per-source scan details now display the already tracked Stretch count beside
-Good, making below-threshold relevant leads attributable to each source. This
-does not change selection or scores. Source diagnostics tests: 30 passed; full
-local suite after the latest fit parser fix: 874 passed, 4 PostgreSQL tests
-skipped. The isolated `job-agent-tests` PostgreSQL suite then passed with 878
-tests; the personal runtime database and volumes were not used.
+Per-source scan details show processed, Good, Stretch, filtered and duplicate
+counts from the existing per-source ledger, making source yield easier to
+compare. No matching/deduplication behavior changed. Source diagnostics tests:
+30 passed; full isolated PostgreSQL suite: 878 passed. The personal runtime
+database and volumes were not used.
 
 # 2026-10-15 — Candidate/Vacancy multi-option fit
 
