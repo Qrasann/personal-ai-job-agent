@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — recruiter draft failure fallback
+
+If recruiter-reply generation fails, the HH inbox scan stores an empty draft
+and alerts the owner to reply manually. If explicitly enabled auto-reply fails
+to send, the owner gets the grounded draft and a manual-fallback notice. Error
+payloads are not logged; auto-reply defaults OFF. Focused suite: 9 passed; full
+isolated PostgreSQL suite: 905 passed.
+
 ## 2026-10-15 — legacy application migration verification
 
 Isolated PostgreSQL now verifies v5/v6 upgrades starting from v4 with a

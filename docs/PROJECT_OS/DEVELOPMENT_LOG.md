@@ -2170,3 +2170,11 @@ without events, preserving only the current recorded status and original
 created_at. Added a real PostgreSQL v4-to-v6 migration test covering the table,
 columns, and legacy row; no prior transition history is invented. Full isolated
 suite: 903 passed.
+
+## 2026-10-15 — recruiter draft failure fallback
+
+HH inbox handling now degrades model-generation errors to an empty draft and
+manual owner alert; explicitly enabled auto-send errors preserve the draft and
+notify the owner for manual follow-up. Only exception class is logged. Auto
+reply defaults OFF. Focused private-HH suite: 9 passed; full isolated
+PostgreSQL: 905 passed.

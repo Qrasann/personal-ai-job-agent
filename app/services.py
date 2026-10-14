@@ -901,11 +901,25 @@ async def scan_hh_chats(bot: Bot) -> None:
             if not text:
                 await notify_chat(bot, owner.telegram_chat_id, "⚠️ В HH пришло интерактивное/нетекстовое сообщение. Проверь чат вручную.")
                 continue
-            draft, confidence, human, reason = await asyncio.to_thread(recruiter_reply, text, facts, (payload.get("display") or {}).get("title", ""))
+            try:
+                draft, confidence, human, reason = await asyncio.to_thread(
+                    recruiter_reply,
+                    text,
+                    facts,
+                    (payload.get("display") or {}).get("title", ""),
+                )
+            except Exception as exc:
+                log.warning("HH reply draft failed (%s)", type(exc).__name__)
+                draft, confidence, human = "", 0.0, True
+                reason = "Черновик не создан; ответь вручную в HH."
             await repo.set_state(owner.id, f"draft:{chat_id}:{msg_id}", draft)
             if settings.auto_reply and draft and confidence >= settings.auto_reply_min_confidence and not human:
-                await hh_client.send_chat_message(chat_id, draft)
-                continue
+                try:
+                    await hh_client.send_chat_message(chat_id, draft)
+                    continue
+                except Exception as exc:
+                    log.warning("HH auto reply failed (%s)", type(exc).__name__)
+                    reason = "Автоответ не отправлен; проверь чат и ответь вручную."
             shown = draft or "Нужен ручной ответ"
             await notify_chat(
                 bot,

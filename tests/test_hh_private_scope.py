@@ -8,6 +8,75 @@ from app import services
 from app.telegram import handlers
 
 
+def _configure_unread_hh_message(monkeypatch, *, auto_reply=False):
+    owner = SimpleNamespace(id=1, telegram_chat_id="111")
+    message = {
+        "id": "message-123",
+        "sender_display_info": {"is_current_participant": False},
+        "payload": {"text": "Can you describe your Linux experience?"},
+    }
+    client = SimpleNamespace(
+        private_api_available=True,
+        chats=AsyncMock(return_value={"items": [{"id": "chat-42", "unread_message_count": 1}]}),
+        chat_messages=AsyncMock(return_value={"display": {"title": "Recruiter"}, "messages": [message]}),
+        send_chat_message=AsyncMock(),
+    )
+    monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "111")
+    monkeypatch.setattr(services.settings, "auto_reply", auto_reply)
+    monkeypatch.setattr(services.settings, "auto_reply_min_confidence", 0.8)
+    monkeypatch.setattr(services, "hh_client", client)
+    monkeypatch.setattr(services.repo, "get_user_by_chat", AsyncMock(return_value=owner))
+    monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
+    monkeypatch.setattr(services.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=3)))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.repo, "message_seen", AsyncMock(return_value=False))
+    mark_seen = AsyncMock()
+    set_state = AsyncMock()
+    notify = AsyncMock()
+    monkeypatch.setattr(services.repo, "mark_message_seen", mark_seen)
+    monkeypatch.setattr(services.repo, "set_state", set_state)
+    monkeypatch.setattr(services, "notify_chat", notify)
+    return client, mark_seen, set_state, notify
+
+
+def test_hh_reply_generation_error_notifies_owner_for_manual_response(monkeypatch, caplog):
+    client, mark_seen, set_state, notify = _configure_unread_hh_message(monkeypatch)
+    secret = "private-model-payload"
+
+    def failed_draft(*args):
+        raise RuntimeError(secret)
+
+    monkeypatch.setattr(services, "recruiter_reply", failed_draft)
+
+    asyncio.run(services.scan_hh_chats(object()))
+
+    mark_seen.assert_awaited_once()
+    set_state.assert_awaited_once_with(1, "draft:chat-42:message-123", "")
+    client.send_chat_message.assert_not_awaited()
+    assert "Нужен ручной ответ" in notify.await_args.args[2]
+    assert "ответь вручную" in notify.await_args.args[2]
+    assert secret not in caplog.text
+
+
+def test_hh_auto_reply_transport_error_notifies_owner_for_manual_response(monkeypatch, caplog):
+    client, mark_seen, set_state, notify = _configure_unread_hh_message(monkeypatch, auto_reply=True)
+    secret = "private-transport-payload"
+    client.send_chat_message.side_effect = RuntimeError(secret)
+    monkeypatch.setattr(
+        services,
+        "recruiter_reply",
+        lambda *args: ("Grounded reply", 0.99, False, "Based on facts"),
+    )
+
+    asyncio.run(services.scan_hh_chats(object()))
+
+    client.send_chat_message.assert_awaited_once_with("chat-42", "Grounded reply")
+    assert "Автоответ не отправлен" in notify.await_args.args[2]
+    assert secret not in caplog.text
+    assert mark_seen.await_count == 1
+    assert set_state.await_args.args == (1, "draft:chat-42:message-123", "Grounded reply")
+
+
 def test_non_owner_cannot_start_manual_hh_reply(monkeypatch):
     monkeypatch.setattr(handlers.settings, "telegram_admin_chat_id", "111")
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=2)))

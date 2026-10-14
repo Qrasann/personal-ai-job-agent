@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — recruiter draft failure fallback
+
+At start: HEAD `baa3bf8`, feature branch 80 commits ahead; VERSION 3.5.7.
+HH reply-generation errors now fall back to an empty draft/manual alert; errors
+from explicitly configured auto-send preserve the draft and notify the owner to
+reply manually. Exception payloads are not logged. Auto-reply is OFF by default.
+Focused tests: 9 passed; full isolated PostgreSQL suite: 905 passed. Next:
+checkpoint/backup and continue v3.8 tracking only within existing permission
+and owner boundaries.
+
 ## 2026-10-15 — legacy application migration verification
 
 At start: HEAD `66f6e30`, feature branch 79 commits ahead; VERSION 3.5.7.

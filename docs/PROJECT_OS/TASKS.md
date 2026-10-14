@@ -1,5 +1,15 @@
 # Tasks
 
+## 2026-10-15 — recruiter draft failure fallback
+
+- [x] Convert recruiter LLM failure into a safe manual-response notification;
+  don't log the raw exception payload.
+- [x] Convert authorized auto-send transport failure into owner review with the
+  draft retained; auto-reply remains OFF by default.
+- [x] Verify both regressions; focused 9 and full isolated PostgreSQL 905 passed.
+- [ ] Extend recruiter tracking beyond HH only with source permissions and
+  owner-approved interaction boundaries.
+
 ## 2026-10-15 — legacy application migration verification
 
 - [x] Add a real isolated PostgreSQL upgrade test from schema v4 through v5/v6

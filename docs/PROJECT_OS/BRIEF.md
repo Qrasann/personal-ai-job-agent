@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — recruiter draft failure fallback
+
+HH recruiter-message handling now catches model-generation and authorized
+auto-send errors, keeps raw exception payloads out of logs, and notifies the
+owner to answer manually. Auto-reply remains OFF by default. Focused private-HH
+tests: 9 passed; full isolated PostgreSQL suite: 905 passed.
+
 ## 2026-10-15 — legacy application migration verification
 
 Added a PostgreSQL regression that simulates an existing v4 schema, runs
