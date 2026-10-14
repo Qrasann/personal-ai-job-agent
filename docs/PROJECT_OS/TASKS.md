@@ -1,5 +1,17 @@
 # Tasks
 
+## 2026-10-15 — resume snapshot and explicit package export
+
+- [x] Add additive schema v6 fields for a local resume-text snapshot and
+  external HH resume ID; populate for prepared and HH application records.
+- [x] Add owner-scoped `/application <id> export`, bounded by the resume import
+  size limit; include vacancy metadata, exact saved cover letter and snapshot.
+- [x] Label pre-v6 records whose resume snapshot is unavailable and verify
+  explicit export routing, user isolation and PostgreSQL persistence.
+- [x] Focused tests: 44 passed; full isolated PostgreSQL suite: 896 passed.
+- [ ] Original-format PDF/DOCX export and exact provider-side attachment
+  evidence remain future scope.
+
 ## 2026-10-15 — append-only application status history
 
 - [x] Add schema v5 application status events as an additive migration/table.
@@ -8,8 +20,8 @@
 - [x] Add owner-scoped `/application <id> history` and integration coverage for
   chronology, invalid/wrong-owner changes and hidden wrong-owner history.
 - [x] Run focused 40 tests and full isolated PostgreSQL suite (892 passed).
-- [ ] Next: exact resume-content snapshot/export and per-application audit of
-  what was actually submitted; do not infer submission from generated drafts.
+- [x] Local text snapshot and user-triggered text export are implemented;
+  original-format/provider-side attachment proof remains open.
 
 ## 2026-10-15 — persisted draft versions and manual application status
 

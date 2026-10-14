@@ -1,5 +1,15 @@
 # Current State
 
+## 2026-10-15 — resume snapshot and explicit package export
+
+Schema v6 adds local resume-text snapshot and optional external HH resume ID to
+Application. Prepared and HH application records retain the selected local
+text and the external ID used for HH. `/application <id> export` sends the
+snapshot, saved cover letter and vacancy metadata only after user-scoped lookup
+and explicit command. Legacy rows without a snapshot are labeled accurately.
+Focused migration/export suite: 44 passed; full isolated PostgreSQL: 896 passed.
+This is extracted text, not an original-format PDF/DOCX export.
+
 ## 2026-10-15 — append-only application status history
 
 Schema v5 adds `application_status_events`. Saving a prepared draft and each

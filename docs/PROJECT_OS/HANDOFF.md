@@ -1,5 +1,17 @@
 # Handoff
 
+## 2026-10-15 — resume snapshot and explicit package export
+
+At start: HEAD `abecb1b`, feature branch 74 commits ahead; VERSION 3.5.7.
+Schema v6 records the selected local resume-text snapshot and optional external
+HH resume ID with prepared/HH application records. `/application <id> export`
+returns the saved CV text, exact cover-letter text and vacancy metadata only
+after owner-scoped lookup and an explicit user command; pre-v6 rows report an
+unavailable snapshot. Focused tests: 44 passed; full isolated PostgreSQL suite:
+896 passed. No production DB, runtime or volumes touched. Next: checkpoint and
+sync backup; continue application audit fidelity and original-format export,
+then Recruiter/Interview Agent roadmap work. Proposal files remain untracked.
+
 ## 2026-10-15 — append-only application status history
 
 At start: HEAD `96a87ed`, feature branch 73 commits ahead; VERSION 3.5.7.

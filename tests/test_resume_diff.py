@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 from app.matching.fact_comparison import compare_facts
 from app.matching.resume_diff import compare_resume_coverage
-from app.telegram.vacancy_view import render_application_package, render_applications, render_resume_diff
+from app.telegram.vacancy_view import render_application_export, render_application_package, render_applications, render_resume_diff
 from app import services
 
 
@@ -148,3 +148,32 @@ def test_application_list_shows_private_snapshot_metadata_and_escapes_text():
     assert "черновик" in text and "Резюме ID 5" in text
     assert "Draft &lt;script&gt;" in text
     assert "<script>" not in text
+
+
+def test_application_export_includes_exact_saved_resume_and_cover_text():
+    text = render_application_export(
+        SimpleNamespace(
+            id=42, status="submitted", created_at=None, source_id="hh",
+            external_url="https://example.com/job", resume_id=5,
+            resume_external_id="hh-resume-5", resume_snapshot="Exact CV v1",
+            message="Exact cover letter v1",
+        ),
+        SimpleNamespace(title="DevOps", company="Example"),
+    )
+
+    assert "Exact CV v1" in text
+    assert "Exact cover letter v1" in text
+    assert "hh-resume-5" in text
+
+
+def test_old_application_export_says_when_resume_snapshot_is_unavailable():
+    text = render_application_export(
+        SimpleNamespace(
+            id=42, status="sent", created_at=None, source_id="hh",
+            external_url=None, resume_id=5, resume_external_id=None,
+            resume_snapshot="", message="Legacy cover letter",
+        ),
+        SimpleNamespace(title="DevOps", company="Example"),
+    )
+
+    assert "No resume-content snapshot is available" in text

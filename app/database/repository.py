@@ -538,6 +538,16 @@ async def list_applications(user_id: int, limit: int = 20) -> list[Application]:
         return list(rows)
 
 
+async def get_application(user_id: int, application_id: int) -> Application | None:
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.id == application_id,
+            )
+        )
+
+
 async def set_application_status(user_id: int, application_id: int, status: str) -> bool:
     if status not in MANUAL_APPLICATION_STATUSES:
         return False

@@ -191,6 +191,8 @@ class Application(Base):
     source_application_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
     external_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     resume_id: Mapped[int | None] = mapped_column(ForeignKey("resume_profiles.id", ondelete="SET NULL"), nullable=True)
+    resume_snapshot: Mapped[str] = mapped_column(Text, default="")
+    resume_external_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
     message: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(64), default="sent")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)

@@ -11,6 +11,7 @@ from datetime import datetime
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import BufferedInputFile
 
 from app.search.source_summary import render_source_dashboard, scan_outcome, select_scan_dashboard
 from app.sources.diagnostics import classify_source_error, legacy_diagnostic
@@ -30,7 +31,7 @@ from app.matching.language_fit import normalize_cefr
 from app.services import apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_application_history, render_application_package, render_applications, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
@@ -156,7 +157,7 @@ def _main_menu_text() -> str:
         "/compare 25 — сравнить вакансию с профилем\n"
         "/resumediff 25 [resume_id] — сверить CV с вакансией\n"
         "/applications — сохранённые пакеты и отклики\n"
-        "/application <id> <status> — вручную обновить статус\n"
+        "/application <id> <status|history|export> — статус, история или экспорт\n"
         "/english [A1–C2|unknown] — уровень английского\n"
         "/facts — факты кандидата\n"
         "/import — импортировать резюме PDF/DOCX/TXT\n"
@@ -1445,6 +1446,24 @@ async def application_status_command(message: Message) -> None:
         )
         return
     status = parts[2].casefold()
+    if status == "export":
+        application = await repo.get_application(user.id, int(parts[1]))
+        if not application:
+            await message.answer("❌ Отклик не найден в твоём профиле.")
+            return
+        job = await repo.get_job(application.job_id)
+        if not job:
+            await message.answer("❌ Вакансия для этого пакета больше не найдена.")
+            return
+        content = render_application_export(application, job).encode("utf-8")
+        if len(content) > MAX_DOCUMENT_BYTES:
+            await message.answer("❌ Пакет превышает безопасный размер экспорта 8 MiB.")
+            return
+        await message.answer_document(
+            BufferedInputFile(content, filename=f"application-{application.id}.txt"),
+            caption=f"Пакет #{application.id}. Содержимое сохранено на момент подготовки.",
+        )
+        return
     if status == "history":
         events = await repo.application_status_history(user.id, int(parts[1]))
         await message.answer(
@@ -1781,6 +1800,12 @@ async def prepare_callback(callback: CallbackQuery) -> None:
             source_application_id=None,
             external_url=str(result.get("url") or "") or None,
             resume_id=result["resume"].id if result.get("resume") else None,
+            resume_snapshot=str(result["resume"].content or "") if result.get("resume") else "",
+            resume_external_id=(
+                str(result["resume"].external_id)[:256]
+                if result.get("resume") and result["resume"].external_id
+                else None
+            ),
             message=cover,
             status="prepared",
         )

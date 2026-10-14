@@ -1,5 +1,14 @@
 # Codex Brief
 
+## 2026-10-15 — resume-content snapshot and explicit package export
+
+Schema v6 stores a local resume-text snapshot and optional external HH resume
+ID with each application record. `/application <id> export` returns the saved
+cover letter, resume snapshot and vacancy metadata as UTF-8 text after
+user-scoped lookup; old rows disclose missing snapshots. The user's request is
+required to send the file to Telegram. Focused tests: 44 passed; full isolated
+PostgreSQL suite: 896 passed.
+
 ## 2026-10-15 — append-only application status history
 
 Schema v5 adds `application_status_events`; prepared drafts and actual manual

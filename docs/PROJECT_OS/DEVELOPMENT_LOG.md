@@ -2121,3 +2121,13 @@ status and real manual transitions append events; owner-scoped `/application
 <id> history` reads them in order. Repeating the current status creates no
 duplicate event. Isolated PostgreSQL integration verifies the migration, event
 chronology, ownership and updates. Full suite: 892 passed; focused: 40 passed.
+
+## 2026-10-15 — resume snapshot and explicit package export
+
+Additive schema v6 stores the selected local resume-text snapshot and optional
+external HH resume ID on Application. Prepared and HH flows populate these
+along with the saved cover letter. `/application <id> export` performs
+user-scoped lookup and emits the snapshot, letter and vacancy metadata as a
+bounded UTF-8 text document on explicit command; records predating v6 disclose
+that their resume snapshot is unavailable. Original-format export is not
+implemented. Focused tests: 44 passed; full isolated PostgreSQL suite: 896.

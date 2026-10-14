@@ -141,12 +141,18 @@ async def _repository_review_flow(monkeypatch):
             source_application_id=None,
             external_url="https://example.invalid/job-1001",
             resume_id=resume.id,
+            resume_snapshot="Saved resume snapshot text",
+            resume_external_id="hh-resume-42",
             message="Exact reviewed draft text",
             status="prepared",
         )
         assert package.status == "prepared"
         assert package.message == "Exact reviewed draft text"
+        assert package.resume_snapshot == "Saved resume snapshot text"
+        assert package.resume_external_id == "hh-resume-42"
         assert [item.id for item in await repo.list_applications(user.id)] == [package.id]
+        assert (await repo.get_application(user.id, package.id)).id == package.id
+        assert await repo.get_application(user.id + 1, package.id) is None
         assert [item.status for item in await repo.application_status_history(user.id, package.id)] == ["prepared"]
         assert await repo.set_application_status(user.id + 1, package.id, "submitted") is False
         assert await repo.application_status_history(user.id + 1, package.id) is None

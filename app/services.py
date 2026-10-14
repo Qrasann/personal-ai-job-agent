@@ -855,6 +855,8 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
         source_application_id=result.get("negotiation_id"),
         external_url=result.get("external_url"),
         resume_id=match.resume_id,
+        resume_snapshot=chosen.content if chosen else "",
+        resume_external_id=hh_resume_id,
         message=cover,
         status=result.get("status", "sent"),
     )

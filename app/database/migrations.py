@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 5
+CURRENT_SCHEMA_VERSION = 6
 
 
 @dataclass(frozen=True)
@@ -76,6 +76,14 @@ MIGRATIONS: tuple[Migration, ...] = (
             "ON application_status_events(application_id)",
             "CREATE INDEX IF NOT EXISTS ix_application_status_events_user_id "
             "ON application_status_events(user_id)",
+        ),
+    ),
+    Migration(
+        version=6,
+        name="application_resume_snapshot",
+        statements=(
+            "ALTER TABLE applications ADD COLUMN IF NOT EXISTS resume_snapshot TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE applications ADD COLUMN IF NOT EXISTS resume_external_id VARCHAR(256) NULL",
         ),
     ),
 )

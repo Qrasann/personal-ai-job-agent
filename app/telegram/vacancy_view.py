@@ -639,3 +639,28 @@ def render_application_history(events: list) -> str:
         label = labels.get(event.status, event.status)
         lines.append(f"{html.escape(timestamp_text)} — {html.escape(label)}")
     return "\n".join(lines)
+
+
+def render_application_export(application, job) -> str:
+    created = getattr(application, "created_at", None)
+    created_text = created.strftime("%Y-%m-%d %H:%M UTC") if created else "unknown"
+    lines = [
+        f"Application package #{application.id}",
+        f"Vacancy: {job.title} — {job.company}",
+        f"Status: {application.status}",
+        f"Prepared: {created_text}",
+        f"Source: {application.source_id}",
+        f"Vacancy URL: {application.external_url or 'not recorded'}",
+        f"Saved resume ID: {application.resume_id or 'not selected'}",
+        f"External resume ID: {application.resume_external_id or 'not recorded'}",
+        "",
+        "=== Saved resume text snapshot ===",
+    ]
+    if application.resume_snapshot:
+        lines.append(application.resume_snapshot)
+    elif application.resume_id:
+        lines.append("No resume-content snapshot is available for this record.")
+    else:
+        lines.append("No resume was selected for this record.")
+    lines.extend(["", "=== Saved cover-letter text ===", application.message or "No cover-letter text."])
+    return "\n".join(lines)

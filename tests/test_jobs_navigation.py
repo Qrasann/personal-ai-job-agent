@@ -353,7 +353,8 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
     prepare.assert_awaited_once_with(51, 7)
     save_application.assert_awaited_once_with(
         user_id=7, job_id=25, source_id="manual", source_application_id=None,
-        external_url=None, resume_id=None, message="", status="prepared",
+        external_url=None, resume_id=None, resume_snapshot="", resume_external_id=None,
+        message="", status="prepared",
     )
     update_match.assert_awaited_once_with(51, "prepared")
     answer.assert_awaited_once()
@@ -384,3 +385,27 @@ def test_application_status_command_displays_owner_scoped_history(monkeypatch):
 
     history.assert_awaited_once_with(7, 42)
     assert message.answer.await_args.args[0] == "HISTORY"
+
+
+def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkeypatch):
+    _mock_profiles(monkeypatch)
+    application = SimpleNamespace(
+        id=42, job_id=25, status="prepared", created_at=None, source_id="manual",
+        external_url=None, resume_id=5, resume_external_id=None,
+        resume_snapshot="Saved CV", message="Cover draft",
+    )
+    lookup = AsyncMock(return_value=application)
+    monkeypatch.setattr(handlers.repo, "get_application", lookup)
+    monkeypatch.setattr(handlers.repo, "get_job", AsyncMock(return_value=_job(25, "DevOps")))
+    message = SimpleNamespace(
+        text="/application 42 export",
+        answer=AsyncMock(),
+        answer_document=AsyncMock(),
+    )
+
+    asyncio.run(handlers.application_status_command(message))
+
+    lookup.assert_awaited_once_with(7, 42)
+    document = message.answer_document.await_args.args[0]
+    assert document.filename == "application-42.txt"
+    assert "Пакет #42" in message.answer_document.await_args.kwargs["caption"]

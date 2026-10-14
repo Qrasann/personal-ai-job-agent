@@ -1,15 +1,16 @@
 from app.database.migrations import CURRENT_SCHEMA_VERSION, MIGRATIONS
-from app.database.models import ApplicationStatusEvent, CandidateFact, CandidateProfile, ResumeProfile, SchemaMigration, SearchProfile, User
+from app.database.models import Application, ApplicationStatusEvent, CandidateFact, CandidateProfile, ResumeProfile, SchemaMigration, SearchProfile, User
 
 
 def test_schema_versions_and_migrations_are_declared():
-    assert CURRENT_SCHEMA_VERSION == 5
-    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5]
+    assert CURRENT_SCHEMA_VERSION == 6
+    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5, 6]
     assert MIGRATIONS[0].name == "profile_storage_foundation"
     assert MIGRATIONS[1].name == "candidate_fact_experience_type"
     assert MIGRATIONS[2].name == "candidate_fact_confidence_provenance"
     assert MIGRATIONS[3].name == "job_match_recommendation_scores"
     assert MIGRATIONS[4].name == "application_status_history"
+    assert MIGRATIONS[5].name == "application_resume_snapshot"
 
 
 def test_foundation_models_have_soft_delete_metadata():
@@ -40,3 +41,8 @@ def test_application_status_event_model_is_append_only_record_shape():
     assert hasattr(ApplicationStatusEvent, "user_id")
     assert hasattr(ApplicationStatusEvent, "status")
     assert hasattr(ApplicationStatusEvent, "created_at")
+
+
+def test_application_model_stores_resume_snapshot_and_external_reference():
+    assert hasattr(Application, "resume_snapshot")
+    assert hasattr(Application, "resume_external_id")
