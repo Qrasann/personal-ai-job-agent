@@ -25,8 +25,8 @@ acceptance where a meaningful uncovered case exists; continue with independent
 safe work. The `AGENTS.md` workflow update and PROJECT_OS/roadmap reconciliation
 are committed in `b62835e`; the current source-yield status update is pending a
 documentation checkpoint. A dedicated local and GitHub backup branch
-`backup/v3.5.7-20261015` is a separate recovery branch, currently preserving
-the verified code and docs snapshot at `eb56824`; it does not point to
+`backup/v3.5.7-20261015` is a separate local/GitHub recovery branch kept
+synchronized with this verified feature snapshot; it does not point to
 release/main and has no tag. The two proposal files remain untracked. Live Telegram
 acceptance and jurisdiction-specific
 legal eligibility remain separate evidence gates.
