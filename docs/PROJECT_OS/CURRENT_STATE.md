@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — legacy application migration verification
+
+Isolated PostgreSQL now verifies v5/v6 upgrades starting from v4 with a
+preexisting application row. Migration adds snapshot columns and seeds one
+history event from the recorded status/creation time; it does not fabricate
+earlier transitions. Full isolated PostgreSQL suite: 903 passed.
+
 ## 2026-10-15 — disclose unknown salary-period behavior
 
 `/salary`, its strict on/off response and `/settings` now state that a missing

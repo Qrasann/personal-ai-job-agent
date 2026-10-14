@@ -84,6 +84,10 @@ MIGRATIONS: tuple[Migration, ...] = (
         statements=(
             "ALTER TABLE applications ADD COLUMN IF NOT EXISTS resume_snapshot TEXT NOT NULL DEFAULT ''",
             "ALTER TABLE applications ADD COLUMN IF NOT EXISTS resume_external_id VARCHAR(256) NULL",
+            "INSERT INTO application_status_events (application_id, user_id, status, created_at) "
+            "SELECT a.id, a.user_id, a.status, a.created_at FROM applications a "
+            "WHERE NOT EXISTS (SELECT 1 FROM application_status_events e "
+            "WHERE e.application_id = a.id)",
         ),
     ),
 )

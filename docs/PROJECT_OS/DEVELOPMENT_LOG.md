@@ -2162,3 +2162,11 @@ Updated `/salary`, the strict-toggle response and `/settings` to explicitly say
 that a missing/unsupported period is not compared by the strict floor and stays
 visible. Focused command/filter tests: 41 passed; full isolated PostgreSQL:
 902 passed.
+
+## 2026-10-15 — legacy application migration verification
+
+Migration v6 seeds one status-history event for each preexisting application
+without events, preserving only the current recorded status and original
+created_at. Added a real PostgreSQL v4-to-v6 migration test covering the table,
+columns, and legacy row; no prior transition history is invented. Full isolated
+suite: 903 passed.

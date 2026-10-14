@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — legacy application migration verification
+
+- [x] Add a real isolated PostgreSQL upgrade test from schema v4 through v5/v6
+  using a preexisting submitted application.
+- [x] Seed one initial event from its known status and original creation time;
+  do not infer unrecorded status changes.
+- [x] Verify new snapshot fields and history; full isolated suite: 903 passed.
+
 ## 2026-10-15 — disclose unknown salary-period behavior
 
 - [x] Explain known-period-only strict comparison in `/salary`, `/settings`

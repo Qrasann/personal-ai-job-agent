@@ -1,12 +1,15 @@
 import asyncio
 import os
+from datetime import datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 
 from app.database import repository as repo
-from app.database.models import Base, CandidateFact
+from app.database.migrations import apply_migrations
+from app.database.models import Application, Base, CandidateFact, SchemaMigration
 from app.domain.jobs import NormalizedJob
 
 
@@ -25,6 +28,66 @@ def test_repository_review_flow_uses_real_postgres(monkeypatch):
     _require_test_database()
 
     asyncio.run(_repository_review_flow(monkeypatch))
+
+
+@pytest.mark.integration
+def test_application_migrations_upgrade_v4_schema_and_seed_current_status(monkeypatch):
+    _require_test_database()
+
+    asyncio.run(_application_migration_flow(monkeypatch))
+
+
+async def _application_migration_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    try:
+        user = await repo.create_user("migration-user", "Migration User")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="migration", source_job_id="legacy-job", title="Linux Admin",
+            company="Legacy Co", url="https://example.invalid/legacy",
+        ))
+        async with test_session() as session:
+            legacy = Application(
+                user_id=user.id,
+                job_id=job.id,
+                source_id="hh",
+                resume_id=None,
+                message="Previously submitted draft",
+                status="submitted",
+                created_at=datetime(2025, 1, 2, 3, 4),
+            )
+            session.add(legacy)
+            session.add_all([
+                SchemaMigration(version=version, name=f"legacy_{version}")
+                for version in (1, 2, 3, 4)
+            ])
+            await session.commit()
+            await session.refresh(legacy)
+            application_id = legacy.id
+
+        async with engine.begin() as conn:
+            await conn.execute(text("DROP TABLE application_status_events"))
+            await conn.execute(text("ALTER TABLE applications DROP COLUMN resume_snapshot"))
+            await conn.execute(text("ALTER TABLE applications DROP COLUMN resume_external_id"))
+            applied = await apply_migrations(conn)
+
+        assert applied == [5, 6]
+        events = await repo.application_status_history(user.id, application_id)
+        assert events is not None
+        assert [(event.status, event.created_at) for event in events] == [
+            ("submitted", datetime(2025, 1, 2, 3, 4)),
+        ]
+        loaded = await repo.get_application(user.id, application_id)
+        assert loaded.resume_snapshot == ""
+        assert loaded.resume_external_id is None
+    finally:
+        await engine.dispose()
 
 
 async def _repository_review_flow(monkeypatch):

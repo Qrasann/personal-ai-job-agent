@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — legacy application migration verification
+
+At start: HEAD `66f6e30`, feature branch 79 commits ahead; VERSION 3.5.7.
+Migrations v5/v6 are now exercised against an isolated PostgreSQL schema
+simulating v4 and a preexisting application. New fields appear, and one initial
+history row is seeded from the known current status and original creation time;
+no missing transition history is reconstructed. Full isolated suite: 903 passed.
+Next: checkpoint/backup, then continue salary evidence or source-quality work.
+Never apply these migrations to production as part of this session.
+
 ## 2026-10-15 — disclose unknown salary-period behavior
 
 At start: HEAD `1fa2887`, feature branch 78 commits ahead; VERSION 3.5.7.

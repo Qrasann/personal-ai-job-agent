@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — legacy application migration verification
+
+Added a PostgreSQL regression that simulates an existing v4 schema, runs
+migrations v5/v6, and verifies new snapshot fields plus initial status history.
+Existing applications receive only their recorded current status at their
+original creation time; no past transition history is inferred. Full isolated
+suite: 903 passed.
+
 ## 2026-10-15 — disclose unknown salary-period behavior
 
 `/salary`, strict-toggle response and `/settings` now explain that the strict
