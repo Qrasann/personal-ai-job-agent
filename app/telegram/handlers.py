@@ -28,10 +28,11 @@ from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.matching.language_fit import normalize_cefr
+from app.agents.interview import build_interview_plan
 from app.services import apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
@@ -156,6 +157,7 @@ def _main_menu_text() -> str:
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
         "/resumediff 25 [resume_id] — сверить CV с вакансией\n"
+        "/interview 25 [career|relocation] — практические задания по вакансии\n"
         "/applications — сохранённые пакеты и отклики\n"
         "/application <id> <status|history|export> — статус, история или экспорт\n"
         "/english [A1–C2|unknown] — уровень английского\n"
@@ -1395,6 +1397,43 @@ async def compare_job(message: Message) -> None:
             f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",
         )
+
+@router.message(Command("interview"))
+async def interview_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if (
+        len(parts) not in {2, 3}
+        or not parts[1].isdigit()
+        or (len(parts) == 3 and parts[2].casefold() not in {"career", "relocation"})
+    ):
+        await message.answer("Использование: /interview <vacancy_id> [career|relocation]")
+        return
+    search_filter = {}
+    if len(parts) == 3:
+        scope = parts[2].casefold()
+        search = await _search_for_scope(user.id, scope)
+        if not search:
+            await message.answer(_missing_search_scope(scope))
+            return
+        search_filter = {"search_profile_id": search.id}
+    progress = await message.answer("⏳ Готовлю задания по требованиям вакансии…")
+    try:
+        payload = await get_vacancy_comparison(user.id, int(parts[1]), **search_filter)
+        plan = build_interview_plan(payload["comparison"])
+        await progress.edit_text(
+            render_interview_plan(payload["job"], plan),
+            parse_mode="HTML",
+        )
+    except Exception as exc:
+        issue = classify_source_error(exc, stage="processing")
+        await progress.edit_text(
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
+            parse_mode="HTML",
+        )
+
 
 @router.message(Command("resumediff"))
 async def resume_diff_command(message: Message) -> None:

@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — Interview Agent troubleshooting practice
+
+Added `/interview <vacancy_id> [career|relocation]` with up to five curated
+Linux, Docker, Kubernetes, Nginx, Networking, PostgreSQL, CI/CD and Prometheus
+exercises selected from recognized requirements. Required topics come first;
+each displays Candidate Fact type. No LLM call, interview prediction or score.
+Focused tests: 29 passed; full isolated PostgreSQL suite: 900 passed.
+
 ## 2026-10-15 — resume-content snapshot and explicit package export
 
 Schema v6 stores a local resume-text snapshot and optional external HH resume

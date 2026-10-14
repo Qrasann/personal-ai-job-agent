@@ -1,5 +1,17 @@
 # Handoff
 
+## 2026-10-15 — Interview Agent troubleshooting practice
+
+At start: HEAD `c3be38c`, feature branch 75 commits ahead; VERSION 3.5.7.
+Added `/interview <vacancy_id> [career|relocation]`, a deterministic exercise
+plan for up to five recognized vacancy requirements, ordered by required vs
+preferred and labeled with the Candidate Fact experience type. It uses curated
+troubleshooting topics, makes no LLM/API call, stores no answer and does not
+predict or score an interview. Focused tests: 29 passed; full isolated
+`job-agent-tests` PostgreSQL suite: 900 passed. Next: commit and sync backup;
+continue remaining Resume/Recruiter/Interview/Productization roadmap items.
+Live Telegram acceptance remains separate; proposal files remain untracked.
+
 ## 2026-10-15 — resume snapshot and explicit package export
 
 At start: HEAD `abecb1b`, feature branch 74 commits ahead; VERSION 3.5.7.

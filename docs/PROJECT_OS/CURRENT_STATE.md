@@ -1,5 +1,14 @@
 # Current State
 
+## 2026-10-15 — Interview Agent troubleshooting practice
+
+`/interview <vacancy_id> [career|relocation]` returns up to five deterministic
+troubleshooting exercises for recognized vacancy skills, ordered required then
+preferred and labeled with the candidate's stored Candidate Fact type. Curated
+topics include Linux, Docker, Kubernetes, Nginx, Networking, PostgreSQL, CI/CD
+and Prometheus. No API/model call, answer grading or interview prediction.
+Focused tests: 29 passed; isolated PostgreSQL full suite: 900 passed.
+
 ## 2026-10-15 — resume snapshot and explicit package export
 
 Schema v6 adds local resume-text snapshot and optional external HH resume ID to

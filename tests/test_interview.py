@@ -1,0 +1,59 @@
+from types import SimpleNamespace
+
+from app.agents.interview import build_interview_plan
+from app.matching.fact_comparison import compare_facts
+from app.telegram.vacancy_view import render_interview_plan
+
+
+def _fact(fact_id, value, experience_type):
+    return SimpleNamespace(
+        id=fact_id, value=value, experience_type=experience_type,
+        active=True, deleted_at=None,
+    )
+
+
+def test_interview_plan_uses_vacancy_importance_and_candidate_fact_state():
+    facts = [_fact(1, "Linux system administration", "lab")]
+    comparison = compare_facts(
+        "Requirements: Linux, Docker. Nice to have: Nginx.",
+        facts,
+    )
+
+    plan = build_interview_plan(comparison)
+
+    assert [item["skill"] for item in plan] == ["Docker", "Linux", "Nginx"]
+    assert [item["importance"] for item in plan] == ["required", "required", "preferred"]
+    assert plan[0]["candidate_status"] == "missing"
+    assert plan[1]["candidate_status"] == "lab"
+    assert all(item["scenario"] and item["criteria"] for item in plan)
+
+
+def test_interview_plan_is_bounded_and_only_uses_curated_exercises():
+    comparison = compare_facts(
+        "Requirements: Linux, Docker, Nginx, Kubernetes, PostgreSQL, Networking, CI/CD.",
+        [],
+    )
+
+    plan = build_interview_plan(comparison, limit=3)
+
+    assert len(plan) == 3
+    assert {item["skill"] for item in plan} <= {
+        "Linux", "Docker", "Nginx", "Kubernetes", "PostgreSQL", "Networking", "CI/CD",
+    }
+
+
+def test_interview_view_labels_templates_and_escapes_vacancy_title():
+    text = render_interview_plan(
+        SimpleNamespace(id=9, title="DevOps <Lead>"),
+        ({
+            "skill": "Linux", "importance": "required", "candidate_status": "commercial",
+            "scenario": "Diagnose CPU pressure", "task": "Explain safe triage",
+            "criteria": ("Inspect processes", "Check logs"),
+        },),
+    )
+
+    assert "DevOps &lt;Lead&gt;" in text
+    assert "Diagnose CPU pressure" in text
+    assert "Candidate Fact: commercial" in text
+    assert "не предсказание вопросов" in text
+    assert "<Lead>" not in text

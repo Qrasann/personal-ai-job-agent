@@ -664,3 +664,41 @@ def render_application_export(application, job) -> str:
         lines.append("No resume was selected for this record.")
     lines.extend(["", "=== Saved cover-letter text ===", application.message or "No cover-letter text."])
     return "\n".join(lines)
+
+
+def render_interview_plan(job, plan: tuple[dict, ...]) -> str:
+    title = _clip(repair_mojibake(str(job.title or "")), 120)
+    lines = [
+        "🎤 <b>Практика по вакансии</b>",
+        f"#{job.id} · {html.escape(title)}",
+        "",
+    ]
+    if not plan:
+        lines.extend([
+            "Для распознанных требований пока нет подготовленного сценария.",
+            "Словарь упражнений покрывает выбранные DevOps/Infrastructure темы и будет расширяться.",
+        ])
+    else:
+        importance_labels = {"required": "обязательно", "preferred": "желательно", "unknown": "важность неясна"}
+        status_labels = {
+            "commercial": "Candidate Fact: commercial",
+            "lab": "Candidate Fact: lab",
+            "learning": "Candidate Fact: learning",
+            "unknown": "Candidate Fact: тип не указан",
+            "missing": "Candidate Fact: отсутствует",
+        }
+        for index, item in enumerate(plan, 1):
+            lines.extend([
+                f"<b>{index}. {html.escape(item['skill'])}</b> · "
+                f"{importance_labels.get(item['importance'], 'важность неясна')} · "
+                f"{status_labels.get(item['candidate_status'], 'Candidate Fact: неизвестно')}",
+                html.escape(_clip(item["scenario"], 300)),
+                "Задание: " + html.escape(_clip(item["task"], 300)),
+                "Ориентиры: " + "; ".join(html.escape(_clip(str(point), 100)) for point in item["criteria"]),
+                "",
+            ])
+    lines.append(
+        "Это тренировочные сценарии, не предсказание вопросов и не оценка собеседования. "
+        "Candidate Fact показывает сохранённый тип опыта, а не результат тестирования."
+    )
+    return "\n".join(lines)

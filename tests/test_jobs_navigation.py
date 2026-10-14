@@ -304,6 +304,21 @@ def test_compare_command_preserves_explicit_relocation_profile(monkeypatch):
     assert progress.edit_text.await_args.args[0] == "Scoped comparison"
 
 
+def test_interview_command_preserves_scoped_profile_and_renders_practice_plan(monkeypatch):
+    _mock_profiles(monkeypatch)
+    comparison = AsyncMock(return_value={"comparison": "comparison", "job": _job(25, "DevOps")})
+    monkeypatch.setattr(handlers, "get_vacancy_comparison", comparison)
+    monkeypatch.setattr(handlers, "build_interview_plan", lambda value: ("exercise",))
+    monkeypatch.setattr(handlers, "render_interview_plan", lambda job, plan: "PRACTICE PLAN")
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    message = SimpleNamespace(text="/interview 25 relocation", answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.interview_command(message))
+
+    comparison.assert_awaited_once_with(7, 25, search_profile_id=4)
+    assert progress.edit_text.await_args.args[0] == "PRACTICE PLAN"
+
+
 def test_compare_command_reports_sanitized_error_instead_of_undefined_issue(monkeypatch):
     _mock_profiles(monkeypatch)
     comparison = AsyncMock(side_effect=ValueError("sensitive internal detail"))

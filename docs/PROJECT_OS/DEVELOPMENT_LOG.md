@@ -2131,3 +2131,12 @@ user-scoped lookup and emits the snapshot, letter and vacancy metadata as a
 bounded UTF-8 text document on explicit command; records predating v6 disclose
 that their resume snapshot is unavailable. Original-format export is not
 implemented. Focused tests: 44 passed; full isolated PostgreSQL suite: 896.
+
+## 2026-10-15 — Interview Agent troubleshooting practice
+
+Added `/interview <vacancy_id> [career|relocation]`, which maps recognized job
+requirements to at most five curated troubleshooting prompts, tasks and
+checklists. Mandatory requirements precede preferred ones, and each item shows
+the stored Candidate Fact type. No model/API request, persisted answer,
+prediction or candidate score is involved. Focused tests: 29 passed; full
+isolated PostgreSQL suite: 900 passed.

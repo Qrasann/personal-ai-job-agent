@@ -1,5 +1,16 @@
 # Tasks
 
+## 2026-10-15 — Interview Agent troubleshooting practice
+
+- [x] Add `/interview <vacancy_id> [career|relocation]` based on recognized
+  vacancy requirements and the selected profile's Candidate Fact comparison.
+- [x] Curate reproducible Linux, Docker, Kubernetes, Nginx, Networking,
+  PostgreSQL, CI/CD and Prometheus scenarios; put required topics first and
+  display saved fact type without grading or prediction.
+- [x] Verify focused suite (29) and full isolated PostgreSQL suite (900).
+- [ ] Add interactive answer capture and evidence-grounded feedback only after
+  defining private storage/retention and a useful scoring rubric.
+
 ## 2026-10-15 — resume snapshot and explicit package export
 
 - [x] Add additive schema v6 fields for a local resume-text snapshot and
