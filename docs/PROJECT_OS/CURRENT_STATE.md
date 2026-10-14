@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — source publication-date field coverage
+
+Source summaries report nonempty publication-date-field coverage as a
+provided/total count. Missing fields remain visible in the denominator. This
+does not parse validity, measure age or change filtering. Focused tests: 55;
+full isolated PostgreSQL: 912 passed.
+
 ## 2026-10-15 — display explicit salary period evidence
 
 Vacancy salary display now shows explicit nearby periods such as monthly,

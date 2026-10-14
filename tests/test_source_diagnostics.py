@@ -109,6 +109,18 @@ def test_source_dashboard_shows_stretch_yield_per_source():
     assert "дубликатов: 1" in line
 
 
+def test_source_dashboard_reports_publication_date_field_coverage_without_staleness_claim():
+    sources = {}
+    aggregate_source(sources, "eures", {
+        "status": "success", "found": 4,
+        "publication_date_provided": 3, "publication_date_missing": 1,
+    })
+
+    line = render_source_summary("eures", sources["eures"])
+    assert "поле даты публикации заполнено: 3/4" in line
+    assert "просроч" not in line
+
+
 def test_dense_dashboard_is_bounded_without_breaking_html_entities():
     import html
     from app.search.source_summary import render_source_dashboard

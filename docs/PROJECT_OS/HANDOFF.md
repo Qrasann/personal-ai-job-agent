@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-15 — source publication-date field coverage
+
+At start: HEAD `e0e74a5`, feature branch 83 commits ahead; VERSION 3.5.7.
+Per-source scan summaries now show the count of discovered vacancies with a
+nonempty source publication-date field. This is coverage only: no date
+validation, stale labeling or filtering. Focused source tests: 55 passed; full
+isolated PostgreSQL suite: 912 passed. Next: checkpoint/backup, then continue
+source quality or Candidate Fit with grounded signals. Owner proposals remain
+untracked.
+
 ## 2026-10-15 — display explicit salary period evidence
 
 At start: HEAD `37b9673`, feature branch 82 commits ahead; VERSION 3.5.7.

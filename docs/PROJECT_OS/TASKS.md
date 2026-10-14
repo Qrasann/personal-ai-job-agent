@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — source publication-date field coverage
+
+- [x] Count nonempty and absent publication-date fields per source attempt.
+- [x] Show coverage in source summaries without stale/validity inference.
+- [x] Verify focused source tests (55) and isolated PostgreSQL suite (912).
+- [ ] Add freshness or expiry assessment only where source semantics and
+  timezone/format evidence are defined.
+
 ## 2026-10-15 — display explicit salary period evidence
 
 - [x] Show explicit nearby periods in formatted vacancy salary text.

@@ -3,7 +3,7 @@ from __future__ import annotations
 from app.sources.diagnostics import SourceSummaryError, legacy_diagnostic
 
 
-COUNTERS = ("found", "processed", "qualified", "stretch", "notified", "filtered", "duplicate", "retry", "fallback", "processing_errors")
+COUNTERS = ("found", "processed", "qualified", "stretch", "notified", "filtered", "duplicate", "retry", "fallback", "processing_errors", "publication_date_provided", "publication_date_missing")
 
 
 def normalize_attempt(info: dict) -> dict:
@@ -95,6 +95,9 @@ def render_source_summary(source_id: str, info: dict) -> str:
         line += " · кэш"
     if info.get("partial_failures"):
         line += f" · сбои: {int(info['partial_failures'])}"
+    date_total = int(info.get("publication_date_provided", 0)) + int(info.get("publication_date_missing", 0))
+    if date_total:
+        line += f" · поле даты публикации заполнено: {int(info.get('publication_date_provided', 0))}/{date_total}"
     for key, title in (("processed", "обработано"), ("qualified", "Good"), ("stretch", "Stretch"), ("filtered", "отфильтровано"), ("duplicate", "дубликатов"), ("failed", "ошибок попыток"), ("skipped", "пропусков"), ("processing_errors", "ошибок обработки"), ("partial_attempts", "частичных попыток"), ("retry", "повторов"), ("fallback", "fallback")):
         if isinstance(info.get(key), int) and info[key]:
             line += f" · {title}: {info[key]}"

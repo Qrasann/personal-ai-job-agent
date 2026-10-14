@@ -525,6 +525,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 eligible.sort(key=lambda pair: pair[0], reverse=True)
                 jobs = [job for _, job in eligible]
                 info["found"] = len(jobs)
+                info["publication_date_provided"] = sum(
+                    bool(str(getattr(job, "published_at", "") or "").strip()) for job in jobs
+                )
+                info["publication_date_missing"] = len(jobs) - info["publication_date_provided"]
                 cache_label = " (кэш)" if cache_hit else ""
                 await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · {duration_ms / 1000:.1f} с")
                 for index, job in enumerate(jobs, start=1):

@@ -146,6 +146,28 @@ def test_one_bad_vacancy_does_not_discard_later_results_from_source(monkeypatch)
     assert summary["searches"]["11"]["sources"]["remoteok"]["processing_errors"] == 1
 
 
+def test_scan_summary_counts_nonempty_source_publication_date_fields(monkeypatch):
+    class Source:
+        source_id = name = "remoteok"
+
+        async def discover(self, _context):
+            return [
+                NormalizedJob(source="remoteok", source_job_id="dated", title="DevOps", published_at="2026-10-01"),
+                NormalizedJob(source="remoteok", source_job_id="undated", title="DevOps", published_at="  "),
+                NormalizedJob(source="remoteok", source_job_id="unknown", title="DevOps"),
+            ]
+
+    configure_scan(monkeypatch, {"remoteok": Source})
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={"processed": 1}))
+    monkeypatch.setattr(services, "notify_chat", AsyncMock())
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    info = summary["sources"]["remoteok"]
+    assert info["found"] == 3
+    assert info["publication_date_provided"] == 1
+    assert info["publication_date_missing"] == 2
+
+
 def test_partial_source_failures_are_preserved_in_scan_summary(monkeypatch):
     class Eures:
         source_id = name = "eures"

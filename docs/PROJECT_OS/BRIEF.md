@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — source publication-date field coverage
+
+Per-source scan summaries now show how many discovered vacancies have a
+nonempty source publication-date field. This measures field coverage only; it
+does not validate dates or label vacancies stale. Focused source tests: 55
+passed; full isolated PostgreSQL suite: 912 passed.
+
 ## 2026-10-15 — display explicit salary period evidence
 
 Salary text with a nearby explicit period now displays that period beside the

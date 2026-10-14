@@ -1,3 +1,10 @@
+## 2026-10-15 — source publication-date field coverage
+
+Added per-source `publication_date_provided` and `publication_date_missing`
+counts over discovered eligible vacancies. Dashboard describes field coverage
+without inferring date validity or vacancy freshness. Focused source tests: 55;
+isolated PostgreSQL suite: 912 passed.
+
 ## 2026-10-15 — display explicit salary period evidence
 
 Added conservative display-only extraction of explicit salary periods near a
