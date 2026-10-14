@@ -1,5 +1,14 @@
 # Handoff
 
+## Current code checkpoint — 2026-10-15
+
+Verified code HEAD `4d8cce2` on `feature/v3.5.7-international-market-coverage`,
+92 commits ahead before this handoff-only update. VERSION remains 3.5.7; latest
+formal release is v3.5.6. The isolated PostgreSQL suite passed 928 tests for
+this code. Local and GitHub backup branch `backup/v3.5.7-20261015` both pointed
+to this code checkpoint before the documentation update. The handoff-only
+checkpoint below records the updated backup ref; no proposal files are staged.
+
 ## 2026-10-15 — isolated parenthesized skill alternatives
 
 At start: HEAD `321f601`, feature branch 91 commits ahead; VERSION 3.5.7.
@@ -11,7 +20,9 @@ remain ungrouped. Focused fit tests: 67 passed; full isolated PostgreSQL:
 checkpoint/backup, then continue source quality and package fidelity. Owner
 proposal files remain untracked.
 
-## Latest verified checkpoint — 2026-10-15
+## Earlier verified checkpoint — 2026-10-15
+
+The following state predates the implementation entries above.
 
 HEAD `bda5b6b` on `feature/v3.5.7-international-market-coverage`, 90 commits
 ahead of its feature upstream. `VERSION=3.5.7`; latest formal release is
