@@ -2,11 +2,13 @@
 
 ## 2026-10-15 — verified local development checkpoint
 
-HEAD is `9001040` on `feature/v3.5.7-international-market-coverage`, 64 commits
-ahead; VERSION remains 3.5.7. Checkpoints: `a4ac2b1` candidate profile and
+HEAD at the start of this handoff refresh is `37633fc` on
+`feature/v3.5.7-international-market-coverage`, 65 commits ahead; VERSION
+remains 3.5.7. Checkpoints: `a4ac2b1` candidate profile and
 resume import controls; `bdd4b28` source outcomes; `4c6eb28` secret scan;
 `fca12ba` vacancy fit/mobility; `b62835e` roadmap/handoff sync;
-`9001040` per-source processed/Good/Stretch/filtered/duplicate metrics. The full
+`9001040` per-source processed/Good/Stretch/filtered/duplicate metrics; the
+docs-only follow-up is `37633fc`. The full
 isolated `job-agent-tests` PostgreSQL suite passed: 878 tests. Focused
 fit/scoring/detail tests: 102 passed; source summary: 30 passed. Compileall,
 staged/worktree diff checks and staged/worktree/history secret scan passed. No
@@ -22,7 +24,10 @@ remaining roadmap for source freshness/yield and complete Candidate Fact DB
 acceptance where a meaningful uncovered case exists; continue with independent
 safe work. The `AGENTS.md` workflow update and PROJECT_OS/roadmap reconciliation
 are committed in `b62835e`; the current source-yield status update is pending a
-documentation checkpoint. Live Telegram acceptance and jurisdiction-specific
+documentation checkpoint. User requested durable local and GitHub version
+copies; the verified snapshot is being preserved on a dedicated backup branch,
+separate from release/main and without a tag. The two proposal files remain
+untracked. Live Telegram acceptance and jurisdiction-specific
 legal eligibility remain separate evidence gates.
 
 ## 2026-10-15 — Candidate/Vacancy multi-option fit

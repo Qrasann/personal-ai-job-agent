@@ -2067,3 +2067,11 @@ bound below the configured minimum. Unknown and incomplete evidence stays
 eligible. Focused salary/preferences tests: 52 passed; full isolated PostgreSQL
 suite: 873 passed. Compileall, diff-check and secret scan passed. Provider
 tax-basis remains a review item.
+
+## 2026-10-15 — recoverable version snapshot
+
+Verified the current feature branch at `37633fc` (65 commits ahead of its
+tracked origin), with VERSION 3.5.7 and two untracked owner proposal files.
+Refreshed HANDOFF with the exact verification/checkpoint history and preserved
+the proposals outside Git. A dedicated branch snapshot is being made for local
+and GitHub recovery; no release, tag, merge or deployment is involved.
