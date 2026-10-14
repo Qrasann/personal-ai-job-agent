@@ -3,9 +3,10 @@ import os
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.exc import DBAPIError
 
 from app.database import repository as repo
-from app.database.models import Base
+from app.database.models import Base, CandidateFact
 from app.domain.jobs import NormalizedJob
 
 
@@ -46,6 +47,9 @@ async def _repository_review_flow(monkeypatch):
         assert loaded_user.id == user.id
 
         profile = await repo.ensure_default_profile(user.id)
+        assert (await repo.get_profile(profile.id)).english_level == ""
+        await repo.set_profile_english_level(profile.id, "C1")
+        assert (await repo.get_profile(profile.id)).english_level == "C1"
         searches = await repo.list_search_profiles(profile.id)
         assert len(searches) == 1
         await repo.configure_parallel_search_profiles(profile.id, enabled=True)
@@ -76,6 +80,26 @@ async def _repository_review_flow(monkeypatch):
         )
         resumes = await repo.list_resumes(profile.id)
         assert [item.id for item in resumes] == [resume.id]
+
+        imported = await repo.add_imported_resume_with_facts(
+            profile.id, "Atomic import", "en", "DevOps", "Linux", "fingerprint-ok",
+            [{"category": "skill", "value": "Linux", "confidence": 0.9, "section": "Skills"}],
+        )
+        assert imported.external_id == "fingerprint-ok"
+        assert any(item.value == "Linux" and item.provenance == "resume_import"
+                   for item in await repo.list_facts(profile.id))
+
+        with pytest.raises(DBAPIError):
+            await repo.add_imported_resume_with_facts(
+                profile.id, "Rollback import", "en", "DevOps", "Docker", "fingerprint-rollback",
+                [{"category": "x" * 65, "value": "Docker", "confidence": 1.0, "section": "Skills"}],
+            )
+        assert all(item.external_id != "fingerprint-rollback" for item in await repo.list_resumes(profile.id))
+        retried = await repo.add_imported_resume_with_facts(
+            profile.id, "Retry import", "en", "DevOps", "Docker", "fingerprint-rollback",
+            [{"category": "skill", "value": "Docker", "confidence": 1.0, "section": "Skills"}],
+        )
+        assert retried.external_id == "fingerprint-rollback"
 
         normalized = NormalizedJob(
             source="integration",
@@ -260,6 +284,48 @@ async def _repository_review_flow(monkeypatch):
             search_profile_id=restored.id,
         )
         assert [item.id for item, _ in restored_matches] == [item.id for item in relocation_matches]
+
+        reviewed_fact = await repo.add_fact(profile.id, "Linux Docker", experience_type="commercial")
+        replacement = {"existing_id": reviewed_fact.id, "expected_value": "Linux Docker",
+                       "category": "skills", "value": "Linux Docker Kubernetes",
+                       "confidence": 0.92, "section": "skills"}
+        with pytest.raises(repo.FactUpdateConflict):
+            await repo.add_imported_resume_with_facts(
+                profile.id, "Stale update", "en", "DevOps", "Linux", "stale-update", [],
+                replacements=[{**replacement, "expected_value": "unreviewed text"}],
+            )
+        with pytest.raises(DBAPIError):
+            await repo.add_imported_resume_with_facts(
+                profile.id, "Failed update", "en", "DevOps", "Linux", "failed-update", [],
+                replacements=[{**replacement, "category": "x" * 65}],
+            )
+        assert reviewed_fact.id in {item.id for item in await repo.list_facts(profile.id)}
+        assert all(item.external_id not in {"stale-update", "failed-update"}
+                   for item in await repo.list_resumes(profile.id))
+        await repo.add_imported_resume_with_facts(
+            profile.id, "Reviewed update", "en", "DevOps", "Linux", "reviewed-update", [],
+            replacements=[replacement],
+        )
+        active_facts = await repo.list_facts(profile.id)
+        assert reviewed_fact.id not in {item.id for item in active_facts}
+        new_fact = next(item for item in active_facts if item.value == replacement["value"])
+        assert new_fact.experience_type == "unknown" and new_fact.commercial is False
+        assert new_fact.provenance == "resume_import"
+        async with test_session() as session:
+            retained = await session.get(CandidateFact, reviewed_fact.id)
+            assert retained.value == "Linux Docker" and retained.experience_type == "commercial"
+            assert retained.active is False
+
+        other_user = await repo.create_user("integration-import-other")
+        other_profile = await repo.ensure_default_profile(other_user.id)
+        other_fact = await repo.add_fact(other_profile.id, "Other Linux Docker")
+        with pytest.raises(repo.FactUpdateConflict):
+            await repo.add_imported_resume_with_facts(
+                profile.id, "Foreign update", "en", "DevOps", "Linux", "foreign-update", [],
+                replacements=[{**replacement, "existing_id": other_fact.id, "expected_value": other_fact.value}],
+            )
+        assert other_fact.id in {item.id for item in await repo.list_facts(other_profile.id)}
+        assert all(item.external_id != "foreign-update" for item in await repo.list_resumes(profile.id))
 
         stored_match = await repo.get_match(match.id)
         assert stored_match is not None

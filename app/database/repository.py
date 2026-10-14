@@ -23,6 +23,10 @@ from app.candidates.fact_types import normalize_experience_type
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
 
 
+class FactUpdateConflict(ValueError):
+    """An import UPDATE no longer matches the reviewed active fact."""
+
+
 async def get_user_by_chat(chat_id: int | str) -> User | None:
     async with SessionLocal() as session:
         return await session.scalar(select(User).where(User.telegram_chat_id == str(chat_id), User.deleted_at.is_(None)))
@@ -37,12 +41,23 @@ async def create_user(chat_id: int | str, display_name: str = "") -> User:
         return item
 
 
-async def ensure_default_profile(user_id: int, *, profile_name: str = "Main", target_role: str = "DevOps Engineer") -> CandidateProfile:
+async def ensure_default_profile(
+    user_id: int,
+    *,
+    profile_name: str = "Main",
+    target_role: str = "DevOps Engineer",
+    english_level: str = "",
+) -> CandidateProfile:
     async with SessionLocal() as session:
         existing = await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True), CandidateProfile.deleted_at.is_(None)))
         if existing:
             return existing
-        profile = CandidateProfile(user_id=user_id, name=profile_name, target_role=target_role, english_level="B2")
+        profile = CandidateProfile(
+            user_id=user_id,
+            name=profile_name,
+            target_role=target_role,
+            english_level=english_level,
+        )
         session.add(profile)
         await session.flush()
         search = SearchProfile(profile_id=profile.id, name="Employment", kind="employment", settings={})
@@ -55,6 +70,16 @@ async def ensure_default_profile(user_id: int, *, profile_name: str = "Main", ta
 async def active_profile(user_id: int) -> CandidateProfile | None:
     async with SessionLocal() as session:
         return await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True), CandidateProfile.deleted_at.is_(None)).order_by(CandidateProfile.id))
+
+
+async def get_profile(profile_id: int) -> CandidateProfile | None:
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(CandidateProfile).where(
+                CandidateProfile.id == profile_id,
+                CandidateProfile.deleted_at.is_(None),
+            )
+        )
 
 
 async def list_profiles(user_id: int) -> list[CandidateProfile]:
@@ -109,6 +134,62 @@ async def add_resume(profile_id: int, name: str, language: str, role: str, conte
         await session.commit()
         await session.refresh(item)
         return item
+
+
+async def add_imported_resume_with_facts(
+    profile_id: int,
+    name: str,
+    language: str,
+    role: str,
+    content: str,
+    external_id: str,
+    facts: list[dict],
+    *,
+    replacements: list[dict] | None = None,
+) -> ResumeProfile:
+    """Persist the resume, additions and reviewed replacements atomically."""
+    replacements = replacements or []
+    replacement_ids = [item["existing_id"] for item in replacements]
+    if len(replacement_ids) != len(set(replacement_ids)):
+        raise FactUpdateConflict("Для одного факта выбери только один UPDATE.")
+    async with SessionLocal() as session:
+        for replacement in sorted(replacements, key=lambda item: item["existing_id"]):
+            existing = await session.scalar(
+                select(CandidateFact).where(
+                    CandidateFact.id == replacement["existing_id"],
+                    CandidateFact.profile_id == profile_id,
+                    CandidateFact.active.is_(True), CandidateFact.deleted_at.is_(None),
+                ).with_for_update()
+            )
+            if existing is None or existing.value != replacement["expected_value"]:
+                raise FactUpdateConflict("Факт изменился после предпросмотра. Выбери KEEP или загрузи резюме заново.")
+            # Retain the old value and its evidence; imported replacement claims
+            # are new unknown facts, never inherited commercial experience.
+            existing.active = False
+        resume = ResumeProfile(
+            profile_id=profile_id, name=name, language=language, role=role,
+            content=content, source="imported", external_id=external_id,
+        )
+        session.add(resume)
+        await session.flush()
+        for fact in [*facts, *replacements]:
+            evidence = f"resume_import section={fact['section']}; confidence={fact['confidence']:.2f}"
+            if "existing_id" in fact:
+                evidence += f"; replaces_fact_id={fact['existing_id']}"
+            session.add(CandidateFact(
+                profile_id=profile_id,
+                category=fact["category"],
+                key=fact["category"],
+                value=fact["value"],
+                experience_type="unknown",
+                commercial=False,
+                confidence=max(0.0, min(1.0, float(fact["confidence"]))),
+                provenance="resume_import",
+                evidence=evidence,
+            ))
+        await session.commit()
+        await session.refresh(resume)
+        return resume
 
 
 async def list_resumes(profile_id: int) -> list[ResumeProfile]:
@@ -559,4 +640,12 @@ async def set_profile_target_role(profile_id: int, role: str) -> None:
         item = await session.get(CandidateProfile, profile_id)
         if item:
             item.target_role = role
+            await session.commit()
+
+
+async def set_profile_english_level(profile_id: int, level: str) -> None:
+    async with SessionLocal() as session:
+        item = await session.get(CandidateProfile, profile_id)
+        if item and item.deleted_at is None:
+            item.english_level = level
             await session.commit()

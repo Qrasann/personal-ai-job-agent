@@ -6,7 +6,123 @@ import time
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import pytest
+
 from app.telegram import handlers
+from app.candidates.importer import FactProposal, FactOverlap
+
+
+def conflict_pending():
+    proposal = FactProposal("skills", "Linux Docker Kubernetes", 0.92, "skills")
+    return {
+        "user_id": 7, "profile_id": 11, "content": "Skills\nLinux Docker Kubernetes", "fingerprint": "conflict-hash",
+        "language": "en", "role": "DevOps", "proposals": (proposal,),
+        "overlaps": (FactOverlap(proposal, 42, "Linux Docker"),), "choices": {},
+        "created_at": time.time(),
+    }
+
+
+@pytest.mark.parametrize("choice", [None, "add", "update", "keep"])
+def test_conflict_choice_waits_for_save_and_applies_only_selected_effect(monkeypatch, choice):
+    token = "choice-test"
+    pending = conflict_pending()
+    handlers._PENDING_RESUME_IMPORTS[token] = pending
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_resumes", AsyncMock(return_value=[]))
+    save = AsyncMock(return_value=SimpleNamespace(id=22))
+    monkeypatch.setattr(handlers.repo, "add_imported_resume_with_facts", save)
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+
+    async def scenario():
+        if choice:
+            callback = SimpleNamespace(data=f"rchoice:{token}:0:{choice}", message=message, answer=AsyncMock())
+            await handlers.choose_resume_fact(callback)
+        save.assert_not_awaited()
+        callback = SimpleNamespace(data=f"rimp:facts:{token}", message=message, answer=AsyncMock())
+        await handlers.confirm_resume_import(callback)
+
+    try:
+        asyncio.run(scenario())
+        save.assert_awaited_once()
+        assert len(save.await_args.args[6]) == int(choice == "add")
+        replacements = save.await_args.kwargs["replacements"]
+        assert len(replacements) == int(choice == "update")
+        if replacements:
+            assert replacements[0]["existing_id"] == 42
+            assert replacements[0]["expected_value"] == "Linux Docker"
+        assert token not in handlers._PENDING_RESUME_IMPORTS
+    finally:
+        handlers._PENDING_RESUME_IMPORTS.pop(token, None)
+
+
+def test_other_user_cannot_change_import_conflict_choice(monkeypatch):
+    token = "foreign-choice"
+    pending = conflict_pending()
+    handlers._PENDING_RESUME_IMPORTS[token] = pending
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=8)))
+    message = SimpleNamespace(chat=SimpleNamespace(id=888), edit_text=AsyncMock())
+    callback = SimpleNamespace(data=f"rchoice:{token}:0:update", message=message, answer=AsyncMock())
+    try:
+        asyncio.run(handlers.choose_resume_fact(callback))
+        assert pending["choices"] == {}
+        message.edit_text.assert_not_awaited()
+        assert callback.answer.await_args.kwargs["show_alert"] is True
+    finally:
+        handlers._PENDING_RESUME_IMPORTS.pop(token, None)
+
+
+@pytest.mark.parametrize("suffix", ["²:update", "99:update", "0:delete"])
+def test_invalid_conflict_callbacks_leave_preview_unchanged(monkeypatch, suffix):
+    token = "invalid-choice"
+    pending = conflict_pending()
+    handlers._PENDING_RESUME_IMPORTS[token] = pending
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data=f"rchoice:{token}:{suffix}", message=message, answer=AsyncMock())
+    try:
+        asyncio.run(handlers.choose_resume_fact(callback))
+        assert pending["choices"] == {}
+        assert handlers._PENDING_RESUME_IMPORTS[token] is pending
+        message.edit_text.assert_not_awaited()
+        assert callback.answer.await_args.kwargs["show_alert"] is True
+    finally:
+        handlers._PENDING_RESUME_IMPORTS.pop(token, None)
+
+
+def test_choice_cannot_mutate_preview_already_claimed_by_save(monkeypatch):
+    token = "claimed-choice"
+    pending = conflict_pending()
+    handlers._PENDING_RESUME_IMPORTS[token] = pending
+
+    async def lookup(chat_id):
+        handlers._PENDING_RESUME_IMPORTS.pop(token, None)
+        return SimpleNamespace(id=7)
+
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", lookup)
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data=f"rchoice:{token}:0:update", message=message, answer=AsyncMock())
+    asyncio.run(handlers.choose_resume_fact(callback))
+    assert pending["choices"] == {}
+    message.edit_text.assert_not_awaited()
+
+
+def test_changed_database_fact_keeps_preview_for_keep_or_reupload(monkeypatch):
+    token = "stale-fact"
+    pending = conflict_pending()
+    pending["choices"] = {0: "update"}
+    handlers._PENDING_RESUME_IMPORTS[token] = pending
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_resumes", AsyncMock(return_value=[]))
+    monkeypatch.setattr(handlers.repo, "add_imported_resume_with_facts", AsyncMock(
+        side_effect=handlers.repo.FactUpdateConflict("Факт изменился. Выбери KEEP.")))
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
+    callback = SimpleNamespace(data=f"rimp:facts:{token}", message=message, answer=AsyncMock())
+    try:
+        asyncio.run(handlers.confirm_resume_import(callback))
+        assert handlers._PENDING_RESUME_IMPORTS[token] is pending
+        assert "KEEP" in callback.answer.await_args.args[0]
+    finally:
+        handlers._PENDING_RESUME_IMPORTS.pop(token, None)
 
 
 def test_resume_import_requires_confirmation_and_saves_generic_resume_and_facts(monkeypatch):
@@ -22,15 +138,12 @@ def test_resume_import_requires_confirmation_and_saves_generic_resume_and_facts(
     monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=profile))
     monkeypatch.setattr(handlers.repo, "list_resumes", AsyncMock(return_value=[]))
     monkeypatch.setattr(handlers.repo, "list_facts", AsyncMock(return_value=[]))
-    add_resume = AsyncMock(return_value=SimpleNamespace(id=22))
-    add_fact = AsyncMock(return_value=SimpleNamespace(id=1))
-    monkeypatch.setattr(handlers.repo, "add_resume", add_resume)
-    monkeypatch.setattr(handlers.repo, "add_fact", add_fact)
+    save_import = AsyncMock(return_value=SimpleNamespace(id=22))
+    monkeypatch.setattr(handlers.repo, "add_imported_resume_with_facts", save_import)
 
     asyncio.run(handlers.import_resume_document(message, bot))
 
-    assert add_resume.await_count == 0
-    assert add_fact.await_count == 0
+    assert save_import.await_count == 0
     preview = message.answer.await_args
     assert "private-name" not in preview.args[0]
     callback_data = preview.kwargs["reply_markup"].inline_keyboard[1][0].callback_data
@@ -41,15 +154,13 @@ def test_resume_import_requires_confirmation_and_saves_generic_resume_and_facts(
 
     asyncio.run(handlers.confirm_resume_import(callback))
 
-    add_resume.assert_awaited_once()
-    args = add_resume.await_args.args
-    kwargs = add_resume.await_args.kwargs
+    save_import.assert_awaited_once()
+    args = save_import.await_args.args
     assert args[1] == "Imported resume " + handlers.datetime.now().strftime("%Y-%m-%d")
     assert args[1] != "private-name.txt"
-    assert kwargs["source"] == "imported"
-    assert kwargs["content"].startswith("Skills")
-    assert add_fact.await_count == 2
-    assert all(call.kwargs["provenance"] == "resume_import" for call in add_fact.await_args_list)
+    assert args[4].startswith("Skills")
+    assert len(args[6]) == 2
+    assert all(fact["section"] for fact in args[6])
     assert token not in handlers._PENDING_RESUME_IMPORTS
 
 
@@ -83,7 +194,7 @@ def test_concurrent_resume_confirmations_do_not_write_twice(monkeypatch):
         return SimpleNamespace(id=22)
 
     save = AsyncMock(side_effect=add_resume)
-    monkeypatch.setattr(handlers.repo, "add_resume", save)
+    monkeypatch.setattr(handlers.repo, "add_imported_resume_with_facts", save)
 
     def callback():
         message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock(), edit_reply_markup=AsyncMock())
@@ -99,3 +210,30 @@ def test_concurrent_resume_confirmations_do_not_write_twice(monkeypatch):
         handlers._PENDING_RESUME_IMPORTS.pop(token, None)
 
     save.assert_awaited_once()
+
+
+@pytest.mark.parametrize("failure_stage", ["lookup", "save"])
+def test_failed_atomic_resume_import_can_be_retried(monkeypatch, failure_stage):
+    token = "retry-test"
+    pending = {
+        "user_id": 7, "profile_id": 11, "content": "Skills\nLinux", "fingerprint": "hash",
+        "language": "en", "role": "DevOps", "proposals": (), "overlaps": (),
+        "created_at": time.time(),
+    }
+    handlers._PENDING_RESUME_IMPORTS[token] = pending
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    lookup = AsyncMock(return_value=[])
+    save = AsyncMock(return_value=SimpleNamespace(id=22))
+    (lookup if failure_stage == "lookup" else save).side_effect = RuntimeError("database unavailable")
+    monkeypatch.setattr(handlers.repo, "list_resumes", lookup)
+    monkeypatch.setattr(handlers.repo, "add_imported_resume_with_facts", save)
+    callback_message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock(), edit_reply_markup=AsyncMock())
+    callback = SimpleNamespace(data=f"rimp:facts:{token}", message=callback_message, answer=AsyncMock())
+
+    try:
+        asyncio.run(handlers.confirm_resume_import(callback))
+        assert handlers._PENDING_RESUME_IMPORTS[token] is pending
+        callback.answer.assert_awaited_once()
+        assert callback.answer.await_args.kwargs["show_alert"] is True
+    finally:
+        handlers._PENDING_RESUME_IMPORTS.pop(token, None)

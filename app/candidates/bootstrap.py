@@ -2,22 +2,26 @@ from __future__ import annotations
 
 from app.database import repository as repo
 from app.knowledge.profile import load_profile
+from app.matching.language_fit import normalize_cefr
 
 
 async def bootstrap_user(chat_id: int | str, display_name: str = ""):
+    config = load_profile()
+    candidate = config.get("candidate") or {}
     user = await repo.get_user_by_chat(chat_id)
     if not user:
         user = await repo.create_user(chat_id, display_name)
-    profile = await repo.ensure_default_profile(user.id)
+    profile = await repo.ensure_default_profile(
+        user.id,
+        english_level=normalize_cefr(candidate.get("english")) or "",
+    )
 
-    config = load_profile()
     geography = config.get("geography") or {}
     if not user.current_country and geography.get("current_country"):
         await repo.set_user_country(user.id, str(geography["current_country"]).upper())
         user = await repo.get_user_by_chat(chat_id)
 
     existing_facts = await repo.list_facts(profile.id)
-    candidate = config.get("candidate") or {}
     if not existing_facts:
         for fact in candidate.get("facts") or []:
             await repo.add_fact(profile.id, str(fact), category="experience")

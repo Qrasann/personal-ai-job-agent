@@ -12,7 +12,11 @@ from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
+from app.search.source_summary import render_source_dashboard, scan_outcome, select_scan_dashboard
+from app.sources.diagnostics import classify_source_error, legacy_diagnostic
+
 from app.candidates.bootstrap import bootstrap_user
+from app.candidates.import_review import plan_fact_import
 from app.candidates.importer import (
     MAX_DOCUMENT_BYTES, ResumeImportError, extract_resume_text,
     guess_language, propose_facts, resume_fingerprint, review_proposals,
@@ -22,10 +26,12 @@ from app.database import repository as repo
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
+from app.matching.language_fit import normalize_cefr
 from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
 from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
+from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
 from app.sources.registry import build_source_plan
@@ -148,6 +154,7 @@ def _main_menu_text() -> str:
         "🧠 <b>Профиль и вакансии</b>\n"
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
+        "/english [A1–C2|unknown] — уровень английского\n"
         "/facts — факты кандидата\n"
         "/import — импортировать резюме PDF/DOCX/TXT\n"
         "/resumes — варианты резюме\n"
@@ -230,6 +237,7 @@ async def status(message: Message) -> None:
         f"Статус: {'⏸ PAUSED' if paused else '🟢 ACTIVE'}\n"
         f"Профиль: {html.escape(profile.name if profile else '—')}\n"
         f"Основная роль: {html.escape(profile.target_role if profile else '—')}\n"
+        f"Английский: {html.escape(getattr(profile, 'english_level', '') or 'не указан')}\n"
         f"Базовая страна: {html.escape(user.current_country or 'RU')}\n"
         f"Обработано вакансий: {st['matches']}\n"
         f"Подходящих/уведомлённых: {st['notified']}\n"
@@ -373,6 +381,41 @@ async def role(message: Message) -> None:
     await repo.update_search_settings(search.id, cfg)
     await repo.set_profile_target_role(profile.id, value)
     await message.answer(f"✅ Основная роль поиска: <b>{html.escape(value)}</b>.", parse_mode="HTML")
+
+
+@router.message(Command("english"))
+async def english_level(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    if not profile:
+        await message.answer("Профиль кандидата не найден.")
+        return
+
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) == 1:
+        current = profile.english_level or "не указан"
+        await message.answer(
+            f"Английский в профиле: <b>{html.escape(current)}</b>. "
+            "Изменить: /english B2; очистить: /english unknown.",
+            parse_mode="HTML",
+        )
+        return
+
+    raw_level = parts[1].strip()
+    if raw_level.casefold() in {"unknown", "clear", "неизвестно", "не указан"}:
+        await repo.set_profile_english_level(profile.id, "")
+        await message.answer("✅ Уровень английского очищен; сравнение будет показывать неизвестно.")
+        return
+
+    normalized = normalize_cefr(raw_level)
+    if normalized is None:
+        await message.answer("Укажи CEFR-уровень A1, A1+, A2, A2+, B1, B1+, B2, B2+, C1, C1+ или C2.")
+        return
+
+    await repo.set_profile_english_level(profile.id, normalized)
+    await message.answer(f"✅ Английский в профиле: <b>{normalized}</b>.", parse_mode="HTML")
 
 
 @router.message(Command("roleadd"))
@@ -679,33 +722,55 @@ async def import_resume_document(message: Message, bot: Bot) -> None:
         "user_id": user.id, "profile_id": profile.id,
         "content": content, "fingerprint": fingerprint, "language": guess_language(content),
         "role": profile.target_role or "", "proposals": review.new,
-        "overlaps": review.overlaps, "created_at": time.time(),
+        "overlaps": review.overlaps, "choices": {}, "duplicates_count": len(review.duplicates),
+        "created_at": time.time(),
     }
     now = time.time()
     for old_token, pending in list(_PENDING_RESUME_IMPORTS.items()):
         if now - pending["created_at"] > 15 * 60:
             _PENDING_RESUME_IMPORTS.pop(old_token, None)
 
-    lines = ["📄 <b>Проверка импорта</b>", "", f"Извлечено символов: {len(content)}", f"Язык: {guess_language(content)}"]
-    if review.new:
-        lines.extend(["", "Предлагаемые факты:"])
-        for proposal in review.new[:12]:
-            lines.append(f"• [{proposal.category}] {html.escape(proposal.value[:180])} — уверенность {proposal.confidence:.0%}")
-        if len(review.new) > 12:
-            lines.append(f"… и ещё {len(review.new) - 12}")
-    else:
-        lines.extend(["", "Новых фактов для добавления не найдено."])
-    if review.duplicates:
-        lines.append(f"Совпадающих фактов пропущено: {len(review.duplicates)}.")
-    if review.overlaps:
-        lines.append(f"Похожие на существующие факты помечены как пересечения ({len(review.overlaps)}); они не будут перезаписаны.")
-    lines.extend(["", "Содержимое будет сохранено только после подтверждения."])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Сохранить резюме", callback_data=f"rimp:resume:{token}")],
-        [InlineKeyboardButton(text=f"Сохранить резюме и факты ({len(review.new)})", callback_data=f"rimp:facts:{token}")],
-        [InlineKeyboardButton(text="Отмена", callback_data=f"rimp:cancel:{token}")],
-    ])
-    await message.answer("\n".join(lines)[:4096], parse_mode="HTML", reply_markup=keyboard)
+    text, keyboard = render_import_preview(_PENDING_RESUME_IMPORTS[token], token)
+    await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
+
+
+@router.callback_query(F.data.startswith("rchoice:"))
+async def choose_resume_fact(callback: CallbackQuery) -> None:
+    parts = (callback.data or "").split(":")
+    if len(parts) != 4 or not parts[2].isascii() or not parts[2].isdigit() or len(parts[2]) > 2:
+        await callback.answer("Некорректный выбор", show_alert=True)
+        return
+    _, token, index_text, action = parts
+    pending = _PENDING_RESUME_IMPORTS.get(token)
+    if not pending or time.time() - pending["created_at"] > 15 * 60:
+        await callback.answer("Предпросмотр истёк. Отправь документ заново.", show_alert=True)
+        return
+    user = await repo.get_user_by_chat(callback.message.chat.id) if callback.message else None
+    if not user or user.id != pending["user_id"]:
+        await callback.answer("Этот импорт предназначен другому профилю.", show_alert=True)
+        return
+    if _PENDING_RESUME_IMPORTS.get(token) is not pending:
+        await callback.answer("Импорт уже обрабатывается.", show_alert=True)
+        return
+    index = int(index_text)
+    try:
+        if action == "summary":
+            text, keyboard = render_import_preview(pending, token)
+        else:
+            # Validate the target before changing an in-memory decision.
+            render_import_conflict(pending, token, index)
+            if action in {"add", "update", "keep"}:
+                choices = {**pending.get("choices", {}), index: action}
+                plan_fact_import(pending["proposals"], pending["overlaps"], choices)
+                pending["choices"] = choices
+            elif action != "show":
+                raise ValueError("Неизвестный выбор.")
+            text, keyboard = render_import_conflict(pending, token, index)
+    except ValueError as exc:
+        await callback.answer(str(exc), show_alert=True)
+        return
+    await callback.message.edit_text(text, parse_mode="HTML", reply_markup=keyboard)
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("rimp:"))
@@ -729,37 +794,62 @@ async def confirm_resume_import(callback: CallbackQuery) -> None:
         await callback.message.edit_reply_markup(reply_markup=None)
         await callback.answer("Импорт отменён")
         return
+    if action == "review":
+        if _PENDING_RESUME_IMPORTS.get(token) is not pending:
+            await callback.answer("Импорт уже обрабатывается.", show_alert=True)
+            return
+        try:
+            text, keyboard = render_import_conflict(pending, token)
+        except ValueError as exc:
+            await callback.answer(str(exc), show_alert=True)
+            return
+        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=keyboard)
+        await callback.answer()
+        return
     if action not in {"resume", "facts"}:
         await callback.answer("Неизвестное действие", show_alert=True)
         return
+    plan = plan_fact_import(pending["proposals"], pending["overlaps"], pending.get("choices"))
     # Claim the preview before the first persistence await. Two Telegram callback
     # deliveries must not save the same resume/facts concurrently.
     if _PENDING_RESUME_IMPORTS.pop(token, None) is None:
         await callback.answer("Импорт уже обрабатывается. Проверь /resumes.", show_alert=True)
         return
-    resumes = await repo.list_resumes(pending["profile_id"])
-    if any(resume.external_id == pending["fingerprint"] for resume in resumes):
-        _PENDING_RESUME_IMPORTS.pop(token, None)
-        await callback.message.edit_text("ℹ️ Такое резюме уже импортировано.")
-        await callback.answer()
+    facts = [
+        {"category": proposal.category, "value": proposal.value,
+         "confidence": proposal.confidence, "section": proposal.section}
+        for proposal in plan.additions
+    ] if action == "facts" else []
+    replacements = [
+        {"existing_id": overlap.existing_id, "expected_value": overlap.existing_value,
+         "category": overlap.proposal.category, "value": overlap.proposal.value,
+         "confidence": overlap.proposal.confidence, "section": overlap.proposal.section}
+        for overlap in plan.replacements
+    ] if action == "facts" else []
+    try:
+        resumes = await repo.list_resumes(pending["profile_id"])
+        if any(resume.external_id == pending["fingerprint"] for resume in resumes):
+            await callback.message.edit_text("ℹ️ Такое резюме уже импортировано.")
+            await callback.answer()
+            return
+        item = await repo.add_imported_resume_with_facts(
+            pending["profile_id"], f"Imported resume {datetime.now():%Y-%m-%d}",
+            pending["language"], pending["role"], pending["content"],
+            pending["fingerprint"], facts, replacements=replacements,
+        )
+    except repo.FactUpdateConflict as exc:
+        _PENDING_RESUME_IMPORTS.setdefault(token, pending)
+        await callback.answer(str(exc), show_alert=True)
         return
-    item = await repo.add_resume(
-        pending["profile_id"], f"Imported resume {datetime.now():%Y-%m-%d}",
-        pending["language"], pending["role"], content=pending["content"],
-        source="imported", external_id=pending["fingerprint"],
-    )
-    added = 0
-    if action == "facts":
-        for proposal in pending["proposals"]:
-            await repo.add_fact(
-                pending["profile_id"], proposal.value, category=proposal.category,
-                key=proposal.category, experience_type="unknown",
-                confidence=proposal.confidence, provenance="resume_import",
-                evidence=f"resume_import section={proposal.section}; confidence={proposal.confidence:.2f}",
-            )
-            added += 1
+    except Exception:
+        # The repository operation is transactional. Retain the one-time preview
+        # so a transient DB failure can be retried without re-uploading the file.
+        _PENDING_RESUME_IMPORTS.setdefault(token, pending)
+        await callback.answer("Не удалось сохранить импорт. Попробуй ещё раз.", show_alert=True)
+        return
+    added = len(facts)
     _PENDING_RESUME_IMPORTS.pop(token, None)
-    await callback.message.edit_text(f"✅ Резюме #{item.id} сохранено." + (f" Добавлено фактов: {added}." if action == "facts" else " Факты не изменялись."))
+    await callback.message.edit_text(f"✅ Резюме #{item.id} сохранено." + (f" Добавлено фактов: {added}. Обновлено: {len(replacements)}." if action == "facts" else " Факты не изменялись."))
     await callback.answer("Импорт завершён")
 
 
