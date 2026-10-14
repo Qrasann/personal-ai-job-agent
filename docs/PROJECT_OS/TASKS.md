@@ -1,5 +1,152 @@
 # Tasks
 
+## 2026-10-15 — salary setting clarity
+
+- [x] State that salary minimum is a scoring reference, not a hard vacancy
+  filter; document that only structured salary values are compared.
+- [x] Update `/salary` and `/settings` labels and verify both with regression
+  coverage; full isolated PostgreSQL suite passed (866 tests).
+- [ ] Decide separately whether a strict salary floor is desirable before
+  implementing any exclusion behavior.
+
+## 2026-10-15 — CEFR requirement wording
+
+- [x] Distinguish explicit required, preferred and unspecified language cues;
+  contradictory or negated cues remain unspecified, with no scoring effect.
+- [x] Add regression checks for English/Russian cues and comparison rendering.
+- [x] Verify full isolated PostgreSQL suite (867 passed), compileall,
+  diff-check and secret scan.
+- [ ] Extend language vocabulary only with reviewed evidence mappings.
+
+## 2026-10-15 — line-wrapped skill alternatives
+
+- [x] Recognize an isolated required/preferred two-skill `or/или` choice when
+  its explicit connector wraps to an adjacent line.
+- [x] Keep independent skills separate and repeated/ambiguous skills ungrouped;
+  focused 43 and full isolated PostgreSQL 869 passed.
+- [ ] Extend to nested/multi-line clauses only with conservative grammar and
+  score regressions.
+
+## 2026-10-14 — explicit language and mobility evidence
+
+- [x] Extract only explicit English CEFR levels near English/«английский»;
+  leave fluent wording, ranges and unsupported profile formats unknown.
+- [x] Compare vacancy CEFR with the selected candidate profile separately from
+  technical score; add `/english [A1-C2|unknown]` and persist the value.
+- [x] Stop creating generic profiles with an invented B2. Fresh bootstrap uses
+  tracked general English B1; existing profiles remain untouched and editable.
+- [x] Show foreign-vacancy visa sponsorship, relocation, work-permit assistance
+  and pre-existing work-authorization evidence separately; missing stays unknown.
+- [ ] Expand language evidence beyond explicit CEFR only after defining
+  reviewable mappings; do not infer legal eligibility from vacancy support.
+
+
+## 2026-10-14 — measured model routing and fit follow-up
+
+- [x] Verify current Main turn from the session log: `gpt-6-sol/medium`, matching
+  the user config; align AGENTS without changing any model.
+- [x] Invoke one read-only `job_scout`; verify its actual turn was
+  `gpt-6-luna/low` and review its conclusion against installed HTTPX behavior.
+- [x] Record Scout context cost (83,803 total input/output tokens, including
+  56,576 cached input); use self-contained `fork_turns="none"` for future
+  narrow tasks when delegation is justified. No measured savings claim.
+- [x] Reproduce and fix an explicit required alternative followed by another
+  sentence on one line; keep an independently repeated requirement separate.
+- [x] Prevent a preferred alternative from spanning a skill promoted to an
+  independently required skill; compare each pair against final importance.
+- [ ] Measure a comparable narrow Scout task with isolated context before
+  claiming reduced total token use. Deep remains reserved for hard cases.
+
+
+## 2026-10-14 — isolated DB and narrow alternative requirements
+
+- [x] Run full unit and isolated PostgreSQL suites against the `job-agent-tests`
+  tmpfs database on port 55432; no production DB or runtime modification.
+- [x] Count an explicit, isolated two-skill `or/или` choice in required or
+  preferred sections once using strongest confirmed Candidate Fact; retain
+  separate skill evidence and explain alternative scoring in the comparison view.
+- [ ] Extend to complex/nested alternatives only with a reviewable requirement
+  model; keep independent requirements and ambiguous prose conservative.
+- [ ] Review and checkpoint the existing large dirty tree when Git metadata is
+  writable; exclude both untracked owner proposal files.
+
+## 2026-10-14 — independent follow-up increments
+
+- [x] Bound dense source HTML views without splitting entities; preserve the
+  complete ledger in state and send distinct new errors separately.
+- [x] Make explicit adapter schema/HTML/RSS contract failures typed response
+  diagnostics; preserve existing partial Himalayas/SmartRecruiters outcomes.
+- [x] Retain verified Job Bank jobs after HTTP/schema detail errors, continue
+  independent queries, stop source requests on 403/429; keep bounded pacing.
+- [x] Carry partial metadata through all source-cache hits; separate cached
+  collection observations from independent profile processing attempts.
+- [x] Count actual HH/EURES/Job Bank/Arbeitnow/SmartRecruiters transport retries.
+- [x] Scan staged/worktree/history for high-risk secret patterns, paths only;
+  sanitize progress logs and historical failed scan stage display.
+- [x] Verify Candidate Fact transaction cases within the full isolated
+  PostgreSQL suite (855 passed); local checkpoint remains pending.
+- [x] Reproduce flattened adjacent requirement headings misclassifying optional
+  skills as required; split only at explicit headings, then verify comparison
+  and existing 85/15 technical weighting in English and Russian.
+- [x] Keep an explicit `with Python among the language alternatives` example
+  as unknown evidence rather than a separate mandatory skill; preserve an
+  independently stated Python must-have and verify score impact.
+- [ ] Model general alternative requirement groups beyond isolated two-skill
+  `or/или` lines, including nested and multi-line clauses, conservatively.
+
+
+- [x] Separate attempted HH failures from later unattempted cooldown skips;
+  preserve recovery history and partial status without repeated outage alerts.
+
+## 2026-10-14 — source failure root cause and diagnostics
+
+- [x] Reproduce legacy `found` failure after error→success; preserve all four
+  multi-profile outcome orders plus repeated cache and EURES observation dedupe.
+- [x] Add stable source counters, status, history and controlled diagnostic codes.
+- [x] Separate source/network/HTTP/response/processing/summary failures; preserve
+  valid jobs after individual prefilter/processing errors.
+- [x] Safe Russian plain-text alerts, one per distinct issue/profile group/pass;
+  safe single-escaped HTML dashboards and incomplete manual scan status.
+- [x] Explicit RemoteOK 30-second phase budgets and reject non-list JSON shape.
+- [x] Persist latest scheduled source summary under a separate state key; show
+  the latest finished scan without replacing active manual work.
+- [ ] Owner supplies sanitized production traceback to confirm whether the
+  actual HH/RemoteOK `found` alerts came from the reproduced legacy defect.
+- [ ] Authorized runtime network diagnosis / Telegram acceptance / isolated DB.
+
+
+## 2026-10-14 — network diagnostics follow-up
+
+- [x] Classify typed transport causes without parsing/logging URL/error text.
+- [x] Sanitize raw SSL/DNS failures in source summaries, logs and alerts.
+- [x] Bounded static detail-URL review of EURES, Himalayas and SmartRecruiters;
+  no listing-controlled internal/cross-host fetch was established.
+- [ ] Observe typed HH categories in separately authorized runtime; IPv4/IPv6,
+  proxy routing and HTTP blocking require actual safe runtime evidence.
+
+## 2026-10-14 — Candidate Fact review and verification
+
+- [x] Add explicit ADD/UPDATE/KEEP controls for import overlaps with KEEP default,
+  final confirmation, stale-preview guard and preserved prior facts.
+- [x] Verify replacement rollback, row locking and cross-profile rejection in
+  the full isolated PostgreSQL suite; runtime review remains open.
+- [ ] Check real Telegram conflict-review UX after authorized deployment.
+
+## 2026-10-14 — source metrics and checkpoint blockers
+
+- [x] Preserve processing-error counts when another search profile succeeds.
+- [x] Count distinct cached EURES failures while deduplicating a reused discovery.
+- [ ] Save the reviewed local checkpoint once `.git` is writable; `git add`
+  currently fails creating `.git/index.lock` on a read-only filesystem.
+- [ ] Re-run isolated PostgreSQL once localhost sockets/Docker access are allowed.
+
+## 2026-10-14 — local checkpoint follow-up
+
+- [x] Preserve import preview after a failed resume lookup, not only a save.
+- [x] Restrict manual HH reply setup to the owner and clear non-owner stale state.
+- [ ] Re-run isolated PostgreSQL checks when the execution environment permits
+  Docker/localhost sockets; current failure is PermissionError before DB access.
+
 ## 2026-10-14 — exception log hygiene
 
 - [x] Prevent Telegram startup network errors and HH chat polling errors from
@@ -18,8 +165,8 @@
 
 - [x] Keep other EURES queries/details after one HTTP or parse failure; keep
   total failure visible and do not retry HTTP 4xx/5xx blindly.
-- [ ] **P1, source health:** expose partial EURES query/detail failure counts
-  in `/scanstatus` without changing vacancy scoring or hiding successful jobs.
+- [x] Carry partial EURES query/detail failure counts through source cache,
+  per-profile summaries, aggregation and `/scanstatus` without changing scores.
 
 ## 2026-10-14 — Job Bank detail efficiency
 
@@ -41,8 +188,11 @@
 
 - [x] Reproduce concurrent duplicate resume-confirmation writes and make the
   pending preview token one-time before database work.
-- [ ] **P1, candidate import:** make resume plus proposed-fact persistence
-  transactional and add an idempotent retry path after partial DB failure.
+- [x] Save an imported resume and proposed facts in one transaction; retain the
+  preview after a persistence error and verify rollback plus retry on isolated
+  PostgreSQL.
+- [x] Implement per-conflict ADD/UPDATE/KEEP; preserve old rows and unknown
+  replacement classification. Integration/runtime acceptance remains open.
 
 ## 2026-10-14 — reliability and security follow-up
 

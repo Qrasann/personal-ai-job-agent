@@ -1,3 +1,119 @@
+## 2026-10-14 — flattened requirement sections
+
+Reproduced one-line `Requirements: Linux. Nice to have: Docker.` being treated
+as two required skills, which reduced the existing structured technical score
+from the intended 85 to 50 for a candidate with commercial Linux evidence.
+Added English/Russian section and scoring regressions before the fix. Split
+only at explicit punctuated known headings, preserving neutral sections and
+the existing 85/15 weighting. Added the continuing engineering workflow to
+`AGENTS.md` without removing project safeguards. Broader v3.6 fit remains
+partial. Followed with a real Devexperts alternative-language sentence:
+the extractor had treated Python as individually required, causing a 75
+technical score instead of 100 for confirmed Linux/Bash/networking. A narrow
+qualified-clause guard leaves that mention unknown, while an independent
+Python must-have remains required. Regression covers both outcomes; general
+alternative group semantics remain planned.
+
+## 2026-10-14 — safe network cause classification
+
+## 2026-10-14 — continued source reliability/security increments
+
+After the core source fix, implemented independent follow-ups: latest scheduled
+ledger persistence, active-manual/latest-finished dashboard selection; bounded
+HTML source rendering after measuring 5940-character dense fixture; explicit
+schema exceptions across 8 adapters (Arbeitnow previously silently returned0);
+actual retry telemetry across existing bounded loops; partial collection and
+budget-expiry metadata for Himalayas/SmartRecruiters/Job Bank with cache reuse.
+Independent cached profile processing errors retain separate observations while
+EURES collection IDs deduplicate. Public HH retry delta is measured around its
+serialized discovery; retry policy unchanged. Fallback observation cannot hide
+subsequent timeout, and certificate failure still alerts during HH cooldown.
+Reproduced Job Bank loss after a successful detail followed by 503 or malformed
+HTML; moved parse/enrich into request-isolation boundaries. Valid jobs remain,
+independent queries proceed;403/429 stops further source calls. No source probe.
+Strengthened secret guard to inspect staged/worktree/history, print paths only
+and fail inspection errors. Five synthetic temporary-Git tests passed. Sanitized
+progress exception logging and old failed-stage display; no real leak claimed.
+Final targeted source/dashboard/Job Bank/EURES/guard 125 passed; full 844 passed,
+4skipped (4.82s). compileall, git diff --check, expanded secret scan passed.
+Test Compose still denied at Docker API, before test DB startup; PostgreSQL
+integration assertions were NOT executed. All prior dirty edits retained;
+HEAD d7a68d8/53 ahead and runtime unchanged; no staging/commit/publication.
+Next safe roadmap increment: targeted existing requirements/fact comparison;
+owner gates: isolated DB and local checkpoint, authorized live source/Telegram.
+
+
+Final counter review reproduced 3 HH miscounts: attempted connection failure
+was labelled skipped. Failed and unattempted cooldown counts are now separated,
+with recovery retaining history. Focused 70 passed, full 844/4skipped (4.82s);
+compileall/diff/secret guard/bash syntax passed after the correction.
+
+## 2026-10-14 — source diagnostics and attempt ledger
+
+Reviewed historical commit9007824 aggregation and reproduced its missing-found
+contract after a failed first profile; local helper from5c4b959 already guarded
+that field but dropped failure history. Added `search/source_summary.py` with
+uniform attempt counters/status/history, cache/EURES observation dedupe, safe
+legacy-error rendering and scan outcome. Added `sources/diagnostics.py` typed
+Russian categories without exception URLs/messages; source-loop failures now
+have discovery/processing/summary stages. Prefilter failures preserve valid
+jobs; telemetry failures rebuild from per-profile ledgers. Alerts grouped by
+source/code/stage/action per scan use explicit plain parse mode; HTML dashboards
+escape once and show incomplete outcomes. RemoteOK validates top-level list
+and explicit connect/read/write/pool30s, with no speculative retry. EURES records
+actual retries and query/detail diagnostics; HH records permitted API403 fallback.
+Targeted source+Telegram+adapter suite79 passed, new loop/RemoteOK19 passed;
+full810 passed/4skipped, then compatibility-helper+HH/EURES52 passed.
+compileall/diff/history secret scan passed. Isolated test Compose denied before
+startup (Docker API permission); no production DB/runtime change, no commit.
+Next independent task: scheduled history persistence and dashboard selection.
+
+
+Added bounded typed-cause classification for transport failures. HH logs and
+skip metadata now preserve a safe category; no messages/URLs or guessed IP
+family are used. Regression reproduced raw SSL/DNS payload disclosure in
+source summaries; sanitized summary, warning and alert paths. Network/source/HH
+targeted suite: 48 passed. Final full unit suite: 785 passed / 4 skipped;
+compileall/diff/history-secret guard passed. PostgreSQL and Git checkpoint
+remain sandbox-blocked; no production, external request or publication occurred.
+
+## 2026-10-14 — Candidate Fact ADD/UPDATE/KEEP
+
+Added a deterministic plan and private Telegram per-overlap choices, KEEP by
+default. Choices do not write until final confirmation. UPDATE retains the old
+fact inactive with its value/type/evidence and inserts an unknown replacement
+in the resume transaction. Snapshot/profile validation and ordered row locks
+prevent replacing a changed or foreign fact. Tests cover all choices, invalid
+callbacks, another user, consumed previews and safe stale-target feedback.
+Targeted import/private-route tests: 34 passed; full unit suite: 769 passed /
+4 skipped; compileall/diff/history-secret guard passed. PostgreSQL integration
+assertions added but environment-blocked before connecting. Git dry-run failed
+because .git is read-only. No production or external action occurred.
+
+## 2026-10-14 — source counter aggregation and checkpoint blockers
+
+Regressions reproduced loss of earlier profile processing errors and loss of
+independent cached EURES failures (2 + 3 displayed as 3). Aggregation preserves
+processing counts and merges failure observations by discovery identity.
+Targeted EURES/scan-isolation/Telegram suite: 41 passed. Final full unit suite:
+750 passed / 4 skipped; compileall/diff/history-secret guard passed. Isolated
+PostgreSQL revalidation was attempted but sandbox denied local sockets before
+connection; Docker access was also denied. git add then failed because .git is
+read-only. Checkpoint remains preserved in the worktree, with no publication.
+
+## 2026-10-14 — resume retry boundary and manual HH authorization
+
+A new regression reproduced loss of the import preview when list_resumes
+failed before atomic persistence; the retry boundary now includes this read.
+job_scout traced the legacy manual HH flow: unauthorized setup retained routing
+state despite an owner-gated sender. Main reproduced both state defects and
+added owner-only setup and stale-state cleanup; the authorized owner flow is
+covered with a mock HH client. Full unit suite: 748 passed / 4 skipped;
+compileall and diff check passed. Isolated PostgreSQL revalidation attempted
+but blocked by Docker permission denial and localhost socket PermissionError.
+No production or external action occurred. Existing prior DB results were not
+presented as a new run.
+
 ## 2026-10-14 — Telegram/HH network log payloads
 
 After `921caf4`, tests reproduced that `wait_for_telegram` and
@@ -1803,3 +1919,118 @@ is healthy. Startup `scan_all` completed at 00:25 Moscow. Logs show HH API 403
 fallback, a single `ConnectError`, the bounded retry, subsequent HTTP 200
 public-web requests, and successful scan completion. Leave owner Telegram
 acceptance of relocation lists and the Canonical technical-risk card open.
+## 2026-10-14 — atomic resume import and retry
+
+Moved imported resume plus proposed Candidate Facts into one repository
+transaction. The callback retains its claimed one-time preview after a failed
+save so the user can retry; a completed transaction remains protected by the
+resume fingerprint duplicate check. A PostgreSQL integration regression forces
+a fact-column failure, verifies no resume was left behind, then retries the
+same fingerprint successfully. Verification: candidate-import tests 4 passed;
+repository integration tests 3 passed on the isolated PostgreSQL database;
+compileall and diff check passed. No production or external action occurred.
+Per-conflict ADD/UPDATE/KEEP remains open.
+
+## 2026-10-14 — atomic resume import and retry
+
+Moved imported resume plus proposed Candidate Facts into one repository
+transaction. The callback retains its claimed one-time preview after a failed
+save so the user can retry; a completed transaction remains protected by the
+resume fingerprint duplicate check. A PostgreSQL integration regression forces
+a fact-column failure, verifies no resume was left behind, then retries the
+same fingerprint successfully. Verification: candidate-import tests 4 passed;
+repository integration tests 3 passed on the isolated PostgreSQL database;
+compileall and diff check passed. No production or external action occurred.
+Per-conflict ADD/UPDATE/KEEP remains open.
+## 2026-10-14 — EURES partial failure counts
+
+Added request-level partial-failure counts for EURES query and detail errors;
+retained successful vacancies and the existing bounded retry behavior. Counts
+are carried through cache entries and per-profile/source aggregation, with a
+cache regression ensuring Career-first plus Relocation-first does not count
+one failed request twice. `/scan` completion and `/scanstatus` now show the
+count. Combined candidate-import, isolated repository, EURES, scan-isolation
+and Telegram progress tests: 46 passed; compileall and `git diff --check`
+passed. No live endpoint was contacted.
+## 2026-10-14 — isolated DB gate and explicit alternative pair
+
+Preserved the pre-existing dirty worktree and two untracked owner proposals.
+Started only `docker-compose.test.yml` as project `job-agent-tests`; its tmpfs
+PostgreSQL on localhost 55432 is separate from production. Baseline unit
+847 passed/4 skipped; isolated suite 851 passed. Added explicit two-skill
+required and preferred `or/или` pair recognition and maximum fact weight for
+one scoring unit; four regressions cover both weights, conservative exclusions
+and Telegram explanation. Final isolated suite 855 passed, focused matching
+54 passed; compileall, `git diff --check` and staged/worktree/history secret
+scan passed.
+
+No production DB/runtime, Git publication or external source request.
+`codex-cli 0.162.1` local Main default is `gpt-6-sol/medium`, while AGENTS
+states intended `gpt-6.1-sol/medium`. Fast/Deep role TOMLs specify Luna/low
+and 6.1 Sol/high. No actual session routing/usage meter was available, so
+automatic switches and quota savings are not claimed. Current edits remain
+unstaged pending review of the existing large dirty tree.
+## 2026-10-14 — routing audit, one Scout task, and fit follow-up
+
+Verified `~/.codex/config.toml` and current session `turn_context` both say
+Main `gpt-6-sol/medium`. One read-only `job_scout` inspected Greenhouse URL
+handling; its actual own turn was `gpt-6-luna/low`. It incorrectly claimed an
+SSRF redirect: installed HTTPX 0.28.1 has `follow_redirects=False` by default,
+and the listing URL is stored rather than fetched. No source code changed on
+that report. Scout thread usage was 83,803 total tokens, 56,576 cached input;
+no counterfactual or quota meter proves savings. AGENTS/AI_INSTRUCTIONS now
+prefer self-contained isolated context for justified narrow Scout calls. Deep
+was not started and no model config was changed.
+Then reproduced `Requirements: Linux or Windows. Docker.` losing the explicit
+choice because the second sentence shared a line. Alternative detection now
+splits punctuated clauses while preserving independent/repeated requirements.
+Then reproduced a preferred `Linux or Windows` pair still grouped after Linux
+became independently required; compare groups with final importance before
+display or scoring. Focused matching 56 passed, full isolated PostgreSQL 857
+passed, compileall and secret scan passed. No runtime, production DB or
+publication action.
+## 2026-10-14 — explicit language and mobility evidence
+
+Implemented a bounded CEFR parser for English/Russian vacancy phrases. It
+requires one unambiguous A1–C2 token near the English-language phrase; B1–B2,
+“fluent” and B2B false positives remain unknown. Vacancy comparison loads the
+matched candidate profile and renders meets/below/unknown separately from the
+technical score. Added `/english` view/set/clear and repository persistence.
+This exposed a confirmed default mismatch: generic profile creation hard-coded
+B2 while the tracked owner template separates general B1 from technical-reading
+B2. Generic defaults are now unknown; personalized fresh bootstrap passes B1.
+Existing rows are not rewritten.
+
+Then exposed existing conservative support evidence in foreign vacancy cards:
+visa sponsorship, relocation, work-permit assistance and explicit prerequisite
+authorization are separate. Missing support stays “не подтверждено”, and the
+card says this is not personal legal eligibility. No scoring/filter change.
+Focused language/comparison 32 and mobility/support 87 passed. Full isolated
+PostgreSQL passed at 863 after language and 865 after mobility; compileall,
+diff and secret checks passed at the second gate. Final documented gate follows.
+No production/runtime/publication action.
+## 2026-10-15 — salary reference wording
+
+Revisited the roadmap's confirmed `/salary minimum` wording gap. `/salary` now
+explains that the monthly minimum affects scoring only for structured vacancy
+salary and does not hide vacancies; amounts found only in text are not compared.
+`/settings` calls it an evaluation reference rather than a filter. A regression
+covers both views. Full isolated PostgreSQL: 866 passed; compileall and secret
+scan passed. Strict salary-floor policy remains a separate owner decision.
+
+## 2026-10-15 — CEFR requirement wording
+
+CEFR comparison now classifies explicit required/preferred cues separately;
+missing, contradictory and negated cues remain unspecified. The vacancy view
+does not frame an unqualified CEFR mention as mandatory. Comparison remains
+evidence-only and does not affect scoring. Focused language/comparison: 22 passed.
+Full isolated PostgreSQL suite: 867 passed; compileall, diff-check and secret
+scan passed.
+
+## 2026-10-15 — line-wrapped alternative requirements
+
+Extended conservative alternative extraction for a two-skill `or/или` choice
+whose connector wraps to an adjacent line. Other independent skills remain
+independent, and repeated skill mentions leave the choice ungrouped. Focused
+comparison/matching: 43 passed; isolated PostgreSQL: 869 passed. Compileall and
+diff-check passed. No scoring weights or thresholds changed.

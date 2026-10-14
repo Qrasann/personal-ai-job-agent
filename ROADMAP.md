@@ -26,12 +26,12 @@ and provenance when later reconciled with board and Telegram copies.
 | v3.5.2 Search Control Center | Core implemented in `SearchProfile.settings`, settings handlers and tests: source/market controls, independent strategies, salary inputs and blacklist. Per-source destination behavior is partial. | Test each source's actual market behavior; keep priority distinct from hard exclusion and explain that salary minimum is a scoring reference. |
 | v3.5.3 Fast Scan | Core implemented: bounded concurrent discovery, cache, `/scanstatus`, `/cancel` (`app/search`, `app/telegram`). Adaptive detail fetching is planned. | Preserve rate limits and cancellation semantics; measure useful results and latency. |
 | v3.5.4 Multi-Source vision | Historical v3.5.4 code milestone added EURES; broader original vision remains partial. Current branch also has HH, RemoteOK, Arbeitnow, Job Bank, HR.ge, selected ATS, Himalayas, Remotive and Telegram paths. JOBS.GE is paused. | Verify permitted, live, relevant results per source; expand only with an access contract. |
-| v3.5.5 Candidate Import | PDF/DOCX/TXT preview, one-time confirmation, explicit save, provenance and overlap handling implemented (`app/candidates`, import tests). Full per-conflict ADD/UPDATE/KEEP editing and transactional resume/fact recovery are planned. | Resolve conflicting facts visibly without upgrading lab or learning to commercial work. |
+| v3.5.5 Candidate Import | PDF/DOCX/TXT preview, one-time confirmation, explicit save, provenance and overlap handling implemented (`app/candidates`, import tests). Resume plus proposed facts now commit atomically and can retry after a failed transaction; per-conflict ADD/UPDATE/KEEP now has a local preview/confirmation flow with retained history and unknown replacements. PostgreSQL UPDATE and runtime acceptance are pending. | Resolve conflicting facts visibly without upgrading lab or learning to commercial work. |
 | v3.5.6 Recommendation v2 | Explainable heuristic breakdown implemented (`app/matching/recommendation.py`); interview-risk is a fit-gap score, not calibrated interview probability. | Validate signals and missing data; preserve established threshold/notifications until deliberately changed and tested. |
 | v3.5.7 International / Relocation | Active candidate: GE/AM and remote adapters, scoped `/jobs`, conservative evidence parsing, 65-point threshold. Useful Relocation-first coverage and runtime acceptance remain partial. | Real source and scoped Telegram acceptance, eligibility evidence, full isolated DB/CI checks and owner release decision. |
 | Proposed v3.5.8 Telegram Channel Watcher | Bot API selected-channel posts/captions, scoped subscriptions, provenance, replay guard and bounded persistent retry implemented locally (`app/sources/telegram_watch.py`, watcher tests). Edited posts, history and arbitrary channel monitoring are not implemented. | Owner selects channels and grants Bot API access; separately authorized runtime check of `/channels`, new post, replay/retry and both profiles. |
-| Proposed v3.5.9 Source Intelligence | Planned: more authorized ATS/official feeds, company watchlist, canonical cross-source links, source quality and stale-feed metrics. | Attributed relevant vacancies and measurable source yield, not just enabled adapters. |
-| v3.6 Candidate + Vacancy Fit | Planned on candidate facts and requirement parsing: mandatory versus alternatives, language, eligibility, salary and private affordability; truthful tailored RU/EN resume with reviewable diffs. | Every material CV assertion traces to a confirmed fact and user approval. |
+| Proposed v3.5.9 Source Intelligence | Partial: local typed diagnostics, per-profile attempt history, actual retry counters, incomplete outcomes and latest scheduled history implemented. More authorized ATS/official feeds, company watchlist, canonical cross-source links, source quality and stale-feed metrics planned. | Attributed relevant vacancies and measurable source yield, not just enabled adapters. |
+| v3.6 Candidate + Vacancy Fit | Partial: deterministic required/preferred/unknown skill sections and Candidate Fact comparison exist. Explicit two-skill `or/или` pairs count as one scoring choice when unambiguous, including line-wrapped connectors. Explicit English CEFR evidence is compared separately with the user-controlled profile level and does not change score; fresh owner bootstrap uses general English rather than technical-reading level. Vacancy language cues distinguish explicitly required, preferred, and unspecified CEFR statements. Foreign vacancy details separate sponsorship, relocation, work-permit help and pre-existing authorization evidence. Nested/multi-line alternatives beyond an isolated pair, broader language phrasing, candidate-specific legal eligibility, salary and private affordability, plus truthful tailored RU/EN resume diffs remain planned. | Every material CV assertion traces to a confirmed fact and user approval. |
 | v3.7 Application Package / Workspace | Planned: per-vacancy CV, grounded cover letter/answers, missing-info checklist, export, exact submitted version and manual status. | Human approves each external action; audit trail identifies what was submitted. |
 | v3.8 Application + Recruiter Agent | Planned: application funnel, reminders, grounded reply drafts and follow-ups. Private HH access stays off without separate permission. | Correct transitions, no duplicate contact, explicit approval for outbound messages. |
 | v3.9 Practical Interview Agent | Planned: vacancy-specific Linux, Nginx, Docker, DNS, Kubernetes, CI and security incident exercises. | Reproducible scenarios and gap-to-learning feedback grounded in the vacancy. |
@@ -54,10 +54,15 @@ Georgia source detail requests now require their own HTTPS host.
 Job Bank now has bounded one-hour detail reuse for repeated scheduled scans;
 post-deployment latency and relevance measurement remains pending.
 EURES now preserves partial results across individual HTTP and parse failures.
+Query/detail failure counts travel with cached source results and appear in
+scan summaries and `/scanstatus` without changing match scores. Discovery
+observations distinguish reused caches from independent failures; earlier
+profile processing-error counts survive subsequent successful profiles.
 Dependency minimums now exclude checked pypdf/python-multipart advisory ranges;
 a reproducible lock/constraints workflow remains planned.
 Telegram/HH network warning logs now omit raw exception messages.
-Runtime acceptance and live HH ConnectError diagnosis remain open.
+Typed transport-cause diagnostics and raw SSL/DNS sanitization are implemented
+locally. Runtime acceptance and live HH ConnectError diagnosis remain open.
 
 ## Immediate gates
 
@@ -67,6 +72,15 @@ Runtime acceptance and live HH ConnectError diagnosis remain open.
    time-sensitive eligibility and scoped Telegram cards before v3.5.7 release.
 3. Expand permitted AM/GE and lower-barrier sources only after live relevance
    and access evidence; retain unknowns and 65-point scoring integrity.
+
+Local source observability (2026-10-14): IMPLEMENTED attempt history, safe
+Russian typed error classification, per-pass alert dedupe, incomplete manual
+scan/status and RemoteOK schema validation. Production alert attribution,
+network root causes and live acceptance remain BLOCKED on permitted evidence;
+scheduled history persistence, bounded Telegram views, Job Bank HTTP/schema
+response isolation and staged/worktree secret guard are IMPLEMENTED locally.
+Final 844 unit/4 skipped; isolated DB and production acceptance remain BLOCKED.
+No score/visa policy change; useful Relocation-first coverage stays PARTIAL.
 
 ## Historical v3.5.7 development notes
 

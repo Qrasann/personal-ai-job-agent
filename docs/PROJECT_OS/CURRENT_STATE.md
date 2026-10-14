@@ -1,5 +1,140 @@
 # Current State
 
+## 2026-10-15 — line-wrapped alternative requirement
+
+The v3.6 Candidate + Vacancy Fit parser now groups an explicit isolated
+two-skill `or/или` choice when the connector wraps across adjacent lines.
+Repeated skills remain independent; additional independent skills remain
+separate. Focused 43 and full isolated PostgreSQL 869 passed. Nested and
+general multi-line requirement groups remain partial.
+
+## 2026-10-14 — v3.6 language and relocation evidence increment
+
+IMPLEMENTED locally: explicit English CEFR extraction/comparison, user-managed
+`/english`, truthful fresh-profile bootstrap, and separate vacancy-card mobility
+evidence. Language evidence does not alter scores. General fluency wording and
+ambiguous CEFR ranges stay unknown. Visa/relocation/work-permit statements and
+existing authorization requirements remain distinct and do not establish the
+candidate's legal eligibility. Intermediate isolated PostgreSQL suites passed
+at 863 and 865; production runtime and existing profile data are unchanged.
+
+
+## 2026-10-14 — current model routing and fit regression
+
+Session records confirm Main `gpt-6-sol/medium` and one read-only Scout turn
+`gpt-6-luna/low`; Deep was not used. Scout's Greenhouse redirect suspicion was
+false because the installed HTTPX client does not follow redirects by default.
+Scout used 83,803 total tokens (56,576 cached input); the inherited history
+made this small delegation costly, so net limit savings are not established.
+AGENTS now matches actual Main and requires isolated context for justified
+narrow Scout work. No models were switched. Required alternatives followed by
+another sentence on one line now remain grouped; focused 55 and full isolated
+PostgreSQL 856 passed. A further boundary fix keeps preferred alternatives
+separate when one skill is independently required; latest focused 56 and full
+isolated PostgreSQL 857 passed. Local runtime and production DB unchanged.
+
+
+## 2026-10-14 — isolated database and v3.6 alternative choice
+
+The separate `job-agent-tests` tmpfs PostgreSQL suite passed: 851 baseline,
+then 855 with four new regressions. An explicit isolated required or preferred
+`or/или` pair is now one scoring choice; Candidate Fact statuses remain visible.
+Complex clauses still need a richer requirement model. Compileall, diff and
+secret scan passed. Git HEAD and local production runtime are unchanged.
+Local Codex CLI 0.162.1 config defaults Main to `gpt-6-sol/medium`;
+`job_scout` is `gpt-6-luna/low`, `job_deep_review` is `gpt-6.1-sol/high`.
+No active-session model switch or measured token/quota saving was verified.
+
+
+## 2026-10-14 — verified local fit follow-up
+
+The continuing workflow is recorded in `AGENTS.md`. Candidate + Vacancy Fit
+remains PARTIAL: explicit adjacent headings in flattened vacancy text now keep
+preferred skills optional, and a clearly qualified Devexperts language example
+remains unknown instead of an individual Python must-have. These corrections
+preserve the existing 85/15 structured score and do not change the 65-point
+search threshold. General alternative groups are still PLANNED. Full local
+suite 847 passed / 4 skipped; compileall, diff and secret scan passed. The
+isolated PostgreSQL suite and authorized runtime acceptance have not run;
+Git HEAD and deployed runtime are unchanged.
+
+## 2026-10-14 — verified local observability/reliability checkpoint
+
+IMPLEMENTED locally: uniform multi-profile source ledger; typed Russian safe
+network/HTTP/schema/internal diagnostics; bounded, singly escaped HTML scan
+views; per-pass issue grouping; persisted latest scheduled dashboard isolated
+from manual state. Known HH outage cooldown remains quiet in notifications,
+with diagnostics in the dashboard; certificate verification failures are
+reported. Fallback history cannot hide a later connection failure.
+Eight additional adapters mark explicit contract violations as response errors;
+Arbeitnow/RemoteOK reject missing expected list shape. Himalayas and selected
+ATS partial collection is visible, including source-budget expiry. Job Bank
+retains verified detail results after HTTP/schema failures and stops 403/429;
+existing pacing/cache limits remain. Real retries counted for HH, EURES,
+Job Bank, Arbeitnow, SmartRecruiters; cache hits add no new retry count.
+Source cache retains diagnostics/partial observations; processing failures have
+independent attempt IDs. EURES reused collection failures are counted once.
+Lightweight secret guard checks staged, worktree and history; synthetic tests
+verify values never print. Progress exceptions and old failed scan stages are
+sanitized. No actual credential exposure is asserted.
+844 unit passed/4skipped; targeted 125, adapter-contract 152, telemetry 109/54 and
+secret-guard 5 passed. compileall/diff/secret checks passed. PostgreSQL and live
+Telegram/network acceptance remain BLOCKED; runtime/VERSION/Git HEAD unchanged.
+Broader Relocation-first product utility and Candidate Fact DB acceptance remain
+PARTIAL; scoring thresholds and eligibility/salary evidence were not changed.
+
+HH failed connection probes and unattempted cooldown skips have distinct
+failed/skipped counters; three regressions reproduced the prior miscount.
+
+## 2026-10-14 — latest local candidate
+
+Candidate Fact ADD/UPDATE/KEEP and safe network-cause diagnostics are locally
+implemented. Final unit suite: 785 passed / 4 skipped; compileall/diff/history
+secret checks passed. New PostgreSQL UPDATE/rollback/isolation paths remain
+unverified because sandbox socket access is denied. HEAD is still d7a68d8,
+53 ahead; .git remains read-only and nothing is staged. No runtime update.
+
+## 2026-10-14 — Candidate Fact conflict review candidate
+
+Per-overlap ADD/UPDATE/KEEP UI and deterministic import planner are implemented
+locally. UPDATE retains the prior row inactive and creates an unknown fact with
+replacement provenance; stale or foreign target rows are rejected. No migration.
+769 unit/behavior tests passed, 4 skipped. New PostgreSQL regression paths were
+not executed because socket creation is sandbox-denied. Checkpoint remains
+uncommitted at d7a68d8 (53 ahead); git dry-run confirms .git is read-only.
+
+## 2026-10-14 — final local verification
+
+HEAD remains d7a68d8, branch feature/v3.5.7-international-market-coverage, 53 ahead.
+Own pending atomic-import, EURES metrics and HH manual-owner changes remain
+uncommitted because `.git/index.lock` cannot be created (read-only filesystem).
+Source counters now preserve earlier processing errors and deduplicate actual
+EURES discovery observations. Final unit suite: 750 passed / 4 skipped;
+compileall/diff/history-secret checks pass. Isolated DB socket access is denied.
+
+## 2026-10-14 — checked local candidate
+
+Resume lookup failures now preserve the retry preview. Manual HH reply setup
+requires the owner and stale non-owner pending state is cancelled. Unit suite:
+748 passed / 4 skipped. Isolated DB revalidation is environment-blocked before
+connection; no production inspection or change occurred in this stage.
+
+## 2026-10-14 — EURES partial-failure visibility
+
+EURES now counts query/detail HTTP, transport and parse failures when preserving
+other results. Counts survive the discovery cache and profile aggregation and
+appear in manual scan completion and `/scanstatus`. Tests confirm cached results
+do not double-count failures across Career-first and Relocation-first profiles.
+No scoring or source retry policy changed.
+
+## 2026-10-14 — atomic resume import persistence
+
+Imported resume content and selected proposed Candidate Facts now share one
+PostgreSQL transaction. A failed transaction rolls back both; the one-time
+preview token is restored for retry. Unit handler tests and isolated PostgreSQL
+rollback/retry integration checks pass. No production data was accessed.
+Per-conflict ADD/UPDATE/KEEP review remains open.
+
 ## 2026-10-14 — network log hygiene
 
 Telegram startup retry and HH chat polling no longer print exception payloads

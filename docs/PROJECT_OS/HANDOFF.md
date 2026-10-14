@@ -1,5 +1,371 @@
 # Handoff
 
+## 2026-10-15 — line-wrapped alternative requirements
+
+HEAD remains `d7a68d8`; preserve the mixed dirty worktree, both untracked owner
+proposal files, and all prior edits. Added recognition for an explicit isolated
+two-skill `or/или` choice split over adjacent lines. Independent following
+skills remain independent; repetitions disable grouping. Focused matching and
+comparison: 43 passed. Full isolated `job-agent-tests` PostgreSQL suite: 869
+passed in 5.98s; compileall and diff-check passed. Scoring weights and thresholds
+unchanged. Nested and general multi-line groups remain open. No runtime,
+production DB, VERSION, or publication changes. Next practical tasks: continue
+careful requirement grammar, then authorized evidence-based Relocation-first
+source and scoped Telegram acceptance. Do not stage the mixed tree or proposals.
+
+## 2026-10-15 — salary reference wording and full verification
+
+HEAD remains `d7a68d8`, branch is 53 commits ahead; preserve the existing mixed
+dirty tree and both owner proposal files. Clarified `/salary` and `/settings`:
+the monthly minimum is a score reference, not an exclusion filter, and only
+structured salary fields are compared. Salary amounts found only in text remain
+uncompared. Added regression coverage for both user-facing views. The first
+full test attempt confirmed the isolated test PostgreSQL was stopped (861 passed,
+4 integration tests could not connect). Started only `job-agent-tests` from
+`docker-compose.test.yml` on port 55432; final rerun passed: 866 tests in 5.92s.
+Compileall and secret scan passed; diff check passed after trimming one extra
+trailing blank line. No production DB, runtime, or external action touched.
+
+Next: consider a product decision on strict salary-floor exclusion separately;
+otherwise continue practical Relocation-first evidence/coverage from ROADMAP.
+Do not stage the mixed worktree or proposal files; no push/merge/release/deploy.
+
+Follow-up: a CEFR level in a posting is now labeled required/preferred only
+when explicit wording supports that status. Unspecified, conflicting and
+negated cues remain unspecified. This does not affect scoring. Focused
+language/comparison tests passed 22/22; the isolated PostgreSQL suite then
+passed with 867 tests in 6.02s. Compileall, diff-check and secret scan passed.
+
+## 2026-10-14 — latest: language fit and mobility evidence
+
+HEAD d7a68d8, branch 53 ahead; preserve the entire dirty tree and both untracked
+owner proposal files. Main worked alone. Added explicit English CEFR comparison
+to `/compare`, plus `/english` view/set/clear. It is evidence-only and does not
+change technical or total score. Unsupported wording and ambiguous ranges stay
+unknown. Fixed fresh-profile truth: generic repository profiles now default to
+unknown English, while owner bootstrap passes tracked general B1 rather than
+technical-reading B2. Existing profiles and production data are untouched.
+
+Foreign vacancy details now render visa sponsorship, relocation, work-permit
+help and explicit prior work-authorization requirements separately. Missing is
+shown as unconfirmed; employer wording is not personal legal eligibility.
+Focused language/comparison 32 and mobility/support 87 passed. Full isolated
+PostgreSQL passed at 863 then 865; final documented gate is recorded above.
+Continue with practical Relocation-first evidence/coverage or a separately
+approved salary-floor behavior decision. No staging/commit from the mixed tree;
+no push, merge, release or deployment.
+
+
+## 2026-10-14 — latest: actual routing and next fit increment
+
+HEAD d7a68d8, branch 53 ahead; preserve all existing dirty edits and the two
+untracked owner proposal files. Current session `turn_context` confirms Main
+`gpt-6-sol/medium`, matching local config. AGENTS now matches reality; no
+model switch. Exactly one read-only Scout turn actually used `gpt-6-luna/low`.
+Its Greenhouse redirect conclusion was false: HTTPX 0.28.1 defaults to no
+redirect following and listing URLs are not fetched. Do not create a source
+fix from that report. Scout thread used 83,803 total tokens, 56,576 cached
+input; full inherited history made this small call expensive. No proven net
+quota saving. For future justified narrow Scout reads use a self-contained
+prompt with `fork_turns="none"`; Main works alone for ordinary tasks. Deep
+was not invoked.
+
+Confirmed a v3.6 gap in `Requirements: Linux or Windows. Docker.`: same-line
+second sentence stopped alternative recognition. Narrow clause splitting now
+keeps the first pair as one scoring choice and Docker independent; a repeated
+Windows requirement disables grouping. Focused matching 55 passed; full
+isolated PostgreSQL 856 passed. A further regression prevents a preferred
+pair from spanning a separately required skill. Latest focused 56 and full
+isolated PostgreSQL 857 passed; compileall, diff check and secret scan passed.
+Test project `job-agent-tests` uses its separate tmpfs DB on localhost 55432.
+Production DB/runtime, VERSION and external services unchanged. `git add
+--dry-run` succeeded, but the large mixed dirty tree was not staged or
+committed without a path-by-path ownership review. Next independent product
+task: a bounded v3.6 language/eligibility evidence gap or practical
+Relocation-first source coverage; retain complex alternatives as planned.
+No push, merge, release or deployment.
+
+
+## 2026-10-14 — latest continuation: DB verified, alternative pair
+
+HEAD d7a68d8 on feature/v3.5.7-international-market-coverage (53 ahead).
+All pre-existing dirty changes and both untracked owner proposal files were
+preserved. Baseline 847 unit/4 skipped and 851 full isolated PostgreSQL passed.
+The `job-agent-tests` tmpfs PostgreSQL was started on port 55432; production
+`repo` DB/volumes/runtime were untouched. Added conservative explicit two-skill
+required/preferred `or/или` scoring as one choice, with per-skill Candidate Fact
+evidence and Telegram explanation. Repeated/ambiguous requirements remain independent.
+Final focused matching 54 passed; full isolated 855 passed; compileall,
+`git diff --check`, and staged/worktree/history secret scan passed.
+
+CLI 0.162.1 local Main default currently `gpt-6-sol/medium`, conflicting with
+AGENTS intended `gpt-6.1-sol/medium`. Fast role TOML specifies
+`gpt-6-luna/low`; Deep specifies `gpt-6.1-sol/high`. No live agent invocation,
+active-session switch, usage meter or measured quota saving in this turn.
+Do not claim automatic model switching. No commit: the existing dirty tree is
+large and ownership spans earlier sessions; keep owner proposal Markdown and
+secrets excluded. Next: review exact intended paths and local checkpoint when
+Git permits; continue v3.6 complex alternatives or practical Relocation-first
+coverage with evidence. Runtime/channel/HH acceptance remains separately gated.
+No push, merge, release, deployment, VERSION change or external application.
+
+
+## 2026-10-14 — continuing workflow and v3.6 fit increment
+
+`AGENTS.md` now records the continuing lead-developer cycle based on actual
+Git, canonical ROADMAP and this handoff. Main worked alone. The prior source
+diagnostic work and dirty files were preserved. A reproduced one-line vacancy
+heading defect promoted optional Docker to required after required Linux;
+Linux-only commercial evidence scored 50. The focused classifier fix splits
+explicit adjacent headings; English/Russian, neutral-heading and 85-point
+score regressions were added. The v3.6 map now says Partial. Focused matching
+tests: 35 passed. A second reproduced defect in the Devexperts qualification
+example marked alternative Python mandatory and reduced confirmed Linux/Bash/
+networking coverage from 100 to 75. A narrow qualified-clause guard retains
+Python as unknown, while a separate must-have remains required; focused suite
+51 passed. Final full unit suite 847 passed/4 skipped (4.83s); compileall,
+`git diff --check` and staged/worktree/history secret scan passed. No isolated
+PostgreSQL run, live acceptance, deployment or publication in this turn.
+HEAD d7a68d8 on feature/v3.5.7-international-market-coverage, 53 ahead;
+prior and current owned edits remain unstaged/uncommitted because `.git` is
+read-only. Exclude both untracked proposal files from any future checkpoint.
+Next independent task: general alternative requirement groups, with no
+invented skills, experience or eligibility. Existing owner-only isolated
+PostgreSQL command below remains the required database acceptance path.
+
+## 2026-10-14 — latest verified checkpoint (local, uncommitted)
+
+HEAD d7a68d8; feature/v3.5.7-international-market-coverage;53 ahead unchanged.
+Preserve all existing dirty files. New completed source work: attempt ledger
+with stable counters/status/history; typed safe Russian network/HTTP/schema/
+processing/statistics diagnostics; per-pass profile-grouped plain-text alerts;
+incomplete manual results and bounded HTML views. Legacy published `found`
+bug reproduced; specific production alert trace remains unavailable (Docker
+read-only log query denied). Current old local helper had already guarded
+`found`; this increment completed history/diagnostics rather than repeating it.
+RemoteOK connection deadline 30 seconds; underlying DNS/TLS/proxy/IP-family/blocking
+cause remains unverified. No live requests or speculative timeout/retry change.
+Scheduled latest summary persists under scheduled_scan_dashboard; it cannot
+replace manual state. `/scanstatus` prefers running manual, else latest start.
+Only the latest scheduled ledger is retained, not unlimited cross-run history.
+Eight additional adapters type contract errors; existing partial collection
+and actual retries reach cache/summaries. Independent profile processing uses
+its own observation ID; EURES reused collection failures are deduplicated.
+Job Bank preserves verified detail jobs after HTTP/schema failure and stops
+requests on 403/429. HTML section capped at 2600 before final Telegram rendering.
+Source error logs/status never redisplay arbitrary exception payloads; known
+HH cooldown stays quiet except certificate validation errors. Fallback history
+cannot mask later fatal timeout. No score/visa/country evidence changes.
+Secret scan now covers staged/worktree/history, prints paths only;5 synthetic
+Git tests verify untracked/tracked/index-only/history detection. No actual leak.
+Final full 844 passed/4skipped (4.82s); targeted 125 passed. compileall/diff/expanded
+secret scan passed. Isolated test Compose command below was attempted and
+DENIED at Docker API; DB tests NOT run. Git metadata is read-only, so no commit.
+No production DB, volumes, VERSION, runtime or publication changes.
+
+Owner's remaining verification (test project only; ensure 55432 is the isolated
+job-agent-tests tmpfs PostgreSQL, never production repo):
+
+```bash
+cd /home/roma/job-agent-release-v352
+docker compose -p job-agent-tests -f docker-compose.test.yml up -d --wait postgres-test
+JOB_AGENT_TEST_DATABASE_URL=postgresql+asyncpg://jobagent_test:jobagent_test@127.0.0.1:55432/jobagent_test .venv/bin/pytest -q
+.venv/bin/python -m compileall -q app tests
+git diff --check
+./scripts/secret-scan.sh
+git status --short
+```
+
+After DB checks pass and Git is writable, review all owned changes and stage
+explicit intended paths only, including new import_review.py,
+resume_import_view.py, network_errors.py, source_summary.py, diagnostics.py,
+test_candidate_import_review.py, test_source_diagnostics.py, test_secret_scan.py.
+Exclude BOTH proposal files; never git add .; checkpoint is local only.
+Do not repeat completed source/root-readiness audits. Next safe increment:
+inspect current requirements/fact comparison, reproduce a required/preferred
+fit gap and implement a small tested improvement. Other priorities: Candidate
+Fact DB transaction acceptance; useful Relocation-first evidence/coverage;
+remaining URL/redirect boundaries; authorized source and Telegram acceptance.
+job_scout did one historical/source read-only investigation; Main owns edits;
+Deep unnecessary. Context Watch has no new synchronized data/live chat access.
+Historical checkpoints below are supporting evidence, not latest test status.
+
+Final counter correction: an attempted HH ConnectError is failed=1; subsequent
+cooldown skips increment skipped, not failed. Recovery keeps the failed attempt
+and partial outcome. Latest full 844/4skipped at 4.82s; final focused 70 passed.
+
+## 2026-10-14 — latest checkpoint and exact verification path
+
+HEAD d7a68d8, feature/v3.5.7-international-market-coverage, 53 ahead; all owned
+changes remain uncommitted and unstaged. Prior four fixes reviewed without
+conflicts. This turn added:
+- Per-overlap Candidate Fact ADD/UPDATE/KEEP, conservative KEEP and final save.
+  UPDATE retains old rows inactive, creates unknown replacements, validates
+  the reviewed snapshot/profile under ordered row locks. No migration.
+- Typed, bounded HH/network cause diagnostics; raw SSL/DNS errors now sanitized.
+  No live cause, IPv4/IPv6 or source-blocking claim; no live source request.
+job_scout performed one independent read-only source review; no confirmed
+listing-controlled SSRF found in EURES/Himalayas/SmartRecruiters. Main owns writes.
+Final full unit suite: 785 passed / 4 skipped (4.68s); targeted import/private
+routes 34, network/source/HH 48; compileall/diff/history-secret guard passed.
+PostgreSQL regression assertions for UPDATE, rollback and foreign profiles are
+prepared but NOT run. Integration attempt failed before connecting with socket
+PermissionError; isolated Compose startup was denied by Docker permissions.
+Git dry-run cannot create .git/index.lock (read-only); no bypass attempted.
+
+Owner quality gates, using only the tmpfs test DB (project job-agent-tests,
+not production repo; ensure port 55432 belongs to the isolated test database):
+
+```bash
+cd /home/roma/job-agent-release-v352
+docker compose -p job-agent-tests -f docker-compose.test.yml up -d --wait postgres-test
+JOB_AGENT_TEST_DATABASE_URL=postgresql+asyncpg://jobagent_test:jobagent_test@127.0.0.1:55432/jobagent_test .venv/bin/pytest -q
+python -m compileall -q app tests
+git diff --check
+./scripts/secret-scan.sh
+git status --short
+```
+
+After DB gates pass and Git becomes writable, review/stage explicit owned
+paths and create a local checkpoint. Intended new files: import_review.py,
+resume_import_view.py, network_errors.py and test_candidate_import_review.py.
+Exclude both untracked proposal files; never use git add . here. No publication,
+deployment, production DB action or employer contact is authorized.
+Next priorities: isolated DB gate/checkpoint, Telegram review UX acceptance,
+remaining source URL boundaries, useful Relocation-first evidence/coverage,
+authorized live HH diagnosis. The broader roadmap stays intact and partial
+product/runtime gates remain open. Context Watch has no new synchronized data.
+
+## 2026-10-14 — Candidate Fact review checkpoint (uncommitted)
+
+HEAD d7a68d8, feature/v3.5.7-international-market-coverage, 53 ahead. Prior four
+fixes remain intact. Added per-overlap ADD/UPDATE/KEEP with conservative KEEP,
+explicit final save, private owner-bound preview and consumed-preview guard.
+UPDATE validates/locks the same profile's active snapshot, archives the old
+row, inserts an unknown replacement in the resume transaction. No migration.
+Full unit suite: 769 passed / 4 skipped; compileall/diff/history-secret guard
+passed. PostgreSQL replacement, rollback and isolation assertions are prepared
+but NOT run: localhost socket PermissionError before connection; test Compose
+startup is denied by Docker socket permissions. git add --dry-run also fails
+creating .git/index.lock (read-only); nothing staged or committed. Main owns
+writes; job_scout reviewed three source URL boundaries without a confirmed
+listing-controlled fetch. Both proposal files remain untracked/excluded.
+
+Owner verification, only the isolated tmpfs test DB (Compose project differs
+from production repo; port 55432 must belong to the test DB):
+
+```bash
+cd /home/roma/job-agent-release-v352
+docker compose -p job-agent-tests -f docker-compose.test.yml up -d --wait postgres-test
+JOB_AGENT_TEST_DATABASE_URL=postgresql+asyncpg://jobagent_test:jobagent_test@127.0.0.1:55432/jobagent_test .venv/bin/pytest -q
+python -m compileall -q app tests
+git diff --check
+./scripts/secret-scan.sh
+```
+
+After successful DB checks and writable Git: review tracked diff, stage explicit
+owned code/tests/docs paths plus the three new review files, exclude proposals,
+and create a local checkpoint. No production/publication is authorized.
+Next independent task: safe typed HH transport-cause diagnostics without live
+probes; real channel/Relocation-first acceptance remain owner/runtime gates.
+
+## 2026-10-14 — final continuation checkpoint (uncommitted)
+
+HEAD d7a68d8; feature/v3.5.7-international-market-coverage, 53 ahead. Own pending
+atomic-import/EURES/model-routing work is preserved. New fixes this turn:
+resume lookup failure retains preview; manual HH setup is owner-only and clears
+non-owner stale state; source processing errors survive later profile success;
+EURES discovery observations correctly aggregate distinct caches without
+counting reuse twice. job_scout performed one bounded read-only HH flow audit.
+Final unit suite: 750 passed / 4 skipped (4.69s); compileall/diff and history
+secret guard passed. Prior isolated DB success is historical, not a new result.
+Current isolated DB rerun fails before connection with socket PermissionError;
+Docker socket is denied. Commit was attempted but git add cannot create
+.git/index.lock on a read-only filesystem. No files were staged or committed.
+Context Watch hash is unchanged; private MODEL_ROUTING stale Deep entry aligned
+with the configured GPT-6.1 Sol/high. No live ChatGPT delta claimed.
+Continue: restore normal Git/isolated-DB access, run the documented DB suite,
+review tracked diff and commit explicit owned paths, excluding both untracked
+proposal files. Next independent product task: explicit Candidate Fact conflict
+choices; real channels/HH probing/deployment remain separate owner gates.
+No publication, runtime update or employer contact occurred.
+
+## 2026-10-14 — checked local checkpoint
+
+Own pending atomic-import, EURES health and model-routing changes reviewed;
+added regressions/fixes for resume-lookup failure consuming the preview and
+non-owner manual HH reply setup/stale state. Full unit suite: 748 passed /
+4 skipped; compileall/diff/secret checks recorded with this checkpoint.
+This turn could not rerun isolated PostgreSQL: Docker API permission denied,
+then localhost socket creation failed with PermissionError before connecting.
+Prior 46 targeted tests with isolated PostgreSQL remain dated prior evidence.
+Context Watch SHA-256 is unchanged; no live chat or new snapshot was read.
+Private MODEL_ROUTING now agrees with the configured GPT-6.1 Sol/high Deep.
+Next independent task: preserve source processing-error counts across profiles.
+Keep owner proposals untracked. No publication, deployment or external HH action.
+
+## 2026-10-14 — Codex model routing
+
+Codex CLI 0.162.1 local catalog lists `gpt-6.1-sol` (medium/high) and
+`gpt-6-luna` (low). New Main sessions default to GPT-6.1 Sol/medium;
+`job_scout` remains GPT-6 Luna/low and `job_deep_review` is now GPT-6.1
+Sol/high. Backups are in `~/.codex/config.toml.bak-before-model-routing-20261014`
+and `~/.codex/agents/job_deep_review.toml.bak-before-model-routing-20261014`;
+AGENTS.md backup is in `/tmp`. The Fast smoke invocation produced a local
+session record for GPT-6 Luna/low. The active Main session remains GPT-6 Sol/
+medium until a new session starts. CLI exec model smoke test could not finish
+because workspace routing timed out; official docs fetch also timed out. TOML
+parsing and the CLI option parser succeeded. No quota measurement is available.
+
+## 2026-10-14 — EURES partial-failure visibility
+
+After atomic resume import, completed the open EURES source-health task. Query
+and detail failures are counted, preserved through source cache and profile
+aggregation, and shown in scan completion and `/scanstatus`. Combined targeted
+tests including isolated PostgreSQL: 46 passed; compileall/diff check passed.
+No external request or runtime update.
+Current candidate-import conflict review remains open. Keep local Codex model
+routing separate from repository runtime and preserve all pre-existing changes.
+
+## 2026-10-14 — atomic resume import
+
+After readiness audit, fixed local partial-write risk in resume import: resume
+and proposed facts now commit together; failed saves restore the one-time
+preview for retry. Tests: candidate-import 4 passed; isolated PostgreSQL
+repository integration 3 passed; compileall/diff check passed. No deployment.
+Next candidate-import task is explicit per-fact conflict review. Prior audit
+facts below remain valid; preserve the 53 unpublished commits and two untracked
+owner proposal files.
+
+## 2026-10-14 — publication and deployment readiness audit
+
+Read-only audit: branch `feature/v3.5.7-international-market-coverage` is clean
+for tracked files at `d7a68d8`, 53 commits ahead of its upstream. Preserve the
+two untracked owner proposal files. Latest documented verification is 741 unit
+passed / 4 skipped and 745 passed with isolated PostgreSQL; this audit did not
+rerun tests. Local `repo` runtime and source both report v3.5.7; PostgreSQL is
+healthy. No publication, production update, backup, or external probe occurred.
+
+The 53-commit candidate spans 81 files (8,286 insertions / 2,096 deletions),
+including search/matching, new SmartRecruiters and Telegram Watcher adapters,
+HH/network handling, dependency floors, and substantial project-state docs.
+Tests pass but do not replace final branch/CI review or live acceptance. Schema
+migrations are currently additive through version 4; startup applies pending
+migrations. `job-agent update` fetches and pulls the upstream branch, so it
+cannot install this unpublished local candidate as-is. Any later deployment
+needs explicit publication/deployment approval, a verified PostgreSQL and
+storage backup, test restore, single-poller cutover, schema/readiness checks,
+Telegram and scoped Relocation-first acceptance, and a rehearsed image rollback
+compatible with the migrated schema. Do not use `down -v`.
+
+Open acceptance: diagnose HH transport failure by sanitized logs and separately
+authorized DNS, TLS/SNI, proxy, IPv4/IPv6 and HTTP-status checks; do not bypass
+403/429/CAPTCHA restrictions. Verify selected-channel Bot API access, `/channels`,
+caption/text ingestion, replay suppression, recorded-failure retry and both
+search profiles. Review real GE/AM Relocation-first results and evidence without
+lowering the 65 threshold or treating unknown eligibility as refusal. See the
+current roadmap/tasks for the full owner gates.
+
 ## 2026-10-14 — exception log follow-up
 
 After `921caf4`, Telegram startup retry and HH chat poll logs were reduced to

@@ -1,5 +1,107 @@
 # Known Issues
 
+## 2026-10-14 — remaining language and eligibility limits
+
+Language fit recognizes only an explicit CEFR token near English/«английский».
+It intentionally does not map “fluent”, “upper-intermediate”, interview ability,
+or an ambiguous B1–B2 range. The stored profile level is self-reported and can
+be cleared with `/english unknown`; it is not a certification claim. Mobility
+lines report vacancy wording only. Absence of an explicit existing-authorization
+requirement does not prove eligibility, and employer support does not determine
+the candidate's legal route. Neither increment changes match scores.
+
+
+## 2026-10-14 — additional local reliability/security fixes
+
+Confirmed: Job Bank second-detail HTTP/schema errors previously discarded
+already verified first-detail jobs. Two regressions reproduced both branches;
+results now survive,403/429 stops further source calls. No retry expansion.
+Confirmed: a dense 13-source HTML fixture produced 5940 characters before other
+scan text, exceeding Telegram limits. Source section now caps at 2600 escaped
+characters; full attempts remain in state and issue notices are separate.
+Confirmed guard gap (Medium): secret scan checked only committed history and
+missed new/staged content. It now checks index/worktree/history, including an
+index secret hidden by a clean working copy. The pattern guard is lightweight,
+not a comprehensive secret detector; no actual leaked credential is claimed.
+Progress callback exception payloads and legacy failed-stage strings could
+expose sensitive text in logs/status (Medium); synthetic regressions verify
+safe class/code output. Certificate errors are not hidden by HH cooldown.
+No production update; PostgreSQL and live source/Telegram acceptance remain
+unverified. Partial collection metadata is local telemetry, not proof of hiring
+eligibility, visa support or sufficient Relocation-first Good/Stretch coverage.
+
+
+HH attempted connection failure versus unattempted cooldown skip was previously
+miscounted; corrected locally with three reproduced count/status regressions.
+
+## 2026-10-14 — production source alerts and remaining evidence
+
+The historical aggregator is confirmed defective: error-only source state
+followed by success raises KeyError('found'); success→error loses the error.
+Both are reproduced and fixed locally by an attempt ledger. Production events
+on Oct13/14 are consistent with this defect, but their actual trace was NOT
+retrieved: read-only production-log query was blocked by Docker API permission.
+Do not attribute those events to HH/RemoteOK availability without traceback.
+RemoteOK ConnectTimeout confirms a connection deadline, not DNS, IP family,
+TLS/proxy or blocking. All underlying causes remain externally unverified.
+No live probe/retry-policy expansion or deployment was performed.
+Latest scheduled summaries now persist independently of manual state. This is
+a last-scan ledger, not unlimited historical retention or distributed tracing.
+
+
+## 2026-10-14 — raw TLS/DNS messages (fixed locally)
+
+Medium: source summaries/logs could expose raw SSL/DNS error payloads. Synthetic
+URL-token regressions reproduced this; no actual credential exposure is claimed.
+They now emit class/category only. Typed cause classification is bounded and
+cycle-safe and does not guess from text. Live HH DNS/TLS/proxy/IP-family/source
+blocking attribution remains open; unchanged retries/cooldown isolate failures.
+
+## 2026-10-14 — Candidate Fact review acceptance boundary
+
+Per-import conflict controls are implemented and unit-tested. Transactional
+UPDATE/rollback/cross-profile integration assertions are prepared but require
+isolated PostgreSQL access outside this sandbox. No runtime acceptance is claimed.
+Review applies to new imports; already-imported fingerprints remain deduplicated.
+Static source review found no listing-controlled detail URL fetch in EURES,
+Himalayas or SmartRecruiters. EURES follows fixed-host API redirects; no
+listing-controlled exploit was established, so no bypass/rewrite was added.
+
+## 2026-10-14 — counter fixes and environment blockers
+
+Fixed locally: a later successful search profile replaced earlier source
+processing-error counts; distinct cached EURES queries also lost failures when
+aggregation used max instead of per-discovery observations. Regressions cover
+both defects and reuse of the same cached discovery. Git checkpoint is blocked
+by read-only `.git`, DB revalidation by denied Docker/localhost sockets. Neither
+blocker was worked around; no production or external source request occurred.
+
+## 2026-10-14 — manual HH state and verification boundary
+
+Fixed locally: non-owners could create pending manual HH routing state even
+though sending was owner-gated. Setup is now owner-only and stale non-owner
+state is cleared. No unauthorized send was reproduced; authorization/state
+regressions use a mocked HH client. Import previews also survive lookup errors.
+Current sandbox denies Docker and localhost sockets; this is a DB-test blocker,
+not evidence of a PostgreSQL or application regression.
+
+## 2026-10-14 — EURES partial failure counts (fixed locally)
+
+The adapter preserved vacancies after individual search/detail failures but
+reported only a generic partial label. It now carries the number of failed
+requests through cached discovery and both search-profile summaries; `/scan`
+and `/scanstatus` display the count. Total failure remains a source error.
+Live/runtime acceptance remains pending deployment authorization.
+
+## 2026-10-14 — resume import transaction (fixed locally)
+
+Resume import previously committed the resume and each proposed Candidate Fact
+separately, so a database error could leave a partial import. They now persist
+in one transaction; a failed save leaves no partial rows and restores the
+preview token for retry. Isolated PostgreSQL regression covers rollback and
+successful retry. Explicit per-fact ADD/UPDATE/KEEP conflict choices remain
+unimplemented. Running production code has not been updated.
+
 ## 2026-10-14 — network log hygiene
 
 Fixed locally: Telegram startup and HH chat poll warnings logged raw exception
