@@ -1,7 +1,97 @@
+from types import SimpleNamespace
+
 from app.database.models import CandidateFact, Job, SearchProfile
 from app.matching.engine import score_job
-from app.matching.fact_comparison import extract_requirement_importance
+from app.matching.fact_comparison import compare_facts, extract_requirement_importance
 from app.matching.technical_score import score_technical_v2
+
+
+def test_explicit_required_alternative_counts_as_one_scoring_choice():
+    linux = SimpleNamespace(
+        id=1, value="Commercial Linux administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    text = "Requirements: Linux or Windows.\nDocker."
+    comparison = compare_facts(text, [linux])
+
+    assert comparison.alternative_groups == (("Linux", "Windows"),)
+    assert comparison.skills_for("missing") == ["Windows", "Docker"]
+    assert score_technical_v2(text, [linux]) == 50
+    assert score_technical_v2("Требования: Linux или Windows", [linux]) == 100
+    assert score_technical_v2("Requirements: Linux and Windows", [linux]) == 50
+
+
+def test_repeated_or_ambiguous_skills_remain_independent_requirements():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    repeated = "Requirements: Linux or Windows.\nWindows is also mandatory."
+    ambiguous = "Requirements: Linux or Windows and Docker."
+
+    assert compare_facts(repeated, [linux]).alternative_groups == ()
+    assert score_technical_v2(repeated, [linux]) == 50
+    assert compare_facts(ambiguous, [linux]).alternative_groups == ()
+    assert score_technical_v2(ambiguous, [linux]) == 33
+
+
+def test_preferred_alternative_uses_one_preferred_scoring_choice():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    docker = SimpleNamespace(
+        id=2, value="Docker", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements: Linux. Nice to have: Docker or Kubernetes."
+
+    comparison = compare_facts(vacancy, [linux, docker])
+    assert comparison.preferred_alternative_groups == (("Docker", "Kubernetes"),)
+    assert score_technical_v2(vacancy, [linux, docker]) == 100
+    assert score_technical_v2(vacancy, [linux]) == 85
+    assert score_technical_v2(
+        "Requirements: Linux. Nice to have: Docker and Kubernetes.",
+        [linux, docker],
+    ) == 92
+
+
+def test_required_alternative_before_another_sentence_keeps_one_choice():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements: Linux or Windows. Docker."
+
+    assert compare_facts(vacancy, [linux]).alternative_groups == (("Linux", "Windows"),)
+    assert score_technical_v2(vacancy, [linux]) == 50
+    assert compare_facts(
+        "Requirements: Linux or Windows. Windows is mandatory.", [linux]
+    ).alternative_groups == ()
+
+
+def test_explicit_multiline_alternative_groups_only_the_two_connected_skills():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements:\nLinux\nor Windows\nDocker"
+
+    comparison = compare_facts(vacancy, [linux])
+
+    assert comparison.alternative_groups == (("Linux", "Windows"),)
+    assert comparison.skills_for("missing") == ["Windows", "Docker"]
+    assert score_technical_v2(vacancy, [linux]) == 50
+
+
+def test_multiline_alternative_with_repeated_skill_stays_independent():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements:\nLinux\nor Windows\nWindows also required"
+
+    assert compare_facts(vacancy, [linux]).alternative_groups == ()
 
 
 def _fact(skill: str, experience_type: str, *, fact_id: int = 1, active: bool = True, deleted=False):
@@ -40,6 +130,11 @@ def _search():
 def test_required_commercial_is_full_technical_match():
     text = "Требования:\nLinux"
     assert score_technical_v2(text, [_fact("Linux", "commercial")]) == 100
+
+
+def test_inline_preferred_section_uses_existing_preferred_weight():
+    text = "Requirements: Linux. Nice to have: Docker."
+    assert score_technical_v2(text, [_fact("Linux", "commercial")]) == 85
 
 
 def test_required_experience_levels_have_strict_order():

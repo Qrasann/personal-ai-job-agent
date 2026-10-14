@@ -15,10 +15,18 @@ _EXPERIENCE_WEIGHTS: dict[str, float] = {
 }
 
 
-def _coverage(items) -> float:
+def _coverage(items, alternative_groups=()) -> float:
     if not items:
         return 0.0
-    return sum(_EXPERIENCE_WEIGHTS[item.status] for item in items) / len(items)
+    weights = {item.skill: _EXPERIENCE_WEIGHTS[item.status] for item in items}
+    values = []
+    grouped = set()
+    for group in alternative_groups:
+        if all(skill in weights for skill in group):
+            values.append(max(weights[skill] for skill in group))
+            grouped.update(group)
+    values.extend(weight for skill, weight in weights.items() if skill not in grouped)
+    return sum(values) / len(values)
 
 
 def score_technical_v2(
@@ -43,12 +51,12 @@ def score_technical_v2(
 
     preferred = comparison.items_for_importance("preferred")
 
-    required_score = _coverage(required)
+    required_score = _coverage(required, comparison.alternative_groups)
 
     if not preferred:
         return max(0, min(100, round(required_score * 100)))
 
-    preferred_score = _coverage(preferred)
+    preferred_score = _coverage(preferred, comparison.preferred_alternative_groups)
     score = required_score * 85 + preferred_score * 15
 
     return max(0, min(100, round(score)))

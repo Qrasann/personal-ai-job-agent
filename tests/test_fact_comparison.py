@@ -233,6 +233,64 @@ def test_render_fact_comparison_separates_truth_levels():
     assert "4/5" in text
 
 
+def test_render_fact_comparison_explains_alternative_score():
+    from app.telegram.vacancy_view import render_fact_comparison
+
+    comparison = compare_facts("Requirements: Linux or Windows", [
+        fact(1, "Linux administration", "commercial"),
+    ])
+    text = render_fact_comparison({
+        "job": SimpleNamespace(id=25, title="Infrastructure Engineer"),
+        "comparison": comparison,
+    })
+
+    assert "Linux или Windows" in text
+    assert "отдельные упоминания навыков" in text
+
+    preferred = compare_facts(
+        "Requirements: Linux. Nice to have: Docker or Kubernetes.",
+        [fact(1, "Linux administration", "commercial")],
+    )
+    preferred_text = render_fact_comparison({
+        "job": SimpleNamespace(id=26, title="Infrastructure Engineer"),
+        "comparison": preferred,
+    })
+    assert "Docker или Kubernetes" in preferred_text
+
+
+def test_alternative_group_does_not_cross_importance_boundaries():
+    comparison = compare_facts(
+        "Nice to have: Linux or Windows.\nRequirements: Linux.",
+        [],
+    )
+
+    assert comparison.preferred_alternative_groups == ()
+    assert [(item.skill, item.importance) for item in comparison.requirements] == [
+        ("Linux", "required"),
+        ("Windows", "preferred"),
+    ]
+
+
+def test_render_fact_comparison_shows_language_separately_from_technical_score():
+    from app.matching.language_fit import compare_english_level
+    from app.telegram.vacancy_view import render_fact_comparison
+
+    payload = {
+        "job": SimpleNamespace(id=27, title="Support Engineer"),
+        "comparison": compare_facts("English level B2", []),
+        "language_fit": compare_english_level("English level B2 preferred", "B1"),
+    }
+
+    text = render_fact_comparison(payload)
+
+    assert "Явный уровень английского" in text
+    assert "Уровень вакансии: <b>B2</b>" in text
+    assert "Статус: указан как преимущество" in text
+    assert "Профиль: <b>B1</b>" in text
+    assert "уровень профиля ниже" in text
+    assert "не меняет техническую оценку" in text
+
+
 def test_vacancy_details_keyboard_has_compare_button():
     from app.telegram.ui import vacancy_details_keyboard
 
@@ -311,6 +369,20 @@ def test_inline_requirement_headings_are_supported():
     assert importance["Kubernetes"] == "required"
     assert importance["Grafana"] == "preferred"
     assert importance["Prometheus"] == "preferred"
+
+
+def test_multiple_section_headings_on_one_line_keep_preferred_skills_optional():
+    english = extract_requirement_importance(
+        "Requirements: Linux. Nice to have: Docker. Responsibilities: Kubernetes."
+    )
+    russian = extract_requirement_importance(
+        "Требования: Linux; Будет плюсом: Docker; Обязанности: Kubernetes"
+    )
+
+    for importance in (english, russian):
+        assert importance["Linux"] == "required"
+        assert importance["Docker"] == "preferred"
+        assert importance["Kubernetes"] == "unknown"
 
 
 def test_common_separators_match_canonical_skills():

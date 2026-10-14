@@ -102,6 +102,8 @@ class RequirementMatch:
 @dataclass(frozen=True, slots=True)
 class FactComparison:
     requirements: tuple[RequirementMatch, ...]
+    alternative_groups: tuple[tuple[str, str], ...] = ()
+    preferred_alternative_groups: tuple[tuple[str, str], ...] = ()
 
     @property
     def total(self) -> int:
@@ -230,6 +232,29 @@ _NEUTRAL_HEADINGS = (
     "benefits",
 )
 
+_INLINE_HEADING_BREAK = re.compile(
+    r"(?<=[.;])\s+(?=(?:"
+    + "|".join(
+        re.escape(heading)
+        for heading in sorted(
+            set(_REQUIRED_HEADINGS + _PREFERRED_HEADINGS + _NEUTRAL_HEADINGS),
+            key=len,
+            reverse=True,
+        )
+    )
+    + r")\s*:)",
+    flags=re.IGNORECASE,
+)
+
+# An example of a language choice is not an individual must-have. Keep the
+# mention in the vacancy text (and thus in unknown evidence), but exclude the
+# explicitly qualified clause from the required bucket. This intentionally
+# handles only the unambiguous wording observed in an employer posting.
+_LANGUAGE_ALTERNATIVE_EXAMPLE = re.compile(
+    r"\bwith\s+[^.\n:]{1,80}?\s+among\s+(?:the\s+)?language\s+alternatives?\b",
+    flags=re.IGNORECASE,
+)
+
 
 def _match_section_heading(
     line: str,
@@ -259,7 +284,10 @@ def _split_requirement_sections(text: str) -> dict[str, str]:
 
     current = "unknown"
 
-    for raw_line in (text or "").splitlines():
+    # Some feeds flatten adjacent labelled sections into one sentence. Split
+    # only at an explicit punctuated heading so a preferred skill does not
+    # inherit the previous required section.
+    for raw_line in _INLINE_HEADING_BREAK.sub("\n", text or "").splitlines():
         line = raw_line.strip()
 
         if not line:
@@ -310,10 +338,11 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
         required > preferred > unknown
     """
     sections = _split_requirement_sections(text)
+    required_text = _LANGUAGE_ALTERNATIVE_EXAMPLE.sub("", sections["required"])
     result: dict[str, str] = {}
 
     for spec in SKILLS:
-        if _matches_skill(sections["required"], spec):
+        if _matches_skill(required_text, spec):
             result[spec.name] = "required"
         elif _matches_skill(sections["preferred"], spec):
             result[spec.name] = "preferred"
@@ -321,6 +350,67 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
             result[spec.name] = "unknown"
 
     return result
+
+
+def extract_skill_alternatives(
+    text: str, importance: str,
+) -> tuple[tuple[str, str], ...]:
+    """Find isolated, explicit two-skill choices in a labelled section.
+
+    A choice may wrap around an explicit ``or``/``или`` line break. A clause
+    with additional skills or a repeated skill remains ambiguous and ungrouped.
+    """
+    if importance not in {"required", "preferred"}:
+        return ()
+    raw_lines = _split_requirement_sections(text)[importance].splitlines()
+    merged_lines: list[str] = []
+    for raw_line in raw_lines:
+        line = raw_line.strip()
+        if not line:
+            continue
+        begins_connector = re.match(r"^(?:or|или)\b", line, flags=re.IGNORECASE)
+        previous_ends_connector = bool(
+            merged_lines
+            and re.search(r"\b(?:or|или)$", merged_lines[-1], flags=re.IGNORECASE)
+        )
+        if merged_lines and (begins_connector or previous_ends_connector):
+            merged_lines[-1] += " " + line
+        else:
+            merged_lines.append(line)
+    section_lines = [
+        clause.strip()
+        for line in merged_lines
+        for clause in re.split(r"(?<=[.;])\s+", line)
+        if clause.strip()
+    ]
+    mentions = [
+        tuple(spec.name for spec in SKILLS if _matches_skill(line, spec))
+        for line in section_lines
+    ]
+    counts = {
+        skill: sum(skill in line_skills for line_skills in mentions)
+        for line_skills in mentions
+        for skill in line_skills
+    }
+    groups: list[tuple[str, str]] = []
+    for line, line_skills in zip(section_lines, mentions):
+        if len(line_skills) != 2 or any(counts[skill] != 1 for skill in line_skills):
+            continue
+        # Only a word connector counts. A slash also occurs inside names such
+        # as CI/CD and can mean a combined skill rather than a choice.
+        for connector in re.finditer(r"\b(?:or|или)\b", line, flags=re.IGNORECASE):
+            before = [
+                spec.name for spec in SKILLS
+                if spec.name in line_skills and _matches_skill(line[:connector.start()], spec)
+            ]
+            after = [
+                spec.name for spec in SKILLS
+                if spec.name in line_skills and _matches_skill(line[connector.end():], spec)
+            ]
+            if len(before) == len(after) == 1 and before[0] != after[0]:
+                groups.append((line_skills[0], line_skills[1]))
+                break
+    return tuple(groups)
 
 
 def extract_technical_requirements(text: str) -> list[str]:
@@ -421,4 +511,15 @@ def compare_facts(
             )
         )
 
-    return FactComparison(tuple(requirements))
+    def valid_groups(importance: str) -> tuple[tuple[str, str], ...]:
+        return tuple(
+            group
+            for group in extract_skill_alternatives(vacancy_text, importance)
+            if all(importance_by_skill.get(skill) == importance for skill in group)
+        )
+
+    return FactComparison(
+        tuple(requirements),
+        valid_groups("required"),
+        valid_groups("preferred"),
+    )
