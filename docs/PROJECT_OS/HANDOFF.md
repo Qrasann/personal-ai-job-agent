@@ -1,5 +1,31 @@
 # Handoff
 
+## Latest verified checkpoint — 2026-10-15
+
+HEAD `453e05d` on `feature/v3.5.7-international-market-coverage`, 89 commits
+ahead of its feature upstream. `VERSION=3.5.7`; latest formal release is
+v3.5.6. Local and GitHub branch `backup/v3.5.7-20261015` both point to
+`453e05d`. The full suite against the isolated PostgreSQL database passed:
+923 tests. Compileall, `git diff --check`, and the secret scan passed. The only
+untracked files are the two owner proposal documents; they remain excluded.
+
+Recent independent increments: application export includes its recorded status
+timeline; explicit source salary periods are displayed without normalization or
+filter changes; source scans report publication-date-field coverage without
+freshness claims; Interview Agent covers Terraform/Ansible/AWS/Grafana/Helm;
+candidate-resume comparison honors alternative requirements and surfaces extra
+unsupported CV options; recruiter sensitive-context review includes English
+passport references. These changes are local checkpoints and backup copies,
+not a release or deployment.
+
+Next practical work: (1) add narrow regression coverage for nested/compound
+alternative parsing before extending Candidate Fit; (2) improve source quality
+only where date/expiry semantics are source-documented; (3) continue application
+package fidelity without asserting that a manual status proves provider-side
+submission. Keep Bot API acceptance, live source relevance, and legal
+relocation eligibility as separate evidence gates. No feature-branch push,
+merge, release, deployment, or production DB/volume change has been made.
+
 ## 2026-10-15 — keep extra alternative CV claims reviewable
 
 At start: HEAD `210a4a3`, feature branch 88 commits ahead; VERSION 3.5.7.
