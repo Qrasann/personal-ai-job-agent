@@ -1,5 +1,15 @@
 # Current State
 
+## 2026-10-15 — read-only vacancy-to-resume diff
+
+`/resumediff <vacancy_id> [resume_id]` compares recognized requirements with
+the selected saved resume and active Candidate Facts. It identifies CV/fact
+overlap and gaps in either direction without generating or changing CV text.
+Resume selection is restricted to the authorized match profile. Also fixed
+undefined diagnostic handling in `/job`, `/compare` and the compare callback.
+Focused suites: 47 passed; isolated PostgreSQL full suite: 884 passed. Manual
+Telegram acceptance remains open.
+
 ## 2026-10-15 — Candidate Fact traceability in vacancy comparison
 
 `/compare` now shows the ID and provenance of the strongest Candidate Fact

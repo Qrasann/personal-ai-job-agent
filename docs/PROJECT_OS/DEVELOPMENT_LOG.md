@@ -2085,3 +2085,12 @@ review/correction. Unknown or missing skills remain uncited. Provenance output
 is HTML-escaped; scoring is unchanged. Focused comparison suite: 23 passed;
 full isolated PostgreSQL suite: 879 passed. Compileall, diff-check and secret
 scan passed.
+
+## 2026-10-15 — read-only vacancy-to-resume diff
+
+Added `/resumediff <vacancy_id> [resume_id]`, which classifies recognized
+vacancy skills by appearance in the chosen saved resume and active Candidate
+Facts. It exposes only a checklist and does not produce or edit claims. Resume
+IDs are looked up inside the authorized match profile. Fixed confirmed
+undefined error diagnostic references in `/job`, `/compare`, and the compare
+callback. Focused suites: 47 passed; full isolated PostgreSQL: 884 passed.

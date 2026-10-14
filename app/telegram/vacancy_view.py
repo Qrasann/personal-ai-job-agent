@@ -502,3 +502,35 @@ def render_fact_comparison(payload: dict) -> str:
         ])
 
     return "\n".join(lines)
+
+
+def render_resume_diff(payload: dict) -> str:
+    job = payload["job"]
+    resume = payload["resume"]
+    diff = payload["resume_diff"]
+    headings = (
+        ("supported_in_resume", "✅ Есть в Candidate Facts и в резюме"),
+        ("supported_missing_from_resume", "📝 Есть в Candidate Facts, но не найдено в резюме"),
+        ("resume_only_unconfirmed", "⚠️ Есть в резюме, но не найдено в Candidate Facts"),
+        ("missing_from_both", "❌ Не найдено ни в резюме, ни в Candidate Facts"),
+    )
+    title = _clip(repair_mojibake(str(job.title or "")), 120)
+    lines = [
+        "🧾 <b>Сверка резюме с вакансией</b>",
+        f"#{job.id} · {html.escape(title)}",
+        f"Резюме: <b>{html.escape(_clip(str(resume.name or ''), 100))}</b> (ID {resume.id})",
+        "",
+    ]
+    has_detected_requirements = any(diff.get(key) for key, _ in headings)
+    if not has_detected_requirements:
+        lines.append("Поддерживаемый словарь не распознал в вакансии технические требования.")
+    else:
+        for key, heading in headings:
+            skills = diff.get(key) or ()
+            if skills:
+                lines.extend([heading, "• " + ", ".join(html.escape(skill) for skill in skills), ""])
+    lines.append(
+        "Это автоматическая сверка известных технических терминов: она не редактирует резюме "
+        "и не подтверждает опыт. Проверяй каждое изменение перед отправкой."
+    )
+    return "\n".join(lines)

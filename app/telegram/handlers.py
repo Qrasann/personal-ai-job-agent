@@ -27,10 +27,10 @@ from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.matching.language_fit import normalize_cefr
-from app.services import apply_match, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
+from app.services import apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card
+from app.telegram.vacancy_view import render_fact_comparison, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
@@ -154,6 +154,7 @@ def _main_menu_text() -> str:
         "🧠 <b>Профиль и вакансии</b>\n"
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
+        "/resumediff 25 [resume_id] — сверить CV с вакансией\n"
         "/english [A1–C2|unknown] — уровень английского\n"
         "/facts — факты кандидата\n"
         "/import — импортировать резюме PDF/DOCX/TXT\n"
@@ -1340,6 +1341,7 @@ async def job_details(message: Message) -> None:
             ),
         )
     except Exception as exc:
+        issue = classify_source_error(exc, stage="detail_request")
         await progress.edit_text(
             f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",
@@ -1385,10 +1387,40 @@ async def compare_job(message: Message) -> None:
             parse_mode="HTML",
         )
     except Exception as exc:
+        issue = classify_source_error(exc, stage="processing")
         await progress.edit_text(
             f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",
         )
+
+@router.message(Command("resumediff"))
+async def resume_diff_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if (
+        len(parts) not in {2, 3}
+        or not parts[1].isdigit()
+        or (len(parts) == 3 and not parts[2].isdigit())
+    ):
+        await message.answer("Использование: /resumediff <vacancy_id> [resume_id]")
+        return
+    progress = await message.answer("⏳ Сверяю требования с выбранным резюме и Candidate Facts…")
+    try:
+        payload = await get_resume_diff(
+            user.id,
+            int(parts[1]),
+            **({"resume_id": int(parts[2])} if len(parts) == 3 else {}),
+        )
+        await progress.edit_text(render_resume_diff(payload), parse_mode="HTML")
+    except Exception as exc:
+        issue = classify_source_error(exc, stage="processing")
+        await progress.edit_text(
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
+            parse_mode="HTML",
+        )
+
 
 @router.message(Command("chats"))
 async def chats(message: Message, bot: Bot) -> None:
@@ -1665,6 +1697,7 @@ async def compare_callback(callback: CallbackQuery) -> None:
             parse_mode="HTML",
         )
     except Exception as exc:
+        issue = classify_source_error(exc, stage="processing")
         await callback.message.answer(
             f"⚠ {html.escape(issue['message'])} Код: {issue['code']}",
             parse_mode="HTML",

@@ -1,5 +1,14 @@
 # Codex Brief
 
+## 2026-10-15 — read-only vacancy-to-resume diff
+
+Added `/resumediff <vacancy_id> [resume_id]` to compare recognized vacancy
+skills with the chosen saved CV and active Candidate Facts. It distinguishes
+overlap, supported facts missing from the CV, CV mentions absent from Candidate
+Facts, and gaps in both. It creates no resume text or claims. Fixed undefined
+error diagnostics in `/job`, `/compare`, and the comparison callback. Focused
+tests: 47 passed; isolated PostgreSQL suite: 884 passed.
+
 ## 2026-10-15 — Candidate Fact traceability
 
 `/compare` links each matched skill to the strongest Candidate Fact ID and its

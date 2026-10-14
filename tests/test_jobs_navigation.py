@@ -302,3 +302,31 @@ def test_compare_command_preserves_explicit_relocation_profile(monkeypatch):
 
     comparison.assert_awaited_once_with(7, 25, search_profile_id=4)
     assert progress.edit_text.await_args.args[0] == "Scoped comparison"
+
+
+def test_compare_command_reports_sanitized_error_instead_of_undefined_issue(monkeypatch):
+    _mock_profiles(monkeypatch)
+    comparison = AsyncMock(side_effect=ValueError("sensitive internal detail"))
+    monkeypatch.setattr(handlers, "get_vacancy_comparison", comparison)
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    message = SimpleNamespace(text="/compare 25", answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.compare_job(message))
+
+    rendered = progress.edit_text.await_args.args[0]
+    assert "SOURCE_PROCESSING_FAILED" in rendered
+    assert "sensitive internal detail" not in rendered
+
+
+def test_resume_diff_command_accepts_explicit_resume_and_renders_result(monkeypatch):
+    _mock_profiles(monkeypatch)
+    builder = AsyncMock(return_value={})
+    monkeypatch.setattr(handlers, "get_resume_diff", builder)
+    monkeypatch.setattr(handlers, "render_resume_diff", lambda payload: "CV DIFF")
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    message = SimpleNamespace(text="/resumediff 25 9", answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.resume_diff_command(message))
+
+    builder.assert_awaited_once_with(7, 25, resume_id=9)
+    assert progress.edit_text.await_args.args[0] == "CV DIFF"

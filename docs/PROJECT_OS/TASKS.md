@@ -1,5 +1,18 @@
 # Tasks
 
+## 2026-10-15 — read-only vacancy-to-resume diff
+
+- [x] Add `/resumediff <vacancy_id> [resume_id]` for a selected saved resume;
+  use only the authorized profile's active Candidate Facts and resume records.
+- [x] Separate confirmed fact/CV overlap, facts missing from CV, CV-only terms,
+  and gaps in both. Do not generate or alter resume claims.
+- [x] Fix the confirmed unbound `issue` error paths in `/job`, `/compare` and
+  compare callback with sanitized diagnostics.
+- [x] Verify focused tests (47), full isolated PostgreSQL (884), compileall,
+  diff-check and secret scan. Telegram live acceptance remains open.
+- [ ] Next: review a manually selected vacancy/resume in Telegram, then extend
+  this read-only evidence checklist toward the reviewed Application Package.
+
 ## 2026-10-15 — Candidate Fact traceability
 
 - [x] Show matched skill references to the strongest Candidate Fact IDs and

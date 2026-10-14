@@ -1,5 +1,19 @@
 # Handoff
 
+## 2026-10-15 — read-only vacancy-to-resume diff
+
+At start: HEAD `0472b9f`, feature branch 70 commits ahead; VERSION remains
+3.5.7. Added `/resumediff <vacancy_id> [resume_id]` to compare recognized job
+skills with one active saved resume and the match profile's Candidate Facts.
+The view is a checklist only; it never generates or edits resume claims.
+Selection is profile-scoped. Fixed `/job`, `/compare` and compare callback
+error handlers that referenced an undefined diagnostic variable. Focused suites:
+47 passed; isolated `job-agent-tests` PostgreSQL: 884 passed. Compileall,
+diff-check and secret scan passed. No runtime, production DB, volume or external
+action changed. Next: checkpoint and sync backup branch; proceed to reviewed
+Application Package components while keeping live Telegram acceptance separate.
+Owner proposal files remain untracked.
+
 ## 2026-10-15 — Candidate Fact traceability increment
 
 At start: HEAD `8ec7b39`, feature branch 69 commits ahead, VERSION 3.5.7.

@@ -19,6 +19,7 @@ from app.geo.countries import normalize_country
 from app.matching.engine import score_job
 from app.matching.fact_comparison import compare_facts
 from app.matching.language_fit import compare_english_level
+from app.matching.resume_diff import compare_resume_coverage
 from app.providers.hh import HHClient, HHError
 from app.sources.adapters.hh import HHSource
 from app.sources.adapters.remoteok import RemoteOKSource
@@ -756,6 +757,35 @@ async def get_vacancy_comparison(
         "comparison": comparison,
         "language_fit": language_fit,
         "facts": facts,
+    }
+
+
+async def get_resume_diff(
+    user_id: int,
+    job_id: int,
+    *,
+    resume_id: int | None = None,
+    search_profile_id: int | None = None,
+) -> dict:
+    payload = await get_vacancy_comparison(
+        user_id,
+        job_id,
+        **({"search_profile_id": search_profile_id} if search_profile_id is not None else {}),
+    )
+    match = payload["match"]
+    resumes = await repo.list_resumes(match.profile_id)
+    available = [
+        resume for resume in resumes
+        if resume.active is not False and getattr(resume, "deleted_at", None) is None
+    ]
+    selected_id = resume_id if resume_id is not None else match.resume_id
+    chosen = next((resume for resume in available if resume.id == selected_id), None)
+    if chosen is None:
+        raise RuntimeError("Не найдено выбранное резюме этого профиля; укажи ID из /resumes")
+    return {
+        **payload,
+        "resume": chosen,
+        "resume_diff": compare_resume_coverage(payload["comparison"], chosen.content),
     }
 
 
