@@ -2,8 +2,8 @@
 
 ## 2026-10-15 — verified local development checkpoint
 
-HEAD is `80932ab` on `feature/v3.5.7-international-market-coverage`, 66 commits
-ahead; VERSION
+HEAD at the start of this handoff refresh is `eb56824` on
+`feature/v3.5.7-international-market-coverage`, 67 commits ahead; VERSION
 remains 3.5.7. Checkpoints: `a4ac2b1` candidate profile and
 resume import controls; `bdd4b28` source outcomes; `4c6eb28` secret scan;
 `fca12ba` vacancy fit/mobility; `b62835e` roadmap/handoff sync;
@@ -25,8 +25,9 @@ acceptance where a meaningful uncovered case exists; continue with independent
 safe work. The `AGENTS.md` workflow update and PROJECT_OS/roadmap reconciliation
 are committed in `b62835e`; the current source-yield status update is pending a
 documentation checkpoint. A dedicated local and GitHub backup branch
-`backup/v3.5.7-20261015` now points to `80932ab`, separate from release/main
-and without a tag. The two proposal files remain untracked. Live Telegram
+`backup/v3.5.7-20261015` is a separate recovery branch, currently preserving
+the verified code and docs snapshot at `eb56824`; it does not point to
+release/main and has no tag. The two proposal files remain untracked. Live Telegram
 acceptance and jurisdiction-specific
 legal eligibility remain separate evidence gates.
 
