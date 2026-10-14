@@ -303,7 +303,8 @@ async def salary_command(message: Message) -> None:
         await message.answer(
             "✅ Строгий зарплатный фильтр " + ("включён." if enabled else "выключен.")
             + " Исключаются только вакансии с подтверждённой структурированной "
-            "зарплатой ниже месячного минимума; неизвестные данные остаются."
+            "зарплатой известного периода ниже месячного минимума; неизвестные валюты, "
+            "периоды и неполные данные остаются в выдаче."
         )
         return
     if len(text.split()) == 1:
@@ -316,7 +317,8 @@ async def salary_command(message: Message) -> None:
             f"Текущая: {show('current')}\nЖелаемая: {show('desired')}\nМесячный минимум для оценки: {show('minimum')}\n\n"
             f"Строгий фильтр: {'включён' if cfg.get('strict_salary_floor') is True else 'выключен'}\n"
             "Обычный минимум только влияет на оценку и не скрывает вакансии. "
-            "Строгий режим удаляет только подтверждённо ниже минимума структурированные зарплаты. "
+            "Строгий режим удаляет только структурированные зарплаты известного периода, "
+            "подтверждённо ниже минимума. Неизвестный период остаётся в выдаче. "
             "Суммы только в тексте объявления не пересчитываются и не сравниваются.\n\n"
             "Формат: /salary current|desired|minimum USD 3000; очистить: /salary desired USD clear; "
             "строгий фильтр: /salary strict on|off"
@@ -492,6 +494,7 @@ async def search_settings(message: Message) -> None:
         f"Relocation: {'ON' if modes.get('relocation', True) else 'OFF'}\n"
         f"Ориентир зарплаты для оценки: {minimum or 'не задан'} RUB net (не фильтр)\n"
         f"Строгий зарплатный фильтр: {'ON' if cfg.get('strict_salary_floor') is True else 'OFF'}\n"
+        "Неизвестный зарплатный период строгим фильтром не сравнивается.\n"
         f"Notify score: {cfg.get('notify_min_score', 65)}+"
     )
     await message.answer(text, parse_mode="HTML")

@@ -2155,3 +2155,10 @@ Removed the strict-floor fallback that treated any missing `salary_period` as
 monthly. Values from adapters without explicit period evidence remain eligible;
 known monthly and annual comparisons are unchanged. Focused salary/scoring
 tests: 66 passed; full isolated PostgreSQL suite: 902 passed.
+
+## 2026-10-15 — disclose unknown salary-period behavior
+
+Updated `/salary`, the strict-toggle response and `/settings` to explicitly say
+that a missing/unsupported period is not compared by the strict floor and stays
+visible. Focused command/filter tests: 41 passed; full isolated PostgreSQL:
+902 passed.

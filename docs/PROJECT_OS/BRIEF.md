@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — disclose unknown salary-period behavior
+
+`/salary`, strict-toggle response and `/settings` now explain that the strict
+filter compares only structured salary with a known period; unknown periods
+stay visible. Focused command/filter tests: 41 passed; full isolated PostgreSQL
+suite: 902 passed.
+
 ## 2026-10-15 — strict salary filter requires a known period
 
 Fixed a confirmed comparison risk: strict monthly floors no longer assume a

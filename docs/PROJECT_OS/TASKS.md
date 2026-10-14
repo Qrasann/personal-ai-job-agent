@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — disclose unknown salary-period behavior
+
+- [x] Explain known-period-only strict comparison in `/salary`, `/settings`
+  and the strict toggle confirmation.
+- [x] Regression-test command text and strict filter behavior; focused 41,
+  full isolated PostgreSQL 902 passed.
+
 ## 2026-10-15 — strict salary floor requires a known period
 
 - [x] Stop assuming missing `salary_period` is monthly in the opt-in strict

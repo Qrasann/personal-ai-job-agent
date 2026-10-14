@@ -134,10 +134,12 @@ def test_salary_settings_explain_minimum_is_scoring_reference_not_filter(monkeyp
     assert "не скрывает вакансии" in salary_text
     assert "структурированные зарплаты" in salary_text
     assert "не сравниваются" in salary_text
+    assert "Неизвестный период остаётся в выдаче" in salary_text
 
     settings_message = SimpleNamespace(answer=AsyncMock())
     asyncio.run(handlers.search_settings(settings_message))
     assert "не фильтр" in settings_message.answer.await_args.args[0]
+    assert "Неизвестный зарплатный период" in settings_message.answer.await_args.args[0]
 
 
 def test_salary_strict_toggle_updates_each_search_profile(monkeypatch):
@@ -160,3 +162,4 @@ def test_salary_strict_toggle_updates_each_search_profile(monkeypatch):
     )
     assert update.await_args_list[1].args == (10, {"strict_salary_floor": True})
     assert "Строгий зарплатный фильтр включён" in message.answer.await_args.args[0]
+    assert "известного периода" in message.answer.await_args.args[0]

@@ -1,5 +1,13 @@
 # Handoff
 
+## 2026-10-15 — disclose unknown salary-period behavior
+
+At start: HEAD `1fa2887`, feature branch 78 commits ahead; VERSION 3.5.7.
+Updated `/salary`, `/settings` and the strict-toggle response to tell users that
+missing/unsupported salary period is not compared and remains visible. Focused
+command/filter tests: 41 passed; full isolated PostgreSQL suite: 902 passed.
+Next: checkpoint/backup and continue salary-provider evidence review.
+
 ## 2026-10-15 — strict salary filter requires a known period
 
 At start: HEAD `977a0ec`, feature branch 77 commits ahead; VERSION 3.5.7.

@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — disclose unknown salary-period behavior
+
+`/salary`, its strict on/off response and `/settings` now state that a missing
+or unsupported period is not compared and remains visible. Focused command and
+filter tests: 41 passed; full isolated PostgreSQL suite: 902 passed.
+
 ## 2026-10-15 — strict salary filter requires a known period
 
 An OFF-by-default strict floor now leaves structured salary values with no
