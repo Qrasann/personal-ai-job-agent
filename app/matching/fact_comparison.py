@@ -102,8 +102,8 @@ class RequirementMatch:
 @dataclass(frozen=True, slots=True)
 class FactComparison:
     requirements: tuple[RequirementMatch, ...]
-    alternative_groups: tuple[tuple[str, str], ...] = ()
-    preferred_alternative_groups: tuple[tuple[str, str], ...] = ()
+    alternative_groups: tuple[tuple[str, ...], ...] = ()
+    preferred_alternative_groups: tuple[tuple[str, ...], ...] = ()
 
     @property
     def total(self) -> int:
@@ -354,11 +354,12 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
 
 def extract_skill_alternatives(
     text: str, importance: str,
-) -> tuple[tuple[str, str], ...]:
-    """Find isolated, explicit two-skill choices in a labelled section.
+) -> tuple[tuple[str, ...], ...]:
+    """Find isolated, explicit skill choices in a labelled section.
 
     A choice may wrap around an explicit ``or``/``или`` line break. A clause
-    with additional skills or a repeated skill remains ambiguous and ungrouped.
+    may contain two or more options, each separated by an explicit connector.
+    A clause with additional skills or a repeated skill remains ungrouped.
     """
     if importance not in {"required", "preferred"}:
         return ()
@@ -392,24 +393,32 @@ def extract_skill_alternatives(
         for line_skills in mentions
         for skill in line_skills
     }
-    groups: list[tuple[str, str]] = []
+    groups: list[tuple[str, ...]] = []
     for line, line_skills in zip(section_lines, mentions):
-        if len(line_skills) != 2 or any(counts[skill] != 1 for skill in line_skills):
+        if len(line_skills) < 2 or any(counts[skill] != 1 for skill in line_skills):
             continue
-        # Only a word connector counts. A slash also occurs inside names such
+        # Only word connectors count. A slash also occurs inside names such
         # as CI/CD and can mean a combined skill rather than a choice.
-        for connector in re.finditer(r"\b(?:or|или)\b", line, flags=re.IGNORECASE):
-            before = [
-                spec.name for spec in SKILLS
-                if spec.name in line_skills and _matches_skill(line[:connector.start()], spec)
-            ]
-            after = [
-                spec.name for spec in SKILLS
-                if spec.name in line_skills and _matches_skill(line[connector.end():], spec)
-            ]
-            if len(before) == len(after) == 1 and before[0] != after[0]:
-                groups.append((line_skills[0], line_skills[1]))
-                break
+        normalized_line = re.sub(
+            r",\s*(?=(?:or|или)\b)", " ", line, flags=re.IGNORECASE
+        )
+        if not re.search(r"\b(?:or|или)\b", normalized_line, flags=re.IGNORECASE):
+            continue
+        options = re.split(
+            r"\b(?:or|или)\b|,\s*", normalized_line, flags=re.IGNORECASE
+        )
+        options = [option.strip() for option in options]
+        if any(re.match(r"^(?:and|и)\b", option, flags=re.IGNORECASE) for option in options):
+            continue
+        if len(options) != len(line_skills):
+            continue
+        skill_specs = {spec.name: spec for spec in SKILLS}
+        option_skills = [
+            [skill for skill in line_skills if _matches_skill(option, skill_specs[skill])]
+            for option in options
+        ]
+        if all(len(option) == 1 for option in option_skills):
+            groups.append(tuple(option[0] for option in option_skills))
     return tuple(groups)
 
 
@@ -511,7 +520,7 @@ def compare_facts(
             )
         )
 
-    def valid_groups(importance: str) -> tuple[tuple[str, str], ...]:
+    def valid_groups(importance: str) -> tuple[tuple[str, ...], ...]:
         return tuple(
             group
             for group in extract_skill_alternatives(vacancy_text, importance)

@@ -5,6 +5,7 @@ from datetime import datetime
 
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
 from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
+from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 from app.domain.vacancy_availability import vacancy_availability_lines
 
 
@@ -110,6 +111,53 @@ def _published(value: str) -> str:
     except ValueError:
         return text
     return parsed.strftime("%d.%m.%Y %H:%M")
+
+
+def _mobility_evidence_lines(job, description: str) -> list[str]:
+    evidence = support_evidence("\n".join((str(getattr(job, "title", "") or ""), description)))
+    for key in ("visa_sponsorship", "relocation"):
+        stored = getattr(job, key, None)
+        if stored is not None and evidence[key] is not False:
+            evidence[key] = stored
+
+    authorization_required = existing_work_authorization_required(description)
+    country = str(getattr(job, "country", "") or "").upper()
+    has_evidence = authorization_required or any(value is not None for value in evidence.values())
+    if country in {"RU", "RUSSIA", "РОССИЯ"} and not has_evidence:
+        return []
+
+    def label(value: bool | None, *, offered: str, refused: str) -> str:
+        if value is True:
+            return offered
+        if value is False:
+            return refused
+        return "не подтверждено вакансией"
+
+    return [
+        "",
+        "🧭 <b>Право на работу и переезд</b>",
+        "🛂 Visa sponsorship: " + label(
+            evidence["visa_sponsorship"],
+            offered="явно предлагается",
+            refused="явно не предоставляется",
+        ),
+        "📦 Помощь с переездом: " + label(
+            evidence["relocation"],
+            offered="явно предлагается",
+            refused="явно не предоставляется",
+        ),
+        "📄 Помощь с разрешением на работу: " + label(
+            evidence["work_permit"],
+            offered="явно предлагается",
+            refused="явно не предоставляется",
+        ),
+        (
+            "⚖️ Предварительное право на работу: явно требуется"
+            if authorization_required
+            else "⚖️ Предварительное право на работу: явного требования не найдено"
+        ),
+        "Эти строки передают текст вакансии и не подтверждают личную юридическую eligibility.",
+    ]
 
 
 def render_queue_card(
@@ -242,8 +290,8 @@ def render_job_details(payload: dict) -> str:
 
     title = _clip(repair_mojibake(str(details.get("title") or job.title or "")), 140)
     company = _clip(repair_mojibake(str(details.get("company") or job.company or "")), 120)
-    description = clean_html_text(str(details.get("description") or job.description or ""))
-    description = _clip(description, 2250)
+    description_full = clean_html_text(str(details.get("description") or job.description or ""))
+    description = _clip(description_full, 2250)
     salary = _salary(job, details, fallback_salary_text)
     experience = _experience(job, details)
     location = _clip(_location(job, details), 160)
@@ -276,6 +324,8 @@ def render_job_details(payload: dict) -> str:
         lines.append(f"📅 Опубликована: {html.escape(_clip(published_at, 80))}")
     if source == "HIMALAYAS" or "availability" in details:
         lines.extend(html.escape(line) for line in vacancy_availability_lines(details))
+
+    lines.extend(_mobility_evidence_lines(job, description_full))
 
     if description:
         lines.extend(["", "📝 <b>Описание вакансии</b>", html.escape(description)])
@@ -317,6 +367,7 @@ def render_job_details(payload: dict) -> str:
 def render_fact_comparison(payload: dict) -> str:
     job = payload["job"]
     comparison = payload["comparison"]
+    language_fit = payload.get("language_fit")
 
     title = _clip(repair_mojibake(str(job.title or "")), 120)
 
@@ -340,7 +391,7 @@ def render_fact_comparison(payload: dict) -> str:
         "",
     ]
 
-    if comparison.total == 0:
+    if comparison.total == 0 and language_fit is None:
         lines.extend([
             "Технические требования из поддерживаемого словаря не найдены.",
             "",
@@ -349,10 +400,25 @@ def render_fact_comparison(payload: dict) -> str:
         ])
         return "\n".join(lines)
 
-    lines.append(
-        f"📌 Найдено в Candidate Facts: "
-        f"<b>{comparison.present}/{comparison.total}</b>"
+    if comparison.total:
+        lines.append(
+            f"📌 Найдено в Candidate Facts: "
+            f"<b>{comparison.present}/{comparison.total}</b>"
+        )
+    else:
+        lines.append("Технические требования из поддерживаемого словаря не найдены.")
+    alternative_groups = (
+        comparison.alternative_groups + comparison.preferred_alternative_groups
     )
+    if alternative_groups:
+        groups = "; ".join(
+            " или ".join(html.escape(skill) for skill in group)
+            for group in alternative_groups
+        )
+        lines.append(
+            f"ℹ Альтернативы для технической оценки: {groups}. "
+            "Числа выше показывают отдельные упоминания навыков."
+        )
 
     for importance, importance_heading in importance_groups:
         items = comparison.items_for_importance(importance)
@@ -384,11 +450,33 @@ def render_fact_comparison(payload: dict) -> str:
                 for skill in skills
             )
 
-    lines.extend([
-        "",
-        "ℹ <i>Важность берётся из структуры вакансии. "
-        "Тип опыта берётся только из Candidate Facts. "
-        "Lab/learning не считаются коммерческим опытом.</i>",
-    ])
+    if language_fit is not None:
+        candidate = language_fit.candidate_level or "не указан"
+        status_text = {
+            "meets": "✅ уровень профиля соответствует",
+            "below": "⚠️ уровень профиля ниже указанного",
+            "unknown": "❔ уровень профиля не указан или не распознан",
+        }[language_fit.status]
+        lines.extend([
+            "",
+            "🌐 <b>Явный уровень английского</b>",
+            f"Уровень вакансии: <b>{html.escape(language_fit.required_level)}</b>",
+            "Статус: " + {
+                "required": "явно требуется",
+                "preferred": "указан как преимущество",
+                "unspecified": "не уточнён",
+            }[language_fit.requirement],
+            f"Профиль: <b>{html.escape(candidate)}</b> — {status_text}.",
+            f"Источник: {html.escape(language_fit.evidence)}",
+            "Уровень языка показан отдельно и пока не меняет техническую оценку.",
+        ])
+
+    if comparison.total:
+        lines.extend([
+            "",
+            "ℹ <i>Важность берётся из структуры вакансии. "
+            "Тип опыта берётся только из Candidate Facts. "
+            "Lab/learning не считаются коммерческим опытом.</i>",
+        ])
 
     return "\n".join(lines)

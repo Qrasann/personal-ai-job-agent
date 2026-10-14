@@ -51,12 +51,17 @@ def test_comparison_uses_the_same_search_profile_as_the_details(monkeypatch):
     })
     monkeypatch.setattr(services, "get_vacancy_details", details)
     monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    profile = SimpleNamespace(english_level="B2")
+    profile_lookup = AsyncMock(return_value=profile)
+    monkeypatch.setattr(services.repo, "get_profile", profile_lookup)
 
     result = asyncio.run(services.get_vacancy_comparison(7, 25, search_profile_id=4))
 
     details.assert_awaited_once_with(7, 25, search_profile_id=4)
     assert result["match"] is match
     assert result["search_profile_name"] == "Relocation-first"
+    assert result["language_fit"] is None
+    profile_lookup.assert_awaited_once_with(2)
 
 
 @pytest.mark.parametrize("restrictions,expected", [

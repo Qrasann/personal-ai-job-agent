@@ -271,6 +271,40 @@ def test_alternative_group_does_not_cross_importance_boundaries():
     ]
 
 
+def test_three_explicit_alternatives_are_one_scoring_choice():
+    from app.matching.technical_score import score_technical_v2
+
+    text = "Requirements: Linux or Windows or Docker. Terraform is also required."
+    comparison = compare_facts(text, [fact(1, "Commercial Linux administration", "commercial")])
+
+    assert comparison.alternative_groups == (("Linux", "Windows", "Docker"),)
+    assert score_technical_v2(text, [fact(1, "Commercial Linux administration", "commercial")]) == 50
+
+
+def test_three_option_alternative_requires_each_skill_once():
+    comparison = compare_facts(
+        "Requirements: Linux or Windows or Linux.",
+        [fact(1, "Commercial Linux administration", "commercial")],
+    )
+
+    assert comparison.alternative_groups == ()
+
+
+def test_oxford_comma_skill_alternatives_are_one_choice():
+    comparison = compare_facts(
+        "Requirements: Linux, Windows, or Docker.",
+        [fact(1, "Commercial Linux administration", "commercial")],
+    )
+
+    assert comparison.alternative_groups == (("Linux", "Windows", "Docker"),)
+
+
+def test_comma_separated_required_skills_are_not_alternatives():
+    comparison = compare_facts("Requirements: Linux, Kubernetes.", [])
+
+    assert comparison.alternative_groups == ()
+
+
 def test_render_fact_comparison_shows_language_separately_from_technical_score():
     from app.matching.language_fit import compare_english_level
     from app.telegram.vacancy_view import render_fact_comparison

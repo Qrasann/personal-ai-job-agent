@@ -307,6 +307,56 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "Профиль: Relocation-first &lt;manual&gt;" in text
 
 
+def test_job_details_separate_mobility_evidence_from_personal_eligibility():
+    job = SimpleNamespace(
+        id=44, title="Infrastructure Engineer", company="ACME",
+        salary_from=None, salary_to=None, salary_currency=None,
+        description="We provide relocation support. No visa sponsorship. "
+                    "You must already have the right to work.",
+        city="Berlin", country="DE", work_mode="hybrid", published_at=None,
+        relocation=None, visa_sponsorship=None,
+    )
+    match = SimpleNamespace(
+        total_score=70, technical_score=70, geography_score=60,
+        salary_score=58, relocation_score=40, recommendation_scores={}, reason="",
+    )
+
+    text = render_job_details({
+        "job": job, "match": match, "source": "greenhouse",
+        "url": "https://example.com/jobs/44", "details": {},
+    })
+
+    assert "Право на работу и переезд" in text
+    assert "Visa sponsorship: явно не предоставляется" in text
+    assert "Помощь с переездом: явно предлагается" in text
+    assert "Помощь с разрешением на работу: не подтверждено вакансией" in text
+    assert "Предварительное право на работу: явно требуется" in text
+    assert "не подтверждают личную юридическую eligibility" in text
+
+
+def test_foreign_job_details_keep_missing_mobility_evidence_unknown():
+    job = SimpleNamespace(
+        id=45, title="Linux Engineer", company="ACME",
+        salary_from=None, salary_to=None, salary_currency=None,
+        description="Linux operations", city="Tbilisi", country="GE",
+        work_mode="onsite", published_at=None, relocation=None,
+        visa_sponsorship=None,
+    )
+    match = SimpleNamespace(
+        total_score=70, technical_score=70, geography_score=60,
+        salary_score=58, relocation_score=50, recommendation_scores={}, reason="",
+    )
+
+    text = render_job_details({
+        "job": job, "match": match, "source": "greenhouse", "url": "",
+        "details": {},
+    })
+
+    assert "Visa sponsorship: не подтверждено вакансией" in text
+    assert "Помощь с переездом: не подтверждено вакансией" in text
+    assert "Предварительное право на работу: явного требования не найдено" in text
+
+
 def test_remote_job_details_show_source_geography_without_claiming_work_eligibility():
     match = SimpleNamespace(
         total_score=70,

@@ -11,9 +11,8 @@ from app.matching.technical_score import score_technical_v2
 # https://api.smartrecruiters.com/v1/companies/Devexperts/postings/744000138376969
 # The body below paraphrases its relevant qualifications. CI/CD and Jenkins
 # appear only in the separate synthetic optional-section regression.
-# The existing extractor classifies mentions by section. It does not yet model
-# alternative-language groups; Python here is section evidence, not a claim
-# that the employer requires Python individually.
+# The posting presents Python as one language alternative. It is evidence of
+# a mention, not a separate mandatory Python requirement.
 QUALIFICATIONS_HTML = """
 <p><strong>What we expect from candidates:</strong>&#xa0;<br>&#xa0;</p>
 <ul>
@@ -35,15 +34,32 @@ def test_devexperts_html_headings_classify_only_explicit_technical_requirements(
     assert importance == {
         "Linux": "required",
         "Bash": "required",
-        "Python": "required",
+        "Python": "unknown",
         "Networking": "required",
     }
     # No inference of a particular cloud, education/language level, or a
     # Candidate Fact from the general infrastructure and communication wording.
     comparison = compare_facts(clean_html_text(QUALIFICATIONS_HTML), [])
-    assert comparison.total_for_importance("required") == 4
+    assert comparison.total_for_importance("required") == 3
     assert comparison.present_for_importance("required") == 0
     assert all(item.status == "missing" and item.fact_ids == () for item in comparison.requirements)
+
+
+def test_alternative_example_does_not_penalize_missing_python():
+    text = clean_html_text(QUALIFICATIONS_HTML)
+    facts = [SimpleNamespace(
+        id=1,
+        value="Commercial Linux and Bash administration with networking.",
+        experience_type="commercial",
+        active=True,
+        deleted_at=None,
+    )]
+
+    assert score_technical_v2(text, facts) == 100
+    assert extract_requirement_importance(
+        "Requirements:\nPython is mandatory.\n"
+        "Basic programming knowledge, with Python among the language alternatives."
+    )["Python"] == "required"
 
 
 @pytest.mark.parametrize("heading", [
@@ -88,9 +104,9 @@ def test_devexperts_optional_ci_does_not_enter_required_coverage():
     comparison = compare_facts(text, facts)
 
     assert {item.skill for item in comparison.items_for_importance("required")} == {
-        "Linux", "Bash", "Python", "Networking",
+        "Linux", "Bash", "Networking",
     }
-    assert comparison.present_for_importance("required") == 4
+    assert comparison.present_for_importance("required") == 3
     assert [(item.skill, item.status) for item in comparison.items_for_importance("preferred")] == [
         ("CI/CD", "missing"),
     ]
