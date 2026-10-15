@@ -4,7 +4,17 @@ import pytest
 
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake, salary_period_from_text
 from app.sources.adapters.hh import HHSource
-from app.telegram.vacancy_view import render_job_details, render_jobs_list
+from app.telegram.vacancy_view import _published, render_job_details, render_jobs_list
+
+
+@pytest.mark.parametrize(("value", "expected"), [
+    ("2026-10-15T12:30:00+04:00", "15.10.2026 08:30 UTC"),
+    ("2026-10-15T12:30:00Z", "15.10.2026 12:30 UTC"),
+    ("2026-10-15T12:30:00", "15.10.2026 12:30 (часовой пояс не указан)"),
+    ("2026-10-15", "15.10.2026"),
+])
+def test_published_date_display_preserves_timezone_evidence(value, expected):
+    assert _published(value) == expected
 
 
 def _timezone_card(restrictions, availability=None):
@@ -302,7 +312,7 @@ def test_job_details_separates_source_data_from_agent_score():
     assert "Recommendation v2" in text
     assert "Рост: н/д" in text
     assert "Конкуренция н/д" in text
-    assert "23.08.2026 10:38" in text
+    assert "23.08.2026 07:38 UTC" in text
     assert "Открыть оригинал вакансии" in text
     assert "Профиль: Relocation-first &lt;manual&gt;" in text
 

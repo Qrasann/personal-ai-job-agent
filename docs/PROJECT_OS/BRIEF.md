@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — preserve timezone evidence in vacancy dates
+
+Vacancy detail cards now render timezone-aware publication timestamps in UTC,
+keep date-only values as dates, and label timezone-naive date-times as lacking
+source timezone evidence. They no longer make an aware timestamp look like
+local time. Focused source/detail tests: 68 passed; full isolated PostgreSQL:
+964 passed.
+
 ## 2026-10-15 — nested Candidate Fit alternatives
 
 Candidate Fit now groups a nested flat choice such as `Linux and (Docker or

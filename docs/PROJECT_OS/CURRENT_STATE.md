@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — preserve timezone evidence in vacancy dates
+
+Detail cards convert aware publication timestamps to UTC and mark them `UTC`;
+date-only values stay date-only, and naive timestamps disclose that their
+timezone is unknown. Focused tests: 68 passed; full isolated PostgreSQL: 964
+passed.
+
 ## 2026-10-15 — nested Candidate Fit alternatives
 
 Explicit nested flat `or/или` chains inside a parenthesized choice now form

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import html
-from datetime import datetime
+from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
@@ -125,7 +125,11 @@ def _published(value: str) -> str:
         parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
     except ValueError:
         return text
-    return parsed.strftime("%d.%m.%Y %H:%M")
+    if parsed.tzinfo is not None and parsed.utcoffset() is not None:
+        return parsed.astimezone(UTC).strftime("%d.%m.%Y %H:%M UTC")
+    if "T" not in text and " " not in text:
+        return parsed.strftime("%d.%m.%Y")
+    return parsed.strftime("%d.%m.%Y %H:%M") + " (часовой пояс не указан)"
 
 
 def _mobility_evidence_lines(job, description: str) -> list[str]:

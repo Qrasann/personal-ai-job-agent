@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — preserve timezone evidence in vacancy dates
+
+Updated vacancy publication-date display to retain explicit UTC or unknown
+timezone semantics. No freshness or stale-posting claim is inferred. Focused
+detail/source tests: 68 passed; isolated PostgreSQL suite: 964 passed.
+
 ## 2026-10-15 — nested Candidate Fit alternatives
 
 Implemented nested flat parenthesized OR chains as one explainable choice when

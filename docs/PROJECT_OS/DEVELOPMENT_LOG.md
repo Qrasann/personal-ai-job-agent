@@ -2347,3 +2347,10 @@ ArgoCD))` now become one alternative group; the independent Linux requirement
 stays separate. Mixed nested AND/OR and skills repeated elsewhere in the same
 section are not promoted to alternatives. Scoring and resume-coverage
 regressions pass; focused fit/resume/score tests: 79 passed.
+## 2026-10-15 — preserve timezone evidence in vacancy dates
+
+Vacancy detail rendering previously removed the offset from timezone-aware
+ISO dates, making them look like local wall-clock time. It now converts them
+to UTC with an explicit label; date-only values remain dates, and naive
+date-times disclose an unknown timezone. Focused detail/source tests: 68
+passed; full isolated PostgreSQL suite: 964 passed.

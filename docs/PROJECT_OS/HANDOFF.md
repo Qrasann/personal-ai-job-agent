@@ -2,6 +2,22 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `619a596`, VERSION 3.5.7. Vacancy detail publication
+dates now retain timezone semantics: aware ISO timestamps are converted to
+UTC and marked, date-only values remain date-only, and naive date-times state
+that their timezone is unknown. Focused detail/source tests: 68 passed; full
+isolated PostgreSQL suite: 964 passed. `compileall`, diff check and secret
+scan are next before checkpoint. Previous Candidate Fit checkpoint
+`619a596` supports unambiguous nested flat OR choices, with mixed AND/OR and
+repeated alternatives left ungrouped. Previous Source Intelligence checkpoint
+`aa4ce65` refreshes repeated source IDs while preserving detail cache,
+provenance and saved package snapshots, and serializes concurrent upserts.
+Next: checkpoint date rendering, then continue a safe Candidate Fit or
+Application Package increment; defer reconciliation that would reparent
+existing matches until a status/ownership-preserving design is established.
+Testing used localhost:55432/tmpfs only. No push, merge, release, deployment,
+VERSION or production DB/volume change. Owner proposals remain untouched.
+
 Started from HEAD `aa4ce65`, VERSION 3.5.7. Candidate Fit now parses a
 balanced nested flat choice such as `Linux and (Docker or (Kubernetes or
 ArgoCD))` as one Docker/Kubernetes/ArgoCD group while retaining Linux as an
