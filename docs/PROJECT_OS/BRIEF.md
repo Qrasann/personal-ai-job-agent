@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — add synthetic German relocation evidence
+
+Added German source-text fixture coverage for residence restrictions,
+authorization, accommodation, language preference and start timing. It exposed
+and fixed `Deutschland` being misread as `Deutsch`. Focused tests: 87 passed;
+full isolated PostgreSQL: 982 passed.
+
 ## 2026-10-15 — keep support-component ambiguity unknown
 
 Relocation Evidence now refuses to copy an ambiguous legacy parser result when

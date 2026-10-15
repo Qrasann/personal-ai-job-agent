@@ -195,3 +195,25 @@ def test_support_for_one_component_does_not_inherit_another_components_refusal()
     assert visa["value"] is None
     assert visa["status"] == "unknown"
     assert visa["confidence"] == "ambiguous_text"
+
+
+def test_german_relocation_conditions_are_extracted_without_legal_conclusions():
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures/relocation_evidence/synthetic_de_job.json").read_text()
+    )
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="synthetic-de-1",
+        title=fixture["title"], country=fixture["country"],
+        description=fixture["description"],
+    )
+    fields = build_relocation_evidence(job)["fields"]
+    restriction = fields["citizenship_or_residence_restriction"]
+    assert restriction["interpretation"]["scope"] == "residence"
+    auth = fields["existing_work_authorization_required"]
+    assert auth["status"] == "confirmed" and auth["value"] is True
+    housing = fields["housing_provided"]
+    assert housing["status"] == "confirmed" and housing["value"] is False
+    language = fields["language_requirement"]
+    assert language["interpretation"]["requirements"][0]["language"] == "German"
+    assert language["interpretation"]["requirements"][0]["requirement"] == "preferred"
+    assert fields["start_timing"]["interpretation"]["kind"] == "negotiable"

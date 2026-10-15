@@ -2433,7 +2433,7 @@ are tagged as conflicting. Focused tests: 82 passed; isolated PostgreSQL:
 Extracted multiple supported languages from a posting independently, each
 with requirement status and excerpt. Conflicting explicit required/preferred
 statements stay reviewable as conflicting, and English CEFR remains separate.
-Focused tests: 47 passed; full isolated PostgreSQL: 978 passed.
+Focused tests: 87 passed; full isolated PostgreSQL: 978 passed.
 
 ## 2026-10-15 — classify source start-timing phrases
 
@@ -2448,3 +2448,9 @@ Source evidence no longer assigns a sentence-level support refusal to a
 different visa/relocation component when focused parsing disagrees. It retains
 unknown status and an excerpt; scoring behavior is untouched. Focused tests:
 46 passed; isolated PostgreSQL: 981 passed.
+
+## 2026-10-15 — synthetic German relocation evidence
+
+Added explicit German fixture coverage for residence, authorization, housing,
+language and start timing. It caught and fixed a `Deutschland`/`Deutsch` false
+match. Focused tests: 87 passed; isolated PostgreSQL: 982 passed.

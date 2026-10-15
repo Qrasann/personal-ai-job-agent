@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — German Relocation Evidence fixtures
+
+Added a synthetic German fixture covering several hiring and relocation
+conditions, and fixed a `Deutschland`/`Deutsch` false match. Focused tests: 87;
+full isolated PostgreSQL: 982 passed. Continue locale coverage only with
+explicit text fixtures; legal meaning remains outside the parser.
+
 ## 2026-10-15 — avoid cross-component support inference
 
 Added a source-evidence boundary for ambiguous visa/relocation wording: if a

@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `1d38344`. Added synthetic German Relocation Evidence for
+residence scope, work authorization, housing, language and start timing. Fixed
+a reproduced `Deutschland`/`Deutsch` false language match. Focused tests: 47
+passed; full isolated PostgreSQL: 982 passed; compileall, diff check and secret
+scan passed. Next: continue supported locale evidence or Candidate Fit. Test
+DB localhost:55432/jobagent_test. No legal, score, production or external
+changes; proposals untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Started from HEAD `1ab8482`. Relocation Evidence now conservatively leaves
 visa/relocation wording unknown when its per-component parse disagrees with a
 sentence-level result, avoiding a refusal being attributed to the wrong
@@ -23,7 +33,7 @@ Started from HEAD `54fac96`. Relocation Evidence now captures multiple
 language observations in one posting independently; each stores required,
 preferred, unspecified or conflicting status with its own excerpt. Explicit
 English CEFR remains separate. Detail cards render the distinct conditions.
-Focused tests: 47 passed; full isolated PostgreSQL: 978 passed; compileall,
+Focused tests: 87 passed; full isolated PostgreSQL: 978 passed; compileall,
 diff check and secret scan passed. Next: continue source-aware country/hiring
 scope or Candidate Fit work. No score/Candidate Facts/legal conclusion or
 production change. Isolated test DB localhost:55432/jobagent_test; proposal

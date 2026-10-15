@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — German relocation evidence fixture
+
+Synthetic German wording now exercises residence, prior work authorization,
+housing, language preference and start timing. A word-boundary regression
+prevents `Deutschland` from being interpreted as `Deutsch`. Focused tests: 87;
+isolated PostgreSQL: 982 passed.
+
 ## 2026-10-15 — conservative support-component ambiguity
 
 Visa and relocation evidence now stays unknown if per-component parsing

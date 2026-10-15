@@ -28,6 +28,7 @@ _RULES: dict[str, re.Pattern[str]] = {
         r"[^.!?;\n]{0,100}(?:citizens|citizenship|nationals only|residents only|"
         r"must be located in|only candidates (?:currently )?(?:living|residing|located) in|"
         r"candidates must (?:currently )?(?:live|reside|be located) in|applicants must be based in|"
+        r"staatsangehörig\w*|staatsbürger\w*|nur bewerber mit wohnsitz|wohnhaft in|wohnsitz in .{1,60} erforderlich|"
         r"(?:граждан|резидент)\w* только|только для граждан|проживать в)"
         r"[^.!?;\n]{0,100}", re.I
     ),
@@ -41,32 +42,32 @@ _RULES: dict[str, re.Pattern[str]] = {
     "start_timing": re.compile(
         r"[^.!?;\n]{0,80}(?:start (?:date|immediately|as soon as possible)|"
         r"available to start|starting date|commencement date|notice period|"
-        r"начать работу|дата выхода|срок выхода)[^.!?;\n]{0,80}", re.I
+        r"начать работу|дата выхода|срок выхода|eintrittstermin|arbeitsbeginn|kündigungsfrist|starttermin)[^.!?;\n]{0,80}", re.I
     ),
 }
 
-_HOUSING_TERM = r"(?:accommodation|housing|lodging|apartment|место проживания|жиль[её])"
+_HOUSING_TERM = r"(?:accommodation|housing|lodging|apartment|unterkunft|wohnraum|место проживания|жиль[её])"
 _HOUSING_YES = re.compile(
-    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,45}}(?:is )?(?:provided|included|offered|available|предоставляется|включено)|"
+    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,45}}(?:is )?(?:provided|included|offered|available|wird gestellt|wird angeboten|wird geboten|предоставляется|включено)|"
     rf"(?:provide|offer|include|предоставляем|предлагаем)[^.!?;\n]{{0,35}}(?:{_HOUSING_TERM})",
     re.I,
 )
 _HOUSING_NO = re.compile(
-    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:is )?(?:not provided|not included|not offered|unavailable)|"
+    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:is )?(?:not provided|not included|not offered|unavailable|wird nicht gestellt|wird nicht angeboten)|"
     rf"no (?:provided )?(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:provided|included|offered)",
     re.I,
 )
 _LANGUAGE_TERM = re.compile(
     r"\b(english|german|french|russian|spanish|dutch|italian|polish|portuguese|arabic)\b|"
-    r"английск\w*|немецк\w*|французск\w*|русск\w*",
+    r"английск\w*|немецк\w*|французск\w*|русск\w*|deutsch(?:kenntnisse|kenntnis)?(?!\w)",
     re.I,
 )
-_LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
-_LANGUAGE_PREFERRED = re.compile(r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:желательно|приветствуется|будет плюсом)\b", re.I)
+_LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:obligatorisch|erforderlich|vorausgesetzt|notwendig)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
+_LANGUAGE_PREFERRED = re.compile(r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:bevorzugt|wünschenswert|von vorteil)\b|\b(?:желательно|приветствуется|будет плюсом)\b", re.I)
 _LANGUAGE_NEGATED = re.compile(r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b", re.I)
-_START_IMMEDIATE = re.compile(r"\b(?:immediately|as soon as possible|right away)\b|\b(?:немедленно|как можно скорее)\b", re.I)
+_START_IMMEDIATE = re.compile(r"\b(?:immediately|as soon as possible|right away|sofort)\b|\b(?:немедленно|как можно скорее)\b", re.I)
 _START_RELATIVE = re.compile(r"\b(?:within|in)\s+\d+\s+(?:business )?(?:days?|weeks?|months?)\b|\bчерез\s+\d+\s+(?:дн\w*|недел\w*|месяц\w*)", re.I)
-_START_NEGOTIABLE = re.compile(r"\b(?:negotiable|by agreement|to be agreed)\b|\b(?:по договоренности|обсуждается)\b", re.I)
+_START_NEGOTIABLE = re.compile(r"\b(?:negotiable|by agreement|to be agreed|nach vereinbarung)\b|\b(?:по договоренности|обсуждается)\b", re.I)
 _START_NOTICE = re.compile(r"\bnotice period\b|\bсрок уведомления\b", re.I)
 _START_DATE = re.compile(r"\b(?:start(?:ing)? date|commencement date)\s*[:\-]?\s*\S+|\bдата выхода\s*[:\-]?\s*\S+", re.I)
 _AUTH_NOT_REQUIRED = re.compile(
@@ -74,12 +75,15 @@ _AUTH_NOT_REQUIRED = re.compile(
     r"(?:(?:existing|valid|eu|european union) )?(?:right to work|work permit|work authorization)"
     r"(?: (?:is )?(?:required|necessary|needed))?\b|"
     r"\b(?:right to work|work permit|work authorization) (?:is )?(?:not required|not necessary|not needed)\b|"
+    r"\b(?:arbeitserlaubnis|arbeitsberechtigung) (?:ist )?nicht (?:erforderlich|notwendig|vorausgesetzt)\b|"
+    r"\bkeine (?:gültige |bestehende )?(?:arbeitserlaubnis|arbeitsberechtigung) (?:ist )?(?:erforderlich|notwendig)\b|"
     r"\b(?:разрешение на работу|право на работу) не (?:требуется|нужно|обязательно)\b",
     re.I,
 )
 _AUTH_REQUIREMENT_TEXT = re.compile(
     r"[^.!?;\n]{0,100}(?:must (?:already )?(?:have (?:the )?right to work|be authorized to work)|"
-    r"(?:work permit|work authorization) (?:is )?required|должны? иметь право на работу)"
+        r"(?:work permit|work authorization) (?:is )?required|gültige arbeitserlaubnis (?:ist )?(?:erforderlich|vorausgesetzt)|"
+        r"должны? иметь право на работу)"
     r"[^.!?;\n]{0,100}", re.I,
 )
 
@@ -177,7 +181,7 @@ def build_relocation_evidence(
         normalized_restriction = restriction.casefold()
         citizenship = bool(re.search(r"citizens|citizenship|nationals|граждан", normalized_restriction))
         residence = bool(re.search(
-            r"residents|located|living|residing|live|reside|based in|проживать|резидент",
+            r"residents|located|living|residing|live|reside|based in|wohn|wohnsitz|проживать|резидент",
             normalized_restriction,
         ))
         restriction_field["interpretation"] = {
@@ -232,6 +236,7 @@ def build_relocation_evidence(
                         language = next((name for prefix, name in (
                             ("английск", "English"), ("немецк", "German"),
                             ("французск", "French"), ("русск", "Russian"),
+                            ("deutsch", "German"),
                         ) if language_text.casefold().startswith(prefix)), language_text)
                     canonical = language.title() if language else "Unknown"
                     cefr = compare_english_level(clause, None) if canonical == "English" else None
