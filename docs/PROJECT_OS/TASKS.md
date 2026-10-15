@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — separate citizenship and residence scope
+
+Added a bounded interpretation for explicit restriction snippets: citizenship
+versus residence/location, with the original excerpt shown in the vacancy
+detail. This is not a legal conclusion. Focused tests: 41; full isolated
+PostgreSQL: 975 passed. Next: broaden country/language mappings only where
+source text supports them; then continue independent Fit/Source Intelligence.
+
 ## 2026-10-15 — classify housing and language evidence
 
 Extended Relocation Evidence: housing confirmation now requires explicit

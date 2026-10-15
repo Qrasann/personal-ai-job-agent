@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — separate citizenship from residence scope
+
+Restriction evidence now classifies explicit source text as citizenship,
+residence/location, both, or unspecified. The detail card preserves the quote
+and source provenance and labels it as posting text, not a legal determination.
+Focused tests: 41; isolated PostgreSQL suite: 975 passed.
+
 ## 2026-10-15 — classify housing and language evidence
 
 Housing is `true`/`false` only when a source explicitly says it is provided or

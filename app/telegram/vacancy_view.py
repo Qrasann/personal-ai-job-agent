@@ -226,6 +226,17 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
                 detail += " · CEFR " + html.escape(level)
             if excerpt:
                 detail += " — “" + html.escape(excerpt[:180]) + "”"
+        elif key == "citizenship_or_residence_restriction":
+            interpretation = item.get("interpretation") if isinstance(item.get("interpretation"), dict) else {}
+            scope = str(interpretation.get("scope") or "unspecified")
+            detail = {
+                "citizenship": "ограничение по гражданству (текст источника)",
+                "residence": "ограничение по месту проживания (текст источника)",
+                "citizenship_and_residence": "текст упоминает гражданство и проживание",
+                "unspecified": "требует ручной проверки",
+            }.get(scope, "требует ручной проверки")
+            if excerpt:
+                detail += " — “" + html.escape(excerpt[:180]) + "”"
         else:
             detail = "фрагмент для проверки: “" + html.escape(excerpt[:180]) + "”"
         if key in {"citizenship_or_residence_restriction", "visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"} and excerpt:

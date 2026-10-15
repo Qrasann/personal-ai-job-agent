@@ -27,6 +27,7 @@ _RULES: dict[str, re.Pattern[str]] = {
     "citizenship_or_residence_restriction": re.compile(
         r"[^.!?;\n]{0,100}(?:citizens|citizenship|nationals only|residents only|"
         r"must be located in|only candidates (?:currently )?(?:living|residing|located) in|"
+        r"candidates must (?:currently )?(?:live|reside|be located) in|applicants must be based in|"
         r"(?:граждан|резидент)\w* только|только для граждан|проживать в)"
         r"[^.!?;\n]{0,100}", re.I
     ),
@@ -112,9 +113,22 @@ def build_relocation_evidence(
     fields["work_country"] = record(country or None, country or None, "source_structured" if country else "unknown")
 
     restriction = _excerpt(job.description or "", _RULES["citizenship_or_residence_restriction"])
-    fields["citizenship_or_residence_restriction"] = record(
+    restriction_field = record(
         restriction, restriction, "explicit_text" if restriction else "unknown"
     )
+    if restriction:
+        normalized_restriction = restriction.casefold()
+        citizenship = bool(re.search(r"citizens|citizenship|nationals|граждан", normalized_restriction))
+        residence = bool(re.search(
+            r"residents|located|living|residing|live|reside|based in|проживать|резидент",
+            normalized_restriction,
+        ))
+        restriction_field["interpretation"] = {
+            "scope": "citizenship_and_residence" if citizenship and residence else
+                     "citizenship" if citizenship else
+                     "residence" if residence else "unspecified",
+        }
+    fields["citizenship_or_residence_restriction"] = restriction_field
 
     auth = existing_work_authorization_required(job.description or "")
     auth_excerpt = _excerpt(job.description or "", re.compile(

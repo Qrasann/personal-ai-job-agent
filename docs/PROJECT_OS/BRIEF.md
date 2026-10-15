@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — distinguish citizenship and residence restrictions
+
+Hiring restriction evidence now labels explicit citizenship scope separately
+from current-residence/location scope and displays the matching source excerpt.
+This records what the posting says without inferring the applicant's legal
+eligibility. Focused restriction/detail tests: 41 passed; full isolated
+PostgreSQL: 975 passed.
+
 ## 2026-10-15 — classify explicit housing and language conditions
 
 Relocation Evidence now distinguishes housing explicitly provided/refused from

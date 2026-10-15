@@ -2398,3 +2398,10 @@ English CEFR is a separate value. Vacancy detail cards display those
 distinctions and excerpts. Ambiguous conditions remain observed/unknown.
 Focused relocation/language/detail suite: 85 passed; full isolated
 PostgreSQL: 974 passed.
+
+## 2026-10-15 — distinguish citizenship and residence restrictions
+
+Explicit hiring-scope excerpts now retain a bounded category for citizenship
+versus residence/location restrictions, and the detail card states that the
+category reflects source text only. No legal eligibility inference is made.
+Focused evidence/detail tests: 41 passed; isolated PostgreSQL: 975 passed.

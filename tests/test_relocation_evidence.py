@@ -94,3 +94,19 @@ def test_housing_requires_explicit_provision_or_refusal_and_language_is_classifi
     assert ambiguous["housing_provided"]["status"] == "unknown"
     assert ambiguous["language_requirement"]["status"] == "observed"
     assert ambiguous["language_requirement"]["interpretation"]["requirement"] == "unspecified"
+
+
+def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():
+    citizenship = NormalizedJob(
+        source="synthetic_fixture", source_job_id="citizens-only", title="Engineer",
+        description="US citizens only.",
+    )
+    residence = NormalizedJob(
+        source="synthetic_fixture", source_job_id="residents-only", title="Engineer",
+        description="Candidates must currently reside in Germany.",
+    )
+    fields_a = build_relocation_evidence(citizenship)["fields"]
+    fields_b = build_relocation_evidence(residence)["fields"]
+    assert fields_a["citizenship_or_residence_restriction"]["interpretation"]["scope"] == "citizenship"
+    assert fields_b["citizenship_or_residence_restriction"]["interpretation"]["scope"] == "residence"
+    assert "Germany" in fields_b["citizenship_or_residence_restriction"]["excerpt"]

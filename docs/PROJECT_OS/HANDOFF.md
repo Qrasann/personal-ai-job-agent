@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD: `86e4c83`. Added distinct labels for explicit citizenship and
+residence/location hiring restrictions, retaining the source excerpt and
+provenance on vacancy details. This is only a description of source wording,
+not a legal conclusion. Focused tests: 41 passed; full isolated PostgreSQL:
+975 passed; compileall, diff check and secret scan passed. Next: improve
+country/language mappings only from explicit source evidence, then resume
+independent Candidate Fit/Source Intelligence work. No scoring or Candidate
+Facts change; no live/legal/production action. Test database:
+localhost:55432/jobagent_test. Proposals untouched.
+
 Starting HEAD: `17dbeb7` (first Relocation Evidence checkpoint). Follow-up
 classifies housing only when explicit provided/refused wording exists and
 separates language required/preferred/unspecified plus explicit English CEFR.
