@@ -2,6 +2,14 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `629564c`. Added synthetic regression coverage for explicit
+Russian “housing provided/not provided” wording. Bare mentions remain unknown.
+Full isolated PostgreSQL: 988 passed; compileall, diff check and secret scan
+passed. Continue Relocation Evidence locale/source work or Candidate Fit.
+No production changes. Proposals untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `a632d80`. Vacancy detail cards now stay under 3900 UTF-16 units
 even with all eight relocation fields and a large source description. A red
 synthetic regression measured 6467 before the fix; the renderer now trims only

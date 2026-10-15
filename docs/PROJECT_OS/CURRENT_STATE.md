@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — Russian housing evidence
+
+Explicit Russian accommodation provision/refusal is now recognized and
+excerpted; an unsupported mention remains unknown. Full isolated PostgreSQL:
+988 passed.
+
 ## 2026-10-15 — bound evidence-rich Telegram vacancy details
 
 Detail cards enforce a 3900 UTF-16-unit budget; only the long description is

@@ -48,12 +48,12 @@ _RULES: dict[str, re.Pattern[str]] = {
 
 _HOUSING_TERM = r"(?:accommodation|housing|lodging|apartment|unterkunft|wohnraum|место проживания|жиль[её])"
 _HOUSING_YES = re.compile(
-    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,45}}(?:is )?(?:provided|included|offered|available|wird gestellt|wird angeboten|wird geboten|предоставляется|включено)|"
+    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,45}}(?:is )?(?:provided|included|offered|available|wird gestellt|wird angeboten|wird geboten|предоставляется|включено|оплачивается)|"
     rf"(?:provide|offer|include|предоставляем|предлагаем)[^.!?;\n]{{0,35}}(?:{_HOUSING_TERM})",
     re.I,
 )
 _HOUSING_NO = re.compile(
-    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:is )?(?:not provided|not included|not offered|unavailable|wird nicht gestellt|wird nicht angeboten)|"
+    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:is )?(?:not provided|not included|not offered|unavailable|wird nicht gestellt|wird nicht angeboten|не предоставляется|не включено|не оплачивается)|"
     rf"no (?:provided )?(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:provided|included|offered)",
     re.I,
 )

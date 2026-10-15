@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-15 — recognize explicit Russian housing conditions
+
+Relocation Evidence now distinguishes explicit Russian “housing provided” and
+“housing not provided” statements; mere mentions remain unknown. Focused
+evidence test passed; full isolated PostgreSQL: 988 passed.
+
 ## 2026-10-15 — keep evidence-rich detail cards within Telegram limits
 
 Vacancy detail rendering now trims the long description when needed to keep

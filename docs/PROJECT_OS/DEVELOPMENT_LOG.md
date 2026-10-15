@@ -2492,3 +2492,9 @@ A synthetic long description with all mobility fields reproduced a 6467-unit
 Telegram card. Rendering now caps UTF-16 length at 3900 by trimming the
 description only; source evidence, score and link remain. Full isolated
 PostgreSQL: 988 passed.
+
+## 2026-10-15 — Russian accommodation evidence
+
+Explicit Russian statements that accommodation is or is not provided now
+produce attributed evidence; bare mentions stay unknown. Full isolated
+PostgreSQL: 988 passed.

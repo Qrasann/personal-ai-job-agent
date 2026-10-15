@@ -93,6 +93,13 @@ def test_housing_requires_explicit_provision_or_refusal_and_language_is_classifi
     assert denied["housing_provided"]["value"] is False
     assert denied["language_requirement"]["interpretation"]["requirements"][0]["requirement"] == "preferred"
 
+    russian_offered = extract("Жилье предоставляется работодателем.")
+    assert russian_offered["housing_provided"]["status"] == "confirmed"
+    assert russian_offered["housing_provided"]["value"] is True
+    russian_denied = extract("Жильё не предоставляется.")
+    assert russian_denied["housing_provided"]["status"] == "confirmed"
+    assert russian_denied["housing_provided"]["value"] is False
+
     ambiguous = extract("Housing and English are mentioned in the posting.")
     assert ambiguous["housing_provided"]["status"] == "unknown"
     assert ambiguous["language_requirement"]["status"] == "observed"

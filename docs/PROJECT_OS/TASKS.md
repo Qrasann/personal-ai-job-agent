@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — Russian accommodation evidence
+
+Added explicit Russian positive and negative accommodation wording with
+regression coverage; mentions without an assertion stay unknown. Full isolated
+PostgreSQL: 988 passed.
+
 ## 2026-10-15 — cap vacancy detail cards with mobility evidence
 
 Large posting plus all eight mobility signals reproduced a Telegram message
