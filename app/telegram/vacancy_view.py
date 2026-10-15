@@ -179,6 +179,49 @@ def _mobility_evidence_lines(job, description: str) -> list[str]:
     ]
 
 
+def _relocation_evidence_lines(evidence: dict) -> list[str]:
+    fields = evidence.get("fields") if isinstance(evidence, dict) else None
+    if not isinstance(fields, dict):
+        return []
+    labels = {
+        "work_country": "Страна работы по источнику",
+        "citizenship_or_residence_restriction": "Ограничение гражданства/проживания",
+        "existing_work_authorization_required": "Предварительное право на работу",
+        "visa_sponsorship": "Visa sponsorship",
+        "relocation_assistance": "Помощь с релокацией",
+        "housing_provided": "Текст об условиях жилья",
+        "language_requirement": "Текст о языке",
+        "start_timing": "Текст о сроках выхода",
+    }
+    present = [(key, fields.get(key)) for key in labels if isinstance(fields.get(key), dict)]
+    if not present:
+        return []
+    captured = str(evidence.get("captured_at") or "")[:25]
+    lines = ["", "🔎 <b>Условия с provenance источника</b>"]
+    for key, item in present:
+        status = item.get("status")
+        value = item.get("value")
+        excerpt = str(item.get("excerpt") or "").strip()
+        if status == "unknown":
+            detail = "неизвестно по доступному тексту"
+        elif key == "work_country":
+            detail = html.escape(str(value or "неизвестно")) + " (сообщено источником)"
+        elif key in {"visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"}:
+            detail = "да" if value is True else "нет" if value is False else "неизвестно"
+        else:
+            detail = "фрагмент для проверки: “" + html.escape(excerpt[:180]) + "”"
+        if key in {"citizenship_or_residence_restriction", "visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"} and excerpt:
+            detail += " — “" + html.escape(excerpt[:180]) + "”"
+        source_id = html.escape(str(item.get("source_id") or "unknown")[:64])
+        item_date = html.escape(str(item.get("captured_at") or captured)[:25])
+        confidence = html.escape(str(item.get("confidence") or "unknown")[:32])
+        lines.append(
+            f"• {html.escape(labels[key])}: {detail} "
+            f"<i>({source_id}; {item_date}; {confidence})</i>"
+        )
+    return lines
+
+
 def render_queue_card(
     match,
     job,
@@ -345,6 +388,7 @@ def render_job_details(payload: dict) -> str:
         lines.extend(html.escape(line) for line in vacancy_availability_lines(details))
 
     lines.extend(_mobility_evidence_lines(job, description_full))
+    lines.extend(_relocation_evidence_lines(payload.get("relocation_evidence") or {}))
 
     if description:
         lines.extend(["", "📝 <b>Описание вакансии</b>", html.escape(description)])

@@ -1,5 +1,19 @@
 # Codex Brief
 
+## 2026-10-15 — source-scoped Relocation Evidence v1
+
+Each ingested source posting now stores a versioned mobility evidence packet
+in its own `JobSourceRef.raw`: source-reported work country, explicit
+citizenship/residence restriction excerpts, prior work authorization, visa
+sponsorship, relocation support, and observed housing/language/start-timing
+text. Every field records source ID/URL, capture time and bounded confidence;
+unobserved values remain `unknown` with no fabricated excerpt. Vacancy detail
+cards disclose the per-field provenance. This does not change scoring or
+Candidate Facts and makes no legal eligibility conclusion. Synthetic-only
+regressions cover evidence and unknown behavior; full isolated PostgreSQL:
+973 passed. The parser also keeps “no relocation details” unknown, not a
+confirmed employer refusal.
+
 ## 2026-10-15 — isolate recruiter instructions from message content
 
 Recruiter drafting now supplies fixed developer instructions separately from

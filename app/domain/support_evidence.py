@@ -62,7 +62,7 @@ _STATUS = re.compile(
     r"verfügbar|angeboten|unterstützt)\b"
 )
 _INCIDENTAL = re.compile(
-    r"\b(?:guidance|information|advice|policy|policies|questions?|requirements?|"
+    r"\b(?:details?|guidance|information|advice|policy|policies|questions?|requirements?|"
     r"информац\w*|консультац\w*|beratung|informationen)\b"
 )
 _UNCERTAIN = re.compile(r"\b(?:may|might|could|possibly|potentially|potential|возможно|может|могут)\b")
@@ -133,6 +133,10 @@ def support_evidence(text: str) -> dict[str, bool | None]:
                 status = _STATUS.search(after)
                 if status and not _support_list(after[:status.start()]):
                     status = None
+                # "No relocation details" means the posting omits detail; it
+                # is not an employer refusal to provide relocation support.
+                if _INCIDENTAL.match(after.strip()):
+                    continue
                 # A later offer starts a new predicate, e.g. "we do not offer
                 # relocation, and we provide visa sponsorship".
                 denied_before = bool(denials) and (

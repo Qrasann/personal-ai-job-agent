@@ -385,6 +385,33 @@ def test_foreign_job_details_keep_missing_mobility_evidence_unknown():
     assert "Предварительное право на работу: явного требования не найдено" in text
 
 
+def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns():
+    job = SimpleNamespace(
+        id=46, title="Synthetic Infrastructure Engineer", company="Fixture Co",
+        salary_from=None, salary_to=None, salary_currency=None,
+        description="Synthetic fixture description", city=None, country="DE",
+        work_mode=None, published_at=None, relocation=None, visa_sponsorship=None,
+    )
+    match = SimpleNamespace(
+        total_score=50, technical_score=50, geography_score=50,
+        salary_score=50, relocation_score=50, recommendation_scores={}, reason="",
+    )
+    evidence = {
+        "captured_at": "2026-10-15T12:30:00+00:00",
+        "fields": {
+            "work_country": {"status": "confirmed", "value": "DE", "source_id": "fixture", "source_url": "https://example.invalid", "excerpt": "DE", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "source_structured"},
+            "visa_sponsorship": {"status": "unknown", "value": None, "source_id": "fixture", "excerpt": None, "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "unknown"},
+        },
+    }
+    text = render_job_details({
+        "job": job, "match": match, "source": "fixture", "url": "",
+        "details": {}, "relocation_evidence": evidence,
+    })
+    assert "Страна работы по источнику: DE (сообщено источником)" in text
+    assert "Visa sponsorship: неизвестно по доступному тексту" in text
+    assert "(fixture; 2026-10-15T12:30:00+00:00; unknown)" in text
+
+
 def test_remote_job_details_show_source_geography_without_claiming_work_eligibility():
     match = SimpleNamespace(
         total_score=70,

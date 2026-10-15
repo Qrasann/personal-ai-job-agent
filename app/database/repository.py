@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
@@ -19,6 +21,7 @@ from app.database.models import (
     User,
 )
 from app.domain.jobs import NormalizedJob
+from app.domain.relocation_evidence import build_relocation_evidence
 from app.candidates.fact_types import normalize_experience_type
 
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
@@ -268,6 +271,10 @@ async def set_user_country(user_id: int, code: str | None) -> None:
 
 async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
     async with SessionLocal() as session:
+        incoming_raw = dict(job.raw or {})
+        incoming_raw["relocation_evidence_v1"] = build_relocation_evidence(
+            job, captured_at=datetime.now(timezone.utc)
+        )
         fingerprint = job.canonical_fingerprint()
         # Serialize the two natural-key decisions (provider identity and
         # cross-provider fingerprint) before reading either row. Sorting keeps
@@ -303,7 +310,6 @@ async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
                     )
                     if not collision:
                         existing.fingerprint = fingerprint
-                incoming_raw = dict(job.raw or {})
                 old_raw = dict(source_ref.raw or {})
                 cached_details = old_raw.get("details_cache_v1")
                 if isinstance(cached_details, dict):
@@ -340,7 +346,7 @@ async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
             session.add(existing)
             await session.flush()
             created = True
-        session.add(JobSourceRef(job_id=existing.id, source_id=job.source, source_job_id=job.source_job_id, url=job.url, raw=job.raw))
+        session.add(JobSourceRef(job_id=existing.id, source_id=job.source, source_job_id=job.source_job_id, url=job.url, raw=incoming_raw))
         await session.commit()
         await session.refresh(existing)
         return existing, created

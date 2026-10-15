@@ -714,6 +714,11 @@ async def _repeated_source_upsert_flow(monkeypatch):
             message="Saved cover letter", status="prepared",
         )
         first_ref = await repo.source_ref(job.id, "refresh-source")
+        saved_evidence = first_ref.raw["relocation_evidence_v1"]
+        assert saved_evidence["schema"] == "relocation_evidence_v1"
+        assert saved_evidence["fields"]["work_country"]["value"] == "GE"
+        assert saved_evidence["fields"]["visa_sponsorship"]["value"] is None
+        assert saved_evidence["fields"]["visa_sponsorship"]["status"] == "unknown"
 
         refreshed = NormalizedJob(
             source="refresh-source", source_job_id="stable-posting-id",
@@ -737,6 +742,10 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert latest_ref.raw["listing_revision"] == "new"
         assert latest_ref.raw["new_provenance"] == "present in latest response"
         assert latest_ref.raw["details_cache_v1"] == {"description": "Verified full details"}
+        updated_evidence = latest_ref.raw["relocation_evidence_v1"]
+        assert updated_evidence["fields"]["work_country"]["value"] == "GE"
+        assert updated_evidence["fields"]["visa_sponsorship"]["status"] == "unknown"
+        assert updated_evidence["captured_at"]
         assert latest_ref.first_seen_at == first_ref.first_seen_at
 
         saved = await repo.get_application(user.id, application.id)

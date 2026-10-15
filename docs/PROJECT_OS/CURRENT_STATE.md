@@ -1,5 +1,16 @@
 # Current State
 
+## 2026-10-15 — source-scoped Relocation Evidence v1
+
+`upsert_job` now saves `relocation_evidence_v1` beside each source reference,
+including source provenance, capture time, excerpt and bounded confidence for
+the eight relocation/hiring signals. Structured source country is labeled as
+reported by the source; support/prerequisite statements remain separate from
+personal eligibility. Housing/language/start text is marked observed rather
+than treated as a promise/requirement. Unknowns remain unknown. Details display
+the evidence alongside existing mobility summary; scoring and Candidate Facts
+are unchanged. Synthetic fixtures only; full isolated PostgreSQL: 973 passed.
+
 ## 2026-10-15 — isolate recruiter instructions from message content
 
 Recruiter replies now separate developer instructions from untrusted JSON

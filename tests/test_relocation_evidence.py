@@ -1,0 +1,69 @@
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+from app.domain.jobs import NormalizedJob
+from app.domain.relocation_evidence import EVIDENCE_FIELDS, build_relocation_evidence
+
+
+def _fixture_job():
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures/relocation_evidence/synthetic_job.json").read_text()
+    )
+    return NormalizedJob(
+        source="synthetic_fixture", source_job_id="synthetic-101",
+        title=fixture["title"], description=fixture["description"],
+        country=fixture["country"], url=fixture["url"],
+    )
+
+
+def test_relocation_evidence_keeps_explicit_source_excerpt_and_capture_time():
+    captured = datetime(2026, 10, 15, 12, 30, tzinfo=timezone.utc)
+    evidence = build_relocation_evidence(_fixture_job(), captured_at=captured)
+
+    assert evidence["schema"] == "relocation_evidence_v1"
+    assert set(evidence["fields"]) == set(EVIDENCE_FIELDS)
+    assert evidence["fields"]["work_country"] == {
+        "status": "confirmed", "value": "DE", "source_id": "synthetic_fixture",
+        "source_url": "https://jobs.example.invalid/synthetic-101", "excerpt": "DE",
+        "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "source_structured",
+    }
+    auth = evidence["fields"]["existing_work_authorization_required"]
+    assert auth["value"] is True and auth["status"] == "confirmed"
+    assert "right to work in Germany" in auth["excerpt"]
+    denied = evidence["fields"]["visa_sponsorship"]
+    assert denied["value"] is False and "do not provide visa sponsorship" in denied["excerpt"]
+    relocation = evidence["fields"]["relocation_assistance"]
+    assert relocation["value"] is True and "Relocation assistance is available" in relocation["excerpt"]
+    assert evidence["fields"]["language_requirement"]["value"]
+    assert evidence["fields"]["start_timing"]["value"]
+    assert evidence["fields"]["housing_provided"]["status"] == "unknown"
+    assert evidence["fields"]["language_requirement"]["status"] == "observed"
+    assert "Synthetic regression fixture" not in json.dumps(evidence)
+
+
+def test_missing_relocation_evidence_is_unknown_not_refusal_or_offer():
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="unknown-1", title="Engineer",
+        description="Technical role. No relocation details included.",
+    )
+    evidence = build_relocation_evidence(job)
+    for field in EVIDENCE_FIELDS:
+        item = evidence["fields"][field]
+        assert item["status"] == "unknown"
+        assert item["value"] is None
+        assert item["excerpt"] is None
+        assert item["source_id"] == "synthetic_fixture"
+        assert item["captured_at"]
+        assert item["confidence"] == "unknown"
+
+
+def test_residence_restriction_excerpt_is_not_promoted_to_legal_judgment():
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="restriction-1", title="Engineer",
+        description="Only candidates currently living in Germany may apply.", country="DE",
+    )
+    item = build_relocation_evidence(job)["fields"]["citizenship_or_residence_restriction"]
+    assert item["status"] == "confirmed"
+    assert item["value"] == item["excerpt"]
+    assert "currently living in Germany" in item["excerpt"]

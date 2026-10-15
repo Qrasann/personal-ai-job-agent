@@ -2,6 +2,26 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD: `0f68fd6`, VERSION 3.5.7. Added source-scoped
+`relocation_evidence_v1` to each source ref on `upsert_job`: eight fields for
+source-reported work country, citizenship/residence restrictions, prior work
+authorization, sponsorship, relocation support, housing, language and start
+timing. Observed evidence retains source ID/URL, exact bounded excerpt,
+capture time and categorical confidence; unsupported values remain unknown.
+Vacancy detail cards show per-signal provenance. Synthetic fixtures only;
+scoring and Candidate Facts remain untouched. The repeat-source PostgreSQL
+regression confirmed evidence refresh while retaining verified detail cache and
+immutable application snapshots. A reproduced parser error for “No relocation
+details” now remains unknown. Focused evidence/detail tests: 6 passed; targeted
+isolated PostgreSQL: 1 passed; full isolated PostgreSQL suite: 973 passed.
+Next: review source-specific location and hiring-scope semantics with fixtures,
+then continue Candidate Fit / Application Package / Source Intelligence.
+Official legal eligibility checks and live Telegram acceptance remain separate
+and unverified. Test DB: localhost:55432/jobagent_test via docker-compose.test;
+no production operations. Owner proposal files are untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Latest HEAD: `6b55d6b`, VERSION 3.5.7. Recruiter Agent now uses separate
 developer instructions and JSON input for Candidate Facts, conversation
 context and question; embedded instructions are treated as untrusted, while

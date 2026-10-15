@@ -1,5 +1,18 @@
 # Tasks
 
+## 2026-10-15 — source-scoped Relocation Evidence v1
+
+Added versioned per-source evidence records for work country, hiring scope,
+existing authorization, visa sponsorship, relocation assistance, housing,
+language and start timing. Observed evidence carries source ID/URL, excerpt,
+capture timestamp and categorical confidence; unknown values have no invented
+quote. Vacancy detail cards expose the provenance. A synthetic regression
+found and fixed `No relocation details` being mistaken for a refusal. No
+scoring/Candidate Fact change. Full isolated PostgreSQL suite: 973 passed.
+Next: tighten extracted language/country/conditions with synthetic fixtures,
+then return to Source Intelligence or Candidate Fit; live legal eligibility
+and Telegram acceptance remain separate.
+
 ## 2026-10-15 — isolate recruiter instructions from message content
 
 Applies the same data/instruction boundary to recruiter drafting. Sensitive

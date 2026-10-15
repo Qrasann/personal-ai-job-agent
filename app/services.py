@@ -703,6 +703,7 @@ async def get_vacancy_details(
     )
 
     raw = (ref.raw or {}) if ref else {}
+    relocation_evidence = raw.get("relocation_evidence_v1")
     source_salary_text = raw.get("source_salary_text")
     if isinstance(source_salary_text, str) and source_salary_text.strip():
         # Display-only source evidence: never send decimal/hourly or ambiguous
@@ -731,6 +732,7 @@ async def get_vacancy_details(
         "url": ref.url if ref else "",
         "details": details,
         "fallback_salary_text": fallback_salary_text,
+        "relocation_evidence": relocation_evidence if isinstance(relocation_evidence, dict) else {},
         "warning": warning,
         "search_profile_name": search.name if search else "",
     }

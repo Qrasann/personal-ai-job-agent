@@ -2376,3 +2376,16 @@ passed Candidate Facts, prior context and the latest question as JSON. Inputs
 cannot override the factual constraints or sensitive-topic human-review rule.
 Default auto-reply remains OFF. Focused recruiter/private-HH tests: 16 passed;
 full isolated PostgreSQL: 969 passed.
+# 2026-10-15 — source-scoped Relocation Evidence v1
+
+Persisted a versioned evidence packet in each source ref at upsert time and
+rendered provenance in vacancy details. It records the source-reported country
+and independently tracks hiring restrictions, existing work authorization,
+visa sponsorship, relocation support, and observed housing/language/start
+phrases. Each signal has source identity/URL, capture time, excerpt when
+observed and categorical confidence. Missing conditions remain unknown;
+text snippets for housing/language/start do not assert a benefit or mandate.
+Fixtures are synthetic and marked as such; Candidate Facts and scoring are
+untouched. Regression also fixed “No relocation details” to remain unknown.
+Focused tests: 6 passed, 1 PostgreSQL test passed; full isolated PostgreSQL:
+973 passed.
