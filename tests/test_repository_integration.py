@@ -12,6 +12,7 @@ from app.database.migrations import apply_migrations
 from app.database.models import Application, Base, CandidateFact, SchemaMigration
 from app.domain.jobs import NormalizedJob
 from app.domain.application_package import snapshot_vacancy
+from app.domain.source_posting import posting_snapshot_digest, source_posting_view
 
 
 TEST_DATABASE_URL = os.getenv("JOB_AGENT_TEST_DATABASE_URL")
@@ -711,6 +712,10 @@ async def _repeated_source_upsert_flow(monkeypatch):
         first_ref = await repo.source_ref(job.id, "refresh-source")
         saved_evidence = first_ref.raw["relocation_evidence_v1"]
         assert first_ref.raw["normalized_posting_v1"]["description"] == "Old summary"
+        await repo.save_source_ref_detail_cache(first_ref.id, {"description": "Verified full details"})
+        first_ref = await repo.source_ref(job.id, "refresh-source")
+        old_digest = posting_snapshot_digest(first_ref.raw["normalized_posting_v1"])
+        assert first_ref.raw["details_cache_posting_digest_v1"] == old_digest
         application = await repo.save_application(
             user_id=user.id, job_id=job.id, source_id="refresh-source",
             source_application_id=None, external_url=original.url, resume_id=None,
@@ -752,6 +757,8 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert latest_ref.raw["new_provenance"] == "present in latest response"
         assert latest_ref.raw["normalized_posting_v1"]["description"] == refreshed.description
         assert latest_ref.raw["details_cache_v1"] == {"description": "Verified full details"}
+        assert latest_ref.raw["details_cache_posting_digest_v1"] == old_digest
+        assert source_posting_view(same_job, latest_ref).description == refreshed.description
         updated_evidence = latest_ref.raw["relocation_evidence_v1"]
         assert updated_evidence["fields"]["work_country"]["value"] == "GE"
         assert updated_evidence["fields"]["work_country"]["excerpt"] == "Updated Tbilisi, Georgia (synthetic fixture)"
@@ -784,6 +791,13 @@ async def _repeated_source_upsert_flow(monkeypatch):
         raced_ref = await repo.source_ref(job.id, "refresh-source")
         assert raced_ref.raw["listing_revision"] == "newest"
         assert raced_ref.raw["details_cache_v1"] == {
+            "description": "Newly verified full details"
+        }
+        await repo.save_source_ref_detail_cache(
+            raced_ref.id, {"description": "Raced old details"},
+            expected_posting_digest=posting_snapshot_digest(latest_ref.raw["normalized_posting_v1"]),
+        )
+        assert (await repo.source_ref(job.id, "refresh-source")).raw["details_cache_v1"] == {
             "description": "Newly verified full details"
         }
 

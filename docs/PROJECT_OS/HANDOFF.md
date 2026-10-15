@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `cf1111c`. Newly fetched HH detail caches are bound to the exact normalized source posting digest. When a source card changes, older verified cache stays in raw provenance but no longer overrides review/`/prepare`; the next HH detail read refetches. Row-locked save rejects a fetch raced by a newer card. Legacy unbound caches retain old behavior until refreshed. Synthetic and real PostgreSQL upsert/race regressions passed; full isolated PostgreSQL: 1004 passed. Next: broader source-quality utility or Relocation-first practical evidence, then full roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `f226b9b`. `/prepare` preview now reserves space for selected provider identity and validated manual vacancy link, even when a dense CV checklist is shortened; unsafe links still yield a manual-search warning. Red synthetic fixture; focused 58 and full isolated PostgreSQL 1002 passed. Next: Source Intelligence cache provenance/freshness or Relocation-first evidence utility, then wider roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

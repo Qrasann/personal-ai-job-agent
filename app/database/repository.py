@@ -22,7 +22,7 @@ from app.database.models import (
 )
 from app.domain.jobs import NormalizedJob
 from app.domain.relocation_evidence import build_relocation_evidence
-from app.domain.source_posting import snapshot_source_posting
+from app.domain.source_posting import posting_snapshot_digest, snapshot_source_posting
 from app.candidates.fact_types import normalize_experience_type
 
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
@@ -316,6 +316,9 @@ async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
                 cached_details = old_raw.get("details_cache_v1")
                 if isinstance(cached_details, dict):
                     incoming_raw["details_cache_v1"] = cached_details
+                cache_digest = old_raw.get("details_cache_posting_digest_v1")
+                if isinstance(cache_digest, str):
+                    incoming_raw["details_cache_posting_digest_v1"] = cache_digest
                 source_ref.raw = incoming_raw
                 if job.url:
                     source_ref.url = str(job.url)[:100000]
@@ -398,7 +401,9 @@ async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
         await session.commit()
 
 
-async def save_source_ref_detail_cache(ref_id: int, details: dict) -> None:
+async def save_source_ref_detail_cache(
+    ref_id: int, details: dict, *, expected_posting_digest: str | None = None
+) -> None:
     """Update only the verified details cache under a source-ref row lock."""
     async with SessionLocal() as session:
         item = await session.scalar(
@@ -407,7 +412,16 @@ async def save_source_ref_detail_cache(ref_id: int, details: dict) -> None:
         if not item:
             return
         raw = dict(item.raw or {})
+        current_digest = posting_snapshot_digest(raw.get("normalized_posting_v1"))
+        if expected_posting_digest is not None and expected_posting_digest != current_digest:
+            # A card refresh raced the network fetch. Do not label fetched
+            # details as verified against a snapshot we did not request.
+            return
         raw["details_cache_v1"] = dict(details or {})
+        if current_digest:
+            raw["details_cache_posting_digest_v1"] = current_digest
+        else:
+            raw.pop("details_cache_posting_digest_v1", None)
         item.raw = raw
         await session.commit()
 

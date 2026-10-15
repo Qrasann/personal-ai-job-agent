@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — source-bound HH details cache completed
+
+- [x] Reproduce stale full details overlaying a changed source card and stale cache reuse.
+- [x] Bind new HH cache writes to normalized source snapshots, retain old cache/provenance, and refetch when the card changes.
+- [x] Reject a cache save raced by another source-card update under row lock; synthetic and isolated PostgreSQL regressions passed. Full isolated suite: 1004 passed.
+- [ ] Next: broader source quality and Relocation-first evidence utility; revisit legacy unbound caches only with trustworthy historical provenance.
+
 ## 2026-10-15 — package preview identity and link completed
 
 - [x] Reproduce a dense review preview that could omit selected-posting context.

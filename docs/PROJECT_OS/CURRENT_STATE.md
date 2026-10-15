@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — bind HH full-detail cache to its source posting
+
+New HH detail caches carry a digest of the normalized source posting. Changed source cards preserve older cache data but do not overlay it on review or package drafting; HH detail view refetches on the next read. Concurrent refresh cannot save fetched details under a mismatched posting digest. Legacy caches without an anchor retain prior behavior. Full isolated PostgreSQL: 1004 passed.
+
 ## 2026-10-15 — keep manual posting link visible in package preview
 
 The `/prepare` preview always reserves space for the selected source/posting ID and validated vacancy link, even when skill checklist lines are shortened. Invalid links still show a manual-search warning. Focused 58; full isolated PostgreSQL 1002 passed.

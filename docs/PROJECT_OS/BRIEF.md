@@ -1,3 +1,7 @@
+## 2026-10-15 — bind HH full-detail cache to its source posting
+
+New HH detail-cache writes retain a digest of the source posting reviewed at fetch time. If the same source ID is rediscovered with changed normalized fields, review and `/prepare` use the current posting, while old verified details remain stored; the next HH detail view refetches. A row-locked digest check rejects a cache save raced by another card refresh. Legacy caches without a digest remain usable until refreshed. Full isolated PostgreSQL: 1004 passed.
+
 ## 2026-10-15 — keep manual posting link visible in package preview
 
 Dense Candidate Fact/CV checklists could push the vacancy link out of `/prepare` preview. The bounded preview now reserves space for the selected posting identity and validated manual-open link (or a clear missing-link warning). No automatic submission. A red dense fixture and full isolated PostgreSQL 1002 tests passed.

@@ -1,6 +1,8 @@
 """Source-specific normalized posting text for deduplicated jobs."""
 from __future__ import annotations
 
+import hashlib
+import json
 from types import SimpleNamespace
 
 from app.domain.jobs import NormalizedJob
@@ -32,6 +34,17 @@ def snapshot_source_posting(job: NormalizedJob) -> dict:
     return snapshot
 
 
+def posting_snapshot_digest(snapshot) -> str | None:
+    """Stable identity for the normalized card version used by a detail cache."""
+    if not isinstance(snapshot, dict) or snapshot.get("schema") != "normalized_posting_v1":
+        return None
+    try:
+        payload = json.dumps(snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    except (TypeError, ValueError):
+        return None
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def source_posting_view(job, source_ref):
     """Overlay the selected source's posting without mutating the canonical Job.
 
@@ -46,10 +59,13 @@ def source_posting_view(job, source_ref):
         and bool(snapshot["title"].strip())
     )
     cached = raw.get("details_cache_v1") if isinstance(raw, dict) else None
+    cache_digest = raw.get("details_cache_posting_digest_v1") if isinstance(raw, dict) else None
     valid_cache = isinstance(cached, dict) and any(
         isinstance(cached.get(field), str) and cached[field].strip()
         for field in ("title", "company", "description")
     )
+    if cache_digest and cache_digest != posting_snapshot_digest(snapshot):
+        valid_cache = False
     if not valid_snapshot and not valid_cache:
         return job
 

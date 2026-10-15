@@ -16,7 +16,7 @@ from app.database import repository as repo
 from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
-from app.domain.source_posting import source_posting_view
+from app.domain.source_posting import posting_snapshot_digest, source_posting_view
 from app.geo.countries import normalize_country
 from app.matching.engine import score_job
 from app.matching.fact_comparison import compare_facts
@@ -651,7 +651,9 @@ async def get_cached_hh_details(job_id: int) -> dict:
 
     raw = dict(ref.raw or {})
     cached = raw.get("details_cache_v1")
-    if isinstance(cached, dict):
+    posting_digest = posting_snapshot_digest(raw.get("normalized_posting_v1"))
+    cache_digest = raw.get("details_cache_posting_digest_v1")
+    if isinstance(cached, dict) and (not cache_digest or cache_digest == posting_digest):
         return dict(cached)
 
     vacancy_html = await hh_client.vacancy_web(ref.source_job_id)
@@ -659,7 +661,9 @@ async def get_cached_hh_details(job_id: int) -> dict:
     if not isinstance(details, dict):
         details = {}
 
-    await repo.save_source_ref_detail_cache(ref.id, details)
+    await repo.save_source_ref_detail_cache(
+        ref.id, details, expected_posting_digest=posting_digest
+    )
 
     return dict(details)
 

@@ -1,3 +1,7 @@
+## 2026-10-15 — bind HH full-detail cache to its source posting
+
+Added deterministic digest of normalized source posting to new HH detail-cache writes. Source rediscovery preserves cache bytes and digest; a mismatch prevents old full text from overlaying the current posting and triggers a refetch when HH details are next viewed. Cache write checks the expected digest under the source-ref row lock so a concurrent update cannot mislabel old fetch data. Legacy unbound cache remains usable because its historical version cannot be established. Synthetic regressions and real PostgreSQL upsert/race test passed; full isolated PostgreSQL: 1004 passed. No production or live HH requests during tests.
+
 ## 2026-10-15 — keep manual posting link visible in package preview
 
 The preview's bounded optional lines could omit the vacancy link during a dense CV consistency review. Moved the validated link/missing-link warning into the reserved tail and added the selected provider identity there. Red dense fixture, focused 58, full isolated PostgreSQL 1002 passed. No private submission.
