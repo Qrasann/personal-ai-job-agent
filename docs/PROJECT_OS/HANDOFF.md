@@ -1,21 +1,15 @@
 # Handoff
 
-## Current code checkpoint — 2026-10-15
+## Current development checkpoint — 2026-10-15
 
-This checkpoint contains three verified increments on
-`feature/v3.5.7-international-market-coverage`; VERSION remains 3.5.7 and
-v3.5.6 remains the latest formal release. Remotive timezone-aware RSS/API
-publication timestamps and Arbeitnow epoch-second dates normalize to UTC ISO;
-application exports disclose that locally recorded status does not
-independently verify employer/provider receipt. The latest full isolated
-PostgreSQL suite passed 933 tests; all three increments passed their focused
-suites. Tests use only `job-agent-tests` on port 55432/tmpfs. The two proposal
-files remain untracked and untouched. No remote push, release, merge,
-deployment, production DB/volume change or external action occurred.
-Next: continue Candidate Fit, safe package fidelity, source intelligence and
-Relocation-first coverage; keep Recruiter Agent, Interview Agent and v4.x in the
-canonical roadmap. Live Telegram and legal eligibility acceptance remain
-separate evidence gates.
+Started from `8ccba30`; VERSION remains 3.5.7, latest formal release v3.5.6.
+Fixed overlapping pure-OR groups in Candidate Fit and resume review. Focused
+tests: 70 passed; full isolated PostgreSQL on localhost:55432/tmpfs: 936 passed.
+Next: freeze vacancy metadata in Application Package snapshots; then continue
+Source Intelligence/Relocation-first and the full Recruiter/Interview/v4.x
+roadmap. Live Telegram and legal eligibility remain separate evidence gates.
+Both owner proposals are untouched and excluded. Local checkpoints only; no
+push, release, deployment, VERSION or production change is authorized.
 
 ## Previous implementation checkpoint — 2026-10-15
 

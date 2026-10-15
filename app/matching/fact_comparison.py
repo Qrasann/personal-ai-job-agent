@@ -425,6 +425,9 @@ def extract_skill_alternatives(
         whole_line_group = explicit_options(line, line_skills)
         if whole_line_group:
             groups.append(whole_line_group)
+            # A pure OR chain already includes every option, even when some
+            # are parenthesized. Adding inner groups would count them twice.
+            continue
         # Parentheses let an explicit choice coexist with a separate skill in
         # the same clause, e.g. "Linux and (Docker or Kubernetes)".
         for match in re.finditer(r"\(([^()]*)\)", line):

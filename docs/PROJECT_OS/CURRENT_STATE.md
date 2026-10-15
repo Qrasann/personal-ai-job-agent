@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — nonoverlapping Candidate Fit alternatives
+
+Pure OR expressions such as `Linux or (Docker or Kubernetes)` now produce
+one alternative group. Previously the inner group was counted twice, lowering
+Linux-only coverage and showing a spurious missing group in resume review.
+Three regressions failed before the fix. Focused fit/score/resume: 70 passed;
+full isolated PostgreSQL: 936 passed.
+
 ## 2026-10-15 — normalize Arbeitnow epoch publication dates
 
 Arbeitnow numeric `created_at` values now use the shared timestamp parser and

@@ -337,6 +337,25 @@ def test_parenthesized_alternative_can_coexist_with_an_independent_requirement()
 
 
 @pytest.mark.parametrize("text", [
+    "Requirements: Linux or (Docker or Kubernetes).",
+    "Requirements: (Linux or Docker) or Kubernetes.",
+    "Requirements: Linux or ((Docker or Kubernetes)).",
+])
+def test_pure_or_parentheses_form_one_nonoverlapping_scoring_choice(text):
+    from app.matching.technical_score import score_technical_v2
+    from app.matching.resume_diff import compare_resume_coverage
+
+    facts = [fact(1, "Linux administration", "commercial")]
+    comparison = compare_facts(text, facts)
+
+    assert comparison.alternative_groups == (("Linux", "Docker", "Kubernetes"),)
+    assert score_technical_v2(text, facts) == 100
+    coverage = compare_resume_coverage(comparison, "Linux administration")
+    assert len(coverage["alternative_groups"]) == 1
+    assert coverage["alternative_groups"][0]["status"] == "confirmed"
+
+
+@pytest.mark.parametrize("text", [
     "Requirements: Linux and (Docker/Kubernetes).",
     "Requirements: Linux and (Docker or Kubernetes or Docker).",
     "Requirements: Linux and (Docker or Kubernetes); Docker also required.",
