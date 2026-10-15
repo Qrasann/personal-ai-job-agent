@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — normalize Remotive publication timestamps
+
+Timezone-aware Remotive RSS RFC 2822 and API ISO dates are normalized to UTC
+ISO before persistence/display. Malformed or timezone-less dates remain
+unknown. Focused Remotive tests: 8; isolated PostgreSQL: 929 passed. This is
+date normalization only and makes no vacancy freshness or hiring-status claim.
+
 ## 2026-10-15 — isolated parenthesized skill alternatives
 
 Explicit parenthesized `or/или` choices can now coexist with an independent

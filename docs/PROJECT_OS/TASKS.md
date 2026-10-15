@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — Remotive publication timestamp normalization
+
+- [x] Normalize timezone-aware RSS RFC 2822 and API ISO dates to UTC ISO.
+- [x] Keep malformed and timezone-less publication values unknown.
+- [x] Focused Remotive tests: 8 passed; isolated PostgreSQL: 929 passed.
+- [ ] Extend source freshness indicators only where each feed documents
+  publication/expiry semantics and timezone behavior.
+
 ## 2026-10-15 — isolated parenthesized skill alternatives
 
 - [x] Recognize explicit parenthesized alternatives next to an independent

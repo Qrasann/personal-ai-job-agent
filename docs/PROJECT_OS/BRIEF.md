@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — normalize Remotive publication timestamps
+
+Remotive's RSS `pubDate` values are RFC 2822 while its API uses ISO values.
+Both are now normalized to UTC ISO timestamps when timezone-aware; malformed
+and timezone-less values remain unknown. Focused Remotive tests: 8 passed;
+isolated PostgreSQL suite: 929 passed.
+
 ## 2026-10-15 — isolated parenthesized skill alternatives
 
 Candidate Fit recognizes an explicit parenthesized choice beside another

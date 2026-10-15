@@ -1,3 +1,9 @@
+## 2026-10-15 — normalize Remotive publication timestamps
+
+Normalize explicit timezone-aware RFC 2822 RSS dates and ISO API dates to UTC
+ISO format before persistence/display. Malformed or timezone-less values remain
+unknown. Focused Remotive tests: 8 passed; isolated PostgreSQL: 929 passed.
+
 ## 2026-10-15 — isolated parenthesized skill alternatives
 
 Extended alternative parsing to a narrowly scoped parenthesized group when

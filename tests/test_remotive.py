@@ -80,6 +80,13 @@ def test_remotive_missing_candidate_location_stays_unknown_and_free_text_salary_
     assert signals.remote_eligibility == "uncertain"
 
 
+def test_remotive_publication_dates_normalize_explicit_timezones_and_reject_ambiguous_values():
+    assert RemotiveSource._published_at("Sun, 11 Oct 2026 12:00:00 GMT") == "2026-10-11T12:00:00+00:00"
+    assert RemotiveSource._published_at("2026-10-11T14:00:00+02:00") == "2026-10-11T12:00:00+00:00"
+    assert RemotiveSource._published_at("2026-10-11T12:00:00") is None
+    assert RemotiveSource._published_at("not a date") is None
+
+
 def test_remotive_uses_official_devops_rss_feed_and_normalizes_entries(monkeypatch):
     calls = []
     feed = b"""<?xml version="1.0" encoding="UTF-8"?>
@@ -113,6 +120,7 @@ def test_remotive_uses_official_devops_rss_feed_and_normalizes_entries(monkeypat
     assert jobs[0].company == "Example Corp"
     assert jobs[0].skills == ["Devops"]
     assert jobs[0].remote_scope == "unknown"
+    assert jobs[0].published_at == "2026-10-11T12:00:00+00:00"
     assert calls[0][0] == "https://remotive.com/remote-jobs/devops/feed"
     assert calls[0][1] == {}
     assert "application/rss+xml" in calls[0][2]

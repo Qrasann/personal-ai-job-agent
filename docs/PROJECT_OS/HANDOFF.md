@@ -2,12 +2,26 @@
 
 ## Current code checkpoint — 2026-10-15
 
-Verified code HEAD `4d8cce2` on `feature/v3.5.7-international-market-coverage`,
-92 commits ahead before this handoff-only update. VERSION remains 3.5.7; latest
-formal release is v3.5.6. The isolated PostgreSQL suite passed 928 tests for
-this code. Local and GitHub backup branch `backup/v3.5.7-20261015` both pointed
-to this code checkpoint before the documentation update. The handoff-only
-checkpoint below records the updated backup ref; no proposal files are staged.
+At start this increment, code HEAD was `a671cdd` on
+`feature/v3.5.7-international-market-coverage`; VERSION remains 3.5.7 and
+v3.5.6 remains the latest formal release. Remotive RSS `pubDate` (RFC 2822)
+and API ISO publication values now normalize to UTC ISO only when an explicit
+timezone exists; malformed and timezone-less values remain unknown. Focused
+Remotive tests: 8 passed; isolated PostgreSQL suite: 929 passed. Candidate Fit,
+Application Package, Recruiter/Interview Agent and v4.x remain on the full
+roadmap; next practical work is a separately evidenced Source Intelligence or
+Relocation-first increment. No production DB/volume, live service, or external
+action was used. Two owner proposal files remain untracked and untouched. No
+push, release, merge or deployment was performed.
+
+## Previous code checkpoint — 2026-10-15
+
+Before the handoff-only update to `a671cdd`, code HEAD was `4d8cce2` on
+`feature/v3.5.7-international-market-coverage`; VERSION remained 3.5.7 and the
+isolated PostgreSQL suite passed 928 tests. Local and GitHub backup branch
+`backup/v3.5.7-20261015` were synchronized at that earlier snapshot. The
+current user instruction now requires separate permission before any push;
+therefore no remote backup update is performed in this development run.
 
 ## 2026-10-15 — isolated parenthesized skill alternatives
 

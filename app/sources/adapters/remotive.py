@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as ET
+from datetime import UTC
+from email.utils import parsedate_to_datetime
 from urllib.parse import urlparse
 
 import httpx
@@ -9,6 +11,7 @@ import httpx
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.geo.countries import load_country_catalog, normalize_country
+from app.domain.vacancy_availability import source_datetime
 from app.sources.diagnostics import SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
@@ -70,6 +73,22 @@ class RemotiveSource(JobSource):
             location,
             re.I,
         ))
+
+    @staticmethod
+    def _published_at(value: object) -> str | None:
+        """Normalize Remotive ISO/API and RFC 2822/RSS dates to UTC."""
+        if not isinstance(value, str) or not value.strip() or len(value) > 128:
+            return None
+        parsed = source_datetime(value)
+        if parsed is None:
+            try:
+                parsed = parsedate_to_datetime(value.strip())
+                if parsed.tzinfo is None or parsed.utcoffset() is None:
+                    return None
+                parsed = parsed.astimezone(UTC)
+            except (TypeError, ValueError, OverflowError):
+                return None
+        return parsed.astimezone(UTC).isoformat()
 
     @classmethod
     def _country_codes_in_location(cls, location: str) -> set[str]:
@@ -161,7 +180,7 @@ class RemotiveSource(JobSource):
                     remote_scope=scope,
                     # Remotive's salary field is free text; leave numeric salary
                     # unknown until the source supplies a structured amount.
-                    published_at=str(row.get("publication_date") or "") or None,
+                    published_at=cls._published_at(row.get("publication_date")),
                     skills=[category] if category else [],
                     raw=raw,
                 )
