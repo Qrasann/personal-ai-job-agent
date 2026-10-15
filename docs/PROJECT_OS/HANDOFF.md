@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `409b9a0`. Fixed Relocation Evidence treating contradictory housing assertions as a confirmed refusal. Separate explicit provision/refusal statements now produce `unknown` and `conflicting_text`, retaining both excerpts; a single refusal remains false. Focused evidence/detail tests: 49 passed; full isolated PostgreSQL: 991 passed. Next: continue Source Intelligence, Candidate Fit, Application Package or other safe roadmap work. No legal conclusion, scoring, Candidate Fact, production or external change. The two owner proposal files remain untracked and untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `290d6bd`. Fixed RemoteOK's free-form `location` being treated as a normalized work country. The original string is retained as `source_location`; country/work-country are unknown and remote hiring scope stays unspecified. Regression reproduces “Worldwide” before the fix. Focused RemoteOK/location/relocation tests: 54 passed; full isolated PostgreSQL: 990 passed. Next: continue an independent roadmap task in Application Package, Source Intelligence or Relocation Evidence. Candidate Fit threshold fix remains in prior checkpoint `290d6bd`; Candidate Facts and scores outside country normalization are unchanged. No production/external actions. Proposals untouched.
 
 ## Current development checkpoint — 2026-10-15

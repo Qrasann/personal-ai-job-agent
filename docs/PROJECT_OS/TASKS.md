@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-15 — preserve conflicting housing evidence
+
+Relocation Evidence now marks contradictory explicit housing provision/refusal statements as `unknown` with `conflicting_text` confidence and both source excerpts. A single explicit provision or refusal keeps its prior classification. Synthetic regression reproduced the previous false refusal. Focused evidence/detail tests: 49 passed; full isolated PostgreSQL: 991 passed.
+
+
 ## 2026-10-15 — keep RemoteOK free-form location out of country claims
 
 RemoteOK's free-form `location` is no longer persisted as normalized `country`: labels such as “Worldwide” or an office location do not establish the employee's work country or hiring eligibility. The original text is retained as `source_location`, so Relocation Evidence shows it as an excerpt while the country value remains unknown. Remote scope remains unspecified. Focused source/location tests: 54 passed; full isolated PostgreSQL: 990 passed.

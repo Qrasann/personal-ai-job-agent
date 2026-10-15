@@ -218,13 +218,32 @@ def build_relocation_evidence(
     for field in ("housing_provided", "language_requirement", "start_timing"):
         if field == "housing_provided":
             description = job.description or ""
-            no = _HOUSING_NO.search(description)
-            yes = _HOUSING_YES.search(description)
-            found = no or yes
-            excerpt = " ".join(found.group(0).split())[:240] if found else None
-            value = False if no else True if yes else None
+            observations: list[tuple[bool, str]] = []
+            for clause in re.split(
+                r"[.!?;\n]+|\b(?:but|however|но|однако|aber|jedoch)\b",
+                description,
+                flags=re.I,
+            ):
+                denials = list(_HOUSING_NO.finditer(clause))
+                offers = [
+                    offer for offer in _HOUSING_YES.finditer(clause)
+                    if not any(
+                        offer.start() < denial.end() and denial.start() < offer.end()
+                        for denial in denials
+                    )
+                ]
+                observations.extend((False, " ".join(item.group(0).split())) for item in denials)
+                observations.extend((True, " ".join(item.group(0).split())) for item in offers)
+            values = {value for value, _ in observations}
+            conflicting = len(values) > 1
+            value = next(iter(values)) if len(values) == 1 else None
+            excerpt = " | ".join(quote for _, quote in observations)[:480 if conflicting else 240] or None
+            confidence = (
+                "conflicting_text" if conflicting else
+                "explicit_text" if value is not None else "unknown"
+            )
             fields[field] = record(
-                value, excerpt, "explicit_text" if value is not None else "unknown"
+                value, excerpt, confidence
             )
             continue
         if field == "language_requirement":

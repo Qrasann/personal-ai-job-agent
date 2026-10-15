@@ -106,6 +106,19 @@ def test_housing_requires_explicit_provision_or_refusal_and_language_is_classifi
     assert ambiguous["language_requirement"]["interpretation"]["requirements"][0]["requirement"] == "unspecified"
 
 
+def test_conflicting_housing_statements_remain_unknown_with_both_quotes():
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="housing-conflict", title="Engineer",
+        description="Housing is provided. Housing is not provided.",
+    )
+    item = build_relocation_evidence(job)["fields"]["housing_provided"]
+    assert item["status"] == "unknown"
+    assert item["value"] is None
+    assert item["confidence"] == "conflicting_text"
+    assert "Housing is provided" in item["excerpt"]
+    assert "Housing is not provided" in item["excerpt"]
+
+
 def test_multiple_language_conditions_keep_independent_evidence_and_conflict_unknown():
     job = NormalizedJob(
         source="synthetic_fixture", source_job_id="language-multiple", title="Engineer",
