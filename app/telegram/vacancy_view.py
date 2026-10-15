@@ -204,7 +204,16 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
         value = item.get("value")
         excerpt = str(item.get("excerpt") or "").strip()
         if status == "unknown":
-            detail = "неизвестно по доступному тексту"
+            if item.get("confidence") in {"conflicting_text", "ambiguous_text"}:
+                detail = (
+                    "противоречивые утверждения в источнике"
+                    if item.get("confidence") == "conflicting_text"
+                    else "неоднозначная формулировка источника"
+                )
+                if excerpt:
+                    detail += " — “" + html.escape(excerpt[:180]) + "”"
+            else:
+                detail = "неизвестно по доступному тексту"
         elif key == "work_country":
             detail = html.escape(str(value or "неизвестно")) + " (сообщено источником)"
             if excerpt and excerpt != str(value or ""):

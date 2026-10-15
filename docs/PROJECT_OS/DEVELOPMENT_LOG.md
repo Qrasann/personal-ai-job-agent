@@ -2441,3 +2441,10 @@ Start-timing evidence retains the original quote and identifies immediate,
 relative-window, stated-date, notice-period or negotiable phrases. This does
 not assess candidate availability. Focused tests: 44 passed; isolated
 PostgreSQL: 979 passed.
+
+## 2026-10-15 — keep support-component ambiguity unknown
+
+Source evidence no longer assigns a sentence-level support refusal to a
+different visa/relocation component when focused parsing disagrees. It retains
+unknown status and an excerpt; scoring behavior is untouched. Focused tests:
+46 passed; isolated PostgreSQL: 981 passed.

@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — keep support-component ambiguity unknown
+
+Relocation Evidence now refuses to copy an ambiguous legacy parser result when
+a denial for one support component may have contaminated another in the same
+sentence. Conflicting or component-mismatched support wording stays unknown
+with an excerpt for review; the scoring parser itself is unchanged. Focused
+evidence/detail tests: 46 passed; full isolated PostgreSQL: 981 passed.
+
 ## 2026-10-15 — classify explicit start timing
 
 Start timing observations now distinguish immediate availability, relative

@@ -401,6 +401,7 @@ def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns(
         "fields": {
             "work_country": {"status": "confirmed", "value": "DE", "source_id": "fixture", "source_url": "https://example.invalid", "excerpt": "Berlin, Germany", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "source_structured"},
             "visa_sponsorship": {"status": "unknown", "value": None, "source_id": "fixture", "excerpt": None, "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "unknown"},
+            "relocation_assistance": {"status": "unknown", "value": None, "source_id": "fixture", "excerpt": "We provide relocation. Relocation is not available.", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "conflicting_text"},
             "citizenship_or_residence_restriction": {"status": "confirmed", "value": "Candidates must currently reside in Germany", "source_id": "fixture", "excerpt": "Candidates must currently reside in Germany", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_text", "interpretation": {"scope": "residence"}},
             "housing_provided": {"status": "confirmed", "value": False, "source_id": "fixture", "excerpt": "Housing is not provided", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_text"},
             "language_requirement": {"status": "confirmed", "value": "English B2 required", "source_id": "fixture", "excerpt": "English B2 required", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_requirement", "interpretation": {"requirements": [{"language": "English", "requirement": "required", "cefr": "B2", "excerpt": "English B2 required"}]}},
@@ -412,6 +413,7 @@ def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns(
     })
     assert "Страна работы по источнику: DE (сообщено источником) — “Berlin, Germany”" in text
     assert "Visa sponsorship: неизвестно по доступному тексту" in text
+    assert "Помощь с релокацией: противоречивые утверждения в источнике" in text
     assert "ограничение по месту проживания (текст источника)" in text
     assert "Обеспечение жильём: явно не предоставляется" in text
     assert "Языковое требование: English: требуется · CEFR B2" in text

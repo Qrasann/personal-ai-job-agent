@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — conservative support-component ambiguity
+
+Visa and relocation evidence now stays unknown if per-component parsing
+conflicts with a sentence-level result, preventing a refusal for one benefit
+from being applied to another. The legacy scoring parser remains unchanged.
+Focused tests: 46; isolated PostgreSQL: 981 passed.
+
 ## 2026-10-15 — start-timing evidence kinds
 
 The exact start-timing text remains stored; a conservative classification now

@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — avoid cross-component support inference
+
+Added a source-evidence boundary for ambiguous visa/relocation wording: if a
+sentence-level refusal may belong to another component, retain unknown and the
+excerpt rather than storing a false refusal. Scoring code is unchanged.
+Focused tests: 46; full isolated PostgreSQL: 981 passed.
+
 ## 2026-10-15 — classify start-timing evidence
 
 Added a bounded category beside the exact source phrase: immediate, relative

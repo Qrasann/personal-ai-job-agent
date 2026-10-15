@@ -170,3 +170,28 @@ def test_start_timing_keeps_explicit_kind_and_original_excerpt():
         assert item["status"] == "observed"
         assert item["interpretation"]["kind"] == expected_kind
         assert text.rstrip(".") in item["excerpt"]
+
+
+def test_conflicting_support_statements_remain_unknown_with_both_source_quotes():
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="support-conflict", title="Engineer",
+        description="We provide visa sponsorship. Visa sponsorship is not available.",
+    )
+    item = build_relocation_evidence(job)["fields"]["visa_sponsorship"]
+    assert item["status"] == "unknown" and item["value"] is None
+    assert item["confidence"] == "conflicting_text"
+    assert "provide visa sponsorship" in item["excerpt"]
+    assert "not available" in item["excerpt"]
+
+
+def test_support_for_one_component_does_not_inherit_another_components_refusal():
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="support-separate", title="Engineer",
+        description="We do not provide relocation assistance and visa sponsorship is available.",
+    )
+    fields = build_relocation_evidence(job)["fields"]
+    assert fields["relocation_assistance"]["value"] is False
+    visa = fields["visa_sponsorship"]
+    assert visa["value"] is None
+    assert visa["status"] == "unknown"
+    assert visa["confidence"] == "ambiguous_text"

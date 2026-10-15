@@ -2,6 +2,15 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `1ab8482`. Relocation Evidence now conservatively leaves
+visa/relocation wording unknown when its per-component parse disagrees with a
+sentence-level result, avoiding a refusal being attributed to the wrong
+component. The existing scoring parser was not changed. Focused tests: 46;
+full isolated PostgreSQL: 981 passed; compileall, diff check and secret scan
+passed. Next: continue source evidence handling or Candidate Fit. No
+Candidate-Fact/scoring/legal/production changes. Test DB localhost:55432;
+proposal files untouched.
+
 Started from HEAD `d0f2960`. Start-timing evidence now preserves exact source
 text and classifies immediate, relative window, stated date, notice period and
 negotiable wording; it does not assess candidate availability. Focused tests:

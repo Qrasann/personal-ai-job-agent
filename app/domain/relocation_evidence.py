@@ -89,6 +89,35 @@ def _excerpt(text: str, pattern: re.Pattern[str]) -> str | None:
     return " ".join(match.group(0).split())[:240] if match else None
 
 
+def _support_signal(text: str, key: str, pattern: re.Pattern[str]) -> tuple[bool | None, str | None, str]:
+    overall = support_evidence(text).get(key)
+    observed: list[tuple[bool, str]] = []
+    fragments = re.split(
+        r"\b(?:but|however|although|and|or|also|но|однако|aber|jedoch)\b|[,;.!?\n]+",
+        text,
+        flags=re.I,
+    )
+    for fragment in fragments:
+        value = support_evidence(fragment).get(key)
+        if value is not None:
+            observed.append((value, " ".join(fragment.split())))
+    values = {value for value, _ in observed}
+    excerpt = _excerpt(text, pattern)
+    if len(values) > 1:
+        conflict_quotes = list(dict.fromkeys(fragment for _, fragment in observed if fragment))
+        return None, " | ".join(conflict_quotes)[:480], "conflicting_text"
+    if overall is not None and values and overall not in values:
+        # The legacy display/scoring parser can let a denial for one benefit
+        # contaminate a different benefit in the same sentence. Do not copy
+        # that component-mismatched value into auditable evidence.
+        return None, excerpt, "ambiguous_text"
+    if overall is not None:
+        return overall, excerpt, "explicit_text"
+    if values:
+        return values.pop(), excerpt, "explicit_text"
+    return None, None, "unknown"
+
+
 def build_relocation_evidence(
     job: NormalizedJob,
     *,
@@ -105,7 +134,6 @@ def build_relocation_evidence(
         captured_at = captured_at.replace(tzinfo=timezone.utc)
     captured = captured_at.astimezone(timezone.utc).isoformat()
     text = "\n".join(part for part in (job.title, job.description) if part)
-    support = support_evidence(text)
     support_patterns = {
         "visa_sponsorship": re.compile(r"[^.!?;\n]{0,100}(?:visa sponsor(?:ship)?|sponsor.{0,20}visa|визов\w* поддерж\w*)[^.!?;\n]{0,100}", re.I),
         "relocation_assistance": re.compile(r"[^.!?;\n]{0,100}(?:relocation|переезд\w*|релокац\w*)[^.!?;\n]{0,100}", re.I),
@@ -179,11 +207,8 @@ def build_relocation_evidence(
     )
 
     for field, key in (("visa_sponsorship", "visa_sponsorship"), ("relocation_assistance", "relocation")):
-        value = support[key]
-        excerpt = _excerpt(text, support_patterns[field]) if value is not None else None
-        fields[field] = record(value, excerpt, "explicit_text" if value is not None and excerpt else "unknown")
-        if value is not None and not excerpt:
-            fields[field] = record(None, None, "unknown")
+        value, excerpt, confidence = _support_signal(text, key, support_patterns[field])
+        fields[field] = record(value, excerpt, confidence if excerpt else "unknown")
 
     for field in ("housing_provided", "language_requirement", "start_timing"):
         if field == "housing_provided":
