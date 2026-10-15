@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `8e698f2`. Fixed “We provide no housing” / “We offer no accommodation” being interpreted as housing provision. The negative verb-object form now wins over overlapping positive text. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed. Next: return to independent Source Intelligence, Candidate Fit, Application Package or recruiter/interview slices from the full roadmap. No production/external action or VERSION change. The two owner proposal files remain untracked and untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `aca6b36`. Fixed the explicit “We do not provide housing” form being interpreted as provision. Direct employer refusals are now false; “housing details” wording stays unknown. Synthetic regression was red before the fix. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed. Next: continue another independent task from the full roadmap, especially source quality, Candidate Fit or Application Package. No production, VERSION, scoring or Candidate Fact change; owner proposals remain untracked and untouched.
 
 ## Current development checkpoint — 2026-10-15

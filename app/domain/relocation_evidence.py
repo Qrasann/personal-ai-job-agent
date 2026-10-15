@@ -58,6 +58,7 @@ _HOUSING_NO = re.compile(
     rf"(?:{_HOUSING_TERM}){_HOUSING_INCIDENTAL}[^.!?;\n]{{0,35}}(?:is )?(?:not provided|not included|not offered|unavailable|wird nicht gestellt|wird nicht angeboten|не предоставляется|не включено|не оплачивается)|"
     rf"no (?:provided )?(?:{_HOUSING_TERM}){_HOUSING_INCIDENTAL}[^.!?;\n]{{0,35}}(?:provided|included|offered)|"
     rf"(?:do(?:es)? not|don't|doesn't|cannot|can't|will not|won't) (?:provide|offer|include) (?:any )?(?:{_HOUSING_TERM}){_HOUSING_INCIDENTAL}|"
+    rf"(?:provide|offer|include) no (?:{_HOUSING_TERM}){_HOUSING_INCIDENTAL}|"
     rf"не (?:предоставляем|предлагаем) (?:{_HOUSING_TERM}){_HOUSING_INCIDENTAL}",
     re.I,
 )

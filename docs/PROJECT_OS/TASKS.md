@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-15 — recognize explicit “provide no housing” refusals
+
+Relocation Evidence now treats “We provide no housing” and “We offer no accommodation” as explicit refusals. A regression showed these phrases were previously marked as provision because the positive verb rule matched across `no`. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed.
+
+
 ## 2026-10-15 — distinguish housing denial from an information offer
 
 Relocation Evidence now recognizes explicit employer verb-first refusals such as “We do not provide housing” and “We cannot offer accommodation”. It no longer reads “housing details are provided” as accommodation provision, and a refusal to provide housing details remains unknown. Synthetic regression reproduced the previous false offer. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed.

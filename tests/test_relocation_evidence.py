@@ -131,6 +131,8 @@ def test_housing_action_verb_denial_does_not_become_an_offer():
     assert denied["value"] is False
     assert denied["excerpt"] == "do not provide housing"
     assert housing("We cannot offer accommodation.")["value"] is False
+    assert housing("We provide no housing.")["value"] is False
+    assert housing("We offer no accommodation.")["value"] is False
     assert housing("We provide housing details.")["value"] is None
     assert housing("We do not provide housing details.")["value"] is None
     assert housing("Housing details are provided.")["value"] is None
