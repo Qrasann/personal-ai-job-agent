@@ -552,11 +552,12 @@ async def set_application_status(user_id: int, application_id: int, status: str)
     if status not in MANUAL_APPLICATION_STATUSES:
         return False
     async with SessionLocal() as session:
+        # Serialize the status check and event append for this application.
         item = await session.scalar(
             select(Application).where(
                 Application.id == application_id,
                 Application.user_id == user_id,
-            )
+            ).with_for_update()
         )
         if not item:
             return False

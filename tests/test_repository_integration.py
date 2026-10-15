@@ -138,6 +138,60 @@ async def _application_snapshot_flow(monkeypatch):
         await engine.dispose()
 
 
+@pytest.mark.integration
+def test_concurrent_identical_status_updates_append_one_event(monkeypatch):
+    _require_test_database()
+    asyncio.run(_concurrent_application_status_flow(monkeypatch))
+
+
+async def _concurrent_application_status_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, connect_args={"server_settings": {
+        "application_name": "jobagent-status-concurrency-test", "lock_timeout": "5s",
+    }})
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        user = await repo.create_user("concurrent-status-user", "Status User")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="status-test", source_job_id="1", title="Linux role",
+        ))
+        application = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="status-test", status="prepared",
+        )
+
+        async def wait_for_both_updates_to_block():
+            async with engine.connect() as conn:
+                while True:
+                    count = await conn.scalar(text(
+                        "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() "
+                        "AND application_name = 'jobagent-status-concurrency-test' AND wait_event_type = 'Lock'"
+                    ))
+                    if count == 2:
+                        return
+                    await asyncio.sleep(0.01)
+
+        async with test_session() as blocker:
+            await blocker.execute(text("SELECT id FROM applications WHERE id = :id FOR UPDATE"), {"id": application.id})
+            updates = [asyncio.create_task(repo.set_application_status(user.id, application.id, "reviewed")) for _ in range(2)]
+            try:
+                # Both requests must reach the DB while the row is locked;
+                # this reproduces the old read-then-write race deterministically.
+                await asyncio.wait_for(wait_for_both_updates_to_block(), timeout=3)
+            finally:
+                await blocker.rollback()
+                results = await asyncio.gather(*updates, return_exceptions=True)
+        assert results == [True, True]
+        assert [event.status for event in await repo.application_status_history(user.id, application.id)] == [
+            "prepared", "reviewed",
+        ]
+        assert (await repo.get_application(user.id, application.id)).status == "reviewed"
+    finally:
+        await engine.dispose()
+
+
 async def _repository_review_flow(monkeypatch):
     engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
     test_session = async_sessionmaker(

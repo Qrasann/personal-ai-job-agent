@@ -1,3 +1,10 @@
+## 2026-10-15 — serialize manual application status changes
+
+A deterministic isolated PostgreSQL regression reproduced duplicate status
+events from simultaneous identical updates. A row lock now serializes the
+status check and append for the owning application. Focused DB/handler tests:
+32 passed; full isolated PostgreSQL: 941 passed. No schema migration.
+
 ## 2026-10-15 — immutable vacancy snapshot in Application Package
 
 Schema v7 adds an additive vacancy snapshot: title, company, original stored
