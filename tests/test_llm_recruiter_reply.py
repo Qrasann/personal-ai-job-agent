@@ -76,3 +76,22 @@ def test_recruiter_context_and_question_are_untrusted_json_data(monkeypatch):
     payload = json.loads(captured["input"])
     assert payload["context"] == hostile_context
     assert payload["question"] == question
+
+@pytest.mark.parametrize("invalid_confidence", ["NaN", "Infinity", "-Infinity", -0.1, 1.01])
+def test_recruiter_invalid_confidence_cannot_authorize_auto_reply(monkeypatch, invalid_confidence):
+    monkeypatch.setattr(llm, "_client", lambda: FakeClient({
+        "reply": "Thanks for the update.",
+        "confidence": invalid_confidence,
+        "requires_human": False,
+        "reason": "acknowledgment only",
+    }))
+
+    reply, confidence, requires_human, reason = llm.recruiter_reply(
+        "Thanks for the update.", [], context="",
+    )
+
+    assert reply == "Thanks for the update."
+    assert confidence == 0.0
+    assert requires_human is True
+    assert "ручная проверка" in reason
+
