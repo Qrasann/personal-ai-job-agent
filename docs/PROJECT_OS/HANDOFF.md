@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `06e7584`. Ingestion now selects a source ref by both feed and provider posting ID, then scores and notifies from that exact posting snapshot rather than a cross-source canonical Job. HH detail prefilter uses the exact provider ID. Red synthetic scoring regression and real PostgreSQL same-feed multi-ID test; full isolated PostgreSQL 1017 passed. Next: source quality and Candidate Fit explanation, then broader roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `eceb80f`. Interview Agent now uses one labelled exercise for each explicit required/preferred skill OR group; it chooses the option best supported by Candidate Facts, without treating both alternatives as mandatory. Red regression and preferred-group fixture; full isolated PostgreSQL 1016 passed. Next: interactive answer/feedback design, plus Source Intelligence and Candidate Fit from the full roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

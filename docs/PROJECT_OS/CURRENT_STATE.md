@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — score exact incoming source posting
+
+Ingestion scoring and notification use the normalized snapshot of the exact source ID/provider posting ID being processed. HH full-detail prefilter uses that exact provider ID. This avoids cross-source canonical fields and links in a new observation. Full isolated PostgreSQL 1017 passed.
+
 ## 2026-10-15 — align Interview Agent with skill alternatives
 
 Explicit required/preferred skill OR groups now yield one labelled practice exercise. The selected option is deterministic and prefers the strongest saved Candidate Fact; the plan does not imply every alternative is mandatory. Full isolated PostgreSQL 1016 passed.

@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — exact source posting at ingestion completed
+
+- [x] Reproduce a cross-source canonical Job causing score inputs from a different posting.
+- [x] Resolve source ref by feed and provider posting ID; score and notify from its normalized snapshot.
+- [x] Keep HH full-detail prefilter tied to the exact provider ID; verify two same-feed IDs sharing a Job on PostgreSQL.
+- [x] Full isolated PostgreSQL 1017 passed.
+- [ ] Next: source quality and Candidate Fit explanation, then Application Package, Relocation-first and broader roadmap.
+
 ## 2026-10-15 — Interview Agent alternatives completed
 
 - [x] Reproduce “Docker or Kubernetes” creating two required exercises while Candidate Fit counts one choice.

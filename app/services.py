@@ -216,7 +216,10 @@ async def ingest_and_match(
 ) -> dict:
     counters = {"processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     job, _ = await repo.upsert_job(normalized)
-    src = await repo.source_ref(job.id, normalized.source)
+    src = await repo.source_ref(
+        job.id, normalized.source, source_job_id=normalized.source_job_id
+    )
+    job = source_posting_view(job, src)
     users = await repo.list_active_users()
     if only_user_id is not None:
         users = [u for u in users if u.id == only_user_id]
@@ -240,7 +243,9 @@ async def ingest_and_match(
             if normalized.source == "hh":
                 if _can_reach_threshold_with_technical(result, threshold):
                     try:
-                        details = await get_cached_hh_details(job.id)
+                        details = await get_cached_hh_details(
+                            job.id, source_job_id=normalized.source_job_id
+                        )
                     except HHError:
                         details = {}
                     technical_text = str(details.get("description") or "")
@@ -644,8 +649,10 @@ async def refresh_match_score(match, job, *, technical_text: str = ""):
     )
 
 
-async def get_cached_hh_details(job_id: int) -> dict:
-    ref = await repo.source_ref(job_id, "hh")
+async def get_cached_hh_details(job_id: int, *, source_job_id: str | None = None) -> dict:
+    ref = await repo.source_ref(
+        job_id, "hh", **({"source_job_id": source_job_id} if source_job_id is not None else {})
+    )
     if not ref:
         return {}
 

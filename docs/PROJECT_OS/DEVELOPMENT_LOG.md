@@ -1,3 +1,7 @@
+## 2026-10-15 — score exact incoming source posting
+
+Red synthetic regression: ingestion scored a cross-source canonical Job instead of the incoming Jobs.ge posting. `source_ref` can now filter by provider posting ID; ingestion uses the exact ref's normalized snapshot for score and notification fields, and HH detail prefilter uses the same provider ID. Real PostgreSQL regression covered two IDs from one feed sharing a Job. Full isolated PostgreSQL 1017 passed. No live notification was sent in tests.
+
 ## 2026-10-15 — align Interview Agent with skill alternatives
 
 Red regression: “Docker or Kubernetes” produced both exercises despite Candidate Fit treating it as one required choice. The plan now maps explicit required/preferred OR groups to one supported exercise, favoring the strongest Candidate Fact and noting that one alternative is sufficient. Synthetic required/preferred tests and full isolated PostgreSQL 1016 passed. No model call or candidate score change.

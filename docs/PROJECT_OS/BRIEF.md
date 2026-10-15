@@ -1,3 +1,7 @@
+## 2026-10-15 — score exact incoming source posting
+
+Ingestion now resolves the source ref by source ID plus provider posting ID and scores/notifies from that posting's normalized snapshot, not a cross-source canonical Job row. HH detail prefilter requests the exact provider posting ID. Synthetic cross-source scoring and PostgreSQL same-feed multi-ID regressions passed; full isolated PostgreSQL 1017 passed.
+
 ## 2026-10-15 — align Interview Agent with skill alternatives
 
 The interview plan now creates one curated exercise for each explicit required or preferred OR group, selecting the option best supported by saved Candidate Facts and showing that either option satisfies the stated requirement. Previously “Docker or Kubernetes” produced two mandatory exercises. Synthetic regressions and full isolated PostgreSQL 1016 tests passed.

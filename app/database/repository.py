@@ -384,11 +384,15 @@ def _has_complete_identity(job: NormalizedJob) -> bool:
     )
 
 
-async def source_ref(job_id: int, source_id: str | None = None) -> JobSourceRef | None:
+async def source_ref(
+    job_id: int, source_id: str | None = None, *, source_job_id: str | None = None
+) -> JobSourceRef | None:
     async with SessionLocal() as session:
         stmt = select(JobSourceRef).where(JobSourceRef.job_id == job_id)
         if source_id:
             stmt = stmt.where(JobSourceRef.source_id == source_id)
+        if source_job_id is not None:
+            stmt = stmt.where(JobSourceRef.source_job_id == source_job_id)
         return await session.scalar(stmt.order_by(JobSourceRef.id))
 
 
