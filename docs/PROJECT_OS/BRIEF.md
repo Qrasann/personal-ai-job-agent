@@ -1,3 +1,7 @@
+## 2026-10-15 — keep manual posting link visible in package preview
+
+Dense Candidate Fact/CV checklists could push the vacancy link out of `/prepare` preview. The bounded preview now reserves space for the selected posting identity and validated manual-open link (or a clear missing-link warning). No automatic submission. A red dense fixture and full isolated PostgreSQL 1002 tests passed.
+
 ## 2026-10-15 — show selected source observation on vacancy cards
 
 Vacancy details now display the chosen provider posting ID and last saved source-observation time beside the publication date when available. The observation comes from the source-scoped evidence capture; it does not prove the posting is still open. Focused 58 and full isolated PostgreSQL 1001 tests passed.

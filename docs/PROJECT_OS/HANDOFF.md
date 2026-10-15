@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `f226b9b`. `/prepare` preview now reserves space for selected provider identity and validated manual vacancy link, even when a dense CV checklist is shortened; unsafe links still yield a manual-search warning. Red synthetic fixture; focused 58 and full isolated PostgreSQL 1002 passed. Next: Source Intelligence cache provenance/freshness or Relocation-first evidence utility, then wider roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `6fbab48`. Vacancy cards now show the selected provider posting ID and evidence-capture timestamp separately from publication time; this is ingestion provenance, not confirmation of availability. Red synthetic display regression; focused 58 and full isolated PostgreSQL 1001 passed. Next: Source Intelligence cross-source consistency/quality or Relocation-first evidence utility, then wider roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

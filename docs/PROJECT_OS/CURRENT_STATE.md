@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — keep manual posting link visible in package preview
+
+The `/prepare` preview always reserves space for the selected source/posting ID and validated vacancy link, even when skill checklist lines are shortened. Invalid links still show a manual-search warning. Focused 58; full isolated PostgreSQL 1002 passed.
+
 ## 2026-10-15 — show selected source observation on vacancy cards
 
 The detail card discloses the selected provider posting ID and evidence-capture time separately from source publication time when those fields are recorded. This is ingestion provenance, not current availability. Focused 58; full isolated PostgreSQL 1001 passed.

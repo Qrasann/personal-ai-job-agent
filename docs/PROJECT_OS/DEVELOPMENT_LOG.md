@@ -1,3 +1,7 @@
+## 2026-10-15 — keep manual posting link visible in package preview
+
+The preview's bounded optional lines could omit the vacancy link during a dense CV consistency review. Moved the validated link/missing-link warning into the reserved tail and added the selected provider identity there. Red dense fixture, focused 58, full isolated PostgreSQL 1002 passed. No private submission.
+
 ## 2026-10-15 — show selected source observation on vacancy cards
 
 Added selected provider posting ID and source evidence-capture timestamp to the detail payload/card, with publication date kept distinct. Invalid/unavailable observation dates are omitted. A synthetic display regression was red before; focused 58, full isolated PostgreSQL 1001 passed. No availability claim or external action.

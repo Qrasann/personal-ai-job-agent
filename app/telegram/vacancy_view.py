@@ -767,10 +767,18 @@ def render_application_package(payload: dict) -> str:
         safe_link = False
     if safe_link:
         url = html.escape(source_url, quote=True)
-        lines.append(f'<a href="{url}">Открыть вакансию для ручной отправки</a>')
+        link_line = f'<a href="{url}">Открыть вакансию для ручной отправки</a>'
     else:
-        lines.append("• Прямая ссылка на источник не сохранена; найди вакансию вручную перед откликом.")
-    tail = _mobility_evidence_lines(job, str(getattr(job, "description", "") or ""))
+        link_line = "• Прямая ссылка на источник не сохранена; найди вакансию вручную перед откликом."
+    tail = []
+    source = str(payload.get("source") or "").strip()
+    source_job_id = str(payload.get("source_job_id") or "").strip()
+    if source or source_job_id:
+        selected = html.escape(_clip(source, 64)) if source else "источник не записан"
+        provider_id = f" · ID {html.escape(_clip(source_job_id, 80))}" if source_job_id else ""
+        tail.append(f"Выбранная публикация: {selected}{provider_id}")
+    tail.append(link_line)
+    tail.extend(_mobility_evidence_lines(job, str(getattr(job, "description", "") or "")))
     evidence_snapshot = payload.get("relocation_evidence")
     if isinstance(evidence_snapshot, dict) and evidence_snapshot.get("schema") == "relocation_evidence_v1":
         captured = html.escape(str(evidence_snapshot.get("captured_at") or "unknown")[:25])

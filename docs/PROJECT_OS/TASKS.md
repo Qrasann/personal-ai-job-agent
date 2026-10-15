@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — package preview identity and link completed
+
+- [x] Reproduce a dense review preview that could omit selected-posting context.
+- [x] Reserve selected source/posting ID and validated manual link in bounded preview; preserve unsafe-link rejection.
+- [x] Focused 58 and full isolated PostgreSQL 1002 passed.
+- [ ] Next: Source Intelligence cached-detail freshness/provenance or Relocation-first evidence utility, then broader roadmap.
+
 ## 2026-10-15 — selected-source observation display completed
 
 - [x] Show provider posting ID and last ingestion-observation timestamp in the vacancy card, distinct from publication date.
