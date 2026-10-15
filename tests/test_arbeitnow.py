@@ -6,6 +6,7 @@ import pytest
 from app.sources.adapters.arbeitnow import ArbeitnowSource
 from app.sources.base import SourceContext
 from app.search.preferences import vacancy_allowed
+from app.domain.relocation_evidence import build_relocation_evidence
 
 
 def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
@@ -46,6 +47,21 @@ def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
     assert jobs[0].relocation is True
     assert jobs[0].description == "Visa support and relocation assistance are provided."
     assert jobs[0].published_at == "2026-10-11T00:00:00+00:00"
+
+
+def test_arbeitnow_remote_free_form_location_does_not_confirm_work_country():
+    payload = {"data": [{
+        "slug": "remote-1", "title": "DevOps Engineer", "location": "Worldwide",
+        "remote": True,
+    }]}
+    job = ArbeitnowSource.parse_payload(payload, SourceContext(user_id=1, queries=["DevOps"]))[0]
+    assert job.work_mode == "remote"
+    assert job.country is None
+    assert job.city is None
+    assert job.raw["source_location"] == "Worldwide"
+    country = build_relocation_evidence(job)["fields"]["work_country"]
+    assert country["status"] == "unknown"
+    assert country["excerpt"] == "Worldwide"
 
 
 @pytest.mark.parametrize("created_at", [None, True, "not-a-timestamp", 1e100])

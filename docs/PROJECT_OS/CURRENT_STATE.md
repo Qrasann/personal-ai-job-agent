@@ -1,5 +1,10 @@
 # Current State
 
+## 2026-10-15 — keep Arbeitnow remote location unconfirmed
+
+Arbeitnow no longer assigns Germany as the work country or a city to every remote posting. Its free-form `location` is retained as `source_location`; Relocation Evidence keeps the work country unknown for a synthetic remote “Worldwide” fixture. Onsite source behavior is unchanged. Focused adapter/evidence/preferences tests: 63 passed; full isolated PostgreSQL: 993 passed.
+
+
 ## 2026-10-15 — recognize explicit “provide no housing” refusals
 
 Relocation Evidence now treats “We provide no housing” and “We offer no accommodation” as explicit refusals. A regression showed these phrases were previously marked as provision because the positive verb rule matched across `no`. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed.

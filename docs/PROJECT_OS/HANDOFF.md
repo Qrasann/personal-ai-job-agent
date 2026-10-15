@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `68d1096`. Fixed Arbeitnow assigning `DE` and a city to remote jobs whose free-form location can be “Worldwide” or office metadata. Remote records now retain the location as source text while work-country evidence remains unknown. Synthetic regression was red before the fix; focused adapter/evidence/preferences tests: 63 passed; full isolated PostgreSQL: 993 passed. Next: continue the full roadmap with an independent Candidate Fit, Application Package or source-quality task. Onsite Arbeitnow behavior remains as before. No production, VERSION or external action; proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `8e698f2`. Fixed “We provide no housing” / “We offer no accommodation” being interpreted as housing provision. The negative verb-object form now wins over overlapping positive text. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed. Next: return to independent Source Intelligence, Candidate Fit, Application Package or recruiter/interview slices from the full roadmap. No production/external action or VERSION change. The two owner proposal files remain untracked and untouched.
 
 ## Current development checkpoint — 2026-10-15

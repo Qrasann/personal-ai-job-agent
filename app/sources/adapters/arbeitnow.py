@@ -64,6 +64,7 @@ class ArbeitnowSource(JobSource):
             description = clean_html_text(str(row.get("description") or ""))
             support = support_evidence(f"{title}\n{description}")
             published = source_datetime(row.get("created_at"))
+            remote = row.get("remote") is True
             jobs.append(
                 NormalizedJob(
                     source=ArbeitnowSource.source_id,
@@ -72,14 +73,16 @@ class ArbeitnowSource(JobSource):
                     company=str(row.get("company_name") or ""),
                     description=description,
                     url=str(row.get("url") or ""),
-                    country="DE",
-                    city=str(row.get("location") or "") or None,
-                    work_mode="remote" if row.get("remote") is True else "onsite",
+                    # A remote posting's free-form location may be an office
+                    # or scope label, not the employee's work country.
+                    country=None if remote else "DE",
+                    city=None if remote else str(row.get("location") or "") or None,
+                    work_mode="remote" if remote else "onsite",
                     relocation=support["relocation"],
                     visa_sponsorship=support["visa_sponsorship"],
                     skills=tags,
                     published_at=published.isoformat() if published else None,
-                    raw=row,
+                    raw={**row, "source_location": row.get("location")},
                 )
             )
         return jobs
