@@ -401,6 +401,8 @@ def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns(
         "fields": {
             "work_country": {"status": "confirmed", "value": "DE", "source_id": "fixture", "source_url": "https://example.invalid", "excerpt": "DE", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "source_structured"},
             "visa_sponsorship": {"status": "unknown", "value": None, "source_id": "fixture", "excerpt": None, "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "unknown"},
+            "housing_provided": {"status": "confirmed", "value": False, "source_id": "fixture", "excerpt": "Housing is not provided", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_text"},
+            "language_requirement": {"status": "confirmed", "value": "English B2 required", "source_id": "fixture", "excerpt": "English B2 required", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_requirement", "interpretation": {"language": "English", "requirement": "required", "cefr": "B2"}},
         },
     }
     text = render_job_details({
@@ -409,6 +411,8 @@ def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns(
     })
     assert "Страна работы по источнику: DE (сообщено источником)" in text
     assert "Visa sponsorship: неизвестно по доступному тексту" in text
+    assert "Обеспечение жильём: явно не предоставляется" in text
+    assert "Языковое требование: English · требуется · CEFR B2" in text
     assert "(fixture; 2026-10-15T12:30:00+00:00; unknown)" in text
 
 

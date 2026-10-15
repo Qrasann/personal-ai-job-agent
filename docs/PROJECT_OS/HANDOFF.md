@@ -2,6 +2,17 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD: `17dbeb7` (first Relocation Evidence checkpoint). Follow-up
+classifies housing only when explicit provided/refused wording exists and
+separates language required/preferred/unspecified plus explicit English CEFR.
+Vacancy cards show these values with excerpts and provenance. Focused tests:
+84 passed; full isolated PostgreSQL: 974 passed; compileall, diff check and
+secret scan passed. Next: conservative country/hiring-scope extraction with
+synthetic fixtures; then continue Candidate Fit or Source Intelligence. No
+legal eligibility conclusion, scoring/Candidate Fact change, or production
+operation. Test DB remains localhost:55432/jobagent_test. Proposal files are
+untouched.
+
 Starting HEAD: `0f68fd6`, VERSION 3.5.7. Added source-scoped
 `relocation_evidence_v1` to each source ref on `upsert_job`: eight fields for
 source-reported work country, citizenship/residence restrictions, prior work

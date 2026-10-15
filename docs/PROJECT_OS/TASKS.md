@@ -1,5 +1,15 @@
 # Tasks
 
+## 2026-10-15 — classify housing and language evidence
+
+Extended Relocation Evidence: housing confirmation now requires explicit
+provision/refusal language; language retains required/preferred/unspecified
+status and explicit English CEFR separately. Vacancy details display this
+distinction with source evidence. Ambiguous mentions are not promoted into
+benefit/eligibility assertions. Focused tests: 84; full isolated PostgreSQL:
+974 passed. Next: improve country and hiring-scope extraction conservatively,
+then return to independent Candidate Fit/Source Intelligence work.
+
 ## 2026-10-15 — source-scoped Relocation Evidence v1
 
 Added versioned per-source evidence records for work country, hiring scope,

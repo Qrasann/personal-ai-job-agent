@@ -1,5 +1,14 @@
 # Current State
 
+## 2026-10-15 — classify housing and language evidence
+
+Housing is `true`/`false` only when a source explicitly says it is provided or
+not provided; other mentions remain unknown. Language conditions now retain
+required/preferred/unspecified interpretation, with English CEFR level stored
+separately. Detail cards render the interpretation and excerpt. Ambiguous
+language text remains observed, not a requirement. Focused suite: 84; isolated
+PostgreSQL: 974 passed.
+
 ## 2026-10-15 — source-scoped Relocation Evidence v1
 
 `upsert_job` now saves `relocation_evidence_v1` beside each source reference,

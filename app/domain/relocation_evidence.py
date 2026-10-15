@@ -10,6 +10,7 @@ from typing import Any
 
 from app.domain.jobs import NormalizedJob
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
+from app.matching.language_fit import compare_english_level
 
 EVIDENCE_FIELDS = (
     "work_country",
@@ -29,14 +30,10 @@ _RULES: dict[str, re.Pattern[str]] = {
         r"(?:граждан|резидент)\w* только|только для граждан|проживать в)"
         r"[^.!?;\n]{0,100}", re.I
     ),
-    "housing_provided": re.compile(
-        r"[^.!?;\n]{0,80}(?:accommodation|housing|lodging|apartment|место проживания|жиль[её])"
-        r"[^.!?;\n]{0,80}", re.I
-    ),
     "language_requirement": re.compile(
         r"[^.!?;\n]{0,80}(?:(?:fluent|native|professional|business|basic|intermediate|"
         r"advanced) (?:level of )?(?:english|german|french|russian|language)|"
-        r"(?:english|german|french|russian) (?:language )?(?:is )?(?:required|mandatory|must)|"
+        r"(?:english|german|french|russian) (?:language )?(?:is )?(?:required|mandatory|must|preferred|desirable|not required)|"
         r"(?:английск|немецк|французск|русск)\w* язык\w*[^.!?;\n]{0,50})"
         r"[^.!?;\n]{0,80}", re.I
     ),
@@ -46,6 +43,25 @@ _RULES: dict[str, re.Pattern[str]] = {
         r"начать работу|дата выхода|срок выхода)[^.!?;\n]{0,80}", re.I
     ),
 }
+
+_HOUSING_TERM = r"(?:accommodation|housing|lodging|apartment|место проживания|жиль[её])"
+_HOUSING_YES = re.compile(
+    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,45}}(?:is )?(?:provided|included|offered|available|предоставляется|включено)|"
+    rf"(?:provide|offer|include|предоставляем|предлагаем)[^.!?;\n]{{0,35}}(?:{_HOUSING_TERM})",
+    re.I,
+)
+_HOUSING_NO = re.compile(
+    rf"(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:is )?(?:not provided|not included|not offered|unavailable)|"
+    rf"no (?:provided )?(?:{_HOUSING_TERM})[^.!?;\n]{{0,35}}(?:provided|included|offered)",
+    re.I,
+)
+_LANGUAGE_TERM = re.compile(
+    r"\b(english|german|french|russian)\b|английск\w*|немецк\w*|французск\w*|русск\w*",
+    re.I,
+)
+_LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
+_LANGUAGE_PREFERRED = re.compile(r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:желательно|приветствуется|будет плюсом)\b", re.I)
+_LANGUAGE_NEGATED = re.compile(r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b", re.I)
 
 
 def _excerpt(text: str, pattern: re.Pattern[str]) -> str | None:
@@ -118,6 +134,45 @@ def build_relocation_evidence(
             fields[field] = record(None, None, "unknown")
 
     for field in ("housing_provided", "language_requirement", "start_timing"):
+        if field == "housing_provided":
+            description = job.description or ""
+            no = _HOUSING_NO.search(description)
+            yes = _HOUSING_YES.search(description)
+            found = no or yes
+            excerpt = " ".join(found.group(0).split())[:240] if found else None
+            value = False if no else True if yes else None
+            fields[field] = record(
+                value, excerpt, "explicit_text" if value is not None else "unknown"
+            )
+            continue
+        if field == "language_requirement":
+            language_match = _LANGUAGE_TERM.search(job.description or "")
+            language = language_match.group(0) if language_match else None
+            cefr = compare_english_level(job.description or "", None) if language and "english" in language.casefold() else None
+            excerpt = (
+                cefr.evidence if cefr
+                else _excerpt(job.description or "", _RULES[field])
+                or (language_match.group(0) if language_match else None)
+            )
+            requirement = cefr.requirement if cefr else "unspecified"
+            if language and not cefr and excerpt:
+                clause = next((part for part in re.split(r"[.!?;\n]+", job.description or "") if language.casefold() in part.casefold()), "")
+                required = bool(_LANGUAGE_REQUIRED.search(clause)) and not bool(_LANGUAGE_NEGATED.search(clause))
+                preferred = bool(_LANGUAGE_PREFERRED.search(clause))
+                requirement = "required" if required != preferred and required else "preferred" if required != preferred and preferred else "unspecified"
+            value = excerpt
+            fields[field] = record(
+                value, excerpt,
+                "explicit_requirement" if requirement in {"required", "preferred"} else "observed_text" if excerpt else "unknown",
+            )
+            if excerpt:
+                fields[field]["status"] = "confirmed" if requirement in {"required", "preferred"} else "observed"
+                fields[field]["interpretation"] = {
+                    "language": "English" if language and "english" in language.casefold() else language,
+                    "requirement": requirement,
+                    "cefr": cefr.required_level if cefr else None,
+                }
+            continue
         excerpt = _excerpt(job.description or "", _RULES[field])
         # A mention alone does not prove provision or a mandatory condition.
         fields[field] = record(

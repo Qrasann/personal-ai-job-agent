@@ -1,5 +1,15 @@
 # Codex Brief
 
+## 2026-10-15 — classify explicit housing and language conditions
+
+Relocation Evidence now distinguishes housing explicitly provided/refused from
+mere mentions. Language excerpts distinguish required, preferred and
+unspecified; an explicit English CEFR level is retained independently. Vacancy
+cards display these classifications with their source excerpt/provenance.
+Ambiguous phrases remain unknown or observed, not a promise or hiring mandate.
+Focused relocation/language/detail tests: 84 passed; full isolated PostgreSQL:
+974 passed.
+
 ## 2026-10-15 — source-scoped Relocation Evidence v1
 
 Each ingested source posting now stores a versioned mobility evidence packet

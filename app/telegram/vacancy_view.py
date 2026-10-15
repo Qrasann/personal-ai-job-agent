@@ -189,8 +189,8 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
         "existing_work_authorization_required": "Предварительное право на работу",
         "visa_sponsorship": "Visa sponsorship",
         "relocation_assistance": "Помощь с релокацией",
-        "housing_provided": "Текст об условиях жилья",
-        "language_requirement": "Текст о языке",
+        "housing_provided": "Обеспечение жильём",
+        "language_requirement": "Языковое требование",
         "start_timing": "Текст о сроках выхода",
     }
     present = [(key, fields.get(key)) for key in labels if isinstance(fields.get(key), dict)]
@@ -208,6 +208,24 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
             detail = html.escape(str(value or "неизвестно")) + " (сообщено источником)"
         elif key in {"visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"}:
             detail = "да" if value is True else "нет" if value is False else "неизвестно"
+        elif key == "housing_provided":
+            detail = "предоставляется" if value is True else "явно не предоставляется" if value is False else "неизвестно"
+            if excerpt:
+                detail += " — “" + html.escape(excerpt[:180]) + "”"
+        elif key == "language_requirement":
+            interpretation = item.get("interpretation") if isinstance(item.get("interpretation"), dict) else {}
+            requirement = str(interpretation.get("requirement") or "unspecified")
+            level = str(interpretation.get("cefr") or "")
+            detail = html.escape(str(interpretation.get("language") or "язык не определён"))
+            detail += " · " + {
+                "required": "требуется",
+                "preferred": "предпочтительно",
+                "unspecified": "условие не уточнено",
+            }.get(requirement, "условие не уточнено")
+            if level:
+                detail += " · CEFR " + html.escape(level)
+            if excerpt:
+                detail += " — “" + html.escape(excerpt[:180]) + "”"
         else:
             detail = "фрагмент для проверки: “" + html.escape(excerpt[:180]) + "”"
         if key in {"citizenship_or_residence_restriction", "visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"} and excerpt:

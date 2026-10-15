@@ -38,7 +38,7 @@ def test_relocation_evidence_keeps_explicit_source_excerpt_and_capture_time():
     assert evidence["fields"]["language_requirement"]["value"]
     assert evidence["fields"]["start_timing"]["value"]
     assert evidence["fields"]["housing_provided"]["status"] == "unknown"
-    assert evidence["fields"]["language_requirement"]["status"] == "observed"
+    assert evidence["fields"]["language_requirement"]["status"] == "confirmed"
     assert "Synthetic regression fixture" not in json.dumps(evidence)
 
 
@@ -67,3 +67,30 @@ def test_residence_restriction_excerpt_is_not_promoted_to_legal_judgment():
     assert item["status"] == "confirmed"
     assert item["value"] == item["excerpt"]
     assert "currently living in Germany" in item["excerpt"]
+
+
+def test_housing_requires_explicit_provision_or_refusal_and_language_is_classified():
+    def extract(description):
+        job = NormalizedJob(
+            source="synthetic_fixture", source_job_id="conditions-1",
+            title="Engineer", description=description,
+        )
+        return build_relocation_evidence(job)["fields"]
+
+    offered = extract("Accommodation is provided. English B2 is required.")
+    assert offered["housing_provided"]["value"] is True
+    assert offered["housing_provided"]["status"] == "confirmed"
+    language = offered["language_requirement"]
+    assert language["status"] == "confirmed"
+    assert language["interpretation"] == {
+        "language": "English", "requirement": "required", "cefr": "B2",
+    }
+
+    denied = extract("Housing is not provided. German is preferred.")
+    assert denied["housing_provided"]["value"] is False
+    assert denied["language_requirement"]["interpretation"]["requirement"] == "preferred"
+
+    ambiguous = extract("Housing and English are mentioned in the posting.")
+    assert ambiguous["housing_provided"]["status"] == "unknown"
+    assert ambiguous["language_requirement"]["status"] == "observed"
+    assert ambiguous["language_requirement"]["interpretation"]["requirement"] == "unspecified"

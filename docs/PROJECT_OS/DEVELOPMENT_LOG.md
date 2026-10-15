@@ -2389,3 +2389,12 @@ Fixtures are synthetic and marked as such; Candidate Facts and scoring are
 untouched. Regression also fixed “No relocation details” to remain unknown.
 Focused tests: 6 passed, 1 PostgreSQL test passed; full isolated PostgreSQL:
 973 passed.
+
+## 2026-10-15 — classify housing and language evidence
+
+Housing becomes confirmed provided/refused only with explicit wording.
+Language evidence retains required/preferred/unspecified status; explicit
+English CEFR is a separate value. Vacancy detail cards display those
+distinctions and excerpts. Ambiguous conditions remain observed/unknown.
+Focused relocation/language/detail suite: 85 passed; full isolated
+PostgreSQL: 974 passed.
