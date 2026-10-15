@@ -157,6 +157,34 @@ def test_prepare_match_returns_evidence_checklist_without_external_submission(mo
     save_application.assert_not_awaited()
 
 
+def test_prepare_match_uses_display_source_when_georgia_refs_share_a_job(monkeypatch):
+    monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
+        user_id=8, job_id=25, profile_id=3, resume_id=None,
+    )))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=SimpleNamespace(
+        id=25, title="Engineer", company="Example", description="Linux",
+    )))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[]))
+    refs = {
+        source_id: SimpleNamespace(
+            source_id=source_id, url=f"https://example.invalid/{source_id}",
+            raw={"relocation_evidence_v1": {"source": source_id}},
+        )
+        for source_id in ("hr_ge", "jobs_ge")
+    }
+    async def source_ref(_job_id, source_id=None):
+        return refs.get(source_id) if source_id else refs["hr_ge"]
+    monkeypatch.setattr(services.repo, "source_ref", source_ref)
+    monkeypatch.setattr(services, "make_cover_letter", lambda *_: "Draft")
+
+    result = asyncio.run(services.prepare_match(12, 8))
+
+    assert result["source"] == "jobs_ge"
+    assert result["url"] == "https://example.invalid/jobs_ge"
+    assert result["relocation_evidence"] == {"source": "jobs_ge"}
+
+
 @pytest.mark.parametrize("url", [
     "javascript:alert(1)", "https://[broken", "https://user:password@example.invalid/job",
     "https://example.invalid/" + "x" * 601,

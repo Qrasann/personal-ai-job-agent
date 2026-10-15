@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `bd297f3`. Fixed `/prepare` selecting a different source reference from vacancy details when a deduplicated Job has both `hr_ge` and `jobs_ge` records. Both paths now use the same deterministic order, so the package URL and mobility evidence match the reviewed source. Synthetic regression was red before the fix. Focused package/detail tests: 38 passed; full isolated PostgreSQL: 994 passed. This does not identify the original discovery source of a JobMatch. Next: continue Candidate Fit, Source Intelligence, Application Package or the remaining full roadmap. No production, external action or VERSION change. Proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `68d1096`. Fixed Arbeitnow assigning `DE` and a city to remote jobs whose free-form location can be “Worldwide” or office metadata. Remote records now retain the location as source text while work-country evidence remains unknown. Synthetic regression was red before the fix; focused adapter/evidence/preferences tests: 63 passed; full isolated PostgreSQL: 993 passed. Next: continue the full roadmap with an independent Candidate Fit, Application Package or source-quality task. Onsite Arbeitnow behavior remains as before. No production, VERSION or external action; proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

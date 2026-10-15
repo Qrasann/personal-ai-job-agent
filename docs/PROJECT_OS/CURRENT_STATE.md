@@ -1,5 +1,10 @@
 # Current State
 
+## 2026-10-15 — align Application Package with displayed source
+
+`/prepare` and vacancy details now use one source-reference preference order. A synthetic shared Job with `hr_ge` and `jobs_ge` previously displayed one source but prepared the other source's URL and mobility evidence; the regression now keeps the package source aligned with the detail view. This selects a deterministic review source, not a claim about which feed originally created the match. Focused package/detail tests: 38 passed; full isolated PostgreSQL: 994 passed.
+
+
 ## 2026-10-15 — keep Arbeitnow remote location unconfirmed
 
 Arbeitnow no longer assigns Germany as the work country or a city to every remote posting. Its free-form `location` is retained as `source_location`; Relocation Evidence keeps the work country unknown for a synthetic remote “Worldwide” fixture. Onsite source behavior is unchanged. Focused adapter/evidence/preferences tests: 63 passed; full isolated PostgreSQL: 993 passed.

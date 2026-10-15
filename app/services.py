@@ -61,6 +61,7 @@ _HH_DISCOVERY_LOCK = asyncio.Lock()
 REMOTIVE_STATE_KEY = "source_cache.remotive.v3"
 _REMOTIVE_PAYLOAD_CACHE: tuple[float, dict] | None = None
 _REMOTIVE_PAYLOAD_LOCK = asyncio.Lock()
+_SOURCE_REF_PREFERENCE = ("hh", "remoteok", "himalayas", "arbeitnow", "telegram", "jobs_ge", "hr_ge")
 
 
 async def _discover_hh(adapter: HHSource, context: SourceContext) -> list[NormalizedJob] | None:
@@ -675,7 +676,7 @@ async def get_vacancy_details(
         raise RuntimeError("Вакансия не найдена")
 
     ref = None
-    for source_id in ("hh", "remoteok", "himalayas", "arbeitnow", "telegram", "jobs_ge", "hr_ge"):
+    for source_id in _SOURCE_REF_PREFERENCE:
         ref = await repo.source_ref(job.id, source_id)
         if ref:
             break
@@ -815,12 +816,13 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
         comparison,
         chosen.content if chosen else "",
     )
-    refs = []
-    for source_id in ("hh", "remoteok", "himalayas", "arbeitnow", "telegram"):
-        ref = await repo.source_ref(job.id, source_id)
-        if ref:
-            refs.append(ref)
-    source_ref = refs[0] if refs else await repo.source_ref(job.id)
+    source_ref = None
+    for source_id in _SOURCE_REF_PREFERENCE:
+        source_ref = await repo.source_ref(job.id, source_id)
+        if source_ref:
+            break
+    if not source_ref:
+        source_ref = await repo.source_ref(job.id)
     return {
         "job": job,
         "resume": chosen,
