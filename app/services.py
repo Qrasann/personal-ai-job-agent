@@ -732,6 +732,11 @@ async def get_vacancy_details(
         "job": job,
         "match": match,
         "source": ref.source_id if ref else "",
+        "source_job_id": getattr(ref, "source_job_id", "") if ref else "",
+        "source_observed_at": (
+            relocation_evidence.get("captured_at", "")
+            if isinstance(relocation_evidence, dict) else ""
+        ),
         "url": ref.url if ref else "",
         "details": details,
         "fallback_salary_text": fallback_salary_text,

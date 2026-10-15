@@ -469,6 +469,16 @@ def render_job_details(payload: dict) -> str:
         lines.append(f"👥 Доступно для: {html.escape(applicant_location)}")
     if published_at:
         lines.append(f"📅 Опубликована: {html.escape(_clip(published_at, 80))}")
+    source_job_id = str(payload.get("source_job_id") or "").strip()
+    if source_job_id:
+        lines.append(f"🆔 ID у источника: {html.escape(_clip(source_job_id, 100))}")
+    observed_at = str(payload.get("source_observed_at") or "")
+    try:
+        observed_date = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
+    except ValueError:
+        observed_date = None
+    if observed_date is not None and observed_date.utcoffset() is not None:
+        lines.append(f"🔎 Источник обнаружен: {_published(observed_at)}")
     if source == "HIMALAYAS" or "availability" in details:
         lines.extend(html.escape(line) for line in vacancy_availability_lines(details))
 

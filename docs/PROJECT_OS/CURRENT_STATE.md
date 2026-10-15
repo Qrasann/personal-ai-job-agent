@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — show selected source observation on vacancy cards
+
+The detail card discloses the selected provider posting ID and evidence-capture time separately from source publication time when those fields are recorded. This is ingestion provenance, not current availability. Focused 58; full isolated PostgreSQL 1001 passed.
+
 ## 2026-10-15 — align experience fit and seniority gating
 
 Senior-level title policy is unchanged. Numerical high-experience gating now uses required years from the Candidate Fit parser, so a preferred 5+ band cannot cause a skip. The prior 3–4-year stretch boundary remains. Synthetic regression was red before; full isolated PostgreSQL: 1000 passed.

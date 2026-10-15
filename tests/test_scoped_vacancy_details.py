@@ -32,12 +32,12 @@ def test_details_keep_the_selected_profiles_score_and_name(monkeypatch):
 def test_details_use_selected_source_posting_for_text_and_rescore(monkeypatch):
     match = SimpleNamespace(profile_id=2, search_profile_id=4, total_score=54)
     canonical = SimpleNamespace(id=25, title="HR role", company="Example", description="HR-only Linux")
-    ref = SimpleNamespace(source_id="jobs_ge", url="https://example.invalid/jobs_ge", raw={
+    ref = SimpleNamespace(source_id="jobs_ge", source_job_id="jobs-ge-42", url="https://example.invalid/jobs_ge", raw={
         "normalized_posting_v1": {
             "schema": "normalized_posting_v1", "title": "Jobs.ge role",
             "company": "Example", "description": "Jobs.ge Docker",
         },
-        "relocation_evidence_v1": {"source": "jobs_ge"},
+        "relocation_evidence_v1": {"source": "jobs_ge", "captured_at": "2026-10-15T12:30:00+00:00"},
     })
     async def source_ref(_job_id, source_id=None):
         return ref if source_id == "jobs_ge" else None
@@ -52,7 +52,9 @@ def test_details_use_selected_source_posting_for_text_and_rescore(monkeypatch):
 
     assert payload["job"].title == "Jobs.ge role"
     assert payload["details"]["description"] == "Jobs.ge Docker"
-    assert payload["relocation_evidence"] == {"source": "jobs_ge"}
+    assert payload["relocation_evidence"] == {"source": "jobs_ge", "captured_at": "2026-10-15T12:30:00+00:00"}
+    assert payload["source_job_id"] == "jobs-ge-42"
+    assert payload["source_observed_at"] == "2026-10-15T12:30:00+00:00"
     assert refresh.await_args.kwargs["technical_text"] == "Jobs.ge Docker"
     assert canonical.description == "HR-only Linux"
 

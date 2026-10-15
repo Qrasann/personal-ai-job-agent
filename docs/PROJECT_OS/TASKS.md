@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — selected-source observation display completed
+
+- [x] Show provider posting ID and last ingestion-observation timestamp in the vacancy card, distinct from publication date.
+- [x] Hide absent or invalid timestamps; keep unknown availability explicit. Focused 58 and full isolated PostgreSQL 1001 passed.
+- [ ] Next: source quality and cross-source consistency, then Relocation-first evidence utility and broader roadmap.
+
 ## 2026-10-15 — consistent required-experience gating completed
 
 - [x] Reproduce a three-year minimum plus preferred 5+ years incorrectly marked `skip`.

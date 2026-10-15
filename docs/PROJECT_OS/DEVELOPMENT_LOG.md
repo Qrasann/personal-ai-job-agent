@@ -1,3 +1,7 @@
+## 2026-10-15 — show selected source observation on vacancy cards
+
+Added selected provider posting ID and source evidence-capture timestamp to the detail payload/card, with publication date kept distinct. Invalid/unavailable observation dates are omitted. A synthetic display regression was red before; focused 58, full isolated PostgreSQL 1001 passed. No availability claim or external action.
+
 ## 2026-10-15 — align experience fit and seniority gating
 
 Red regression: required minimum three years plus preferred 5+ years was marked `skip` by a separate seniority rule. High-experience gating now uses the same required-year parser as Candidate Fit; preferred-only years stay ungated, while explicit more-than-five remains gated. First full run exposed a changed `Minimum 3 years` technical score; retaining the old stretch boundary resolved it. Final full isolated PostgreSQL: 1000 passed.

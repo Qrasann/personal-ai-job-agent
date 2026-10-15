@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `6fbab48`. Vacancy cards now show the selected provider posting ID and evidence-capture timestamp separately from publication time; this is ingestion provenance, not confirmation of availability. Red synthetic display regression; focused 58 and full isolated PostgreSQL 1001 passed. Next: Source Intelligence cross-source consistency/quality or Relocation-first evidence utility, then wider roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `b289afe`. Candidate Fit high-experience gating now reuses required-year extraction, preventing a preferred 5+ band from marking a three-year job `skip`. Senior title policy and the existing stretch boundary remain. Red regression and additional preferred-only/required-five fixtures; full isolated PostgreSQL: 1000 passed. Next: independent Source Intelligence quality or Relocation-first evidence utility, then wider roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

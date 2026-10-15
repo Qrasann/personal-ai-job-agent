@@ -1,3 +1,7 @@
+## 2026-10-15 — show selected source observation on vacancy cards
+
+Vacancy details now display the chosen provider posting ID and last saved source-observation time beside the publication date when available. The observation comes from the source-scoped evidence capture; it does not prove the posting is still open. Focused 58 and full isolated PostgreSQL 1001 tests passed.
+
 ## 2026-10-15 — align experience fit and seniority gating
 
 Candidate Fit previously marked a three-year requirement plus preferred 5+ years as `skip` through its separate seniority rule, despite correctly extracting the three-year minimum. Seniority now uses the same required-year parser; preferred bands do not become high-experience gates. The existing 3–4-year stretch boundary stays intact. Full isolated PostgreSQL: 1000 passed.
