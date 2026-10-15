@@ -677,6 +677,7 @@ def render_application_export(application, job, events: list | None = None) -> s
         f"Application package #{application.id}",
         f"Vacancy: {job.title} — {job.company}",
         f"Status: {application.status}",
+        "Status is locally recorded and does not independently verify receipt by the employer or provider.",
         f"Prepared: {created_text}",
         f"Source: {application.source_id}",
         f"Vacancy URL: {application.external_url or 'not recorded'}",

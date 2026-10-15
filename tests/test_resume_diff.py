@@ -269,6 +269,7 @@ def test_application_export_includes_exact_saved_resume_and_cover_text():
     assert "Exact CV v1" in text
     assert "Exact cover letter v1" in text
     assert "hh-resume-5" in text
+    assert "does not independently verify receipt by the employer or provider" in text
     assert "Recorded status history" in text
     assert "time unknown — prepared" in text
     assert "time unknown — submitted" in text

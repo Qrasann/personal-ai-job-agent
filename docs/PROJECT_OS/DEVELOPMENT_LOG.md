@@ -1,3 +1,10 @@
+## 2026-10-15 — clarify application status provenance in exports
+
+Added an explicit local-tracker provenance sentence beside the exported
+application status. It avoids treating an owner-maintained status as verified
+employer/provider receipt. Focused package/handler tests: 40; isolated
+PostgreSQL suite: 929 passed.
+
 ## 2026-10-15 — normalize Remotive publication timestamps
 
 Normalize explicit timezone-aware RFC 2822 RSS dates and ISO API dates to UTC

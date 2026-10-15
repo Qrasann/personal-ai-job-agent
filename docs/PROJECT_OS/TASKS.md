@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — application status provenance in exports
+
+- [x] Label export status as locally recorded and not independently receipt-
+  verified by the employer/provider.
+- [x] Verify package and handler tests (40) and isolated PostgreSQL (929).
+- [ ] Record provider-side submission evidence only when the provider exposes
+  verifiable receipt data; preserve manual statuses as owner-entered data.
+
 ## 2026-10-15 — Remotive publication timestamp normalization
 
 - [x] Normalize timezone-aware RSS RFC 2822 and API ISO dates to UTC ISO.

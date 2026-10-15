@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — clarify application status provenance in exports
+
+Application text exports now identify status as locally recorded and say that
+employer/provider receipt is not independently verified. The existing manual
+status and history workflow is unchanged. Focused package/handler tests: 40;
+isolated PostgreSQL suite: 929 passed.
+
 ## 2026-10-15 — normalize Remotive publication timestamps
 
 Timezone-aware Remotive RSS RFC 2822 and API ISO dates are normalized to UTC

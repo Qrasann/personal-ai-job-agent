@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-15 — clarify application status provenance in exports
+
+Application Package exports state that the locally recorded status does not
+independently verify receipt by an employer or provider. Focused package and
+handler tests: 40 passed; isolated PostgreSQL suite: 929 passed.
+
 ## 2026-10-15 — normalize Remotive publication timestamps
 
 Remotive's RSS `pubDate` values are RFC 2822 while its API uses ISO values.
