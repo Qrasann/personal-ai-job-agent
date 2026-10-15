@@ -2,18 +2,21 @@
 
 ## Current development checkpoint — 2026-10-15
 
-Current code base before the next local checkpoint: HEAD `d6e41cc`, VERSION
-3.5.7. Salary ranking no longer assumes that structured pay with an unknown
+Current code checkpoint: HEAD `4f070b8`, VERSION 3.5.7. Salary ranking no
+longer assumes that structured pay with an unknown
 period is monthly when compared with a monthly profile reference. Unknown and
 unsupported periods score neutrally and remain reviewable; explicit
 monthly/annual comparison behavior is unchanged. Focused salary/score tests:
-61 passed; full isolated PostgreSQL suite: 955 passed. `compileall` passed;
-`git diff --check` and secret scan are being completed before commit. The test
-suite used only the dedicated localhost:55432 test container/tmpfs. Next:
-checkpoint this change, then continue grounded Candidate Fit / Source
-Intelligence tasks; live employer/relocation evidence remains separately
-unverified. Proposal files stay untouched. No push, merge, release, deployment,
-VERSION or production DB/volume change.
+61 passed; full isolated PostgreSQL suite: 955 passed. `compileall`,
+`git diff --check` and secret scan passed. The test suite used only the
+dedicated localhost:55432 test container/tmpfs. Next practical Source
+Intelligence task: test repeat-upsert semantics for existing source IDs. The
+current repository returns existing Job/source-ref without refreshing source
+data; assess safe refresh while preserving cached details and immutable saved
+application snapshots, and add a regression before implementation. Live
+employer/relocation evidence remains separately unverified. Proposal files
+stay untouched. No push, merge, release, deployment, VERSION or production
+DB/volume change.
 
 Latest completed code checkpoint: `256e899` adds owner-scoped
 `/prepare <vacancy_id> [career|relocation]`; it passed 31 focused handler
