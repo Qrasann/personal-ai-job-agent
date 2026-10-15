@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-15 — test source evidence refresh against immutable package
+
+Isolated PostgreSQL regression proves a repeated source ID updates its
+location excerpt while an already prepared package retains the earlier
+evidence. Targeted DB test: 1 passed; prior full suite: 984 passed.
+
 ## 2026-10-15 — keep explicit non-required skills out of must-have scoring
 
 Candidate Fit now recognizes narrow “no Kubernetes experience required” and

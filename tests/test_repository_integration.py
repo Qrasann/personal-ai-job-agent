@@ -700,7 +700,11 @@ async def _repeated_source_upsert_flow(monkeypatch):
             url="https://jobs.example/old", city="Tbilisi", country="GE",
             salary_from=1000, salary_currency="USD", salary_period="monthly",
             visa_sponsorship=True,
-            raw={"listing_revision": "old", "details_cache_v1": {"description": "Verified full details"}},
+            raw={
+                "listing_revision": "old",
+                "source_location": "Tbilisi, Georgia (synthetic fixture)",
+                "details_cache_v1": {"description": "Verified full details"},
+            },
         )
         job, created = await repo.upsert_job(original)
         assert created is True
@@ -717,6 +721,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         )
         assert saved_evidence["schema"] == "relocation_evidence_v1"
         assert saved_evidence["fields"]["work_country"]["value"] == "GE"
+        assert saved_evidence["fields"]["work_country"]["excerpt"] == "Tbilisi, Georgia (synthetic fixture)"
         assert saved_evidence["fields"]["visa_sponsorship"]["value"] is None
         assert saved_evidence["fields"]["visa_sponsorship"]["status"] == "unknown"
 
@@ -726,7 +731,10 @@ async def _repeated_source_upsert_flow(monkeypatch):
             url="https://jobs.example/current", city="Tbilisi", country="GE",
             salary_from=2400, salary_currency="USD", salary_period="monthly",
             visa_sponsorship=None,
-            raw={"listing_revision": "new", "new_provenance": "present in latest response"},
+            raw={
+                "listing_revision": "new", "new_provenance": "present in latest response",
+                "source_location": "Updated Tbilisi, Georgia (synthetic fixture)",
+            },
         )
         same_job, created_again = await repo.upsert_job(refreshed)
 
@@ -744,6 +752,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert latest_ref.raw["details_cache_v1"] == {"description": "Verified full details"}
         updated_evidence = latest_ref.raw["relocation_evidence_v1"]
         assert updated_evidence["fields"]["work_country"]["value"] == "GE"
+        assert updated_evidence["fields"]["work_country"]["excerpt"] == "Updated Tbilisi, Georgia (synthetic fixture)"
         assert updated_evidence["fields"]["visa_sponsorship"]["status"] == "unknown"
         assert updated_evidence["captured_at"]
         assert latest_ref.first_seen_at == first_ref.first_seen_at
@@ -754,6 +763,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
             "description": "Old summary", "source_url": original.url,
             "relocation_evidence": saved_evidence,
         }
+        assert saved.vacancy_snapshot["relocation_evidence"]["fields"]["work_country"]["excerpt"] == "Tbilisi, Georgia (synthetic fixture)"
         assert saved.resume_snapshot == "Saved CV"
         assert saved.message == "Saved cover letter"
 

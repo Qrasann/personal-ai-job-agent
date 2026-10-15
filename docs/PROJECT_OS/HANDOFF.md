@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started at Candidate Fit checkpoint `42a61f5`. Extended isolated repeat-source
+PostgreSQL regression: source location evidence refreshes for the same provider
+ID, but a previously prepared package keeps its earlier quote. Targeted DB
+test: 1 passed. The prior full isolated suite passed 984 tests; this increment
+changed tests/docs only. `git diff --check` passes. Next: continue safe Source
+Intelligence or Candidate Fit work. No production change; proposal files remain
+untracked and untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Started from HEAD `ed0b991`. Candidate Fit no longer treats a supported
 “no <skill> experience required” / “<skill> is not required” phrase as a
 must-have solely because it appears beneath Requirements. The skill remains

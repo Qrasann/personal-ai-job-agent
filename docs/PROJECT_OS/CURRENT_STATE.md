@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — source evidence refresh and package snapshot regression
+
+PostgreSQL regression checks that repeat discovery refreshes source-specific
+location evidence without rewriting the evidence already stored in an
+Application Package. Targeted isolated DB test: 1 passed; prior full suite:
+984 passed.
+
 ## 2026-10-15 — explicit non-required skills
 
 Candidate Fit does not promote supported “no experience with this skill

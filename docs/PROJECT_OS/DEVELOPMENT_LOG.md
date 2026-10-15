@@ -2461,3 +2461,9 @@ Reproduced “no Kubernetes experience required” being classified as a
 must-have under Requirements. Added narrow per-clause negation handling;
 separate skills retain their own importance. Focused Fit/score tests: 64
 passed; isolated PostgreSQL: 984 passed.
+
+## 2026-10-15 — evidence refresh and immutable package regression
+
+Extended repeat-source PostgreSQL coverage to check that source location
+evidence updates while the prepared package retains its original evidence.
+Targeted integration test: 1 passed; full suite at parent checkpoint: 984.

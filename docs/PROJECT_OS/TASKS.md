@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — verify evidence refresh preserves package snapshot
+
+Extended the repeat-source PostgreSQL regression: current source location
+evidence refreshes, while a prepared package keeps its first capture. Targeted
+isolated DB test: 1 passed; full suite at parent checkpoint: 984 passed.
+
 ## 2026-10-15 — exclude explicit non-required skills from must-haves
 
 Red test reproduced “No Kubernetes experience required” becoming a must-have
