@@ -1,3 +1,7 @@
+## 2026-10-15 — keep package preparation available on model failure
+
+Cover-letter generation now uses the local fact-grounded fallback when the model client fails or returns empty text. The error payload is not surfaced in the draft. A red model-failure regression and empty-output fixture passed; focused 34, full isolated PostgreSQL 1009 passed. The owner still reviews every draft.
+
 ## 2026-10-15 — ground fallback application drafts in active facts
 
 The no-LLM cover-letter fallback no longer uses inactive/deleted Candidate Facts or claims relevant experience when none is recorded. Model payloads also exclude deleted facts. Synthetic regressions were red before the fix; focused 32 and full isolated PostgreSQL 1007 tests passed. Drafts still require owner review.

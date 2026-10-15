@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — model failure fallback for Application Package completed
+
+- [x] Reproduce a model exception aborting cover-letter generation.
+- [x] Use local fact-grounded draft on model client/call error or empty output, without echoing error text.
+- [x] Focused 34 and full isolated PostgreSQL 1009 passed.
+- [ ] Next: continue Source Intelligence, Candidate Fit, Relocation-first and broader roadmap.
+
 ## 2026-10-15 — fallback letter fact grounding completed
 
 - [x] Reproduce inactive/deleted facts appearing in fallback draft and unsupported experience wording when facts are absent.

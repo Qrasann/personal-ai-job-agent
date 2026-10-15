@@ -39,6 +39,47 @@ def test_model_payload_excludes_deleted_candidate_facts():
     assert [item["value"] for item in llm._facts_payload(facts)] == ["Linux lab practice"]
 
 
+def test_cover_letter_uses_grounded_fallback_when_model_call_fails(monkeypatch):
+    class FailingClient:
+        class Responses:
+            @staticmethod
+            def create(**_kwargs):
+                raise RuntimeError("provider unavailable")
+
+        responses = Responses()
+
+    monkeypatch.setattr(llm, "_client", lambda: FailingClient())
+    job = SimpleNamespace(title="Platform Engineer", company="Example", description="Role")
+    fact = SimpleNamespace(
+        active=True, deleted_at=None, value="Linux lab practice", category="skill",
+        key="Linux", commercial=False, evidence="confirmed",
+    )
+
+    draft = llm.make_cover_letter(job, [fact])
+
+    assert "Linux lab practice" in draft
+    assert "Platform Engineer" in draft
+    assert "provider unavailable" not in draft
+
+
+def test_cover_letter_uses_fallback_when_model_returns_empty_text(monkeypatch):
+    class EmptyClient:
+        class Responses:
+            @staticmethod
+            def create(**_kwargs):
+                return SimpleNamespace(output_text="   ")
+
+        responses = Responses()
+
+    monkeypatch.setattr(llm, "_client", lambda: EmptyClient())
+    draft = llm.make_cover_letter(
+        SimpleNamespace(title="Engineer", company="Example", description="Role"), []
+    )
+
+    assert "Engineer" in draft
+    assert "релевантны" not in draft
+
+
 def test_cover_letter_keeps_vacancy_instructions_in_untrusted_json_input(monkeypatch):
     captured = {}
 

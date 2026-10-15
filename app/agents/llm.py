@@ -46,7 +46,10 @@ def fallback_cover_letter(job: Job, facts: list[CandidateFact]) -> str:
 
 
 def make_cover_letter(job: Job, facts: list[CandidateFact], resume: ResumeProfile | None = None) -> str:
-    client = _client()
+    try:
+        client = _client()
+    except Exception:
+        return fallback_cover_letter(job, facts)
     if not client:
         return fallback_cover_letter(job, facts)
     instructions = """
@@ -73,12 +76,16 @@ Candidate Facts, названию/описанию вакансии и мета�
             "description": (job.description or "")[:12000],
         },
     }
-    response = client.responses.create(
-        model=settings.openai_model,
-        instructions=instructions,
-        input=json.dumps(input_data, ensure_ascii=False),
-    )
-    return response.output_text.strip()[:8000]
+    try:
+        response = client.responses.create(
+            model=settings.openai_model,
+            instructions=instructions,
+            input=json.dumps(input_data, ensure_ascii=False),
+        )
+        draft = response.output_text.strip()[:8000]
+    except Exception:
+        return fallback_cover_letter(job, facts)
+    return draft or fallback_cover_letter(job, facts)
 
 
 def recruiter_reply(question: str, facts: list[CandidateFact], context: str = "") -> tuple[str, float, bool, str]:

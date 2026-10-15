@@ -1,3 +1,7 @@
+## 2026-10-15 — keep package preparation available on model failure
+
+The cover-letter model call previously propagated provider errors, preventing `/prepare` from saving a reviewable package. It now falls back to the local fact-grounded draft on client/call errors and empty output. No error payload is included in the draft. Red regression and empty-response test; focused 34 and full isolated PostgreSQL 1009 passed. No live model request in tests.
+
 ## 2026-10-15 — ground fallback application drafts in active facts
 
 Red regressions showed the fallback letter quoted inactive/deleted facts and asserted relevant experience with no facts. It now includes at most four active, nondeleted facts and uses a neutral no-facts draft. `_facts_payload` also excludes deleted facts from model input. Focused 32 and full isolated PostgreSQL 1007 passed. No model call or external application in tests.

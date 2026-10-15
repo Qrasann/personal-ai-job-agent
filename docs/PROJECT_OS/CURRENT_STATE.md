@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — keep package preparation available on model failure
+
+`/prepare` can use the local fact-grounded cover-letter fallback when the model call fails or yields no text, instead of aborting package preparation. Focused 34 and full isolated PostgreSQL 1009 passed. No automatic application submission.
+
 ## 2026-10-15 — ground fallback application drafts in active facts
 
 The fallback cover letter uses only active, nondeleted Candidate Facts; without them it asks to discuss the role without claiming relevant experience. LLM candidate-fact payloads use the same active/deleted filter. Focused 32; full isolated PostgreSQL 1007 passed. Owner review remains required.

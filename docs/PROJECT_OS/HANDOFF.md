@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `00a405c`. Model client/call failures and empty model output now use the local fact-grounded letter instead of aborting `/prepare`. A red synthetic provider-failure regression and empty-output fixture passed; focused 34 and full isolated PostgreSQL 1009 passed. Next: independent Source Intelligence, Candidate Fit or Relocation-first increment; continue Recruiter/Interview/AI Router/v4.x. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `f344083`. Fixed fallback cover letter using inactive/deleted facts and claiming relevant experience with no active facts. Model Candidate Fact payloads now exclude deleted records too; drafts remain subject to owner review. Red synthetic regressions; focused 32 and full isolated PostgreSQL 1007 passed. Next: Application Package claim review, Source Intelligence quality and Relocation-first evidence utility; continue Recruiter/Interview/AI Router/v4.x afterward. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15
