@@ -2,6 +2,21 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `aa4ce65`, VERSION 3.5.7. Candidate Fit now parses a
+balanced nested flat choice such as `Linux and (Docker or (Kubernetes or
+ArgoCD))` as one Docker/Kubernetes/ArgoCD group while retaining Linux as an
+independent requirement. Mixed nested AND/OR and repeated mentions remain
+ungrouped. Focused tests: 79; full isolated PostgreSQL: 960 passed.
+`compileall`, diff check and secret scan are next before checkpoint. Previous
+Source Intelligence checkpoint `aa4ce65` refreshes same-source vacancy data,
+preserves details cache/provenance and snapshots, and serializes concurrent
+upserts. The unresolved edge is safe reconciliation when an identity change
+collides with a different pre-existing Job; do not merge matches without a
+proven ownership/status strategy. Next: checkpoint Candidate Fit, then continue
+with a separate source freshness/expiry or Application Package task. PostgreSQL
+uses only localhost:55432/tmpfs. No external/live/production change or
+publication. Proposals remain untouched.
+
 Started from HEAD `c8ca19b` (code checkpoint `4f070b8`), VERSION 3.5.7.
 `upsert_job` now refreshes nonempty source fields/raw data for a repeated
 provider ID, keeps verified `details_cache_v1`, source identity/first-seen

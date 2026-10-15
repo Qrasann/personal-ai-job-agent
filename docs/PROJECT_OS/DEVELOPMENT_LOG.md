@@ -2339,3 +2339,11 @@ stable. A complete new fingerprint is adopted only if it is unclaimed; the
 code does not merge conflicting Jobs or reassign their matches. Application
 snapshots are unchanged. Focused HH-cache and database regressions passed; full
 isolated PostgreSQL suite: 957 passed.
+## 2026-10-15 — nested Candidate Fit alternatives
+
+Extended parenthesis scanning to keep a balanced outer expression intact.
+Unambiguous nested flat choices such as `Linux and (Docker or (Kubernetes or
+ArgoCD))` now become one alternative group; the independent Linux requirement
+stays separate. Mixed nested AND/OR and skills repeated elsewhere in the same
+section are not promoted to alternatives. Scoring and resume-coverage
+regressions pass; focused fit/resume/score tests: 79 passed.

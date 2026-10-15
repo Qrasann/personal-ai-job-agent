@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — nested Candidate Fit alternatives
+
+Candidate Fit now groups a nested flat choice such as `Linux and (Docker or
+(Kubernetes or ArgoCD))` into one Docker/Kubernetes/ArgoCD alternative while
+keeping Linux independent. Resume coverage uses that same group. Mixed nested
+`and/и` expressions and repeated skill mentions remain ungrouped. Focused
+fit/resume/score tests: 79 passed.
+
 ## 2026-10-15 — refresh repeated source postings safely
 
 Repeated source IDs now refresh nonempty Job fields and current source raw

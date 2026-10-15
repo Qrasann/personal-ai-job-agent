@@ -336,6 +336,32 @@ def test_parenthesized_alternative_can_coexist_with_an_independent_requirement()
     ) == 100
 
 
+def test_nested_parenthesized_or_chain_is_one_choice_beside_an_independent_requirement():
+    from app.matching.resume_diff import compare_resume_coverage
+    from app.matching.technical_score import score_technical_v2
+
+    text = "Requirements: Linux and (Docker or (Kubernetes or ArgoCD))."
+    facts = [
+        fact(1, "Commercial Linux administration", "commercial"),
+        fact(2, "Commercial ArgoCD operations", "commercial"),
+    ]
+    comparison = compare_facts(text, facts)
+
+    assert comparison.alternative_groups == (("Docker", "Kubernetes", "ArgoCD"),)
+    assert score_technical_v2(text, facts) == 100
+    coverage = compare_resume_coverage(comparison, "Linux administration and ArgoCD operations")
+    assert len(coverage["alternative_groups"]) == 1
+    assert coverage["alternative_groups"][0]["status"] == "confirmed"
+
+
+@pytest.mark.parametrize("text", [
+    "Requirements: Linux and (Docker or (Kubernetes and ArgoCD)).",
+    "Requirements: Linux and (Docker or (Kubernetes or ArgoCD)); Kubernetes also required.",
+])
+def test_nested_compound_or_groups_stay_unclassified_when_ambiguous(text):
+    assert compare_facts(text, []).alternative_groups == ()
+
+
 @pytest.mark.parametrize("text", [
     "Requirements: Linux or (Docker or Kubernetes).",
     "Requirements: (Linux or Docker) or Kubernetes.",

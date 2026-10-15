@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — nested Candidate Fit alternatives
+
+Explicit nested flat `or/или` chains inside a parenthesized choice now form
+one alternative group alongside independent requirements; scoring and resume
+coverage share it. Ambiguous mixed `and/и` chains and repeated mentions remain
+ungrouped. Focused tests: 79 passed.
+
 ## 2026-10-15 — refresh repeated source postings safely
 
 An existing `(source_id, source_job_id)` now refreshes nonempty vacancy fields

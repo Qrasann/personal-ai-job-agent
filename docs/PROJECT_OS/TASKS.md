@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — nested Candidate Fit alternatives
+
+Implemented nested flat parenthesized OR chains as one explainable choice when
+each option is an unambiguous supported skill. Independent requirements remain
+separate; mixed AND/OR and repeated mentions remain conservative. Focused
+fit/resume/score tests: 79 passed; full isolated PostgreSQL suite: 960 passed.
+
 ## 2026-10-15 — refresh repeated source postings safely
 
 Completed repeat-discovery refresh for existing provider IDs. Nonempty Job

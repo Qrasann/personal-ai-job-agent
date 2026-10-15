@@ -429,14 +429,27 @@ def extract_skill_alternatives(
             # are parenthesized. Adding inner groups would count them twice.
             continue
         # Parentheses let an explicit choice coexist with a separate skill in
-        # the same clause, e.g. "Linux and (Docker or Kubernetes)".
-        for match in re.finditer(r"\(([^()]*)\)", line):
-            expression = match.group(1)
+        # the same clause. Keep the outer expression intact so a nested flat
+        # OR chain is recognized as one choice instead of only its inner tail.
+        parenthesized: list[tuple[int, int]] = []
+        depth = 0
+        start = -1
+        for index, character in enumerate(line):
+            if character == "(":
+                if depth == 0:
+                    start = index
+                depth += 1
+            elif character == ")" and depth:
+                depth -= 1
+                if depth == 0:
+                    parenthesized.append((start, index))
+        for start, end in parenthesized:
+            expression = line[start + 1:end]
             candidates = tuple(
                 skill for skill in line_skills
                 if _matches_skill(expression, skill_specs[skill])
             )
-            outside = line[:match.start()] + line[match.end():]
+            outside = line[:start] + line[end + 1:]
             repeated_outside = any(_matches_skill(outside, skill_specs[skill]) for skill in candidates)
             if len(candidates) >= 2 and not repeated_outside and all(counts[skill] == 1 for skill in candidates):
                 parenthesized_group = explicit_options(expression, candidates)
