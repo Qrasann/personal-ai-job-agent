@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-15 — keep preferred experience out of hard fit threshold
+
+Candidate Fit now ignores explicitly preferred/desirable years when deriving the minimum required experience. When a required minimum is also stated, only required/unlabelled bands determine the threshold; a preferred-only band does not create a mandatory years-of-experience gap. Regression reproduced a 3-year minimum plus 5 years preferred being misread as 5. Focused fit/resume tests: 60 passed; full isolated PostgreSQL: 990 passed.
+
+
 ## 2026-10-15 — capture Russian negotiable start timing
 
 Added a regression and source-text pattern for “Выход на работу по договорённости”. Confirmed immediate Russian start wording remains classified independently. Full isolated PostgreSQL: 988 passed.

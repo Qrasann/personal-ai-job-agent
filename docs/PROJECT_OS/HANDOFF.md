@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `e538e0f`. Fixed a reproduced Candidate Fit defect where “Minimum 3 years … required. 5 years of experience preferred” imposed a hard 5-year threshold. Explicitly preferred years are excluded from the required minimum; preferred-only years do not produce an experience requirement. Focused fit/resume tests: 60 passed; full isolated PostgreSQL suite: 990 passed. Next: continue the canonical roadmap with a focused Source Intelligence, Relocation-first evidence or Application Package task. Candidate Facts and Career-first/Relocation-first independence are unchanged. No production or external actions. Proposal files remain untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `4f79583`. Added synthetic Relocation Evidence regressions for Russian start timing: “Начать можно сразу” is immediate and “Выход на работу по договорённости” is negotiable. The latter was previously missed because the excerpt rule matched only infinitive `выйти`. Focused timing test: 1 passed; full isolated PostgreSQL suite: 988 passed. Next: continue the full roadmap with a practical, independent Candidate Fit or source intelligence increment; preserve Career-first/Relocation-first and unknown evidence. No scoring, Candidate Facts, legal conclusions or production state changed. Proposal files remain untracked and untouched.
 
 ## Current development checkpoint — 2026-10-15

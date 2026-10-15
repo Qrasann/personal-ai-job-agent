@@ -145,12 +145,45 @@ def _required_experience_years(job: Job) -> int | None:
         r"(?:at least|minimum(?:\s+of)?)\s+(\d+)\s+years?",
         r"\b(\d+)\+?\s+years?(?:\s+of)?\s+experience\b",
     )
-    values = [
-        int(match.group(1))
-        for pattern in patterns
-        for match in re.finditer(pattern, text)
-    ]
-    return max(values) if values else None
+    preferred_markers = re.compile(
+        r"\b(?:preferred|desirable|desired|nice[- ]to[- ]have|bonus|plus)\b|"
+        r"\b(?:желательно|приветствуется|будет плюсом|будет преимуществом)\b"
+    )
+    required_markers = re.compile(
+        r"\b(?:required|must have|minimum(?: of)?|at least)\b|"
+        r"\b(?:обязател\w*|не менее|от)\b"
+    )
+    required_values: list[int] = []
+    for pattern in patterns:
+        for match in re.finditer(pattern, text):
+            start, end = match.span(1)
+            previous_boundary = max(
+                (text.rfind(boundary, 0, start) for boundary in ".;!?\n"),
+                default=-1,
+            )
+            next_boundaries = [
+                position for boundary in ".;!?\n"
+                if (position := text.find(boundary, end)) >= 0
+            ]
+            context_start = max(previous_boundary + 1, start - 60)
+            context_end = min(min(next_boundaries, default=len(text)), end + 60)
+            nearby = text[context_start:context_end]
+
+            def marker_distance(marker: re.Match[str]) -> int:
+                marker_start = context_start + marker.start()
+                marker_end = context_start + marker.end()
+                return start - marker_end if marker_end <= start else marker_start - end if marker_start >= end else 0
+
+            preferred = [marker_distance(item) for item in preferred_markers.finditer(nearby)]
+            required = [marker_distance(item) for item in required_markers.finditer(nearby)]
+            # An explicitly preferred experience band must not become the
+            # minimum used for candidate fit. Unlabelled years retain the
+            # established conservative behavior.
+            if preferred and (not required or min(preferred) < min(required)):
+                continue
+            required_values.append(int(match.group(1)))
+
+    return max(required_values) if required_values else None
 
 def _experience_fit(job: Job, facts: list[CandidateFact]) -> tuple[str | None, str | None]:
     candidate = _candidate_commercial_years(facts)

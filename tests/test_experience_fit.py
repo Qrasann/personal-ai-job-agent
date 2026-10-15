@@ -90,3 +90,39 @@ def test_minimum_experience_wording_extracts_years_from_qualification_sections()
     )
     assert result.fit == "stretch"
     assert "требуется 3+" in result.reason
+
+
+def test_preferred_experience_band_does_not_raise_required_fit_threshold():
+    job = Job(
+        fingerprint="experience-preferred-band",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Minimum 3 years of production experience required. 5 years of experience preferred.",
+        country="DE",
+    )
+
+    assert _required_experience_years(job) == 3
+    result = score_job(
+        job,
+        _search(),
+        [CandidateFact(
+            profile_id=1,
+            value="2 years of commercial DevOps experience",
+            experience_type="commercial",
+        )],
+        [],
+    )
+    assert result.fit == "stretch"
+    assert "требуется 3+" in result.reason
+
+
+def test_preferred_only_experience_band_is_not_a_required_minimum():
+    job = Job(
+        fingerprint="experience-preferred-only",
+        title="DevOps Engineer",
+        company="ACME",
+        description="5 years of experience preferred.",
+        country="DE",
+    )
+
+    assert _required_experience_years(job) is None
