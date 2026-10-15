@@ -97,10 +97,29 @@ _EXERCISES: dict[str, tuple[str, str, tuple[str, ...]]] = {
 }
 
 _IMPORTANCE_ORDER = {"required": 0, "preferred": 1, "unknown": 2}
+_FACT_STRENGTH = {"commercial": 4, "lab": 3, "learning": 2, "unknown": 1, "missing": 0}
 
 
 def build_interview_plan(comparison: FactComparison, *, limit: int = 5) -> tuple[dict, ...]:
     """Build short vacancy-specific practice exercises without an LLM call."""
+    grouped: dict[str, tuple[str, tuple[str, ...]]] = {}
+    for importance, groups in (
+        ("required", comparison.alternative_groups),
+        ("preferred", comparison.preferred_alternative_groups),
+    ):
+        for group in groups:
+            candidates = [
+                item for item in comparison.requirements
+                if item.importance == importance and item.skill in group and item.skill in _EXERCISES
+            ]
+            if not candidates:
+                continue
+            chosen = min(
+                candidates,
+                key=lambda item: (-_FACT_STRENGTH.get(item.status, 0), item.skill.casefold()),
+            )
+            for item in candidates:
+                grouped[item.skill] = (chosen.skill, group)
     items = sorted(
         comparison.requirements,
         key=lambda item: (_IMPORTANCE_ORDER.get(item.importance, 3), item.skill.casefold()),
@@ -110,15 +129,21 @@ def build_interview_plan(comparison: FactComparison, *, limit: int = 5) -> tuple
         exercise = _EXERCISES.get(item.skill)
         if not exercise:
             continue
+        alternative = grouped.get(item.skill)
+        if alternative and alternative[0] != item.skill:
+            continue
         scenario, task, criteria = exercise
-        plan.append({
+        entry = {
             "skill": item.skill,
             "importance": item.importance,
             "candidate_status": item.status,
             "scenario": scenario,
             "task": task,
             "criteria": criteria,
-        })
+        }
+        if alternative:
+            entry["alternative_options"] = alternative[1]
+        plan.append(entry)
         if len(plan) >= max(1, min(limit, 8)):
             break
     return tuple(plan)

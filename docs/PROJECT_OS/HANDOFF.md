@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `eceb80f`. Interview Agent now uses one labelled exercise for each explicit required/preferred skill OR group; it chooses the option best supported by Candidate Facts, without treating both alternatives as mandatory. Red regression and preferred-group fixture; full isolated PostgreSQL 1016 passed. Next: interactive answer/feedback design, plus Source Intelligence and Candidate Fit from the full roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `9b36423`. `/prepare` preview now counts Telegram UTF-16 units instead of Python characters, bounds displayed cover text, and points to `/job` when HTML escaping makes a URL too long. Red emoji fixture reached 4991 units before; full isolated PostgreSQL 1014 passed after. Saved package/export retain full text and URL. Next: independent Candidate Fit/Source Intelligence quality, then Recruiter/Interview/AI Router/v4.x. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

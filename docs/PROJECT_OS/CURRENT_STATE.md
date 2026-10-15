@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — align Interview Agent with skill alternatives
+
+Explicit required/preferred skill OR groups now yield one labelled practice exercise. The selected option is deterministic and prefers the strongest saved Candidate Fact; the plan does not imply every alternative is mandatory. Full isolated PostgreSQL 1016 passed.
+
 ## 2026-10-15 — enforce Telegram UTF-16 budget in package preview
 
 `/prepare` preview budgets Telegram UTF-16 units, including emoji and escaped links. Very long escaped URLs point the owner to `/job`; the saved package keeps its exact URL and letter. Red regression and full isolated PostgreSQL 1014 passed.

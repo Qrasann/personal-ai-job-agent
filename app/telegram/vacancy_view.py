@@ -996,6 +996,12 @@ def render_interview_plan(job, plan: tuple[dict, ...]) -> str:
                 f"<b>{index}. {html.escape(item['skill'])}</b> · "
                 f"{importance_labels.get(item['importance'], 'важность неясна')} · "
                 f"{status_labels.get(item['candidate_status'], 'Candidate Fact: неизвестно')}",
+            ])
+            options = item.get("alternative_options")
+            if options:
+                labels = " или ".join(html.escape(_clip(str(option), 50)) for option in options)
+                lines.append(f"Альтернатива: {labels}; достаточно одного варианта.")
+            lines.extend([
                 html.escape(_clip(item["scenario"], 300)),
                 "Задание: " + html.escape(_clip(item["task"], 300)),
                 "Ориентиры: " + "; ".join(html.escape(_clip(str(point), 100)) for point in item["criteria"]),

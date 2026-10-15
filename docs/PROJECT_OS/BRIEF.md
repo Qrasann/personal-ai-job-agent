@@ -1,3 +1,7 @@
+## 2026-10-15 — align Interview Agent with skill alternatives
+
+The interview plan now creates one curated exercise for each explicit required or preferred OR group, selecting the option best supported by saved Candidate Facts and showing that either option satisfies the stated requirement. Previously “Docker or Kubernetes” produced two mandatory exercises. Synthetic regressions and full isolated PostgreSQL 1016 tests passed.
+
 ## 2026-10-15 — enforce Telegram UTF-16 budget in package preview
 
 The `/prepare` preview previously counted Python characters, so emoji-heavy drafts could exceed Telegram's UTF-16 limit despite being under the character cap. The preview now budgets UTF-16 units, bounds the displayed draft and omits links whose escaped form is too long, pointing to `/job` instead. Saved package text remains exact. Red regression; full isolated PostgreSQL 1014 passed.

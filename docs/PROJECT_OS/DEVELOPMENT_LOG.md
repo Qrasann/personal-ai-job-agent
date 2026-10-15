@@ -1,3 +1,7 @@
+## 2026-10-15 — align Interview Agent with skill alternatives
+
+Red regression: “Docker or Kubernetes” produced both exercises despite Candidate Fit treating it as one required choice. The plan now maps explicit required/preferred OR groups to one supported exercise, favoring the strongest Candidate Fact and noting that one alternative is sufficient. Synthetic required/preferred tests and full isolated PostgreSQL 1016 passed. No model call or candidate score change.
+
 ## 2026-10-15 — enforce Telegram UTF-16 budget in package preview
 
 Red fixture rendered 4991 UTF-16 units from emoji-heavy draft/checklist while the Python character count stayed under the preview budget. The optional-line budget now counts UTF-16; the displayed cover text and escaped links have safe bounds. Excessively escaped links use `/job` as the manual path while the saved package keeps the original URL. Full isolated PostgreSQL: 1014 passed.

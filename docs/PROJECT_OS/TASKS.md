@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — Interview Agent alternatives completed
+
+- [x] Reproduce “Docker or Kubernetes” creating two required exercises while Candidate Fit counts one choice.
+- [x] Select one curated scenario per explicit required/preferred OR group and label the alternatives in the practice plan.
+- [x] Full isolated PostgreSQL 1016 passed.
+- [ ] Next: interactive practice/feedback with owner-controlled answers, plus Source Intelligence and Candidate Fit work from the full roadmap.
+
 ## 2026-10-15 — UTF-16-safe package preview completed
 
 - [x] Reproduce an emoji-heavy `/prepare` preview exceeding Telegram's UTF-16 limit despite its character count.

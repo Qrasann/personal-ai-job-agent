@@ -28,6 +28,32 @@ def test_interview_plan_uses_vacancy_importance_and_candidate_fact_state():
     assert all(item["scenario"] and item["criteria"] for item in plan)
 
 
+def test_interview_plan_treats_required_or_group_as_one_choice():
+    comparison = compare_facts(
+        "Requirements: Docker or Kubernetes.",
+        [_fact(1, "Kubernetes lab practice", "lab")],
+    )
+
+    plan = build_interview_plan(comparison)
+
+    assert len(plan) == 1
+    assert plan[0]["skill"] == "Kubernetes"
+    assert plan[0]["alternative_options"] == ("Docker", "Kubernetes")
+    rendered = render_interview_plan(SimpleNamespace(id=9, title="Platform Engineer"), plan)
+    assert "Docker или Kubernetes" in rendered
+    assert "достаточно одного варианта" in rendered
+
+
+def test_interview_plan_treats_preferred_or_group_as_one_choice():
+    comparison = compare_facts("Nice to have: Terraform or Ansible.", [])
+
+    plan = build_interview_plan(comparison)
+
+    assert len(plan) == 1
+    assert plan[0]["importance"] == "preferred"
+    assert plan[0]["alternative_options"] == ("Terraform", "Ansible")
+
+
 def test_interview_plan_is_bounded_and_only_uses_curated_exercises():
     comparison = compare_facts(
         "Requirements: Linux, Docker, Nginx, Kubernetes, PostgreSQL, Networking, CI/CD.",
