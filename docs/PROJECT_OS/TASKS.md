@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — classify start-timing evidence
+
+Added a bounded category beside the exact source phrase: immediate, relative
+window, stated date, notice period, or negotiable. No candidate-fit judgment
+is made. Focused tests: 44; full isolated PostgreSQL: 979 passed. Next: continue
+source-aware evidence and independent Candidate Fit/Application Package work.
+
 ## 2026-10-15 — retain multiple language conditions
 
 Language evidence no longer stops at the first language mention. It records

@@ -2434,3 +2434,10 @@ Extracted multiple supported languages from a posting independently, each
 with requirement status and excerpt. Conflicting explicit required/preferred
 statements stay reviewable as conflicting, and English CEFR remains separate.
 Focused tests: 47 passed; full isolated PostgreSQL: 978 passed.
+
+## 2026-10-15 — classify source start-timing phrases
+
+Start-timing evidence retains the original quote and identifies immediate,
+relative-window, stated-date, notice-period or negotiable phrases. This does
+not assess candidate availability. Focused tests: 44 passed; isolated
+PostgreSQL: 979 passed.

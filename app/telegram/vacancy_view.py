@@ -249,6 +249,19 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
             }.get(scope, "требует ручной проверки")
             if excerpt:
                 detail += " — “" + html.escape(excerpt[:180]) + "”"
+        elif key == "start_timing":
+            interpretation = item.get("interpretation") if isinstance(item.get("interpretation"), dict) else {}
+            kind = str(interpretation.get("kind") or "observed_text")
+            detail = {
+                "immediate": "вакансия говорит о немедленном старте",
+                "relative_window": "вакансия указывает относительный срок",
+                "stated_date": "вакансия указывает дату",
+                "notice_period": "указан notice period",
+                "negotiable": "срок назван договорным",
+                "observed_text": "фрагмент для проверки",
+            }.get(kind, "фрагмент для проверки")
+            if excerpt:
+                detail += " — “" + html.escape(excerpt[:180]) + "”"
         else:
             detail = "фрагмент для проверки: “" + html.escape(excerpt[:180]) + "”"
         if key in {"citizenship_or_residence_restriction", "visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"} and excerpt:

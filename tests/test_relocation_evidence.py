@@ -40,6 +40,7 @@ def test_relocation_evidence_keeps_explicit_source_excerpt_and_capture_time():
     assert evidence["fields"]["start_timing"]["value"]
     assert evidence["fields"]["housing_provided"]["status"] == "unknown"
     assert evidence["fields"]["language_requirement"]["status"] == "confirmed"
+    assert evidence["fields"]["start_timing"]["interpretation"]["kind"] == "stated_date"
     assert "Synthetic regression fixture" not in json.dumps(evidence)
 
 
@@ -150,3 +151,22 @@ def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_
     )
     assert conflicting["status"] == "unknown" and conflicting["value"] is None
     assert conflicting["confidence"] == "conflicting_text"
+
+
+def test_start_timing_keeps_explicit_kind_and_original_excerpt():
+    cases = [
+        ("We need someone to start immediately.", "immediate"),
+        ("Available to start within 2 weeks.", "relative_window"),
+        ("Starting date: 2026-11-01.", "stated_date"),
+        ("The notice period is 30 days.", "notice_period"),
+        ("Start date is negotiable.", "negotiable"),
+    ]
+    for text, expected_kind in cases:
+        job = NormalizedJob(
+            source="synthetic_fixture", source_job_id=expected_kind,
+            title="Engineer", description=text,
+        )
+        item = build_relocation_evidence(job)["fields"]["start_timing"]
+        assert item["status"] == "observed"
+        assert item["interpretation"]["kind"] == expected_kind
+        assert text.rstrip(".") in item["excerpt"]

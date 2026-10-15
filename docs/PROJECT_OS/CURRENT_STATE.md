@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — start-timing evidence kinds
+
+The exact start-timing text remains stored; a conservative classification now
+labels immediate, relative, stated date, notice period or negotiable phrases.
+It does not compare against candidate availability. Focused tests: 44; isolated
+PostgreSQL: 979 passed.
+
 ## 2026-10-15 — multiple per-language observations
 
 One source posting can now preserve separate English, German, French, Russian,

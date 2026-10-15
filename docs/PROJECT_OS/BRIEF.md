@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — classify explicit start timing
+
+Start timing observations now distinguish immediate availability, relative
+windows, stated dates, notice periods and negotiable timing while retaining the
+original excerpt. This describes vacancy wording and does not assess candidate
+availability. Focused evidence/detail tests: 44 passed; full isolated
+PostgreSQL: 979 passed.
+
 ## 2026-10-15 — retain multiple language conditions
 
 Relocation Evidence now extracts multiple supported languages independently

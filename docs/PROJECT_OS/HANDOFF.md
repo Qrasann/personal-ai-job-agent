@@ -2,6 +2,14 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `d0f2960`. Start-timing evidence now preserves exact source
+text and classifies immediate, relative window, stated date, notice period and
+negotiable wording; it does not assess candidate availability. Focused tests:
+44 passed; full isolated PostgreSQL: 979 passed; compileall, diff check and
+secret scan passed. Next: continue source-aware country/hiring evidence and
+return to Candidate Fit/Application Package. No legal, scoring or production
+change. Test DB localhost:55432/jobagent_test; proposals untouched.
+
 Started from HEAD `54fac96`. Relocation Evidence now captures multiple
 language observations in one posting independently; each stores required,
 preferred, unspecified or conflicting status with its own excerpt. Explicit
