@@ -378,6 +378,77 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
     assert answer.await_args.kwargs["disable_web_page_preview"] is True
 
 
+@pytest.mark.parametrize(("text", "search_id"), [
+    ("/prepare 25", None),
+    ("/prepare 25 relocation", 4),
+])
+def test_prepare_command_uses_owned_match_and_saves_reviewable_package(monkeypatch, text, search_id):
+    _mock_profiles(monkeypatch)
+    match_lookup = AsyncMock(return_value=SimpleNamespace(id=51))
+    monkeypatch.setattr(handlers.repo, "get_match_for_user_job", match_lookup)
+    prepare = AsyncMock(return_value="SAVED PACKAGE")
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    message = SimpleNamespace(text=text, answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.prepare_command(message))
+
+    expected = {"search_profile_id": search_id} if search_id else {}
+    match_lookup.assert_awaited_once_with(7, 25, **expected)
+    prepare.assert_awaited_once_with(51, 7)
+    assert progress.edit_text.await_args.args[0] == "SAVED PACKAGE"
+    assert progress.edit_text.await_args.kwargs == {
+        "parse_mode": "HTML", "disable_web_page_preview": True,
+    }
+
+
+def test_prepare_command_does_not_create_package_for_unmatched_or_invalid_scope(monkeypatch):
+    _mock_profiles(monkeypatch)
+    lookup = AsyncMock(return_value=None)
+    monkeypatch.setattr(handlers.repo, "get_match_for_user_job", lookup)
+    prepare = AsyncMock()
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    answer = AsyncMock(return_value=progress)
+
+    asyncio.run(handlers.prepare_command(SimpleNamespace(text="/prepare 25 relocation", answer=answer)))
+    assert "не найдена" in progress.edit_text.await_args.args[0]
+    prepare.assert_not_awaited()
+
+    answer.reset_mock()
+    asyncio.run(handlers.prepare_command(SimpleNamespace(text="/prepare 25 recruiter", answer=answer)))
+    assert "Использование" in answer.await_args.args[0]
+    lookup.assert_awaited_once()
+    prepare.assert_not_awaited()
+
+
+def test_prepare_command_requires_active_scoped_profile_before_lookup(monkeypatch):
+    _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers, "_search_for_scope", AsyncMock(return_value=None))
+    lookup = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "get_match_for_user_job", lookup)
+    message = SimpleNamespace(text="/prepare 25 relocation", answer=AsyncMock())
+
+    asyncio.run(handlers.prepare_command(message))
+
+    assert "не активен" in message.answer.await_args.args[0]
+    lookup.assert_not_awaited()
+
+
+def test_prepare_command_hides_internal_error_and_points_to_saved_applications(monkeypatch):
+    _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers.repo, "get_match_for_user_job", AsyncMock(side_effect=RuntimeError("private internal detail")))
+    progress = SimpleNamespace(edit_text=AsyncMock())
+    message = SimpleNamespace(text="/prepare 25", answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.prepare_command(message))
+
+    rendered = progress.edit_text.await_args.args[0]
+    assert "private internal detail" not in rendered
+    assert "SOURCE_PROCESSING_FAILED" in rendered
+    assert "/applications" in rendered
+
+
 def test_application_status_command_uses_explicit_manual_status(monkeypatch):
     _mock_profiles(monkeypatch)
     update = AsyncMock(return_value=True)

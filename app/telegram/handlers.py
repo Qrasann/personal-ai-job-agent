@@ -158,6 +158,7 @@ def _main_menu_text() -> str:
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
         "/resumediff 25 [resume_id] — сверить CV с вакансией\n"
+        "/prepare 25 [career|relocation] — подготовить и сохранить пакет\n"
         "/interview 25 [career|relocation] — практические задания по вакансии\n"
         "/applications — сохранённые пакеты и отклики\n"
         "/application <id> <status|history|export> — статус, история или экспорт\n"
@@ -1468,6 +1469,67 @@ async def resume_diff_command(message: Message) -> None:
         )
 
 
+async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
+    result = await prepare_match(match_id, user_id)
+    application = await repo.save_application(
+        user_id=user_id,
+        job_id=result["job"].id,
+        source_id=str(result.get("source") or "manual")[:64],
+        source_application_id=None,
+        external_url=str(result.get("url") or "") or None,
+        resume_id=result["resume"].id if result.get("resume") else None,
+        resume_snapshot=str(result["resume"].content or "") if result.get("resume") else "",
+        resume_external_id=(
+            str(result["resume"].external_id)[:256]
+            if result.get("resume") and result["resume"].external_id
+            else None
+        ),
+        vacancy_snapshot=snapshot_vacancy(result["job"], source_url=result.get("url")),
+        message=str(result.get("cover_letter") or ""),
+        status="prepared",
+    )
+    await repo.set_match_status(match_id, "prepared")
+    preview = render_application_package(result)
+    return preview + f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
+
+
+@router.message(Command("prepare"))
+async def prepare_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if (
+        len(parts) not in {2, 3}
+        or not parts[1].isdigit()
+        or (len(parts) == 3 and parts[2].casefold() not in {"career", "relocation"})
+    ):
+        await message.answer("Использование: /prepare <vacancy_id> [career|relocation]")
+        return
+    search_filter = {}
+    if len(parts) == 3:
+        scope = parts[2].casefold()
+        search = await _search_for_scope(user.id, scope)
+        if not search:
+            await message.answer(_missing_search_scope(scope))
+            return
+        search_filter = {"search_profile_id": search.id}
+    progress = await message.answer("⏳ Готовлю пакет для твоей проверки…")
+    try:
+        match = await repo.get_match_for_user_job(user.id, int(parts[1]), **search_filter)
+        if not match:
+            await progress.edit_text("❌ Вакансия не найдена среди твоих совпадений в выбранном поиске.")
+            return
+        preview = await _prepare_saved_preview(match.id, user.id)
+        await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
+    except Exception as exc:
+        issue = classify_source_error(exc, stage="processing")
+        await progress.edit_text(
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
+            parse_mode="HTML",
+        )
+
+
 @router.message(Command("applications"))
 async def applications_command(message: Message) -> None:
     user = await _require_user(message)
@@ -1485,7 +1547,7 @@ async def application_status_command(message: Message) -> None:
     parts = (message.text or "").split()
     if len(parts) != 3 or not parts[1].isdigit():
         await message.answer(
-            "Использование: /application <id> history|reviewed|submitted|interview|offer|rejected|withdrawn"
+            "Использование: /application <id> history|export|reviewed|submitted|interview|offer|rejected|withdrawn"
         )
         return
     status = parts[2].casefold()
@@ -1828,38 +1890,25 @@ async def prepare_callback(callback: CallbackQuery) -> None:
     user = await repo.get_user_by_chat(callback.message.chat.id)
     if not user:
         return
-    match_id = int(callback.data.split(":", 1)[1])
+    raw_id = callback.data.split(":", 1)[1]
+    if not raw_id.isdigit():
+        await callback.answer("Некорректный ID", show_alert=True)
+        return
+    match_id = int(raw_id)
     await callback.answer("Готовлю…")
     try:
-        result = await prepare_match(match_id, user.id)
-        cover = str(result.get("cover_letter") or "")
-        application = await repo.save_application(
-            user_id=user.id,
-            job_id=result["job"].id,
-            source_id=str(result.get("source") or "manual")[:64],
-            source_application_id=None,
-            external_url=str(result.get("url") or "") or None,
-            resume_id=result["resume"].id if result.get("resume") else None,
-            resume_snapshot=str(result["resume"].content or "") if result.get("resume") else "",
-            resume_external_id=(
-                str(result["resume"].external_id)[:256]
-                if result.get("resume") and result["resume"].external_id
-                else None
-            ),
-            vacancy_snapshot=snapshot_vacancy(result["job"], source_url=result.get("url")),
-            message=cover,
-            status="prepared",
-        )
-        await repo.set_match_status(match_id, "prepared")
-        preview = render_application_package(result)
-        preview += f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
+        preview = await _prepare_saved_preview(match_id, user.id)
         await callback.message.answer(
             preview,
             parse_mode="HTML",
             disable_web_page_preview=True,
         )
     except Exception as exc:
-        await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
+        issue = classify_source_error(exc, stage="processing")
+        await callback.message.answer(
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
+            parse_mode="HTML",
+        )
 
 
 @router.callback_query(F.data.startswith("apply:"))

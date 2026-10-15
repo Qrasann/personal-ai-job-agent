@@ -2301,3 +2301,14 @@ manual owner alert; explicitly enabled auto-send errors preserve the draft and
 notify the owner for manual follow-up. Only exception class is logged. Auto
 reply defaults OFF. Focused private-HH suite: 9 passed; full isolated
 PostgreSQL: 905 passed.
+## 2026-10-15 — scoped `/prepare` command
+
+Completed the previously button-only Application Package entry point as
+`/prepare <vacancy_id> [career|relocation]`. The handler requires an owned
+match, resolves optional scope against active user searches, and reuses the
+same package snapshot/status path as the callback. Added tests for both scopes,
+unmatched vacancies, unavailable scopes and sanitized errors. Focused tests:
+31 passed; full isolated PostgreSQL suite: 953 passed. The first DB attempt
+found the isolated container lacked its configured localhost port; the
+test-only container was recreated with the declared port mapping and rerun.
+No production service or database was used.

@@ -2,6 +2,19 @@
 
 ## Current development checkpoint — 2026-10-15
 
+HEAD before this increment: `5e919b3`; VERSION remains 3.5.7. Added the
+`/prepare <vacancy_id> [career|relocation]` command, reusing the existing
+package snapshot and owner-scoped match lookup. Active profile scoping,
+unmatched/invalid scope and sanitized failure behavior are covered. Focused
+handler tests: 31 passed; isolated PostgreSQL suite: 953 passed. An initial
+DB attempt failed because the pre-existing test-only container had no host
+port mapping; recreated it using the compose test config, then the full suite
+passed. Only the isolated tmpfs test DB was touched. Next: local checkpoint,
+then continue the next nonduplicative Candidate Fit or Source Intelligence
+task in ROADMAP. Keep live Telegram and legal eligibility acceptance separate.
+Proposal files remain untouched. No push, merge, release, deployment, VERSION
+or production changes.
+
 Mobility-preview increment started at `8756ae4` (source prefilter counters).
 Package review now shows existing employer support/authorization evidence and
 explicitly leaves personal eligibility unconfirmed. HTML preview stays within

@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-15 — scoped `/prepare` command
+
+Implemented `/prepare <vacancy_id> [career|relocation]` using the existing
+owner-scoped package workflow. Active-profile scoping, missing-match behavior
+and sanitized error handling have regression coverage. Focused tests: 31;
+isolated PostgreSQL suite: 953 passed. Next: continue practical Candidate Fit
+and source-quality work from ROADMAP; preserve Recruiter/Interview and v4.x
+directions. Live Telegram acceptance remains separate.
+
 ## 2026-10-15 — mobility evidence in package review
 
 Prepared packages now show the existing visa/relocation/work-permit evidence

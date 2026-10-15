@@ -1,5 +1,15 @@
 # Codex Brief
 
+## 2026-10-15 — scoped `/prepare` command
+
+Added `/prepare <vacancy_id> [career|relocation]` to create the existing
+reviewable Application Package from an owner-scoped match. Explicit scopes
+must resolve to an active search profile; missing matches and internal errors
+do not expose details. Draft storage and the match's `prepared` status reuse
+the callback flow, and users are directed to `/applications` before retrying
+after an error. Focused handler tests: 31 passed; isolated PostgreSQL suite:
+953 passed.
+
 ## 2026-10-15 — mobility evidence in package review
 
 Prepared packages now show the existing visa/relocation/work-permit evidence

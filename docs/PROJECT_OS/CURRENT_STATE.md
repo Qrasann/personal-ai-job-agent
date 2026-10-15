@@ -1,5 +1,14 @@
 # Current State
 
+## 2026-10-15 — scoped `/prepare` command
+
+`/prepare <vacancy_id> [career|relocation]` now saves the same reviewable
+Application Package as the existing preparation button. A scoped lookup is
+limited to the user's active search profile; invalid scope, unavailable
+profile or unmatched vacancy does not create a package. Errors are sanitized
+and point to `/applications` because a saved draft may exist after a partial
+failure. Focused handler tests: 31 passed; full isolated PostgreSQL: 953 passed.
+
 ## 2026-10-15 — mobility evidence in package review
 
 Prepared packages now show the existing visa/relocation/work-permit evidence
