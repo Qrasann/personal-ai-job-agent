@@ -119,6 +119,23 @@ def test_conflicting_housing_statements_remain_unknown_with_both_quotes():
     assert "Housing is not provided" in item["excerpt"]
 
 
+def test_housing_action_verb_denial_does_not_become_an_offer():
+    def housing(text):
+        job = NormalizedJob(
+            source="synthetic_fixture", source_job_id="housing-verb", title="Engineer",
+            description=text,
+        )
+        return build_relocation_evidence(job)["fields"]["housing_provided"]
+
+    denied = housing("We do not provide housing.")
+    assert denied["value"] is False
+    assert denied["excerpt"] == "do not provide housing"
+    assert housing("We cannot offer accommodation.")["value"] is False
+    assert housing("We provide housing details.")["value"] is None
+    assert housing("We do not provide housing details.")["value"] is None
+    assert housing("Housing details are provided.")["value"] is None
+
+
 def test_multiple_language_conditions_keep_independent_evidence_and_conflict_unknown():
     job = NormalizedJob(
         source="synthetic_fixture", source_job_id="language-multiple", title="Engineer",

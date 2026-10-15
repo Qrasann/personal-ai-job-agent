@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-15 — distinguish housing denial from an information offer
+
+Relocation Evidence now recognizes explicit employer verb-first refusals such as “We do not provide housing” and “We cannot offer accommodation”. It no longer reads “housing details are provided” as accommodation provision, and a refusal to provide housing details remains unknown. Synthetic regression reproduced the previous false offer. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed.
+
+
 ## 2026-10-15 — preserve conflicting housing evidence
 
 Relocation Evidence now marks contradictory explicit housing provision/refusal statements as `unknown` with `conflicting_text` confidence and both source excerpts. A single explicit provision or refusal keeps its prior classification. Synthetic regression reproduced the previous false refusal. Focused evidence/detail tests: 49 passed; full isolated PostgreSQL: 991 passed.

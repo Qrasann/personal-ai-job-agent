@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `aca6b36`. Fixed the explicit “We do not provide housing” form being interpreted as provision. Direct employer refusals are now false; “housing details” wording stays unknown. Synthetic regression was red before the fix. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed. Next: continue another independent task from the full roadmap, especially source quality, Candidate Fit or Application Package. No production, VERSION, scoring or Candidate Fact change; owner proposals remain untracked and untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `409b9a0`. Fixed Relocation Evidence treating contradictory housing assertions as a confirmed refusal. Separate explicit provision/refusal statements now produce `unknown` and `conflicting_text`, retaining both excerpts; a single refusal remains false. Focused evidence/detail tests: 49 passed; full isolated PostgreSQL: 991 passed. Next: continue Source Intelligence, Candidate Fit, Application Package or other safe roadmap work. No legal conclusion, scoring, Candidate Fact, production or external change. The two owner proposal files remain untracked and untouched.
 
 ## Current development checkpoint — 2026-10-15
