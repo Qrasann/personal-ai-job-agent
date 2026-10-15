@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — distinguish explicit authorization non-requirement
+
+Added tri-state handling for the prior-work-authorization condition: explicit
+required, explicit not required, unknown, and conflicting assertions. No legal
+eligibility result is inferred. Focused tests: 82; full isolated PostgreSQL:
+977 passed. Next: continue source-provenance gaps or return to Candidate Fit.
+
 ## 2026-10-15 — freeze Relocation Evidence in Application Package
 
 `prepare_match` carries the selected source evidence into the immutable vacancy

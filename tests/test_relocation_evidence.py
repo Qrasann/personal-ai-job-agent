@@ -111,3 +111,26 @@ def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():
     assert fields_a["citizenship_or_residence_restriction"]["interpretation"]["scope"] == "citizenship"
     assert fields_b["citizenship_or_residence_restriction"]["interpretation"]["scope"] == "residence"
     assert "Germany" in fields_b["citizenship_or_residence_restriction"]["excerpt"]
+
+
+def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_unknown():
+    def extract(description):
+        job = NormalizedJob(
+            source="synthetic_fixture", source_job_id="auth-condition",
+            title="Engineer", description=description,
+        )
+        return build_relocation_evidence(job)["fields"]["existing_work_authorization_required"]
+
+    not_required = extract("No EU work permit required.")
+    assert not_required["status"] == "confirmed"
+    assert not_required["value"] is False
+    assert "No EU work permit required" in not_required["excerpt"]
+
+    absent = extract("Linux operations role.")
+    assert absent["status"] == "unknown" and absent["value"] is None
+
+    conflicting = extract(
+        "Must already have the right to work in Germany, but right to work is not required."
+    )
+    assert conflicting["status"] == "unknown" and conflicting["value"] is None
+    assert conflicting["confidence"] == "conflicting_text"

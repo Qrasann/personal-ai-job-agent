@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — distinguish explicit work-authorization non-requirement
+
+Relocation Evidence records an explicit “work permit not required” statement
+as confirmed false; absent text remains unknown, and contradictory positive /
+negative wording is kept unknown with `conflicting_text` confidence. Focused
+evidence/support/detail tests: 82 passed; full isolated PostgreSQL: 977 passed.
+
 ## 2026-10-15 — freeze mobility evidence in Application Package
 
 Prepared vacancy snapshots now deep-copy the source-scoped Relocation Evidence

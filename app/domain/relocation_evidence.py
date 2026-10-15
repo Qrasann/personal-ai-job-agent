@@ -63,6 +63,19 @@ _LANGUAGE_TERM = re.compile(
 _LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
 _LANGUAGE_PREFERRED = re.compile(r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:желательно|приветствуется|будет плюсом)\b", re.I)
 _LANGUAGE_NEGATED = re.compile(r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b", re.I)
+_AUTH_NOT_REQUIRED = re.compile(
+    r"\b(?:no|not required|not necessary|not needed|unnecessary) "
+    r"(?:(?:existing|valid|eu|european union) )?(?:right to work|work permit|work authorization)"
+    r"(?: (?:is )?(?:required|necessary|needed))?\b|"
+    r"\b(?:right to work|work permit|work authorization) (?:is )?(?:not required|not necessary|not needed)\b|"
+    r"\b(?:разрешение на работу|право на работу) не (?:требуется|нужно|обязательно)\b",
+    re.I,
+)
+_AUTH_REQUIREMENT_TEXT = re.compile(
+    r"[^.!?;\n]{0,100}(?:must (?:already )?(?:have (?:the )?right to work|be authorized to work)|"
+    r"(?:work permit|work authorization) (?:is )?required|должны? иметь право на работу)"
+    r"[^.!?;\n]{0,100}", re.I,
+)
 
 
 def _excerpt(text: str, pattern: re.Pattern[str]) -> str | None:
@@ -140,14 +153,23 @@ def build_relocation_evidence(
         }
     fields["citizenship_or_residence_restriction"] = restriction_field
 
-    auth = existing_work_authorization_required(job.description or "")
-    auth_excerpt = _excerpt(job.description or "", re.compile(
-        r"[^.!?;\n]{0,100}(?:must (?:already )?(?:have the right to work|be authorized to work)|"
-        r"(?:work permit|work authorization) (?:is )?required|должны? иметь право на работу)"
-        r"[^.!?;\n]{0,100}", re.I
-    )) if auth else None
+    auth_text = job.description or ""
+    auth = existing_work_authorization_required(auth_text)
+    not_required = _AUTH_NOT_REQUIRED.search(auth_text)
+    auth_positive_excerpt = _excerpt(auth_text, _AUTH_REQUIREMENT_TEXT) if auth else None
+    auth_negative_excerpt = " ".join(not_required.group(0).split())[:240] if not_required else None
+    if auth and not_required:
+        auth_value = None
+        auth_excerpt = " | ".join(filter(None, (auth_positive_excerpt, auth_negative_excerpt)))[:480]
+        auth_confidence = "conflicting_text"
+    elif auth:
+        auth_value, auth_excerpt, auth_confidence = True, auth_positive_excerpt, "explicit_text"
+    elif not_required:
+        auth_value, auth_excerpt, auth_confidence = False, auth_negative_excerpt, "explicit_text"
+    else:
+        auth_value, auth_excerpt, auth_confidence = None, None, "unknown"
     fields["existing_work_authorization_required"] = record(
-        True if auth else None, auth_excerpt, "explicit_text" if auth else "unknown"
+        auth_value, auth_excerpt, auth_confidence
     )
 
     for field, key in (("visa_sponsorship", "visa_sponsorship"), ("relocation_assistance", "relocation")):

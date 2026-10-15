@@ -2420,3 +2420,10 @@ including source identity, excerpts, confidence and capture time. The Package
 export reads this saved evidence after later source refresh; HH snapshots share
 the path. No database migration. Focused package/service/HH tests: 20 passed;
 repeat-source PostgreSQL regression passed; full isolated PostgreSQL: 976.
+
+## 2026-10-15 — explicit work-authorization non-requirement
+
+Prior work authorization now distinguishes explicit required/not-required
+statements from missing evidence. Contradictory statements remain unknown and
+are tagged as conflicting. Focused tests: 82 passed; isolated PostgreSQL:
+977 passed.

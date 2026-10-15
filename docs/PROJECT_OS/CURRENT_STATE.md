@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — explicit prior-authorization negative evidence
+
+The evidence packet now distinguishes an explicit statement that existing
+work authorization is not required from a missing condition; contradictory
+source statements remain unknown and carry a conflict label. Focused tests:
+82; isolated PostgreSQL: 977 passed.
+
 ## 2026-10-15 — immutable mobility evidence in prepared packages
 
 Application Package vacancy snapshots now include a deep copy of the selected

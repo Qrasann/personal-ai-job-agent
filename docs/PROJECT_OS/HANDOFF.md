@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `b3f99f2`. Prior work-authorization evidence now preserves
+explicit negative statements as confirmed `false`, leaves missing statements
+unknown and marks contradictory positive/negative source text as a conflict.
+Focused tests: 82 passed; full isolated PostgreSQL: 977 passed; compileall,
+diff check and secret scan passed. Next: continue conservative
+Relocation-first/source-provenance work or resume Candidate Fit. Application
+Package now snapshots this evidence at preparation time. No legal judgment,
+scoring change, or production action. Isolated DB localhost:55432/jobagent_test.
+Proposals untouched.
+
 Started from HEAD `f5c1d21`. Application Package vacancy snapshots now deep-copy
 the chosen source's `relocation_evidence_v1`; package exports serialize that
 saved snapshot and do not query mutable JobSourceRef evidence. `/prepare`
