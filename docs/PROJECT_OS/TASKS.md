@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — consistent required-experience gating completed
+
+- [x] Reproduce a three-year minimum plus preferred 5+ years incorrectly marked `skip`.
+- [x] Reuse required-year extraction for high-experience gating; preserve the existing 3–4-year stretch boundary.
+- [x] Verify required more-than-five remains gated and preferred-only 5+ remains ungated. Full isolated PostgreSQL: 1000 passed.
+- [ ] Next: independent Source Intelligence quality or Relocation-first evidence utility, then resume broader roadmap.
+
 ## 2026-10-15 — selected provider posting identity in packages completed
 
 Saved packages now retain the selected source ID and provider posting ID, with source-specific HH draft text; focused 67 and full isolated PostgreSQL suite passed. Next: choose an independent Candidate Fit or source quality improvement with realistic fixtures, then continue Application Package and Relocation-first.

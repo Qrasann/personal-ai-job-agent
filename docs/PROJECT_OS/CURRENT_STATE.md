@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — align experience fit and seniority gating
+
+Senior-level title policy is unchanged. Numerical high-experience gating now uses required years from the Candidate Fit parser, so a preferred 5+ band cannot cause a skip. The prior 3–4-year stretch boundary remains. Synthetic regression was red before; full isolated PostgreSQL: 1000 passed.
+
 ## 2026-10-15 — freeze selected provider posting identity in packages
 
 New Application Package vacancy snapshots retain the selected source ID and provider posting ID alongside the already frozen text, URL and relocation evidence. Exports disclose missing identity for older packages. The HH private path now drafts from its source-specific posting text. Focused tests: 67 passed; full isolated PostgreSQL suite passed. No live applications were sent.

@@ -143,7 +143,11 @@ def _required_experience_years(job: Job) -> int | None:
         r"\b(\d+)\s*[–—-]\s*\d+\s*years?\b",
         r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(\d+)\+?\s*(?:лет|года|год)",
         r"(?:at least|minimum(?:\s+of)?)\s+(\d+)\s+years?",
+        r"(?:more than|over)\s+(\d+)\s+years?",
+        r"(?:более|свыше)\s+(\d+)\s*(?:лет|года|год)",
         r"\b(\d+)\+?\s+years?(?:\s+of)?\s+experience\b",
+        r"\b(\d+)\+\s+years?\b",
+        r"\b(\d+)[–—-]\d+\s*(?:лет|года|год)\b",
     )
     preferred_markers = re.compile(
         r"\b(?:preferred|desirable|desired|nice[- ]to[- ]have|bonus|plus)\b|"
@@ -228,13 +232,10 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     if any(re.search(pattern, title) for pattern in hard_patterns):
         return "senior", "senior/lead уровень в названии"
 
-    very_high_experience = (
-        r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(?:5|6|7|8|9|10)\+?\s*(?:лет|года)",
-        r"(?:5|6|7|8|9|10)\+\s*years?",
-        r"(?:more than|at least)\s+(?:5|6|7|8|9|10)\s+years?",
-        r"более\s+(?:5|6)\s+лет",
-    )
-    if any(re.search(pattern, text) for pattern in very_high_experience):
+    # Use the same required-year extraction as candidate experience fit. A
+    # preferred 5+ year band must not override an actual three-year minimum.
+    required_years = _required_experience_years(job)
+    if required_years is not None and required_years >= 5:
         return "high_experience", "требование 5+ лет/высокого опыта"
 
     stretch_experience = (
@@ -242,11 +243,12 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
         r"(?:3|4)\+\s*years?",
         r"(?:at least)\s+(?:3|4)\s+years?",
         # HH commonly exposes the broad platform band "3–6 лет" on cards.
-        # Treat it as a stretch, not as an explicit 5+ requirement.
         r"(?:опыт[^\n]{0,30})?3[–—-]6\s*лет",
         r"3[–—-]6\s*years?",
     )
-    if any(re.search(pattern, text) for pattern in stretch_experience):
+    if required_years is not None and required_years >= 3 and any(
+        re.search(pattern, text) for pattern in stretch_experience
+    ):
         return "stretch", "требуется около 3–4 лет опыта"
 
     return None, None

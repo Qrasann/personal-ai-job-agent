@@ -1,3 +1,7 @@
+## 2026-10-15 — align experience fit and seniority gating
+
+Candidate Fit previously marked a three-year requirement plus preferred 5+ years as `skip` through its separate seniority rule, despite correctly extracting the three-year minimum. Seniority now uses the same required-year parser; preferred bands do not become high-experience gates. The existing 3–4-year stretch boundary stays intact. Full isolated PostgreSQL: 1000 passed.
+
 ## 2026-10-15 — freeze selected provider posting identity in packages
 
 New Application Package vacancy snapshots retain the selected source ID and provider posting ID alongside the already frozen text, URL and relocation evidence. Exports disclose missing identity for older packages. The HH private path now drafts from its source-specific posting text. Focused tests: 67 passed; full isolated PostgreSQL suite passed. No live applications were sent.

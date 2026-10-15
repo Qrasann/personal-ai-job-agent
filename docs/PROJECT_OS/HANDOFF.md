@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `b289afe`. Candidate Fit high-experience gating now reuses required-year extraction, preventing a preferred 5+ band from marking a three-year job `skip`. Senior title policy and the existing stretch boundary remain. Red regression and additional preferred-only/required-five fixtures; full isolated PostgreSQL: 1000 passed. Next: independent Source Intelligence quality or Relocation-first evidence utility, then wider roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `ccae426`. New Application Package snapshots and exports retain the selected source ID and provider posting ID. The mocked HH private path uses its selected source posting text; no live application occurred. Focused 67 passed; full isolated PostgreSQL suite exited 0. Legacy packages disclose unrecorded IDs without backfill. Next: independent Candidate Fit/source quality increment, then full roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

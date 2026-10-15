@@ -1,3 +1,7 @@
+## 2026-10-15 — align experience fit and seniority gating
+
+Red regression: required minimum three years plus preferred 5+ years was marked `skip` by a separate seniority rule. High-experience gating now uses the same required-year parser as Candidate Fit; preferred-only years stay ungated, while explicit more-than-five remains gated. First full run exposed a changed `Minimum 3 years` technical score; retaining the old stretch boundary resolved it. Final full isolated PostgreSQL: 1000 passed.
+
 ## 2026-10-15 — freeze selected provider posting identity in packages
 
 Added source ID and provider posting ID to new immutable vacancy snapshots and their exports. Mocked HH path now uses its selected source posting rather than canonical cross-source text for cover drafting. Focused 67 and full isolated PostgreSQL suite passed. No live applications or external actions.
