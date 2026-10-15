@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — honor skill-specific preferred phrases
+
+Added narrow English/Russian per-skill preference wording under broad
+Requirements headings. A plus-marked technology is preferred, while separate
+must-haves keep their importance. Focused tests: 66; full isolated PostgreSQL:
+986 passed.
+
 ## 2026-10-15 — disclose missing historical evidence snapshots
 
 Legacy Application Package previews/exports now identify missing structured

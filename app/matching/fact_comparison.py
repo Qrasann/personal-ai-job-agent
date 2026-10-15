@@ -188,13 +188,40 @@ def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
     return False
 
 
+def _explicitly_preferred(text: str, spec: SkillSpec) -> bool:
+    """Recognize a narrow skill-local optional/preferred phrase."""
+    normalized = _normalize_text(text)
+    for alias in spec.aliases:
+        target = re.escape(_normalize_text(alias)).replace(r"\ ", r"\s+")
+        patterns = (
+            rf"\b{target}(?: (?:experience|knowledge))? (?:is )?(?:a )?(?:plus|bonus|preferred|desirable|optional|nice to have)\b",
+            rf"\b{target}(?: (?:experience|knowledge))? (?:would be )?(?:a )?plus\b",
+            rf"\b{target} (?:будет плюсом|приветствуется|желательно|является преимуществом)\b",
+            rf"\b(?:preferred|desirable|optional|nice to have|bonus|будет плюсом|желательно|приветствуется) (?:experience|knowledge)? (?:with |in )?{target}\b",
+        )
+        if any(re.search(pattern, normalized) for pattern in patterns):
+            return True
+    return False
+
+
 def _required_skill_in_section(text: str, spec: SkillSpec) -> bool:
     # Clause boundaries prevent a negated skill from masking another explicit
     # requirement elsewhere in the same heading.
     for clause in re.split(r"[\n.!?;]+", text or ""):
-        if _matches_skill(clause, spec) and not _explicitly_not_required(clause, spec):
+        if (
+            _matches_skill(clause, spec)
+            and not _explicitly_not_required(clause, spec)
+            and not _explicitly_preferred(clause, spec)
+        ):
             return True
     return False
+
+
+def _preferred_skill_in_section(text: str, spec: SkillSpec) -> bool:
+    return any(
+        _matches_skill(clause, spec) and _explicitly_preferred(clause, spec)
+        for clause in re.split(r"[\n.!?;]+", text or "")
+    )
 
 
 _REQUIRED_HEADINGS = (
@@ -377,7 +404,7 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
     for spec in SKILLS:
         if _required_skill_in_section(required_text, spec):
             result[spec.name] = "required"
-        elif _matches_skill(sections["preferred"], spec):
+        elif _preferred_skill_in_section(required_text, spec) or _matches_skill(sections["preferred"], spec):
             result[spec.name] = "preferred"
         elif _matches_skill(text, spec):
             result[spec.name] = "unknown"

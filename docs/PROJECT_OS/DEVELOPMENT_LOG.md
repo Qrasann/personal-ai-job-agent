@@ -2473,3 +2473,10 @@ Targeted integration test: 1 passed; full suite at parent checkpoint: 984.
 Application Package preview and export now clearly say when older records
 lack a structured source-evidence snapshot; current data is not backfilled.
 Focused package tests: 12 passed; full isolated PostgreSQL: 984 passed.
+
+## 2026-10-15 — respect skill-specific preferred language
+
+Within a broad Requirements heading, supported direct English/Russian plus
+phrasing now classifies that skill as preferred, without downgrading distinct
+mandatory skills or changing cross-section required priority. Focused tests:
+66 passed; isolated PostgreSQL: 986 passed.

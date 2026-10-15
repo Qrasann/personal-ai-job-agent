@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — honor skill-specific preference wording
+
+Within a broad Requirements section, direct “Kubernetes is a plus” and
+“Kubernetes будет плюсом” phrases now classify that skill as preferred while
+independent mandatory skills stay required. Existing cross-section required
+priority is unchanged. Focused Fit/score tests: 66 passed; full isolated
+PostgreSQL: 986 passed.
+
 ## 2026-10-15 — disclose unavailable historical mobility snapshots
 
 Older Application Package previews and exports now state when no

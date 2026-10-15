@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `d8cfee1`. Candidate Fit now classifies direct skill-local
+“is a plus” / “будет плюсом” wording under Requirements as preferred; separate
+positive requirements remain required, and the established cross-section
+priority is unchanged. Focused Fit/score tests: 66 passed; full isolated
+PostgreSQL: 986 passed; compileall, diff check and secret scan passed. Next:
+continue practical Candidate Fit or Source Intelligence. No Candidate Facts or
+production changes. Test DB localhost:55432; proposals untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Started from HEAD `0fff52e`. Legacy Application Package previews and exports
 now explicitly disclose when no structured mobility evidence was saved and do
 not backfill current source evidence into past records. Focused package/export

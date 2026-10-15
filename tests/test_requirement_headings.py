@@ -46,3 +46,19 @@ def test_inline_skill_level_negation_does_not_suppress_other_required_skill():
     )
     assert importance["Kubernetes"] == "unknown"
     assert importance["Docker"] == "required"
+
+
+def test_skill_specific_plus_language_in_requirements_heading_is_preferred():
+    importance = extract_requirement_importance(
+        "Requirements: Kubernetes is a plus. Terraform is required."
+    )
+    assert importance["Kubernetes"] == "preferred"
+    assert importance["Terraform"] == "required"
+
+
+def test_russian_skill_specific_preference_overrides_broad_requirements_heading():
+    importance = extract_requirement_importance(
+        "Требования: Kubernetes будет плюсом. Docker обязателен."
+    )
+    assert importance["Kubernetes"] == "preferred"
+    assert importance["Docker"] == "required"

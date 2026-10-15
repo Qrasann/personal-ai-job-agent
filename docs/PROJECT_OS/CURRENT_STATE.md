@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — skill-local preferred markers
+
+Candidate Fit recognizes a narrow per-skill plus/preferred phrase inside a
+Requirements heading and does not promote that skill to required. Unrelated
+mandatory skills remain required. Focused tests: 66; isolated PostgreSQL: 986.
+
 ## 2026-10-15 — disclose missing evidence in legacy packages
 
 Package previews and exports identify when a historical record lacks a
