@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `a632d80`. Vacancy detail cards now stay under 3900 UTF-16 units
+even with all eight relocation fields and a large source description. A red
+synthetic regression measured 6467 before the fix; the renderer now trims only
+description content and retains evidence, scores and original link. Full
+isolated PostgreSQL: 988 passed; compileall, diff check and secret scan passed.
+Next: continue Source Intelligence/Relocation Evidence or Candidate Fit.
+Production untouched; proposals remain untracked.
+
+## Current development checkpoint — 2026-10-15
+
 Starting from HEAD `a91d8c2`, extended Candidate Fit negation recognition to
 include “No Kubernetes required”. Separate explicit requirements remain
 unchanged. Focused Fit/score tests: 67 passed; full isolated PostgreSQL: 987

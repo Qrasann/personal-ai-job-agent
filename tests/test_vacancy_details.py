@@ -420,6 +420,43 @@ def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns(
     assert "(fixture; 2026-10-15T12:30:00+00:00; unknown)" in text
 
 
+def test_large_vacancy_with_all_evidence_stays_below_telegram_message_limit():
+    job = SimpleNamespace(
+        id=47, title="Engineer", company="Fixture Co", salary_from=None,
+        salary_to=None, salary_currency=None, description="😀" * 12000,
+        city="Berlin", country="DE", work_mode="onsite", published_at=None,
+        relocation=None, visa_sponsorship=None,
+    )
+    match = SimpleNamespace(
+        total_score=70, technical_score=70, geography_score=60,
+        salary_score=55, relocation_score=50,
+        recommendation_scores={"growth": {"score": 50, "evidence": "x" * 300}}, reason="x" * 500,
+    )
+    captured = "2026-10-15T12:30:00+00:00"
+    fields = {}
+    for name in (
+        "work_country", "citizenship_or_residence_restriction",
+        "existing_work_authorization_required", "visa_sponsorship",
+        "relocation_assistance", "housing_provided", "language_requirement",
+        "start_timing",
+    ):
+        fields[name] = {
+            "status": "confirmed", "value": "x" * 100,
+            "source_id": "synthetic_fixture", "source_url": "https://example.invalid",
+            "excerpt": "x" * 240, "captured_at": captured,
+            "confidence": "explicit_text",
+        }
+    text = render_job_details({
+        "job": job, "match": match, "source": "synthetic_fixture",
+        "url": "https://example.invalid", "details": {},
+        "relocation_evidence": {"captured_at": captured, "fields": fields},
+    })
+    assert len(text.encode("utf-16-le")) // 2 <= 3900
+    assert "Условия с provenance источника" in text
+    assert "Оценка Job Agent" in text
+    assert "Открыть оригинал вакансии" in text
+
+
 def test_remote_job_details_show_source_geography_without_claiming_work_eligibility():
     match = SimpleNamespace(
         total_score=70,

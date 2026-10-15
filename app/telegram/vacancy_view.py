@@ -32,6 +32,28 @@ def _escape_clipped(value: str, limit: int) -> str:
     return html.escape(value[:low] + "…")
 
 
+def _escape_with_utf16_limit(value: str, units: int) -> str:
+    """Escape text without exceeding Telegram's UTF-16 entity length budget."""
+    value = value or ""
+    if units <= 0:
+        return ""
+
+    def length(text: str) -> int:
+        return len(text.encode("utf-16-le")) // 2
+
+    if length(html.escape(value)) <= units:
+        return html.escape(value)
+    low, high = 0, len(value)
+    while low < high:
+        middle = (low + high + 1) // 2
+        candidate = html.escape(value[:middle] + "…")
+        if length(candidate) <= units:
+            low = middle
+        else:
+            high = middle - 1
+    return html.escape(value[:low] + "…") if low else ""
+
+
 def _location(job, details: dict) -> str:
     return str(details.get("city") or job.city or job.country or "не указана")
 
@@ -211,19 +233,19 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
                     else "неоднозначная формулировка источника"
                 )
                 if excerpt:
-                    detail += " — “" + html.escape(excerpt[:180]) + "”"
+                    detail += " — “" + html.escape(excerpt[:100]) + "”"
             else:
                 detail = "неизвестно по доступному тексту"
         elif key == "work_country":
-            detail = html.escape(str(value or "неизвестно")) + " (сообщено источником)"
+            detail = html.escape(str(value or "неизвестно")[:100]) + " (сообщено источником)"
             if excerpt and excerpt != str(value or ""):
-                detail += " — “" + html.escape(excerpt[:180]) + "”"
+                detail += " — “" + html.escape(excerpt[:100]) + "”"
         elif key in {"visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"}:
             detail = "да" if value is True else "нет" if value is False else "неизвестно"
         elif key == "housing_provided":
             detail = "предоставляется" if value is True else "явно не предоставляется" if value is False else "неизвестно"
             if excerpt:
-                detail += " — “" + html.escape(excerpt[:180]) + "”"
+                detail += " — “" + html.escape(excerpt[:100]) + "”"
         elif key == "language_requirement":
             interpretation = item.get("interpretation") if isinstance(item.get("interpretation"), dict) else {}
             requirements = interpretation.get("requirements")
@@ -246,7 +268,7 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
             else:
                 detail = "язык не определён · условие не уточнено"
             if excerpt:
-                detail += " — “" + html.escape(excerpt[:180]) + "”"
+                detail += " — “" + html.escape(excerpt[:100]) + "”"
         elif key == "citizenship_or_residence_restriction":
             interpretation = item.get("interpretation") if isinstance(item.get("interpretation"), dict) else {}
             scope = str(interpretation.get("scope") or "unspecified")
@@ -257,7 +279,7 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
                 "unspecified": "требует ручной проверки",
             }.get(scope, "требует ручной проверки")
             if excerpt:
-                detail += " — “" + html.escape(excerpt[:180]) + "”"
+                detail += " — “" + html.escape(excerpt[:100]) + "”"
         elif key == "start_timing":
             interpretation = item.get("interpretation") if isinstance(item.get("interpretation"), dict) else {}
             kind = str(interpretation.get("kind") or "observed_text")
@@ -270,14 +292,14 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
                 "observed_text": "фрагмент для проверки",
             }.get(kind, "фрагмент для проверки")
             if excerpt:
-                detail += " — “" + html.escape(excerpt[:180]) + "”"
+                detail += " — “" + html.escape(excerpt[:100]) + "”"
         else:
-            detail = "фрагмент для проверки: “" + html.escape(excerpt[:180]) + "”"
+            detail = "фрагмент для проверки: “" + html.escape(excerpt[:100]) + "”"
         if key in {"citizenship_or_residence_restriction", "visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"} and excerpt:
-            detail += " — “" + html.escape(excerpt[:180]) + "”"
-        source_id = html.escape(str(item.get("source_id") or "unknown")[:64])
+            detail += " — “" + html.escape(excerpt[:100]) + "”"
+        source_id = html.escape(str(item.get("source_id") or "unknown")[:40])
         item_date = html.escape(str(item.get("captured_at") or captured)[:25])
-        confidence = html.escape(str(item.get("confidence") or "unknown")[:32])
+        confidence = html.escape(str(item.get("confidence") or "unknown")[:24])
         lines.append(
             f"• {html.escape(labels[key])}: {detail} "
             f"<i>({source_id}; {item_date}; {confidence})</i>"
@@ -487,7 +509,16 @@ def render_job_details(payload: dict) -> str:
     if url:
         lines.extend(["", f'<a href="{html.escape(url, quote=True)}">🔗 Открыть оригинал вакансии</a>'])
 
-    return "\n".join(lines)
+    rendered = "\n".join(lines)
+    rendered_units = len(rendered.encode("utf-16-le")) // 2
+    if rendered_units > 3900 and description:
+        escaped_description = html.escape(description)
+        fixed = rendered.replace(escaped_description, "", 1)
+        target = 3900 - len(fixed.encode("utf-16-le")) // 2
+        rendered = rendered.replace(
+            escaped_description, _escape_with_utf16_limit(description, target), 1
+        )
+    return rendered
 
 
 def render_fact_comparison(payload: dict) -> str:

@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — keep evidence-rich detail cards within Telegram limits
+
+Vacancy detail rendering now trims the long description when needed to keep
+the full card under 3900 UTF-16 units while retaining relocation evidence,
+scores and the source link. A synthetic max-length description reproduced
+6467 units before the fix. Full isolated PostgreSQL: 988 passed.
+
 ## 2026-10-15 — recognize short explicit non-required wording
 
 Added the short “No Kubernetes required” form to the Candidate Fit negation

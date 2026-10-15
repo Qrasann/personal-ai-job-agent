@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — cap vacancy detail cards with mobility evidence
+
+Large posting plus all eight mobility signals reproduced a Telegram message
+overrun. Added a UTF-16-aware ceiling and dynamically shortens only the
+description. Evidence, scoring and source link stay visible. Full isolated
+PostgreSQL: 988 passed.
+
 ## 2026-10-15 — recognize short non-required skill wording
 
 Extended the explicit technical-skill negation parser to cover “No Kubernetes

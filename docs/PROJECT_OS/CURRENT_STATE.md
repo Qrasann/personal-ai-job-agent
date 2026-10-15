@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — bound evidence-rich Telegram vacancy details
+
+Detail cards enforce a 3900 UTF-16-unit budget; only the long description is
+trimmed so evidence, score and source link remain visible. Full isolated
+PostgreSQL: 988 passed.
+
 ## 2026-10-15 — short non-required skill statement
 
 Candidate Fit now keeps “No Kubernetes required” as unknown rather than

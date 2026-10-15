@@ -2485,3 +2485,10 @@ mandatory skills or changing cross-section required priority. Focused tests:
 
 Candidate Fit now also recognizes “No Kubernetes required” as not mandatory
 under a Requirements heading. Focused tests: 67 passed; PostgreSQL: 987 passed.
+
+## 2026-10-15 — bound evidence-rich vacancy detail cards
+
+A synthetic long description with all mobility fields reproduced a 6467-unit
+Telegram card. Rendering now caps UTF-16 length at 3900 by trimming the
+description only; source evidence, score and link remain. Full isolated
+PostgreSQL: 988 passed.
