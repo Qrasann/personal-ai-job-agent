@@ -121,6 +121,26 @@ def test_source_dashboard_reports_publication_date_field_coverage_without_stalen
     assert "просроч" not in line
 
 
+def test_dashboard_keeps_preference_exclusions_distinct_from_scoring_and_errors():
+    sources = {}
+    aggregate_source(sources, "eures", {
+        "status": "success", "found": 0, "discovered": 3, "preference_filtered": 3,
+    })
+    zero_yield = render_source_summary("eures", sources["eures"])
+    assert "0 вакансий" in zero_yield
+    assert "получено до настроек: 3" in zero_yield
+    assert "исключено настройками: 3" in zero_yield
+    aggregate_source(sources, "eures", {
+        "status": "success", "found": 2, "discovered": 2, "filtered": 1,
+    })
+    line = render_source_summary("eures", sources["eures"])
+    assert "получено до настроек: 5" in line
+    assert "исключено настройками: 3" in line
+    assert "отфильтровано: 1" in line
+    assert "ошибка" not in line
+    assert "получено до настроек" not in render_source_summary("eures", {"found": 2})
+
+
 def test_dense_dashboard_is_bounded_without_breaking_html_entities():
     import html
     from app.search.source_summary import render_source_dashboard

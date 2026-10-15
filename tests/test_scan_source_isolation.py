@@ -168,6 +168,43 @@ def test_scan_summary_counts_nonempty_source_publication_date_fields(monkeypatch
     assert info["publication_date_missing"] == 2
 
 
+def test_source_summary_explains_zero_relocation_yield_without_losing_career_results(monkeypatch):
+    class Source:
+        source_id = name = "remoteok"
+
+        async def discover(self, _context):
+            return [NormalizedJob(
+                source="remoteok", source_job_id="domestic", title="DevOps",
+                country="RU", work_mode="onsite",
+            )]
+
+    configure_scan(monkeypatch, {"remoteok": Source})
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={
+            "queries": ["DevOps"], "search_strategy": "relocation_first",
+        }))
+        return user, profile, searches
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+    ingest = AsyncMock(return_value={"processed": 1})
+    monkeypatch.setattr(services, "ingest_and_match", ingest)
+    monkeypatch.setattr(services, "notify_chat", AsyncMock())
+    summary = asyncio.run(services.scan_for_user(object(), 7))
+
+    career = summary["searches"]["11"]["sources"]["remoteok"]
+    relocation = summary["searches"]["12"]["sources"]["remoteok"]
+    assert (career["discovered"], career["found"], career["preference_filtered"]) == (1, 1, 0)
+    assert (relocation["discovered"], relocation["found"], relocation["preference_filtered"]) == (1, 0, 1)
+    assert relocation["status"] == "success"
+    assert summary["sources"]["remoteok"]["discovered"] == 2
+    assert summary["sources"]["remoteok"]["preference_filtered"] == 1
+    ingest.assert_awaited_once()
+    assert ingest.await_args.kwargs["only_search_profile_id"] == 11
+
+
 def test_partial_source_failures_are_preserved_in_scan_summary(monkeypatch):
     class Eures:
         source_id = name = "eures"
@@ -522,6 +559,8 @@ def test_prefilter_failure_keeps_other_jobs_and_classifies_processing(monkeypatc
     assert summary['processed']==1
     assert info['status']=='partial'
     assert info['processing_errors']==1
+    assert info['discovered'] == 2
+    assert info['preference_filtered'] == 0
     assert info['processed']==info['qualified']==1
     assert info['diagnostics'][0]['stage']=='processing'
     assert 'private field' not in str(summary)

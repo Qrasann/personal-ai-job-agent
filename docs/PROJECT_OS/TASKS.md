@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — source yield before preference filters
+
+Per-source attempts now retain received-result and preference-exclusion counts.
+The dashboard distinguishes an empty source from results removed by settings,
+separately from scoring filters and processing errors. Counts cover adapter
+results per profile/attempt (including cache reuse), not unique global jobs.
+Focused source/preferences tests: 91; isolated PostgreSQL: 943 passed.
+
 ## 2026-10-15 — serialize manual application status changes
 
 A deterministic isolated PostgreSQL regression reproduced duplicate status

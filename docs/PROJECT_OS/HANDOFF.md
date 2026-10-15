@@ -2,16 +2,17 @@
 
 ## Current development checkpoint — 2026-10-15
 
-Started concurrency increment at `a371b9a` (immutable vacancy package snapshot,
-schema v7). Simultaneous repeated manual status changes now append one event;
-a real PostgreSQL lock-controlled test reproduced the old duplicate. Focused
-DB/handler tests: 32; full isolated PostgreSQL: 941 passed. Candidate Fit overlap
-fix is also committed. VERSION stays 3.5.7, latest formal release v3.5.6.
-Next: source counters before preference filters to explain zero-yield scans,
-then Relocation-first evidence in package review. Keep Recruiter/Interview/v4.x
-on the roadmap. Test DB is localhost:55432/tmpfs; production remains untouched.
-Both proposals are preserved; no push, release, deployment or VERSION change.
-Live Telegram and legal eligibility remain separate evidence gates.
+Source yield increment started at `c0adcd9` (serialized application history).
+Source attempts now count received results before preferences and separate
+preference exclusions from scoring/error counts. A two-profile regression
+explains zero Relocation-first yield while preserving Career-first results.
+Focused tests: 91; full isolated PostgreSQL: 943 passed. Prior commits include
+Candidate Fit overlap correction and immutable package snapshots (schema v7).
+VERSION stays 3.5.7, latest formal release v3.5.6. Next: show existing mobility
+evidence during package preparation, preserving unknowns and message bounds.
+Keep the complete Recruiter/Interview/v4.x roadmap. Both proposals are untouched;
+DB tests use localhost:55432/tmpfs only. No push, release, deployment, VERSION
+or production change. Live Telegram/eligibility remain separate evidence gates.
 
 ## Previous implementation checkpoint — 2026-10-15
 

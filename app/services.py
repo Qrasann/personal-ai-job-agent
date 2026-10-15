@@ -514,12 +514,16 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                     add_error(diagnostic("SOURCE_PARTIAL_RESULTS", action="continue_partial", count=partial_failures))
                 # Isolate malformed jobs before scoring; valid jobs from the same
                 # response must still be processed and retained.
+                info["discovered"] = len(jobs)
+                info["preference_filtered"] = 0
                 eligible = []
                 processing_errors = 0
                 for job in jobs:
                     try:
                         if vacancy_allowed(job, settings_map, current_country=user.current_country):
                             eligible.append((job_priority(job, settings_map, current_country=user.current_country), job))
+                        else:
+                            info["preference_filtered"] += 1
                     except Exception as exc:
                         processing_errors += 1
                         add_error(classify_source_error(exc, stage="processing", action="continue_partial"))
