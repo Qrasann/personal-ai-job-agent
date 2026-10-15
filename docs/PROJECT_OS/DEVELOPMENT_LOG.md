@@ -1,3 +1,7 @@
+## 2026-10-15 — source-specific posting snapshot for review and preparation
+
+Each newly ingested or refreshed `JobSourceRef` now stores its own normalized posting fields beside evidence and verified detail cache. Vacancy details, Candidate Fit review and `/prepare` use the selected source's title, description and structured fields; already cached full HH details take precedence for drafting. A synthetic cross-source regression reproduced a Jobs.ge package using an HR.ge description before the change. PostgreSQL regression confirms same-source refresh updates its own snapshot and a second source keeps separate text. Existing refs without a normalized snapshot retain the canonical fallback until rediscovery. Full isolated PostgreSQL: 996 passed.
+
 ## 2026-10-15 — align Application Package with displayed source
 
 `/prepare` and vacancy details now use one source-reference preference order. A synthetic shared Job with `hr_ge` and `jobs_ge` previously displayed one source but prepared the other source's URL and mobility evidence; the regression now keeps the package source aligned with the detail view. This selects a deterministic review source, not a claim about which feed originally created the match. Focused package/detail tests: 38 passed; full isolated PostgreSQL: 994 passed.

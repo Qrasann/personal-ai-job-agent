@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `0f87785`. Added per-source normalized posting snapshots at `upsert_job` and use the selected source's fields in vacancy details, Candidate Fit review and `/prepare`; verified HH detail cache takes precedence for draft text. A red synthetic regression showed the selected Jobs.ge evidence paired with an HR.ge description. Isolated PostgreSQL regression confirms snapshots refresh per source without mixing cross-source text or losing the details cache. Full isolated PostgreSQL: 996 passed. Older refs without snapshots retain canonical fallback until rediscovery; no historical source content is invented. Next: verify package snapshot/export and source-selection edge cases, then Candidate Fit and broader roadmap. No production, VERSION, deployment, push or external actions. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `bd297f3`. Fixed `/prepare` selecting a different source reference from vacancy details when a deduplicated Job has both `hr_ge` and `jobs_ge` records. Both paths now use the same deterministic order, so the package URL and mobility evidence match the reviewed source. Synthetic regression was red before the fix. Focused package/detail tests: 38 passed; full isolated PostgreSQL: 994 passed. This does not identify the original discovery source of a JobMatch. Next: continue Candidate Fit, Source Intelligence, Application Package or the remaining full roadmap. No production, external action or VERSION change. Proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

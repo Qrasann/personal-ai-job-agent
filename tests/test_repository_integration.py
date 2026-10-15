@@ -710,6 +710,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert created is True
         first_ref = await repo.source_ref(job.id, "refresh-source")
         saved_evidence = first_ref.raw["relocation_evidence_v1"]
+        assert first_ref.raw["normalized_posting_v1"]["description"] == "Old summary"
         application = await repo.save_application(
             user_id=user.id, job_id=job.id, source_id="refresh-source",
             source_application_id=None, external_url=original.url, resume_id=None,
@@ -749,6 +750,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert latest_ref.url == refreshed.url
         assert latest_ref.raw["listing_revision"] == "new"
         assert latest_ref.raw["new_provenance"] == "present in latest response"
+        assert latest_ref.raw["normalized_posting_v1"]["description"] == refreshed.description
         assert latest_ref.raw["details_cache_v1"] == {"description": "Verified full details"}
         updated_evidence = latest_ref.raw["relocation_evidence_v1"]
         assert updated_evidence["fields"]["work_country"]["value"] == "GE"
@@ -792,6 +794,9 @@ async def _repeated_source_upsert_flow(monkeypatch):
         ))
         assert cross_source.id == job.id
         assert cross_source_created is False
+        second_ref = await repo.source_ref(job.id, "second-board")
+        assert second_ref.raw["normalized_posting_v1"]["description"] == "Cross-post"
+        assert (await repo.source_ref(job.id, "refresh-source")).raw["normalized_posting_v1"]["description"] == "Another refreshed summary"
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)

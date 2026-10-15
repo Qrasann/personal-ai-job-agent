@@ -22,6 +22,7 @@ from app.database.models import (
 )
 from app.domain.jobs import NormalizedJob
 from app.domain.relocation_evidence import build_relocation_evidence
+from app.domain.source_posting import snapshot_source_posting
 from app.candidates.fact_types import normalize_experience_type
 
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
@@ -272,6 +273,7 @@ async def set_user_country(user_id: int, code: str | None) -> None:
 async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
     async with SessionLocal() as session:
         incoming_raw = dict(job.raw or {})
+        incoming_raw["normalized_posting_v1"] = snapshot_source_posting(job)
         incoming_raw["relocation_evidence_v1"] = build_relocation_evidence(
             job, captured_at=datetime.now(timezone.utc)
         )

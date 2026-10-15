@@ -162,27 +162,61 @@ def test_prepare_match_uses_display_source_when_georgia_refs_share_a_job(monkeyp
         user_id=8, job_id=25, profile_id=3, resume_id=None,
     )))
     monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=SimpleNamespace(
-        id=25, title="Engineer", company="Example", description="Linux",
+        id=25, title="Engineer", company="Example", description="HR-only Linux",
     )))
     monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
     monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[]))
     refs = {
         source_id: SimpleNamespace(
             source_id=source_id, url=f"https://example.invalid/{source_id}",
-            raw={"relocation_evidence_v1": {"source": source_id}},
+            raw={
+                "relocation_evidence_v1": {"source": source_id},
+                "normalized_posting_v1": {
+                    "schema": "normalized_posting_v1",
+                    "title": "Engineer", "company": "Example",
+                    "description": f"{source_id} Docker requirements",
+                },
+            },
         )
         for source_id in ("hr_ge", "jobs_ge")
     }
     async def source_ref(_job_id, source_id=None):
         return refs.get(source_id) if source_id else refs["hr_ge"]
     monkeypatch.setattr(services.repo, "source_ref", source_ref)
-    monkeypatch.setattr(services, "make_cover_letter", lambda *_: "Draft")
+    monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
 
     result = asyncio.run(services.prepare_match(12, 8))
 
     assert result["source"] == "jobs_ge"
     assert result["url"] == "https://example.invalid/jobs_ge"
     assert result["relocation_evidence"] == {"source": "jobs_ge"}
+    assert result["job"].description == "jobs_ge Docker requirements"
+    assert result["cover_letter"] == "jobs_ge Docker requirements"
+
+
+def test_prepare_match_uses_verified_hh_description_already_in_source_cache(monkeypatch):
+    monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
+        user_id=8, job_id=25, profile_id=3, resume_id=None,
+    )))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=SimpleNamespace(
+        id=25, title="Engineer", company="Example", description="Canonical summary",
+    )))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[]))
+    ref = SimpleNamespace(source_id="hh", url="https://hh.ru/vacancy/25", raw={
+        "normalized_posting_v1": {
+            "schema": "normalized_posting_v1", "title": "Engineer",
+            "company": "Example", "description": "HH card summary",
+        },
+        "details_cache_v1": {"description": "Verified full HH requirements: Kubernetes"},
+    })
+    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=ref))
+    monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
+
+    result = asyncio.run(services.prepare_match(12, 8))
+
+    assert result["job"].description == "Verified full HH requirements: Kubernetes"
+    assert result["cover_letter"] == result["job"].description
 
 
 @pytest.mark.parametrize("url", [

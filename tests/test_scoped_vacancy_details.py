@@ -29,6 +29,34 @@ def test_details_keep_the_selected_profiles_score_and_name(monkeypatch):
     assert payload["search_profile_name"] == "Relocation-first"
 
 
+def test_details_use_selected_source_posting_for_text_and_rescore(monkeypatch):
+    match = SimpleNamespace(profile_id=2, search_profile_id=4, total_score=54)
+    canonical = SimpleNamespace(id=25, title="HR role", company="Example", description="HR-only Linux")
+    ref = SimpleNamespace(source_id="jobs_ge", url="https://example.invalid/jobs_ge", raw={
+        "normalized_posting_v1": {
+            "schema": "normalized_posting_v1", "title": "Jobs.ge role",
+            "company": "Example", "description": "Jobs.ge Docker",
+        },
+        "relocation_evidence_v1": {"source": "jobs_ge"},
+    })
+    async def source_ref(_job_id, source_id=None):
+        return ref if source_id == "jobs_ge" else None
+    monkeypatch.setattr(services.repo, "get_match_for_user_job", AsyncMock(return_value=match))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=canonical))
+    monkeypatch.setattr(services.repo, "source_ref", source_ref)
+    refresh = AsyncMock(return_value=match)
+    monkeypatch.setattr(services, "refresh_match_score", refresh)
+    monkeypatch.setattr(services.repo, "list_search_profiles", AsyncMock(return_value=[]))
+
+    payload = asyncio.run(services.get_vacancy_details(7, 25))
+
+    assert payload["job"].title == "Jobs.ge role"
+    assert payload["details"]["description"] == "Jobs.ge Docker"
+    assert payload["relocation_evidence"] == {"source": "jobs_ge"}
+    assert refresh.await_args.kwargs["technical_text"] == "Jobs.ge Docker"
+    assert canonical.description == "HR-only Linux"
+
+
 def test_details_do_not_fall_back_when_user_has_no_match_in_requested_profile(monkeypatch):
     lookup = AsyncMock(return_value=None)
     monkeypatch.setattr(services.repo, "get_match_for_user_job", lookup)

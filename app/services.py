@@ -16,6 +16,7 @@ from app.database import repository as repo
 from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
+from app.domain.source_posting import source_posting_view
 from app.geo.countries import normalize_country
 from app.matching.engine import score_job
 from app.matching.fact_comparison import compare_facts
@@ -682,6 +683,7 @@ async def get_vacancy_details(
             break
     if not ref:
         ref = await repo.source_ref(job.id)
+    job = source_posting_view(job, ref)
 
     details: dict = {}
     warning = ""
@@ -807,6 +809,14 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
     job = await repo.get_job(match.job_id)
     if not job:
         raise RuntimeError("Вакансия не найдена")
+    source_ref = None
+    for source_id in _SOURCE_REF_PREFERENCE:
+        source_ref = await repo.source_ref(job.id, source_id)
+        if source_ref:
+            break
+    if not source_ref:
+        source_ref = await repo.source_ref(job.id)
+    job = source_posting_view(job, source_ref)
     facts = await repo.list_facts(match.profile_id)
     resumes = await repo.list_resumes(match.profile_id)
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
@@ -816,13 +826,6 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
         comparison,
         chosen.content if chosen else "",
     )
-    source_ref = None
-    for source_id in _SOURCE_REF_PREFERENCE:
-        source_ref = await repo.source_ref(job.id, source_id)
-        if source_ref:
-            break
-    if not source_ref:
-        source_ref = await repo.source_ref(job.id)
     return {
         "job": job,
         "resume": chosen,
