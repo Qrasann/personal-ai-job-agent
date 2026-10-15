@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-15 — recognize short explicit non-required wording
+
+Added the short “No Kubernetes required” form to the Candidate Fit negation
+rules; separate required technologies remain required. Focused Fit/score tests:
+67 passed; full isolated PostgreSQL: 987 passed.
+
 ## 2026-10-15 — honor skill-specific preference wording
 
 Within a broad Requirements section, direct “Kubernetes is a plus” and

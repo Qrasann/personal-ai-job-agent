@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — recognize short non-required skill wording
+
+Extended the explicit technical-skill negation parser to cover “No Kubernetes
+required”; other independent requirements are preserved. Focused tests: 67;
+full isolated PostgreSQL: 987 passed.
+
 ## 2026-10-15 — honor skill-specific preferred phrases
 
 Added narrow English/Russian per-skill preference wording under broad

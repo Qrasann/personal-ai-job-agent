@@ -2480,3 +2480,8 @@ Within a broad Requirements heading, supported direct English/Russian plus
 phrasing now classifies that skill as preferred, without downgrading distinct
 mandatory skills or changing cross-section required priority. Focused tests:
 66 passed; isolated PostgreSQL: 986 passed.
+
+## 2026-10-15 — short explicit non-required skill wording
+
+Candidate Fit now also recognizes “No Kubernetes required” as not mandatory
+under a Requirements heading. Focused tests: 67 passed; PostgreSQL: 987 passed.

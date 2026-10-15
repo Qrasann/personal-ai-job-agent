@@ -2,6 +2,15 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting from HEAD `a91d8c2`, extended Candidate Fit negation recognition to
+include “No Kubernetes required”. Separate explicit requirements remain
+unchanged. Focused Fit/score tests: 67 passed; full isolated PostgreSQL: 987
+passed. Compileall, diff check and secret scan are pending before checkpoint.
+Next: continue Candidate Fit/Source Intelligence. No Candidate Facts or
+production data changed; proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Started from HEAD `d8cfee1`. Candidate Fit now classifies direct skill-local
 “is a plus” / “будет плюсом” wording under Requirements as preferred; separate
 positive requirements remain required, and the established cross-section

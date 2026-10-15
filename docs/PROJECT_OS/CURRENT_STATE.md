@@ -1,5 +1,11 @@
 # Current State
 
+## 2026-10-15 — short non-required skill statement
+
+Candidate Fit now keeps “No Kubernetes required” as unknown rather than
+required under a Requirements heading. Focused tests: 67; isolated PostgreSQL:
+987 passed.
+
 ## 2026-10-15 — skill-local preferred markers
 
 Candidate Fit recognizes a narrow per-skill plus/preferred phrase inside a

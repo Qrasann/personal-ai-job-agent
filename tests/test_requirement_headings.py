@@ -40,6 +40,14 @@ def test_explicit_not_required_skill_inside_required_heading_is_not_a_must_have(
     assert importance["Terraform"] == "required"
 
 
+def test_no_skill_required_short_form_remains_unknown():
+    importance = extract_requirement_importance(
+        "Requirements: No Kubernetes required. Docker is required."
+    )
+    assert importance["Kubernetes"] == "unknown"
+    assert importance["Docker"] == "required"
+
+
 def test_inline_skill_level_negation_does_not_suppress_other_required_skill():
     importance = extract_requirement_importance(
         "Must have: Kubernetes is not required; Docker is mandatory."
