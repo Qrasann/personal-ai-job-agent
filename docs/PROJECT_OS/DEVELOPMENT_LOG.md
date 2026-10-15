@@ -2369,3 +2369,10 @@ Explicitly treat all input values as data and disallow embedded instructions,
 unfounded candidate claims or external actions. The output remains an
 unverified draft for user review. Focused tests: 5 passed; isolated PostgreSQL
 suite: 968 passed.
+## 2026-10-15 — isolate recruiter instructions from message content
+
+Moved recruiter response rules to the Responses API `instructions` field and
+passed Candidate Facts, prior context and the latest question as JSON. Inputs
+cannot override the factual constraints or sensitive-topic human-review rule.
+Default auto-reply remains OFF. Focused recruiter/private-HH tests: 16 passed;
+full isolated PostgreSQL: 969 passed.

@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — isolate recruiter instructions from message content
+
+Recruiter replies now separate developer instructions from untrusted JSON
+context, question and Candidate Facts. Existing sensitive-topic human review
+and default-OFF auto-reply policy remain. Focused tests: 16 passed; full
+isolated PostgreSQL: 969 passed.
+
 ## 2026-10-15 — isolate cover-letter instructions from vacancy content
 
 Cover-letter model calls now use separate developer instructions and

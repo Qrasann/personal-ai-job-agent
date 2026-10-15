@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — isolate recruiter instructions from message content
+
+Recruiter drafting now supplies fixed developer instructions separately from
+JSON-encoded Candidate Facts, conversation context and question. The model is
+told these fields are untrusted data and cannot override factual/sensitive-topic
+rules. Auto-reply remains OFF by default; focused recruiter/private-HH tests:
+16 passed; full isolated PostgreSQL suite: 969 passed.
+
 ## 2026-10-15 — isolate cover-letter instructions from vacancy content
 
 Cover-letter generation now sends fixed developer instructions separately

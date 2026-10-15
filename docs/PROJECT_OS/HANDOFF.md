@@ -2,6 +2,20 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `ddef3bf`, VERSION 3.5.7. Recruiter Agent now uses separate
+developer instructions and JSON input for Candidate Facts, conversation
+context and question; embedded instructions are treated as untrusted, while
+existing sensitive-topic fallback is preserved. Auto-reply stays OFF by
+default. Focused recruiter/private-HH tests: 16; full isolated PostgreSQL:
+969 passed. `compileall`, diff check and secret scan next before local
+checkpoint. Previous checkpoints: `aa4ce65` repeat-source refresh,
+`619a596` nested flat Fit alternatives, `1dc06f0` timezone display,
+`9f111cd` OpenShift Fit/Interview, `ddef3bf` cover-letter prompt boundary.
+Next: checkpoint Recruiter Agent, then continue practical Relocation-first or
+Application Package work. Live HH/Telegram remains separate. PostgreSQL uses
+localhost:55432/tmpfs. No push, merge, release, deployment, VERSION or
+production DB/volume changes; owner proposals untouched.
+
 Started from HEAD `9f111cd`, VERSION 3.5.7. Application Package cover-letter
 generation now passes fixed developer instructions separately from JSON
 Candidate Facts, resume metadata and vacancy content; embedded instructions

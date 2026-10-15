@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — isolate recruiter instructions from message content
+
+Applies the same data/instruction boundary to recruiter drafting. Sensitive
+topics still require human response; automatic replies remain explicitly
+opt-in and OFF by default. Focused tests: 16 passed; isolated PostgreSQL:
+969 passed.
+
 ## 2026-10-15 — isolate cover-letter instructions from vacancy content
 
 Separates cover-letter developer instructions from JSON vacancy/resume/fact
