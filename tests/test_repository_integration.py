@@ -11,6 +11,7 @@ from app.database import repository as repo
 from app.database.migrations import apply_migrations
 from app.database.models import Application, Base, CandidateFact, SchemaMigration
 from app.domain.jobs import NormalizedJob
+from app.domain.application_package import snapshot_vacancy
 
 
 TEST_DATABASE_URL = os.getenv("JOB_AGENT_TEST_DATABASE_URL")
@@ -703,18 +704,17 @@ async def _repeated_source_upsert_flow(monkeypatch):
         )
         job, created = await repo.upsert_job(original)
         assert created is True
+        first_ref = await repo.source_ref(job.id, "refresh-source")
+        saved_evidence = first_ref.raw["relocation_evidence_v1"]
         application = await repo.save_application(
             user_id=user.id, job_id=job.id, source_id="refresh-source",
             source_application_id=None, external_url=original.url, resume_id=None,
             resume_snapshot="Saved CV", resume_external_id=None,
-            vacancy_snapshot={
-                "title": job.title, "company": job.company,
-                "description": job.description, "source_url": original.url,
-            },
+            vacancy_snapshot=snapshot_vacancy(
+                job, source_url=original.url, relocation_evidence=saved_evidence,
+            ),
             message="Saved cover letter", status="prepared",
         )
-        first_ref = await repo.source_ref(job.id, "refresh-source")
-        saved_evidence = first_ref.raw["relocation_evidence_v1"]
         assert saved_evidence["schema"] == "relocation_evidence_v1"
         assert saved_evidence["fields"]["work_country"]["value"] == "GE"
         assert saved_evidence["fields"]["visa_sponsorship"]["value"] is None
@@ -752,6 +752,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert saved.vacancy_snapshot == {
             "title": "Linux Engineer", "company": "Refresh Co",
             "description": "Old summary", "source_url": original.url,
+            "relocation_evidence": saved_evidence,
         }
         assert saved.resume_snapshot == "Saved CV"
         assert saved.message == "Saved cover letter"

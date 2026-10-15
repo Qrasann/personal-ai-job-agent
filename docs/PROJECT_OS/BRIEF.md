@@ -1,5 +1,14 @@
 # Codex Brief
 
+## 2026-10-15 — freeze mobility evidence in Application Package
+
+Prepared vacancy snapshots now deep-copy the source-scoped Relocation Evidence
+from the selected `JobSourceRef`. Repeated source refreshes cannot rewrite
+evidence already saved with an Application Package; `/application … export`
+includes the saved evidence object. Preparation preview notes the evidence
+capture time. No schema change. Focused package/service tests: 20 passed;
+repeat-refresh PostgreSQL regression: 1 passed; full isolated PostgreSQL: 976.
+
 ## 2026-10-15 — retain the source location excerpt
 
 Work-country evidence now preserves the source adapter's structured

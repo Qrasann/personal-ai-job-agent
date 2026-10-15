@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — immutable mobility evidence in prepared packages
+
+Application Package vacancy snapshots now include a deep copy of the selected
+source's Relocation Evidence. Package export reads that immutable JSON snapshot
+after later source refreshes; the preview identifies its capture time. HH
+application snapshots use the same path. No migration. Focused tests: 20; repeat
+refresh PostgreSQL regression: 1 passed; full isolated PostgreSQL: 976 passed.
+
 ## 2026-10-15 — preserve source work-location excerpt
 
 When the source adapter provides `source_location` or `source_country`, the

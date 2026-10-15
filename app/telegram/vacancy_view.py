@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
@@ -698,6 +699,10 @@ def render_application_package(payload: dict) -> str:
     else:
         lines.append("• Прямая ссылка на источник не сохранена; найди вакансию вручную перед откликом.")
     tail = _mobility_evidence_lines(job, str(getattr(job, "description", "") or ""))
+    evidence_snapshot = payload.get("relocation_evidence")
+    if isinstance(evidence_snapshot, dict) and evidence_snapshot.get("schema") == "relocation_evidence_v1":
+        captured = html.escape(str(evidence_snapshot.get("captured_at") or "unknown")[:25])
+        tail.extend(["", f"🧾 Снимок условий источника сохранён ({captured}); точные цитаты и provenance доступны в экспорте."])
     tail.extend([
         "",
         "<b>Черновик сопроводительного</b>",
@@ -810,9 +815,18 @@ def render_application_export(application, events: list | None = None) -> str:
         "",
         "=== Saved vacancy description (as stored) ===",
         snapshot.get("description") or "No vacancy description snapshot is available for this record.",
+    ]
+    saved_evidence = snapshot.get("relocation_evidence")
+    if isinstance(saved_evidence, dict):
+        lines.extend([
+            "",
+            "=== Saved source-scoped relocation evidence ===",
+            json.dumps(saved_evidence, ensure_ascii=False, sort_keys=True, indent=2),
+        ])
+    lines.extend([
         "",
         "=== Saved resume text snapshot ===",
-    ]
+    ])
     if application.resume_snapshot:
         lines.append(application.resume_snapshot)
     elif application.resume_id:

@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-15 — freeze Relocation Evidence in Application Package
+
+`prepare_match` carries the selected source evidence into the immutable vacancy
+snapshot; HH application snapshots do likewise. Export emits the saved evidence
+instead of reading current source state. PostgreSQL regression covers a source
+refresh after package capture; the saved original evidence remains intact. No
+schema change. Focused: 20 passed; repeat-refresh DB regression: 1 passed;
+full isolated PostgreSQL: 976 passed.
+
 ## 2026-10-15 — preserve source work-location excerpt
 
 Work-country evidence now includes an adapter-provided structured location

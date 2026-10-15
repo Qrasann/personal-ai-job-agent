@@ -2412,3 +2412,11 @@ Work-country evidence now uses the adapter's structured source location/country
 text as its supporting excerpt when available, and details show it beside the
 normalized code. It does not infer a country from arbitrary posting prose.
 Focused tests: 41 passed; isolated PostgreSQL: 975 passed.
+
+## 2026-10-15 — freeze Relocation Evidence in Application Package
+
+Prepared snapshots now deep-copy the selected source's evidence packet,
+including source identity, excerpts, confidence and capture time. The Package
+export reads this saved evidence after later source refresh; HH snapshots share
+the path. No database migration. Focused package/service/HH tests: 20 passed;
+repeat-source PostgreSQL regression passed; full isolated PostgreSQL: 976.

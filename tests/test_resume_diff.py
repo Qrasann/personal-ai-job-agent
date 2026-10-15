@@ -140,7 +140,10 @@ def test_prepare_match_returns_evidence_checklist_without_external_submission(mo
     )))
     monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[_fact(1, "Linux administration")]))
     monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[resume]))
-    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=None))
+    evidence = {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}}
+    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=SimpleNamespace(
+        raw={"relocation_evidence_v1": evidence}, url="https://example.invalid/job", source_id="fixture",
+    )))
     save_application = AsyncMock()
     monkeypatch.setattr(services.repo, "save_application", save_application)
     monkeypatch.setattr(services, "make_cover_letter", lambda job, facts, chosen: "Grounded draft")
@@ -150,6 +153,7 @@ def test_prepare_match_returns_evidence_checklist_without_external_submission(mo
     assert result["cover_letter"] == "Grounded draft"
     assert result["resume_diff"]["supported_in_resume"] == ("Linux",)
     assert result["resume_diff"]["missing_from_both"] == ("Docker",)
+    assert result["relocation_evidence"] == evidence
     save_application.assert_not_awaited()
 
 

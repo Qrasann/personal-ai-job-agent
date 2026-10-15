@@ -1484,7 +1484,10 @@ async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
             if result.get("resume") and result["resume"].external_id
             else None
         ),
-        vacancy_snapshot=snapshot_vacancy(result["job"], source_url=result.get("url")),
+        vacancy_snapshot=snapshot_vacancy(
+            result["job"], source_url=result.get("url"),
+            relocation_evidence=result.get("relocation_evidence"),
+        ),
         message=str(result.get("cover_letter") or ""),
         status="prepared",
     )

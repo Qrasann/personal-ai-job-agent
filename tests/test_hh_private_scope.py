@@ -167,6 +167,7 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
     )))
     monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=SimpleNamespace(
         source_job_id="hh-job", url="https://example.invalid/posting",
+        raw={"relocation_evidence_v1": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}}},
     )))
     monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
     monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[SimpleNamespace(
@@ -186,6 +187,7 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
     assert saved["vacancy_snapshot"] == {
         "title": "Saved role", "company": "Saved employer",
         "description": "Saved requirements", "source_url": "https://example.invalid/posting",
+        "relocation_evidence": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}},
     }
     assert saved["external_url"] == "https://example.invalid/receipt"
     assert saved["source_application_id"] == "receipt-1"

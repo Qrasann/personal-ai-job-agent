@@ -2,6 +2,17 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `f5c1d21`. Application Package vacancy snapshots now deep-copy
+the chosen source's `relocation_evidence_v1`; package exports serialize that
+saved snapshot and do not query mutable JobSourceRef evidence. `/prepare`
+preview includes the evidence capture time. HH application snapshots use the
+same code path. Focused package/service/HH tests: 20 passed; repeat source
+refresh PostgreSQL regression: 1 passed; full isolated PostgreSQL suite: 976
+passed. Compileall, diff check and secret scan are pending before checkpoint.
+No migration or production change. Next: finish those gates, then continue
+Relocation-first country/source work or Candidate Fit. Proposals untouched;
+isolated DB localhost:55432/jobagent_test.
+
 Starting HEAD: `9702299`. Work-country evidence now preserves and displays a
 source adapter's structured location/country excerpt beside its normalized
 country value (for example, fixture-only `DE` plus `Berlin, Germany`). It does

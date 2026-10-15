@@ -34,3 +34,34 @@ def test_missing_posting_fields_remain_unknown_in_snapshot_export():
     assert "Saved vacancy: Role — not recorded" in exported
     assert "Saved vacancy URL: not recorded" in exported
     assert "No vacancy description snapshot" in exported
+
+
+def test_application_snapshot_freezes_relocation_evidence_and_exports_provenance():
+    job = SimpleNamespace(title="Role", company="Example", description="Original posting")
+    evidence = {
+        "schema": "relocation_evidence_v1",
+        "captured_at": "2026-10-15T12:30:00+00:00",
+        "fields": {
+            "visa_sponsorship": {
+                "status": "confirmed", "value": False,
+                "source_id": "synthetic_fixture", "source_url": "https://example.invalid/job",
+                "excerpt": "Visa sponsorship is not available",
+                "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_text",
+            },
+        },
+    }
+    snapshot = snapshot_vacancy(
+        job, source_url="https://example.invalid/job", relocation_evidence=evidence,
+    )
+    application = SimpleNamespace(
+        id=9, created_at=None, status="prepared", source_id="synthetic_fixture",
+        external_url=None, resume_id=None, resume_external_id=None,
+        resume_snapshot="", message="Draft", vacancy_snapshot=snapshot,
+    )
+    evidence["fields"]["visa_sponsorship"]["excerpt"] = "changed after preparation"
+
+    exported = render_application_export(application)
+
+    assert "Visa sponsorship is not available" in exported
+    assert "changed after preparation" not in exported
+    assert "2026-10-15T12:30:00+00:00" in exported
