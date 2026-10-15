@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from app.domain.source_posting import posting_snapshot_digest
 from app.matching.fact_comparison import compare_facts
 from app.matching.resume_diff import compare_resume_coverage
 from app.telegram.vacancy_view import render_application_export, render_application_package, render_applications, render_resume_diff
@@ -205,12 +206,14 @@ def test_prepare_match_uses_verified_hh_description_already_in_source_cache(monk
     )))
     monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
     monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[]))
+    posting = {
+        "schema": "normalized_posting_v1", "title": "Engineer",
+        "company": "Example", "description": "HH card summary",
+    }
     ref = SimpleNamespace(source_id="hh", url="https://hh.ru/vacancy/25", raw={
-        "normalized_posting_v1": {
-            "schema": "normalized_posting_v1", "title": "Engineer",
-            "company": "Example", "description": "HH card summary",
-        },
+        "normalized_posting_v1": posting,
         "details_cache_v1": {"description": "Verified full HH requirements: Kubernetes"},
+        "details_cache_posting_digest_v1": posting_snapshot_digest(posting),
     })
     monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=ref))
     monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
