@@ -1,3 +1,7 @@
+## 2026-10-15 — enforce Telegram UTF-16 budget in package preview
+
+Red fixture rendered 4991 UTF-16 units from emoji-heavy draft/checklist while the Python character count stayed under the preview budget. The optional-line budget now counts UTF-16; the displayed cover text and escaped links have safe bounds. Excessively escaped links use `/job` as the manual path while the saved package keeps the original URL. Full isolated PostgreSQL: 1014 passed.
+
 ## 2026-10-15 — actionable employer questions from unknown mobility evidence
 
 Added a bounded, deterministic follow-up line on vacancy cards for unknown source-scoped work country, prior authorization, visa sponsorship and other mobility conditions. It names at most three topics and counts the rest; confirmed conditions are omitted. Synthetic evidence and card regression tests passed; full isolated PostgreSQL 1012 passed. No legal interpretation or external contact.

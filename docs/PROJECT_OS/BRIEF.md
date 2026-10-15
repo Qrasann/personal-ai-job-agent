@@ -1,3 +1,7 @@
+## 2026-10-15 — enforce Telegram UTF-16 budget in package preview
+
+The `/prepare` preview previously counted Python characters, so emoji-heavy drafts could exceed Telegram's UTF-16 limit despite being under the character cap. The preview now budgets UTF-16 units, bounds the displayed draft and omits links whose escaped form is too long, pointing to `/job` instead. Saved package text remains exact. Red regression; full isolated PostgreSQL 1014 passed.
+
 ## 2026-10-15 — actionable employer questions from unknown mobility evidence
 
 The vacancy card now shows up to three prioritized conditions to clarify with the employer when source-scoped Relocation Evidence remains unknown, plus a count of additional unknown topics. Confirmed conditions are not presented as unknown. This is a review prompt, not a legal eligibility conclusion. Synthetic and card regressions; full isolated PostgreSQL 1012 passed.

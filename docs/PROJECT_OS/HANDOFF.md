@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `9b36423`. `/prepare` preview now counts Telegram UTF-16 units instead of Python characters, bounds displayed cover text, and points to `/job` when HTML escaping makes a URL too long. Red emoji fixture reached 4991 units before; full isolated PostgreSQL 1014 passed after. Saved package/export retain full text and URL. Next: independent Candidate Fit/Source Intelligence quality, then Recruiter/Interview/AI Router/v4.x. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `68c7e55`. Vacancy cards now show a bounded employer-question prompt for unknown relocation conditions and omit confirmed topics. It is source-evidence review guidance, not a candidate-specific legal conclusion. Synthetic/card regressions and full isolated PostgreSQL 1012 passed. Next: deeper Source Intelligence quality and Candidate Fit; then Application Package, Recruiter, Interview, AI Router and v4.x. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

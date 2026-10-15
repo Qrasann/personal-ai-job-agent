@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — enforce Telegram UTF-16 budget in package preview
+
+`/prepare` preview budgets Telegram UTF-16 units, including emoji and escaped links. Very long escaped URLs point the owner to `/job`; the saved package keeps its exact URL and letter. Red regression and full isolated PostgreSQL 1014 passed.
+
 ## 2026-10-15 — actionable employer questions from unknown mobility evidence
 
 Vacancy cards turn unknown source-scoped mobility conditions into at most three concrete employer questions, with a count of remaining unknown topics. Confirmed conditions are not re-asked. No legal eligibility inference. Full isolated PostgreSQL 1012 passed.

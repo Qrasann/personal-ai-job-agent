@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — UTF-16-safe package preview completed
+
+- [x] Reproduce an emoji-heavy `/prepare` preview exceeding Telegram's UTF-16 limit despite its character count.
+- [x] Budget the visible preview in UTF-16 units and give a `/job` fallback for excessively escaped links.
+- [x] Full isolated PostgreSQL 1014 passed; saved package/export retain full text.
+- [ ] Next: independent Candidate Fit and Source Intelligence quality, then remaining roadmap.
+
 ## 2026-10-15 — employer clarification prompts completed
 
 - [x] Derive bounded, prioritized employer questions from unknown relocation evidence in the vacancy card.

@@ -357,6 +357,38 @@ def test_dense_package_review_keeps_selected_posting_link_and_identity():
     assert '<a href="https://example.invalid/posting-42">' in text
 
 
+def test_package_preview_respects_telegram_utf16_limit_with_emoji():
+    alternative = {
+        "options": ("Linux", "Docker"), "status": "resume_unconfirmed",
+        "resume_options": ("😀" * 8,), "candidate_fact_options": ("Linux",),
+    }
+    text = render_application_package({
+        "job": SimpleNamespace(id=25, title="Engineer", company="Example", description="Role"),
+        "resume": SimpleNamespace(id=5, name="CV"),
+        "resume_diff": {"alternative_groups": (alternative,) * 30},
+        "source": "jobs_ge", "source_job_id": "posting-42",
+        "url": "https://example.invalid/posting-42",
+        "cover_letter": "😀" * 3000,
+    })
+
+    assert len(text.encode("utf-16-le")) // 2 <= 3700
+    assert "Предпросмотр сокращён" in text
+    assert "Черновик не отправлен" in text
+    assert '<a href="https://example.invalid/posting-42">' in text
+
+
+def test_package_preview_omits_link_when_html_escaping_makes_it_too_long():
+    text = render_application_package({
+        "job": SimpleNamespace(id=25, title="Engineer", company="Example", description="Role"),
+        "resume_diff": {}, "cover_letter": "Draft",
+        "url": "https://example.invalid/?" + "&" * 500,
+    })
+
+    assert "Ссылка слишком длинная для предпросмотра; открой /job 25" in text
+    assert "<a href=" not in text
+    assert len(text.encode("utf-16-le")) // 2 <= 3700
+
+
 def test_dense_package_review_keeps_mobility_and_valid_html_within_message_limit():
     text = render_application_package({
         "job": SimpleNamespace(

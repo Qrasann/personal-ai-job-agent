@@ -793,7 +793,10 @@ def render_application_package(payload: dict) -> str:
         safe_link = False
     if safe_link:
         url = html.escape(source_url, quote=True)
-        link_line = f'<a href="{url}">Открыть вакансию для ручной отправки</a>'
+        if len(url.encode("utf-16-le")) // 2 <= 900:
+            link_line = f'<a href="{url}">Открыть вакансию для ручной отправки</a>'
+        else:
+            link_line = f"• Ссылка слишком длинная для предпросмотра; открой /job {job.id} перед откликом."
     else:
         link_line = "• Прямая ссылка на источник не сохранена; найди вакансию вручную перед откликом."
     tail = []
@@ -814,17 +817,22 @@ def render_application_package(payload: dict) -> str:
     tail.extend([
         "",
         "<b>Черновик сопроводительного</b>",
-        _escape_clipped(_clip(str(payload.get("cover_letter") or ""), 1600), 1200) or "Черновик отсутствует.",
+        _escape_with_utf16_limit(_clip(str(payload.get("cover_letter") or ""), 1600), 900)
+        or "Черновик отсутствует.",
         "",
         "Черновик не отправлен. Проверь факты, язык и содержание и отправь сам.",
     ])
     notice = f"… Предпросмотр сокращён. Полная сверка: /resumediff {job.id}; вакансия: /job {job.id}."
-    budget = 3700 - len("\n".join(tail)) - len(notice) - 2
+    def units(value: str) -> int:
+        return len(value.encode("utf-16-le")) // 2
+
+    budget = 3700 - units("\n".join(tail)) - units(notice) - 2
     kept, used, omitted = [], 0, False
     for line in lines:
-        if used + len(line) + 1 <= budget:
+        line_units = units(line) + 1
+        if used + line_units <= budget:
             kept.append(line)
-            used += len(line) + 1
+            used += line_units
         else:
             omitted = True
     if omitted:
