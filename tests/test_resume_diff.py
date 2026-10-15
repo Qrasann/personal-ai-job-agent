@@ -202,6 +202,20 @@ def test_application_package_preview_explains_alternative_group_consistency():
     assert "Не найдено в CV и Candidate Facts: Linux, Docker" not in text
 
 
+def test_application_package_does_not_claim_no_gaps_when_no_skills_were_recognized():
+    text = render_application_package({
+        "job": SimpleNamespace(id=25, title="Operations role", company="Example"),
+        "resume": SimpleNamespace(id=5, name="CV"),
+        "resume_diff": {},
+        "url": "https://example.com/job",
+        "cover_letter": "Draft",
+    })
+
+    assert "Технические требования из поддерживаемого словаря не распознаны" in text
+    assert "Проверь полный текст вакансии вручную" in text
+    assert "дополнительных расхождений нет" not in text
+
+
 def test_application_package_preview_keeps_unconfirmed_extra_alternative_visible():
     text = render_application_package({
         "job": SimpleNamespace(id=25, title="DevOps", company="Example"),

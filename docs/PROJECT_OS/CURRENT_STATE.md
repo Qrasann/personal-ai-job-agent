@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — disclose unrecognized requirements in package review
+
+When no technical skills or alternatives are recognized, the Application
+Package now explicitly says so and prompts a manual review of the full vacancy.
+The existing no-discrepancy statement remains limited to recognized skills.
+Focused package tests: 20 passed.
+
 ## 2026-10-15 — scoped `/prepare` command
 
 `/prepare <vacancy_id> [career|relocation]` now saves the same reviewable

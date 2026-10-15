@@ -2,6 +2,19 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Latest completed code checkpoint: `256e899` adds owner-scoped
+`/prepare <vacancy_id> [career|relocation]`; it passed 31 focused handler
+tests and the isolated PostgreSQL suite (953). The next uncommitted increment
+improves Application Package honesty when no supported technical requirement
+was recognized: it now prompts manual review instead of reporting no
+discrepancies. Focused package tests: 20; full isolated PostgreSQL: 954
+passed. Compileall, diff check and secret scan passed. VERSION stays 3.5.7;
+formal release remains v3.5.6. Next: checkpoint this increment, then continue
+the next practical Candidate Fit / Source Intelligence item in ROADMAP. The
+PostgreSQL integration suite ran only against the dedicated localhost:55432
+test container/tmpfs. Both owner proposal files remain untouched. No push,
+merge, release, deployment or production DB/volume change.
+
 HEAD before this increment: `5e919b3`; VERSION remains 3.5.7. Added the
 `/prepare <vacancy_id> [career|relocation]` command, reusing the existing
 package snapshot and owner-scoped match lookup. Active profile scoping,

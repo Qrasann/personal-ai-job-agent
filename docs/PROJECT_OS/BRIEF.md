@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — disclose unrecognized requirements in package review
+
+Application Package preview now says when the supported technical vocabulary
+found no requirements and asks the user to inspect the full vacancy. It no
+longer presents an empty comparison as evidence that no fit discrepancies
+exist. Focused package tests: 20 passed.
+
 ## 2026-10-15 — scoped `/prepare` command
 
 Added `/prepare <vacancy_id> [career|relocation]` to create the existing

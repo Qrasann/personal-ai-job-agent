@@ -584,12 +584,22 @@ def render_application_package(payload: dict) -> str:
     alternative_groups = diff.get("alternative_groups") or ()
     for item in alternative_groups:
         lines.append("• Альтернатива: " + html.escape(_alternative_group_summary(item)))
-    if not any(diff.get(key) for key in (
-        "supported_missing_from_resume", "resume_only_unconfirmed", "missing_from_both",
-    )) and not any(
+    recognized_skills = any(diff.get(key) for key in (
+        "supported_in_resume", "supported_missing_from_resume",
+        "resume_only_unconfirmed", "missing_from_both",
+    ))
+    has_alternative_discrepancy = any(
         item.get("status") != "confirmed" or item.get("unconfirmed_resume_options")
         for item in alternative_groups
-    ):
+    )
+    if not recognized_skills and not alternative_groups:
+        lines.append(
+            "• Технические требования из поддерживаемого словаря не распознаны. "
+            "Проверь полный текст вакансии вручную."
+        )
+    elif not has_alternative_discrepancy and not any(diff.get(key) for key in (
+        "supported_missing_from_resume", "resume_only_unconfirmed", "missing_from_both",
+    )):
         lines.append("• По распознанным навыкам дополнительных расхождений нет.")
     source_url = str(payload.get("url") or "").strip()
     try:

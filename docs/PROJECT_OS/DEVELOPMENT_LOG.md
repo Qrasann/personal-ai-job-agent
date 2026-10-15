@@ -2312,3 +2312,9 @@ unmatched vacancies, unavailable scopes and sanitized errors. Focused tests:
 found the isolated container lacked its configured localhost port; the
 test-only container was recreated with the declared port mapping and rerun.
 No production service or database was used.
+## 2026-10-15 — disclose unrecognized requirements in package review
+
+An empty Candidate Fit diff previously rendered as “no additional
+discrepancies” even when the supported skill vocabulary had recognized nothing.
+The package preview now discloses that state and directs manual review of the
+full posting. Focused package tests: 20 passed.

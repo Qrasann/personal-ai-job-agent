@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — disclose unrecognized requirements in package review
+
+Package review now distinguishes “no recognized technical requirements” from
+“no discrepancies among recognized skills,” preserving the manual review
+prompt when deterministic extraction finds nothing. Focused tests: 20 passed.
+
 ## 2026-10-15 — scoped `/prepare` command
 
 Implemented `/prepare <vacancy_id> [career|relocation]` using the existing
