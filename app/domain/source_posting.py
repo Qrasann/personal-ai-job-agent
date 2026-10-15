@@ -64,7 +64,8 @@ def source_posting_view(job, source_ref):
         isinstance(cached.get(field), str) and cached[field].strip()
         for field in ("title", "company", "description")
     )
-    if cache_digest and cache_digest != posting_snapshot_digest(snapshot):
+    # A missing cache digest is only valid for legacy refs without a snapshot.
+    if cache_digest != posting_snapshot_digest(snapshot):
         valid_cache = False
     if not valid_snapshot and not valid_cache:
         return job
