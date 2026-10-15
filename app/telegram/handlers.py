@@ -1485,7 +1485,8 @@ async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
             else None
         ),
         vacancy_snapshot=snapshot_vacancy(
-            result["job"], source_url=result.get("url"),
+            result["job"], source_id=result.get("source"),
+            source_job_id=result.get("source_job_id"), source_url=result.get("url"),
             relocation_evidence=result.get("relocation_evidence"),
         ),
         message=str(result.get("cover_letter") or ""),

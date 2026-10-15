@@ -872,6 +872,8 @@ def render_application_export(application, events: list | None = None) -> str:
         "Status is locally recorded and does not independently verify receipt by the employer or provider.",
         f"Prepared: {created_text}",
         f"Source: {application.source_id}",
+        f"Saved posting source: {snapshot.get('source_id') or 'not recorded'}",
+        f"Saved provider posting ID: {snapshot.get('source_job_id') or 'not recorded'}",
         f"Saved vacancy URL: {snapshot.get('source_url') or 'not recorded'}",
         f"Recorded external URL: {application.external_url or 'not recorded'}",
         f"Saved resume ID: {application.resume_id or 'not selected'}",

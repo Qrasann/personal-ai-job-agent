@@ -167,13 +167,19 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
     )))
     monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=SimpleNamespace(
         source_job_id="hh-job", url="https://example.invalid/posting",
-        raw={"relocation_evidence_v1": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}}},
+        raw={
+            "relocation_evidence_v1": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}},
+            "normalized_posting_v1": {
+                "schema": "normalized_posting_v1", "title": "HH role", "company": "Saved employer",
+                "description": "HH source requirements",
+            },
+        },
     )))
     monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
     monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[SimpleNamespace(
         id=5, source="hh", external_id="hh-resume", content="Saved resume",
     )]))
-    monkeypatch.setattr(services, "make_cover_letter", lambda *args: "Saved letter")
+    monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
     send = AsyncMock(return_value={"negotiation_id": "receipt-1", "external_url": "https://example.invalid/receipt"})
     monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
     save = AsyncMock()
@@ -182,11 +188,12 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
 
     asyncio.run(services.apply_match(object(), 17, 1))
 
-    send.assert_awaited_once_with("hh-job", "hh-resume", "Saved letter")
+    send.assert_awaited_once_with("hh-job", "hh-resume", "HH source requirements")
     saved = save.await_args.kwargs
     assert saved["vacancy_snapshot"] == {
-        "title": "Saved role", "company": "Saved employer",
-        "description": "Saved requirements", "source_url": "https://example.invalid/posting",
+        "title": "HH role", "company": "Saved employer",
+        "description": "HH source requirements", "source_url": "https://example.invalid/posting",
+        "source_id": "hh", "source_job_id": "hh-job",
         "relocation_evidence": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}},
     }
     assert saved["external_url"] == "https://example.invalid/receipt"

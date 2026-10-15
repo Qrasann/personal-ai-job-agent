@@ -1,5 +1,9 @@
 # Tasks
 
+## 2026-10-15 — selected provider posting identity in packages completed
+
+Saved packages now retain the selected source ID and provider posting ID, with source-specific HH draft text; focused 67 and full isolated PostgreSQL suite passed. Next: choose an independent Candidate Fit or source quality improvement with realistic fixtures, then continue Application Package and Relocation-first.
+
 ## 2026-10-15 — source-specific posting snapshot for review and preparation
 
 Each newly ingested or refreshed `JobSourceRef` now stores its own normalized posting fields beside evidence and verified detail cache. Vacancy details, Candidate Fit review and `/prepare` use the selected source's title, description and structured fields; already cached full HH details take precedence for drafting. A synthetic cross-source regression reproduced a Jobs.ge package using an HR.ge description before the change. PostgreSQL regression confirms same-source refresh updates its own snapshot and a second source keeps separate text. Existing refs without a normalized snapshot retain the canonical fallback until rediscovery. Full isolated PostgreSQL: 996 passed.

@@ -833,6 +833,7 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
         "resume_diff": resume_diff,
         "url": source_ref.url if source_ref else "",
         "source": source_ref.source_id if source_ref else "",
+        "source_job_id": getattr(source_ref, "source_job_id", "") if source_ref else "",
         "relocation_evidence": (
             (source_ref.raw or {}).get("relocation_evidence_v1", {})
             if source_ref else {}
@@ -859,6 +860,8 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
     if not hh_client.private_api_available:
         raise RuntimeError("HH private applicant API отключён; используй «Подготовить отклик» и открой вакансию на HH.")
 
+    job = source_posting_view(job, ref)
+
     facts = await repo.list_facts(match.profile_id)
     resumes = await repo.list_resumes(match.profile_id)
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
@@ -878,6 +881,8 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
         resume_external_id=hh_resume_id,
         vacancy_snapshot=snapshot_vacancy(
             job,
+            source_id="hh",
+            source_job_id=ref.source_job_id,
             source_url=ref.url,
             relocation_evidence=(getattr(ref, "raw", None) or {}).get("relocation_evidence_v1"),
         ),

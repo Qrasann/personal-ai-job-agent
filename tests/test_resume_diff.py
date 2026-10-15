@@ -168,7 +168,8 @@ def test_prepare_match_uses_display_source_when_georgia_refs_share_a_job(monkeyp
     monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[]))
     refs = {
         source_id: SimpleNamespace(
-            source_id=source_id, url=f"https://example.invalid/{source_id}",
+            source_id=source_id, source_job_id=f"{source_id}-posting-25",
+            url=f"https://example.invalid/{source_id}",
             raw={
                 "relocation_evidence_v1": {"source": source_id},
                 "normalized_posting_v1": {
@@ -188,6 +189,7 @@ def test_prepare_match_uses_display_source_when_georgia_refs_share_a_job(monkeyp
     result = asyncio.run(services.prepare_match(12, 8))
 
     assert result["source"] == "jobs_ge"
+    assert result["source_job_id"] == "jobs_ge-posting-25"
     assert result["url"] == "https://example.invalid/jobs_ge"
     assert result["relocation_evidence"] == {"source": "jobs_ge"}
     assert result["job"].description == "jobs_ge Docker requirements"

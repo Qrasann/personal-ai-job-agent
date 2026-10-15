@@ -66,3 +66,23 @@ def test_application_snapshot_freezes_relocation_evidence_and_exports_provenance
     assert "Visa sponsorship is not available" in exported
     assert "changed after preparation" not in exported
     assert "2026-10-15T12:30:00+00:00" in exported
+
+
+def test_package_export_retains_selected_provider_posting_id():
+    job = SimpleNamespace(title="Engineer", company="Example", description="Source text")
+    snapshot = snapshot_vacancy(
+        job, source_id="jobs_ge", source_job_id="posting-123",
+        source_url="https://example.invalid/jobs_ge/posting-123",
+    )
+    application = SimpleNamespace(
+        id=10, created_at=None, status="prepared", source_id="jobs_ge",
+        external_url=None, resume_id=None, resume_external_id=None,
+        resume_snapshot="", message="Draft", vacancy_snapshot=snapshot,
+    )
+
+    exported = render_application_export(application)
+
+    assert "Saved posting source: jobs_ge" in exported
+    assert "Saved provider posting ID: posting-123" in exported
+    assert snapshot["source_id"] == "jobs_ge"
+    assert snapshot["source_job_id"] == "posting-123"
