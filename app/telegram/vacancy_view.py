@@ -17,6 +17,20 @@ def _clip(value: str, limit: int) -> str:
     return text[: max(0, limit - 1)].rstrip() + "…"
 
 
+def _escape_clipped(value: str, limit: int) -> str:
+    """Bound encoded text without cutting an HTML entity."""
+    if len(html.escape(value)) <= limit:
+        return html.escape(value)
+    low, high = 0, len(value)
+    while low < high:
+        middle = (low + high + 1) // 2
+        if len(html.escape(value[:middle] + "…")) <= limit:
+            low = middle
+        else:
+            high = middle - 1
+    return html.escape(value[:low] + "…")
+
+
 def _location(job, details: dict) -> str:
     return str(details.get("city") or job.city or job.country or "не указана")
 
@@ -550,8 +564,8 @@ def render_application_package(payload: dict) -> str:
     company = _clip(repair_mojibake(str(job.company or "")), 100)
     lines = [
         "📝 <b>Черновик пакета отклика</b>",
-        f"{html.escape(title)}" + (f" — {html.escape(company)}" if company else ""),
-        f"Резюме: <b>{html.escape(_clip(str(resume.name or ''), 100))}</b> (ID {resume.id})"
+        _escape_clipped(title, 300) + (f" — {_escape_clipped(company, 200)}" if company else ""),
+        f"Резюме: <b>{_escape_clipped(_clip(str(resume.name or ''), 100), 200)}</b> (ID {resume.id})"
         if resume else "Резюме: не выбрано",
         "",
         "<b>Проверь перед отправкой</b>",
@@ -578,25 +592,42 @@ def render_application_package(payload: dict) -> str:
     ):
         lines.append("• По распознанным навыкам дополнительных расхождений нет.")
     source_url = str(payload.get("url") or "").strip()
-    parsed_url = urlsplit(source_url)
-    if (
-        parsed_url.scheme.casefold() in {"http", "https"}
-        and parsed_url.hostname
-        and not parsed_url.username
-        and not parsed_url.password
-    ):
-        url = html.escape(_clip(source_url, 600), quote=True)
+    try:
+        parsed_url = urlsplit(source_url)
+        safe_link = (
+            len(source_url) <= 600
+            and parsed_url.scheme.casefold() in {"http", "https"}
+            and parsed_url.hostname
+            and not parsed_url.username
+            and not parsed_url.password
+        )
+    except ValueError:
+        safe_link = False
+    if safe_link:
+        url = html.escape(source_url, quote=True)
         lines.append(f'<a href="{url}">Открыть вакансию для ручной отправки</a>')
     else:
         lines.append("• Прямая ссылка на источник не сохранена; найди вакансию вручную перед откликом.")
-    lines.extend([
+    tail = _mobility_evidence_lines(job, str(getattr(job, "description", "") or ""))
+    tail.extend([
         "",
         "<b>Черновик сопроводительного</b>",
-        html.escape(_clip(str(payload.get("cover_letter") or ""), 1600)) or "Черновик отсутствует.",
+        _escape_clipped(_clip(str(payload.get("cover_letter") or ""), 1600), 1200) or "Черновик отсутствует.",
         "",
         "Черновик не отправлен. Проверь факты, язык и содержание и отправь сам.",
     ])
-    return "\n".join(lines)
+    notice = f"… Предпросмотр сокращён. Полная сверка: /resumediff {job.id}; вакансия: /job {job.id}."
+    budget = 3700 - len("\n".join(tail)) - len(notice) - 2
+    kept, used, omitted = [], 0, False
+    for line in lines:
+        if used + len(line) + 1 <= budget:
+            kept.append(line)
+            used += len(line) + 1
+        else:
+            omitted = True
+    if omitted:
+        kept.append(notice)
+    return "\n".join(kept + tail)
 
 
 def _alternative_group_summary(item: dict) -> str:

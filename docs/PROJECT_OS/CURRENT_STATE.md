@@ -1,5 +1,14 @@
 # Current State
 
+## 2026-10-15 — mobility evidence in package review
+
+Prepared packages now show the existing visa/relocation/work-permit evidence
+and prior-authorization requirement, with unknowns and personal-eligibility
+limits preserved. Preview HTML is bounded to 3700 characters, keeps the mobility
+block, and points to full CV review when details are omitted. Malformed,
+credential-bearing and overlong URLs do not break previews or become truncated
+links. Focused tests: 116; full isolated PostgreSQL: 948 passed.
+
 ## 2026-10-15 — source yield before preference filters
 
 Per-source attempts now retain received-result and preference-exclusion counts.

@@ -2,17 +2,18 @@
 
 ## Current development checkpoint — 2026-10-15
 
-Source yield increment started at `c0adcd9` (serialized application history).
-Source attempts now count received results before preferences and separate
-preference exclusions from scoring/error counts. A two-profile regression
-explains zero Relocation-first yield while preserving Career-first results.
-Focused tests: 91; full isolated PostgreSQL: 943 passed. Prior commits include
-Candidate Fit overlap correction and immutable package snapshots (schema v7).
-VERSION stays 3.5.7, latest formal release v3.5.6. Next: show existing mobility
-evidence during package preparation, preserving unknowns and message bounds.
-Keep the complete Recruiter/Interview/v4.x roadmap. Both proposals are untouched;
-DB tests use localhost:55432/tmpfs only. No push, release, deployment, VERSION
-or production change. Live Telegram/eligibility remain separate evidence gates.
+Mobility-preview increment started at `8756ae4` (source prefilter counters).
+Package review now shows existing employer support/authorization evidence and
+explicitly leaves personal eligibility unconfirmed. HTML preview stays within
+3700 characters, with complete tags, full-review pointers and safe URL fallback.
+Focused tests: 116; full isolated PostgreSQL: 948 passed. Schema v7; VERSION
+3.5.7; latest formal release v3.5.6. Previous local increments fixed Candidate
+Fit overlap, retained vacancy snapshots and serialized status history.
+Next: add the documented /prepare command (currently only the preparation
+button exists), reusing package capture and user/profile boundaries; then
+continue source/fit and original Recruiter/Interview/v4.x tasks. Both proposals
+are preserved. DB tests use localhost:55432/tmpfs. No push, release, deployment,
+VERSION or production change. Live Telegram/legal eligibility remain separate.
 
 ## Previous implementation checkpoint — 2026-10-15
 

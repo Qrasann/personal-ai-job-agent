@@ -1,6 +1,9 @@
 import asyncio
+from html.parser import HTMLParser
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+
+import pytest
 
 from app.matching.fact_comparison import compare_facts
 from app.matching.resume_diff import compare_resume_coverage
@@ -150,7 +153,11 @@ def test_prepare_match_returns_evidence_checklist_without_external_submission(mo
     save_application.assert_not_awaited()
 
 
-def test_application_package_preview_escapes_and_rejects_unsafe_links():
+@pytest.mark.parametrize("url", [
+    "javascript:alert(1)", "https://[broken", "https://user:password@example.invalid/job",
+    "https://example.invalid/" + "x" * 601,
+])
+def test_application_package_preview_escapes_and_rejects_unsafe_links(url):
     text = render_application_package({
         "job": SimpleNamespace(id=25, title="DevOps <Lead>", company="Example"),
         "resume": SimpleNamespace(id=5, name="CV"),
@@ -160,12 +167,12 @@ def test_application_package_preview_escapes_and_rejects_unsafe_links():
             "resume_only_unconfirmed": (),
             "missing_from_both": ("Docker",),
         },
-        "url": "javascript:alert(1)",
+        "url": url,
         "cover_letter": "Draft <script>",
     })
 
     assert "DevOps &lt;Lead&gt;" in text
-    assert "<a href=\"javascript:" not in text
+    assert "<a href=" not in text
     assert "не отправлен" in text
     assert "Draft &lt;script&gt;" in text
 
@@ -236,6 +243,54 @@ def test_application_package_preview_is_bounded_for_telegram():
     })
 
     assert len(text) < 4096
+
+
+def test_package_review_preserves_explicit_mobility_restrictions_and_unknowns():
+    job = SimpleNamespace(
+        id=25, title="Infrastructure role", company="Example", country="GE",
+        description="No visa sponsorship. Must already have the right to work in Georgia.",
+        visa_sponsorship=True, relocation=None,
+    )
+    text = render_application_package({"job": job, "resume_diff": {}})
+    assert "Visa sponsorship: явно не предоставляется" in text
+    assert "Помощь с переездом: не подтверждено вакансией" in text
+    assert "Предварительное право на работу: явно требуется" in text
+    assert "не подтверждают личную юридическую eligibility" in text
+    assert "Черновик не отправлен" in text
+
+
+def test_dense_package_review_keeps_mobility_and_valid_html_within_message_limit():
+    text = render_application_package({
+        "job": SimpleNamespace(
+            id=25, title="<&" * 100, company="<&" * 100, country="DE",
+            description="We provide visa sponsorship and relocation assistance.",
+        ),
+        "resume": SimpleNamespace(id=5, name="<&" * 100),
+        "resume_diff": {"resume_only_unconfirmed": tuple("<skill&>" * 50 for _ in range(20))},
+        "cover_letter": "<draft&>" * 400,
+        "url": "https://example.invalid/" + "a" * 2000,
+    })
+    assert len(text) <= 3700
+    assert "Предпросмотр сокращён" in text
+    assert "/resumediff 25" in text
+    assert "Visa sponsorship: явно предлагается" in text
+    assert "Помощь с переездом: явно предлагается" in text
+    assert "Черновик не отправлен" in text
+
+    class BalancedHTML(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.stack = []
+
+        def handle_starttag(self, tag, attrs):
+            self.stack.append(tag)
+
+        def handle_endtag(self, tag):
+            assert self.stack.pop() == tag
+
+    parser = BalancedHTML()
+    parser.feed(text)
+    assert parser.stack == []
 
 
 def test_application_list_shows_private_snapshot_metadata_and_escapes_text():
