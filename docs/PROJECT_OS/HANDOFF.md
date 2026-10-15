@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `54fac96`. Relocation Evidence now captures multiple
+language observations in one posting independently; each stores required,
+preferred, unspecified or conflicting status with its own excerpt. Explicit
+English CEFR remains separate. Detail cards render the distinct conditions.
+Focused tests: 47 passed; full isolated PostgreSQL: 978 passed; compileall,
+diff check and secret scan passed. Next: continue source-aware country/hiring
+scope or Candidate Fit work. No score/Candidate Facts/legal conclusion or
+production change. Isolated test DB localhost:55432/jobagent_test; proposal
+files untouched.
+
 Started from HEAD `b3f99f2`. Prior work-authorization evidence now preserves
 explicit negative statements as confirmed `false`, leaves missing statements
 unknown and marks contradictory positive/negative source text as a conflict.

@@ -57,7 +57,8 @@ _HOUSING_NO = re.compile(
     re.I,
 )
 _LANGUAGE_TERM = re.compile(
-    r"\b(english|german|french|russian)\b|английск\w*|немецк\w*|французск\w*|русск\w*",
+    r"\b(english|german|french|russian|spanish|dutch|italian|polish|portuguese|arabic)\b|"
+    r"английск\w*|немецк\w*|французск\w*|русск\w*",
     re.I,
 )
 _LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
@@ -192,31 +193,61 @@ def build_relocation_evidence(
             )
             continue
         if field == "language_requirement":
-            language_match = _LANGUAGE_TERM.search(job.description or "")
-            language = language_match.group(0) if language_match else None
-            cefr = compare_english_level(job.description or "", None) if language and "english" in language.casefold() else None
-            excerpt = (
-                cefr.evidence if cefr
-                else _excerpt(job.description or "", _RULES[field])
-                or (language_match.group(0) if language_match else None)
+            observations: list[dict[str, Any]] = []
+            for clause in re.split(r"[.!?;\n]+", job.description or ""):
+                for language_match in _LANGUAGE_TERM.finditer(clause):
+                    language_text = language_match.group(0)
+                    language = language_match.group(1)
+                    if not language:
+                        language = next((name for prefix, name in (
+                            ("английск", "English"), ("немецк", "German"),
+                            ("французск", "French"), ("русск", "Russian"),
+                        ) if language_text.casefold().startswith(prefix)), language_text)
+                    canonical = language.title() if language else "Unknown"
+                    cefr = compare_english_level(clause, None) if canonical == "English" else None
+                    required = bool(_LANGUAGE_REQUIRED.search(clause)) and not bool(_LANGUAGE_NEGATED.search(clause))
+                    preferred = bool(_LANGUAGE_PREFERRED.search(clause))
+                    if cefr and cefr.requirement in {"required", "preferred"}:
+                        requirement = cefr.requirement
+                    elif required != preferred and required:
+                        requirement = "required"
+                    elif required != preferred and preferred:
+                        requirement = "preferred"
+                    else:
+                        requirement = "unspecified"
+                    excerpt = (cefr.evidence if cefr else None) or " ".join(clause.split())[:240]
+                    observations.append({
+                        "language": canonical,
+                        "requirement": requirement,
+                        "cefr": cefr.required_level if cefr else None,
+                        "excerpt": excerpt,
+                    })
+            grouped: dict[str, list[dict[str, Any]]] = {}
+            for item in observations:
+                grouped.setdefault(item["language"], []).append(item)
+            normalized_observations = []
+            for language, items in grouped.items():
+                explicit = {item["requirement"] for item in items if item["requirement"] in {"required", "preferred"}}
+                if len(explicit) > 1:
+                    normalized_observations.append({
+                        "language": language, "requirement": "conflicting", "cefr": None,
+                        "excerpt": " | ".join(item["excerpt"] for item in items)[:480],
+                    })
+                else:
+                    normalized_observations.extend(items)
+            excerpt = " | ".join(item["excerpt"] for item in normalized_observations)[:480] or None
+            explicit_requirement = any(
+                item["requirement"] in {"required", "preferred"}
+                for item in normalized_observations
             )
-            requirement = cefr.requirement if cefr else "unspecified"
-            if language and not cefr and excerpt:
-                clause = next((part for part in re.split(r"[.!?;\n]+", job.description or "") if language.casefold() in part.casefold()), "")
-                required = bool(_LANGUAGE_REQUIRED.search(clause)) and not bool(_LANGUAGE_NEGATED.search(clause))
-                preferred = bool(_LANGUAGE_PREFERRED.search(clause))
-                requirement = "required" if required != preferred and required else "preferred" if required != preferred and preferred else "unspecified"
-            value = excerpt
             fields[field] = record(
-                value, excerpt,
-                "explicit_requirement" if requirement in {"required", "preferred"} else "observed_text" if excerpt else "unknown",
+                excerpt, excerpt,
+                "explicit_requirement" if explicit_requirement else "observed_text" if excerpt else "unknown",
             )
             if excerpt:
-                fields[field]["status"] = "confirmed" if requirement in {"required", "preferred"} else "observed"
+                fields[field]["status"] = "confirmed" if explicit_requirement else "observed"
                 fields[field]["interpretation"] = {
-                    "language": "English" if language and "english" in language.casefold() else language,
-                    "requirement": requirement,
-                    "cefr": cefr.required_level if cefr else None,
+                    "requirements": normalized_observations,
                 }
             continue
         excerpt = _excerpt(job.description or "", _RULES[field])

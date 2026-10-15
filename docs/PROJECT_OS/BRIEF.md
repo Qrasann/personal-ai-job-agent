@@ -1,5 +1,14 @@
 # Codex Brief
 
+## 2026-10-15 — retain multiple language conditions
+
+Relocation Evidence now extracts multiple supported languages independently
+within one posting, each with its requirement classification and excerpt.
+Conflicting explicit statuses for the same language stay marked conflicting;
+English CEFR remains attached to its own observation. Detail cards can show
+multiple conditions. Synthetic evidence/detail tests: 47 passed; full isolated
+PostgreSQL: 978 passed.
+
 ## 2026-10-15 — distinguish explicit work-authorization non-requirement
 
 Relocation Evidence records an explicit “work permit not required” statement

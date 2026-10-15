@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — multiple per-language observations
+
+One source posting can now preserve separate English, German, French, Russian,
+Spanish, Dutch, Italian, Polish, Portuguese and Arabic observations, with
+required/preferred/unspecified state, excerpt and separate English CEFR where
+explicit. Conflicting explicit states remain marked as conflicting. Focused
+tests: 47; isolated PostgreSQL: 978 passed.
+
 ## 2026-10-15 — explicit prior-authorization negative evidence
 
 The evidence packet now distinguishes an explicit statement that existing

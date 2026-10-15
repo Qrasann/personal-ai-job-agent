@@ -83,18 +83,34 @@ def test_housing_requires_explicit_provision_or_refusal_and_language_is_classifi
     assert offered["housing_provided"]["status"] == "confirmed"
     language = offered["language_requirement"]
     assert language["status"] == "confirmed"
-    assert language["interpretation"] == {
+    assert language["interpretation"]["requirements"] == [{
         "language": "English", "requirement": "required", "cefr": "B2",
-    }
+        "excerpt": "English B2",
+    }]
 
     denied = extract("Housing is not provided. German is preferred.")
     assert denied["housing_provided"]["value"] is False
-    assert denied["language_requirement"]["interpretation"]["requirement"] == "preferred"
+    assert denied["language_requirement"]["interpretation"]["requirements"][0]["requirement"] == "preferred"
 
     ambiguous = extract("Housing and English are mentioned in the posting.")
     assert ambiguous["housing_provided"]["status"] == "unknown"
     assert ambiguous["language_requirement"]["status"] == "observed"
-    assert ambiguous["language_requirement"]["interpretation"]["requirement"] == "unspecified"
+    assert ambiguous["language_requirement"]["interpretation"]["requirements"][0]["requirement"] == "unspecified"
+
+
+def test_multiple_language_conditions_keep_independent_evidence_and_conflict_unknown():
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="language-multiple", title="Engineer",
+        description="English B2 preferred. German is required. English B1 is mandatory.",
+    )
+    evidence = build_relocation_evidence(job)["fields"]["language_requirement"]
+    requirements = evidence["interpretation"]["requirements"]
+    assert [(item["language"], item["requirement"]) for item in requirements] == [
+        ("English", "conflicting"), ("German", "required"),
+    ]
+    assert "English B2" in requirements[0]["excerpt"]
+    assert "English B1" in requirements[0]["excerpt"]
+    assert "German is required" in requirements[1]["excerpt"]
 
 
 def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():

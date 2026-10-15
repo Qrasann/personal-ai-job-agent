@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — retain multiple language conditions
+
+Language evidence no longer stops at the first language mention. It records
+multiple supported language conditions independently and retains conflicting
+required/preferred statements for review. CEFR stays separate. Focused tests:
+47; full isolated PostgreSQL: 978 passed. Next: continue source/location
+provenance or Candidate Fit; live legal evidence remains separate.
+
 ## 2026-10-15 — distinguish explicit authorization non-requirement
 
 Added tri-state handling for the prior-work-authorization condition: explicit

@@ -2427,3 +2427,10 @@ Prior work authorization now distinguishes explicit required/not-required
 statements from missing evidence. Contradictory statements remain unknown and
 are tagged as conflicting. Focused tests: 82 passed; isolated PostgreSQL:
 977 passed.
+
+## 2026-10-15 — multiple per-language source conditions
+
+Extracted multiple supported languages from a posting independently, each
+with requirement status and excerpt. Conflicting explicit required/preferred
+statements stay reviewable as conflicting, and English CEFR remains separate.
+Focused tests: 47 passed; full isolated PostgreSQL: 978 passed.
