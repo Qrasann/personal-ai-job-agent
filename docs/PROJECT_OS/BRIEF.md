@@ -1,3 +1,7 @@
+## 2026-10-15 — recognize Russian negotiable start timing
+
+Relocation Evidence now captures the explicit Russian “Выход на работу по договорённости” phrase as negotiable timing; it does not assess candidate availability. “Начать можно сразу” is covered as immediate. Focused regression passed; full isolated PostgreSQL: 988 passed.
+
 # Codex Brief
 
 ## 2026-10-15 — recognize explicit Russian housing conditions

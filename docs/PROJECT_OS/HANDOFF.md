@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `4f79583`. Added synthetic Relocation Evidence regressions for Russian start timing: “Начать можно сразу” is immediate and “Выход на работу по договорённости” is negotiable. The latter was previously missed because the excerpt rule matched only infinitive `выйти`. Focused timing test: 1 passed; full isolated PostgreSQL suite: 988 passed. Next: continue the full roadmap with a practical, independent Candidate Fit or source intelligence increment; preserve Career-first/Relocation-first and unknown evidence. No scoring, Candidate Facts, legal conclusions or production state changed. Proposal files remain untracked and untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `629564c`. Added synthetic regression coverage for explicit
 Russian “housing provided/not provided” wording. Bare mentions remain unknown.
 Full isolated PostgreSQL: 988 passed; compileall, diff check and secret scan

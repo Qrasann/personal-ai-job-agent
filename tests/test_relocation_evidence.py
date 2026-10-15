@@ -167,6 +167,8 @@ def test_start_timing_keeps_explicit_kind_and_original_excerpt():
         ("Starting date: 2026-11-01.", "stated_date"),
         ("The notice period is 30 days.", "notice_period"),
         ("Start date is negotiable.", "negotiable"),
+        ("Начать можно сразу.", "immediate"),
+        ("Выход на работу по договорённости.", "negotiable"),
     ]
     for text, expected_kind in cases:
         job = NormalizedJob(

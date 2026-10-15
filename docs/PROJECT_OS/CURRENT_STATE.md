@@ -1,5 +1,10 @@
 # Current State
 
+## 2026-10-15 — Russian start timing
+
+Explicit “Выход на работу по договорённости” is retained as negotiable timing; “Начать можно сразу” is immediate. This is source description only. Full isolated PostgreSQL: 988 passed.
+
+
 ## 2026-10-15 — Russian housing evidence
 
 Explicit Russian accommodation provision/refusal is now recognized and

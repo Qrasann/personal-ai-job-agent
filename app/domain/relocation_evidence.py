@@ -42,7 +42,8 @@ _RULES: dict[str, re.Pattern[str]] = {
     "start_timing": re.compile(
         r"[^.!?;\n]{0,80}(?:start (?:date|immediately|as soon as possible)|"
         r"available to start|starting date|commencement date|notice period|"
-        r"начать работу|дата выхода|срок выхода|eintrittstermin|arbeitsbeginn|kündigungsfrist|starttermin)[^.!?;\n]{0,80}", re.I
+        r"начать (?:работу|можно|сразу)|(?:выйти|выход) на работу|дата начала работы|дата выхода|срок выхода|"
+        r"eintrittstermin|arbeitsbeginn|kündigungsfrist|starttermin)[^.!?;\n]{0,80}", re.I
     ),
 }
 
@@ -65,9 +66,9 @@ _LANGUAGE_TERM = re.compile(
 _LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:obligatorisch|erforderlich|vorausgesetzt|notwendig)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
 _LANGUAGE_PREFERRED = re.compile(r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:bevorzugt|wünschenswert|von vorteil)\b|\b(?:желательно|приветствуется|будет плюсом)\b", re.I)
 _LANGUAGE_NEGATED = re.compile(r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b", re.I)
-_START_IMMEDIATE = re.compile(r"\b(?:immediately|as soon as possible|right away|sofort)\b|\b(?:немедленно|как можно скорее)\b", re.I)
+_START_IMMEDIATE = re.compile(r"\b(?:immediately|as soon as possible|right away|sofort)\b|\b(?:немедленно|как можно скорее|сразу)\b", re.I)
 _START_RELATIVE = re.compile(r"\b(?:within|in)\s+\d+\s+(?:business )?(?:days?|weeks?|months?)\b|\bчерез\s+\d+\s+(?:дн\w*|недел\w*|месяц\w*)", re.I)
-_START_NEGOTIABLE = re.compile(r"\b(?:negotiable|by agreement|to be agreed|nach vereinbarung)\b|\b(?:по договоренности|обсуждается)\b", re.I)
+_START_NEGOTIABLE = re.compile(r"\b(?:negotiable|by agreement|to be agreed|nach vereinbarung)\b|\b(?:по договор[её]нност[ьи]|обсуждается)\b", re.I)
 _START_NOTICE = re.compile(r"\bnotice period\b|\bсрок уведомления\b", re.I)
 _START_DATE = re.compile(r"\b(?:start(?:ing)? date|commencement date)\s*[:\-]?\s*\S+|\bдата выхода\s*[:\-]?\s*\S+", re.I)
 _AUTH_NOT_REQUIRED = re.compile(

@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-15 — capture Russian negotiable start timing
+
+Added a regression and source-text pattern for “Выход на работу по договорённости”. Confirmed immediate Russian start wording remains classified independently. Full isolated PostgreSQL: 988 passed.
+
+
 ## 2026-10-15 — Russian accommodation evidence
 
 Added explicit Russian positive and negative accommodation wording with

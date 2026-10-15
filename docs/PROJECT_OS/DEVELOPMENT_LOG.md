@@ -1,3 +1,7 @@
+## 2026-10-15 — recognize Russian negotiable start timing
+
+The source evidence excerpt matcher now includes “Выход на работу” so the existing conservative negotiable classifier can classify “Выход на работу по договорённости”. “Начать можно сразу” is also regression-covered as immediate. No candidate availability, scoring or legal eligibility is inferred. Full isolated PostgreSQL suite: 988 passed.
+
 ## 2026-10-15 — mobility evidence in package review
 
 Prepared packages now show the existing visa/relocation/work-permit evidence
