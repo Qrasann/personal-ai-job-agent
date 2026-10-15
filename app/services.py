@@ -660,7 +660,9 @@ async def get_cached_hh_details(job_id: int, *, source_job_id: str | None = None
     cached = raw.get("details_cache_v1")
     posting_digest = posting_snapshot_digest(raw.get("normalized_posting_v1"))
     cache_digest = raw.get("details_cache_posting_digest_v1")
-    if isinstance(cached, dict) and (not cache_digest or cache_digest == posting_digest):
+    # A versioned posting must never reuse unversioned (legacy) details.
+    # For legacy refs without a posting snapshot, continue supporting legacy cache.
+    if isinstance(cached, dict) and cache_digest == posting_digest:
         return dict(cached)
 
     vacancy_html = await hh_client.vacancy_web(ref.source_job_id)
