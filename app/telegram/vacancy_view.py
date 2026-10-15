@@ -307,6 +307,31 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
     return lines
 
 
+def relocation_followup_lines(evidence: dict) -> list[str]:
+    """Actionable questions from missing source evidence, without eligibility claims."""
+    fields = evidence.get("fields") if isinstance(evidence, dict) else None
+    if not isinstance(fields, dict):
+        return []
+    topics = (
+        ("work_country", "страну фактической работы"),
+        ("existing_work_authorization_required", "требуется ли действующее право на работу"),
+        ("visa_sponsorship", "доступен ли visa sponsorship"),
+        ("citizenship_or_residence_restriction", "страны гражданства и проживания для найма"),
+        ("relocation_assistance", "помощь с переездом"),
+        ("housing_provided", "предоставление жилья"),
+        ("language_requirement", "требования к языку"),
+        ("start_timing", "срок выхода"),
+    )
+    missing = [
+        label for key, label in topics
+        if isinstance(fields.get(key), dict) and fields[key].get("status") == "unknown"
+    ]
+    if not missing:
+        return []
+    suffix = f"; и ещё {len(missing) - 3} условий" if len(missing) > 3 else ""
+    return ["", "📋 Перед откликом уточни у работодателя: " + "; ".join(missing[:3]) + suffix + "."]
+
+
 def render_queue_card(
     match,
     job,
@@ -484,6 +509,7 @@ def render_job_details(payload: dict) -> str:
 
     lines.extend(_mobility_evidence_lines(job, description_full))
     lines.extend(_relocation_evidence_lines(payload.get("relocation_evidence") or {}))
+    lines.extend(relocation_followup_lines(payload.get("relocation_evidence") or {}))
 
     if description:
         lines.extend(["", "📝 <b>Описание вакансии</b>", html.escape(description)])

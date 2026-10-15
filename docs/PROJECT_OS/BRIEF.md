@@ -1,3 +1,7 @@
+## 2026-10-15 — actionable employer questions from unknown mobility evidence
+
+The vacancy card now shows up to three prioritized conditions to clarify with the employer when source-scoped Relocation Evidence remains unknown, plus a count of additional unknown topics. Confirmed conditions are not presented as unknown. This is a review prompt, not a legal eligibility conclusion. Synthetic and card regressions; full isolated PostgreSQL 1012 passed.
+
 ## 2026-10-15 — keep package preparation available on model failure
 
 Cover-letter generation now uses the local fact-grounded fallback when the model client fails or returns empty text. The error payload is not surfaced in the draft. A red model-failure regression and empty-output fixture passed; focused 34, full isolated PostgreSQL 1009 passed. The owner still reviews every draft.

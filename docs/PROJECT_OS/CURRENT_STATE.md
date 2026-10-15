@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — actionable employer questions from unknown mobility evidence
+
+Vacancy cards turn unknown source-scoped mobility conditions into at most three concrete employer questions, with a count of remaining unknown topics. Confirmed conditions are not re-asked. No legal eligibility inference. Full isolated PostgreSQL 1012 passed.
+
 ## 2026-10-15 — keep package preparation available on model failure
 
 `/prepare` can use the local fact-grounded cover-letter fallback when the model call fails or yields no text, instead of aborting package preparation. Focused 34 and full isolated PostgreSQL 1009 passed. No automatic application submission.

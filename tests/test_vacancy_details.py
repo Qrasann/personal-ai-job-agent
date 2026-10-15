@@ -38,6 +38,32 @@ def test_card_displays_selected_source_observation_separately_from_publication()
     assert "Источник обнаружен: 15.10.2026 12:30 UTC" in rendered
 
 
+def test_card_shows_employer_questions_for_unknown_relocation_evidence():
+    job = SimpleNamespace(
+        id=25, title="Engineer", company="Example", description="Role",
+        salary_from=None, salary_to=None, salary_currency=None,
+        city=None, country=None, work_mode=None, remote_scope=None,
+        published_at=None,
+    )
+    match = SimpleNamespace(
+        total_score=82, technical_score=86, geography_score=100,
+        salary_score=58, relocation_score=50, reason="",
+    )
+    evidence = {"fields": {
+        "work_country": {"status": "unknown", "value": None},
+        "visa_sponsorship": {"status": "unknown", "value": None},
+    }}
+
+    rendered = render_job_details({
+        "job": job, "match": match, "source": "jobs_ge",
+        "relocation_evidence": evidence,
+    })
+
+    assert "Перед откликом уточни у работодателя" in rendered
+    assert "страну фактической работы" in rendered
+    assert "доступен ли visa sponsorship" in rendered
+
+
 def _timezone_card(restrictions, availability=None):
     job = SimpleNamespace(
         id=25, title="Linux Support Engineer", company="Example",

@@ -1,3 +1,7 @@
+## 2026-10-15 — actionable employer questions from unknown mobility evidence
+
+Added a bounded, deterministic follow-up line on vacancy cards for unknown source-scoped work country, prior authorization, visa sponsorship and other mobility conditions. It names at most three topics and counts the rest; confirmed conditions are omitted. Synthetic evidence and card regression tests passed; full isolated PostgreSQL 1012 passed. No legal interpretation or external contact.
+
 ## 2026-10-15 — keep package preparation available on model failure
 
 The cover-letter model call previously propagated provider errors, preventing `/prepare` from saving a reviewable package. It now falls back to the local fact-grounded draft on client/call errors and empty output. No error payload is included in the draft. Red regression and empty-response test; focused 34 and full isolated PostgreSQL 1009 passed. No live model request in tests.

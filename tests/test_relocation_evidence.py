@@ -4,6 +4,7 @@ from pathlib import Path
 
 from app.domain.jobs import NormalizedJob
 from app.domain.relocation_evidence import EVIDENCE_FIELDS, build_relocation_evidence
+from app.telegram.vacancy_view import relocation_followup_lines
 
 
 def _fixture_job():
@@ -58,6 +59,35 @@ def test_missing_relocation_evidence_is_unknown_not_refusal_or_offer():
         assert item["source_id"] == "synthetic_fixture"
         assert item["captured_at"]
         assert item["confidence"] == "unknown"
+
+
+def test_unknown_mobility_evidence_produces_bounded_employer_questions():
+    evidence = build_relocation_evidence(NormalizedJob(
+        source="synthetic_fixture", source_job_id="unknown-questions",
+        title="Engineer", description="Technical role.",
+    ))
+
+    lines = relocation_followup_lines(evidence)
+    rendered = "\n".join(lines)
+
+    assert "страну фактической работы" in rendered
+    assert "действующее право на работу" in rendered
+    assert "visa sponsorship" in rendered
+    assert "у работодателя" in rendered
+    assert "отказ" not in rendered
+    assert len(rendered) < 350
+
+
+def test_confirmed_mobility_evidence_is_not_asked_as_unknown():
+    evidence = build_relocation_evidence(NormalizedJob(
+        source="synthetic_fixture", source_job_id="confirmed-questions",
+        title="Engineer", description="Visa sponsorship is not available.", country="DE",
+    ))
+
+    rendered = "\n".join(relocation_followup_lines(evidence))
+
+    assert "страну фактической работы" not in rendered
+    assert "visa sponsorship" not in rendered
 
 
 def test_residence_restriction_excerpt_is_not_promoted_to_legal_judgment():

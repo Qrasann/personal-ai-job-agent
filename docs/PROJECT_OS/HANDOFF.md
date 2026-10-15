@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `68c7e55`. Vacancy cards now show a bounded employer-question prompt for unknown relocation conditions and omit confirmed topics. It is source-evidence review guidance, not a candidate-specific legal conclusion. Synthetic/card regressions and full isolated PostgreSQL 1012 passed. Next: deeper Source Intelligence quality and Candidate Fit; then Application Package, Recruiter, Interview, AI Router and v4.x. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `00a405c`. Model client/call failures and empty model output now use the local fact-grounded letter instead of aborting `/prepare`. A red synthetic provider-failure regression and empty-output fixture passed; focused 34 and full isolated PostgreSQL 1009 passed. Next: independent Source Intelligence, Candidate Fit or Relocation-first increment; continue Recruiter/Interview/AI Router/v4.x. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15

@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — employer clarification prompts completed
+
+- [x] Derive bounded, prioritized employer questions from unknown relocation evidence in the vacancy card.
+- [x] Do not present confirmed conditions as unknown or make candidate-specific legal conclusions.
+- [x] Synthetic/card regressions and full isolated PostgreSQL 1012 passed.
+- [ ] Next: deeper source quality and Candidate Fit; continue Application Package, Recruiter, Interview, AI Router and v4.x.
+
 ## 2026-10-15 — model failure fallback for Application Package completed
 
 - [x] Reproduce a model exception aborting cover-letter generation.
