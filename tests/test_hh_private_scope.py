@@ -156,6 +156,41 @@ def test_owner_may_reach_normal_application_checks(monkeypatch):
     get_job.assert_awaited_once_with(42)
 
 
+def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypatch):
+    monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "owner-chat")
+    monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
+        id=17, user_id=1, job_id=42, profile_id=3, resume_id=5,
+    )))
+    monkeypatch.setattr(services.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=1)))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=SimpleNamespace(
+        id=42, title="Saved role", company="Saved employer", description="Saved requirements",
+    )))
+    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=SimpleNamespace(
+        source_job_id="hh-job", url="https://example.invalid/posting",
+    )))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[SimpleNamespace(
+        id=5, source="hh", external_id="hh-resume", content="Saved resume",
+    )]))
+    monkeypatch.setattr(services, "make_cover_letter", lambda *args: "Saved letter")
+    send = AsyncMock(return_value={"negotiation_id": "receipt-1", "external_url": "https://example.invalid/receipt"})
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
+    save = AsyncMock()
+    monkeypatch.setattr(services.repo, "save_application", save)
+    monkeypatch.setattr(services.repo, "set_match_status", AsyncMock())
+
+    asyncio.run(services.apply_match(object(), 17, 1))
+
+    send.assert_awaited_once_with("hh-job", "hh-resume", "Saved letter")
+    saved = save.await_args.kwargs
+    assert saved["vacancy_snapshot"] == {
+        "title": "Saved role", "company": "Saved employer",
+        "description": "Saved requirements", "source_url": "https://example.invalid/posting",
+    }
+    assert saved["external_url"] == "https://example.invalid/receipt"
+    assert saved["source_application_id"] == "receipt-1"
+
+
 def test_hh_applicant_credential_requires_configured_owner(monkeypatch):
     monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "")
     monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(user_id=1)))

@@ -369,6 +369,7 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
     save_application.assert_awaited_once_with(
         user_id=7, job_id=25, source_id="manual", source_application_id=None,
         external_url=None, resume_id=None, resume_snapshot="", resume_external_id=None,
+        vacancy_snapshot={"title": "DevOps", "company": "ACME", "description": "Linux Docker", "source_url": ""},
         message="", status="prepared",
     )
     update_match.assert_awaited_once_with(51, "prepared")
@@ -411,7 +412,8 @@ def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkey
     )
     lookup = AsyncMock(return_value=application)
     monkeypatch.setattr(handlers.repo, "get_application", lookup)
-    monkeypatch.setattr(handlers.repo, "get_job", AsyncMock(return_value=_job(25, "DevOps")))
+    live_job_lookup = AsyncMock(side_effect=AssertionError("Export must use the saved snapshot"))
+    monkeypatch.setattr(handlers.repo, "get_job", live_job_lookup)
     history = AsyncMock(return_value=[SimpleNamespace(status="prepared", created_at=None)])
     monkeypatch.setattr(handlers.repo, "application_status_history", history)
     message = SimpleNamespace(
@@ -423,6 +425,7 @@ def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkey
     asyncio.run(handlers.application_status_command(message))
 
     lookup.assert_awaited_once_with(7, 42)
+    live_job_lookup.assert_not_awaited()
     history.assert_awaited_once_with(7, 42)
     document = message.answer_document.await_args.args[0]
     assert document.filename == "application-42.txt"

@@ -3,14 +3,15 @@ from app.database.models import Application, ApplicationStatusEvent, CandidateFa
 
 
 def test_schema_versions_and_migrations_are_declared():
-    assert CURRENT_SCHEMA_VERSION == 6
-    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5, 6]
+    assert CURRENT_SCHEMA_VERSION == 7
+    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5, 6, 7]
     assert MIGRATIONS[0].name == "profile_storage_foundation"
     assert MIGRATIONS[1].name == "candidate_fact_experience_type"
     assert MIGRATIONS[2].name == "candidate_fact_confidence_provenance"
     assert MIGRATIONS[3].name == "job_match_recommendation_scores"
     assert MIGRATIONS[4].name == "application_status_history"
     assert MIGRATIONS[5].name == "application_resume_snapshot"
+    assert MIGRATIONS[6].name == "application_vacancy_snapshot"
 
 
 def test_foundation_models_have_soft_delete_metadata():

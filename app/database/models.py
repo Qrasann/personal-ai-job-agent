@@ -4,6 +4,7 @@ from datetime import datetime
 from app.database.time_utils import utcnow_naive
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -193,6 +194,7 @@ class Application(Base):
     resume_id: Mapped[int | None] = mapped_column(ForeignKey("resume_profiles.id", ondelete="SET NULL"), nullable=True)
     resume_snapshot: Mapped[str] = mapped_column(Text, default="")
     resume_external_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    vacancy_snapshot: Mapped[dict] = mapped_column(JSONB, default=dict)
     message: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(64), default="sent")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)

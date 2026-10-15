@@ -24,6 +24,7 @@ from app.candidates.importer import (
 )
 from app.config import settings
 from app.database import repository as repo
+from app.domain.application_package import snapshot_vacancy
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
@@ -1493,12 +1494,8 @@ async def application_status_command(message: Message) -> None:
         if not application:
             await message.answer("❌ Отклик не найден в твоём профиле.")
             return
-        job = await repo.get_job(application.job_id)
-        if not job:
-            await message.answer("❌ Вакансия для этого пакета больше не найдена.")
-            return
         events = await repo.application_status_history(user.id, application.id)
-        content = render_application_export(application, job, events).encode("utf-8")
+        content = render_application_export(application, events).encode("utf-8")
         if len(content) > MAX_DOCUMENT_BYTES:
             await message.answer("❌ Пакет превышает безопасный размер экспорта 8 MiB.")
             return
@@ -1849,6 +1846,7 @@ async def prepare_callback(callback: CallbackQuery) -> None:
                 if result.get("resume") and result["resume"].external_id
                 else None
             ),
+            vacancy_snapshot=snapshot_vacancy(result["job"], source_url=result.get("url")),
             message=cover,
             status="prepared",
         )

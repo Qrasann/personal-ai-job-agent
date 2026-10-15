@@ -13,6 +13,7 @@ import httpx
 from app.agents.llm import make_cover_letter, recruiter_reply
 from app.config import settings
 from app.database import repository as repo
+from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
 from app.geo.countries import normalize_country
@@ -861,6 +862,7 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
         resume_id=match.resume_id,
         resume_snapshot=chosen.content if chosen else "",
         resume_external_id=hh_resume_id,
+        vacancy_snapshot=snapshot_vacancy(job, source_url=ref.url),
         message=cover,
         status=result.get("status", "sent"),
     )

@@ -75,9 +75,12 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("DROP TABLE application_status_events"))
             await conn.execute(text("ALTER TABLE applications DROP COLUMN resume_snapshot"))
             await conn.execute(text("ALTER TABLE applications DROP COLUMN resume_external_id"))
+            await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6]
+        assert applied == [5, 6, 7]
+        async with engine.begin() as conn:
+            assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
         assert events is not None
         assert [(event.status, event.created_at) for event in events] == [
@@ -86,6 +89,51 @@ async def _application_migration_flow(monkeypatch):
         loaded = await repo.get_application(user.id, application_id)
         assert loaded.resume_snapshot == ""
         assert loaded.resume_external_id is None
+        assert loaded.vacancy_snapshot == {}
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_saved_application_posting_survives_later_job_edits(monkeypatch):
+    _require_test_database()
+    asyncio.run(_application_snapshot_flow(monkeypatch))
+
+
+async def _application_snapshot_flow(monkeypatch):
+    from app.database.models import Job
+    from app.domain.application_package import snapshot_vacancy
+    from app.telegram.vacancy_view import render_application_export
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        user = await repo.create_user("snapshot-user", "Snapshot User")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="snapshot", source_job_id="original", title="Original role",
+            company="Original company", description="Original requirements",
+        ))
+        application = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="snapshot", status="prepared",
+            vacancy_snapshot=snapshot_vacancy(job, source_url="https://example.invalid/original"),
+        )
+        async with test_session() as session:
+            changed = await session.get(Job, job.id)
+            changed.title = "Changed role"
+            changed.company = "Changed company"
+            changed.description = "Changed requirements"
+            await session.commit()
+        loaded = await repo.get_application(user.id, application.id)
+        exported = render_application_export(loaded)
+        assert "Original role — Original company" in exported
+        assert "Original requirements" in exported
+        assert "https://example.invalid/original" in exported
+        assert "Changed" not in exported
+        assert (await repo.get_job(job.id)).title == "Changed role"
     finally:
         await engine.dispose()
 

@@ -262,7 +262,6 @@ def test_application_export_includes_exact_saved_resume_and_cover_text():
             resume_external_id="hh-resume-5", resume_snapshot="Exact CV v1",
             message="Exact cover letter v1",
         ),
-        SimpleNamespace(title="DevOps", company="Example"),
         [SimpleNamespace(status="prepared", created_at=None), SimpleNamespace(status="submitted", created_at=None)],
     )
 
@@ -282,7 +281,7 @@ def test_old_application_export_says_when_resume_snapshot_is_unavailable():
             external_url=None, resume_id=5, resume_external_id=None,
             resume_snapshot="", message="Legacy cover letter",
         ),
-        SimpleNamespace(title="DevOps", company="Example"),
     )
 
     assert "No resume-content snapshot is available" in text
+    assert "Vacancy metadata snapshot unavailable" in text

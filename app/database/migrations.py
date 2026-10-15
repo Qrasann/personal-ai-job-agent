@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 6
+CURRENT_SCHEMA_VERSION = 7
 
 
 @dataclass(frozen=True)
@@ -88,6 +88,13 @@ MIGRATIONS: tuple[Migration, ...] = (
             "SELECT a.id, a.user_id, a.status, a.created_at FROM applications a "
             "WHERE NOT EXISTS (SELECT 1 FROM application_status_events e "
             "WHERE e.application_id = a.id)",
+        ),
+    ),
+    Migration(
+        version=7,
+        name="application_vacancy_snapshot",
+        statements=(
+            "ALTER TABLE applications ADD COLUMN IF NOT EXISTS vacancy_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb",
         ),
     ),
 )

@@ -1,5 +1,15 @@
 # Current State
 
+## 2026-10-15 — immutable vacancy snapshot in Application Package
+
+Schema v7 adds an additive vacancy snapshot: title, company, original stored
+description and source vacancy URL. Prepared and HH packages capture it beside
+the CV/letter; export no longer queries the mutable Job. Provider/application
+URLs remain separate. Old rows disclose missing snapshots without backfilling
+current data as historical fact. Focused package/migration tests: 64 passed;
+full isolated PostgreSQL: 940 passed, including v4-to-v7 upgrade/idempotency
+and export after later Job edits. Production schema remains untouched.
+
 ## 2026-10-15 — nonoverlapping Candidate Fit alternatives
 
 Pure OR expressions such as `Linux or (Docker or Kubernetes)` now produce

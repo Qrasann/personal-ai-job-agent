@@ -670,19 +670,26 @@ def render_application_history(events: list) -> str:
     return "\n".join(lines)
 
 
-def render_application_export(application, job, events: list | None = None) -> str:
+def render_application_export(application, events: list | None = None) -> str:
     created = getattr(application, "created_at", None)
     created_text = created.strftime("%Y-%m-%d %H:%M UTC") if created else "unknown"
+    snapshot = getattr(application, "vacancy_snapshot", None) or {}
     lines = [
         f"Application package #{application.id}",
-        f"Vacancy: {job.title} — {job.company}",
+        (f"Saved vacancy: {snapshot.get('title') or 'not recorded'} — "
+         f"{snapshot.get('company') or 'not recorded'}" if snapshot
+         else "Vacancy metadata snapshot unavailable for this record."),
         f"Status: {application.status}",
         "Status is locally recorded and does not independently verify receipt by the employer or provider.",
         f"Prepared: {created_text}",
         f"Source: {application.source_id}",
-        f"Vacancy URL: {application.external_url or 'not recorded'}",
+        f"Saved vacancy URL: {snapshot.get('source_url') or 'not recorded'}",
+        f"Recorded external URL: {application.external_url or 'not recorded'}",
         f"Saved resume ID: {application.resume_id or 'not selected'}",
         f"External resume ID: {application.resume_external_id or 'not recorded'}",
+        "",
+        "=== Saved vacancy description (as stored) ===",
+        snapshot.get("description") or "No vacancy description snapshot is available for this record.",
         "",
         "=== Saved resume text snapshot ===",
     ]

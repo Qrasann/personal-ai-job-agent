@@ -2,14 +2,17 @@
 
 ## Current development checkpoint — 2026-10-15
 
-Started from `8ccba30`; VERSION remains 3.5.7, latest formal release v3.5.6.
-Fixed overlapping pure-OR groups in Candidate Fit and resume review. Focused
-tests: 70 passed; full isolated PostgreSQL on localhost:55432/tmpfs: 936 passed.
-Next: freeze vacancy metadata in Application Package snapshots; then continue
-Source Intelligence/Relocation-first and the full Recruiter/Interview/v4.x
-roadmap. Live Telegram and legal eligibility remain separate evidence gates.
-Both owner proposals are untouched and excluded. Local checkpoints only; no
-push, release, deployment, VERSION or production change is authorized.
+Snapshot increment started at `a34f89a` (Candidate Fit overlap fix, 936 tests).
+Application Package now freezes title/company/description/vacancy URL with
+the CV and letter. Schema v7 is additive; old rows stay explicitly unknown.
+Export uses only the saved package plus owner-scoped history. Focused tests: 64;
+full isolated PostgreSQL: 940 passed, including v4-to-v7 and edited-Job cases.
+VERSION remains 3.5.7, latest formal release v3.5.6.
+Next: concurrent manual status history, then source yield and relocation
+evidence usefulness. Preserve the Recruiter/Interview/v4.x roadmap. Both owner
+proposals remain untouched. Only localhost:55432/tmpfs was used for DB tests.
+No push, release, deployment, VERSION or production change. Live Telegram and
+legal eligibility remain separate evidence gates.
 
 ## Previous implementation checkpoint — 2026-10-15
 
