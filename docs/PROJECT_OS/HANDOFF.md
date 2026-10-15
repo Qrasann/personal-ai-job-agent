@@ -2,15 +2,16 @@
 
 ## Current code checkpoint — 2026-10-15
 
-This checkpoint contains two verified increments on
+This checkpoint contains three verified increments on
 `feature/v3.5.7-international-market-coverage`; VERSION remains 3.5.7 and
 v3.5.6 remains the latest formal release. Remotive timezone-aware RSS/API
-publication timestamps normalize to UTC ISO, and application exports disclose
-that locally recorded status does not independently verify employer/provider
-receipt. Each increment passed focused tests and the full isolated PostgreSQL
-suite (929 passed). Tests use only `job-agent-tests` on port 55432/tmpfs. The
-two proposal files remain untracked and untouched. No remote push, release,
-merge, deployment, production DB/volume change or external action occurred.
+publication timestamps and Arbeitnow epoch-second dates normalize to UTC ISO;
+application exports disclose that locally recorded status does not
+independently verify employer/provider receipt. The latest full isolated
+PostgreSQL suite passed 933 tests; all three increments passed their focused
+suites. Tests use only `job-agent-tests` on port 55432/tmpfs. The two proposal
+files remain untracked and untouched. No remote push, release, merge,
+deployment, production DB/volume change or external action occurred.
 Next: continue Candidate Fit, safe package fidelity, source intelligence and
 Relocation-first coverage; keep Recruiter Agent, Interview Agent and v4.x in the
 canonical roadmap. Live Telegram and legal eligibility acceptance remain

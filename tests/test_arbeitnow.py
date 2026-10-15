@@ -45,6 +45,17 @@ def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
     assert jobs[0].visa_sponsorship is True
     assert jobs[0].relocation is True
     assert jobs[0].description == "Visa support and relocation assistance are provided."
+    assert jobs[0].published_at == "2026-10-11T00:00:00+00:00"
+
+
+@pytest.mark.parametrize("created_at", [None, True, "not-a-timestamp", 1e100])
+def test_arbeitnow_keeps_invalid_publication_timestamps_unknown(created_at):
+    payload = {"data": [{
+        "slug": "role-1", "title": "DevOps Engineer", "remote": False,
+        "created_at": created_at,
+    }]}
+    item = ArbeitnowSource.parse_payload(payload, SourceContext(user_id=1, queries=[]))[0]
+    assert item.published_at is None
 
 
 def test_arbeitnow_retries_transient_transport_failure(monkeypatch):

@@ -1,3 +1,9 @@
+## 2026-10-15 — normalize Arbeitnow epoch publication dates
+
+Converted numeric Arbeitnow `created_at` values from Unix epoch seconds to
+UTC ISO; rejected malformed values instead of displaying raw strings/numbers.
+Focused source/detail tests: 46; isolated PostgreSQL suite: 933 passed.
+
 ## 2026-10-15 — clarify application status provenance in exports
 
 Added an explicit local-tracker provenance sentence beside the exported

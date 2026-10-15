@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — normalize Arbeitnow epoch publication dates
+
+- [x] Convert numeric `created_at` epoch seconds to UTC ISO timestamps.
+- [x] Keep missing, malformed, boolean and out-of-range values unknown.
+- [x] Focused Arbeitnow/detail tests: 46; isolated PostgreSQL: 933 passed.
+- [ ] Measure freshness only where source semantics and listing lifecycle are
+  documented; do not equate publication date with active hiring.
+
 ## 2026-10-15 — application status provenance in exports
 
 - [x] Label export status as locally recorded and not independently receipt-

@@ -1,5 +1,11 @@
 # Codex Brief
 
+## 2026-10-15 — normalize Arbeitnow epoch publication dates
+
+Arbeitnow's numeric `created_at` epoch-seconds values now normalize to UTC ISO
+timestamps; malformed values remain unknown. Focused Arbeitnow/detail tests:
+46 passed; isolated PostgreSQL suite: 933 passed.
+
 ## 2026-10-15 — clarify application status provenance in exports
 
 Application Package exports state that the locally recorded status does not

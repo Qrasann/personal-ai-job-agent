@@ -8,6 +8,7 @@ import httpx
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.support_evidence import support_evidence
+from app.domain.vacancy_availability import source_datetime
 from app.sources.diagnostics import SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
@@ -62,6 +63,7 @@ class ArbeitnowSource(JobSource):
 
             description = clean_html_text(str(row.get("description") or ""))
             support = support_evidence(f"{title}\n{description}")
+            published = source_datetime(row.get("created_at"))
             jobs.append(
                 NormalizedJob(
                     source=ArbeitnowSource.source_id,
@@ -76,7 +78,7 @@ class ArbeitnowSource(JobSource):
                     relocation=support["relocation"],
                     visa_sponsorship=support["visa_sponsorship"],
                     skills=tags,
-                    published_at=str(row.get("created_at") or "") or None,
+                    published_at=published.isoformat() if published else None,
                     raw=row,
                 )
             )

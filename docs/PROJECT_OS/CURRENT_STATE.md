@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — normalize Arbeitnow epoch publication dates
+
+Arbeitnow numeric `created_at` values now use the shared timestamp parser and
+render as UTC ISO dates. Invalid values stay unknown. This does not infer
+freshness or change match behavior. Focused tests: 46; isolated PostgreSQL:
+933 passed.
+
 ## 2026-10-15 — clarify application status provenance in exports
 
 Application text exports now identify status as locally recorded and say that
