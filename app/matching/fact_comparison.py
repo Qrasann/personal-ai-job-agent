@@ -26,6 +26,7 @@ SKILLS: tuple[SkillSpec, ...] = (
     SkillSpec("Docker", ("docker",)),
     SkillSpec("Docker Compose", ("docker compose", "docker-compose")),
     SkillSpec("Kubernetes", ("kubernetes", "k8s")),
+    SkillSpec("OpenShift", ("openshift", "red hat openshift")),
     SkillSpec("Databricks", ("databricks",)),
     SkillSpec("Nginx", ("nginx",)),
     SkillSpec("HAProxy", ("haproxy",)),

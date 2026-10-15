@@ -2354,3 +2354,10 @@ ISO dates, making them look like local wall-clock time. It now converts them
 to UTC with an explicit label; date-only values remain dates, and naive
 date-times disclose an unknown timezone. Focused detail/source tests: 68
 passed; full isolated PostgreSQL suite: 964 passed.
+## 2026-10-15 — add OpenShift to Fit and Interview practice
+
+Added a distinct OpenShift Candidate Fact skill alias and a deterministic
+`/interview` exercise for image rollout/readiness/Route troubleshooting. The
+exercise discourages broad SCC/RBAC changes and uses no model call. Focused
+fit/interview/resume/score tests: 87 passed; full isolated PostgreSQL suite:
+967 passed.

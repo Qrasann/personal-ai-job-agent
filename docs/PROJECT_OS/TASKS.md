@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — add OpenShift to Fit and Interview practice
+
+Added OpenShift (including Red Hat OpenShift) as a distinct requirement and
+curated safe rollout practice. Focused fit/interview tests: 87 passed; full
+isolated PostgreSQL suite: 967 passed.
+
 ## 2026-10-15 — preserve timezone evidence in vacancy dates
 
 Updated vacancy publication-date display to retain explicit UTC or unknown

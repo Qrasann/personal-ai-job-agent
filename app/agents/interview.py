@@ -29,6 +29,11 @@ _EXERCISES: dict[str, tuple[str, str, tuple[str, ...]]] = {
         "Explain which objects and events you would inspect, and how you would roll back safely.",
         ("Inspect rollout status, Pod events and previous container logs", "Check probes, config and resource limits", "Use a controlled rollback and verify readiness"),
     ),
+    "OpenShift": (
+        "A new OpenShift rollout is failing readiness checks after an image update, while the Route still points at the service.",
+        "Trace the rollout, image reference, Pod events, probes and Route without weakening cluster security controls.",
+        ("Check rollout status, image digest and Pod events", "Verify service selectors, probes and Route endpoints", "Use an approved rollback; do not broaden SCC or RBAC permissions as a shortcut"),
+    ),
     "Terraform": (
         "A Terraform plan unexpectedly wants to replace a production database resource.",
         "Explain how you would inspect the plan, state, provider changes and lifecycle before taking action.",

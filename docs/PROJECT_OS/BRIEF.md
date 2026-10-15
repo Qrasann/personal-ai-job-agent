@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — add OpenShift to Fit and Interview practice
+
+Candidate Fit recognizes OpenShift and “Red Hat OpenShift” as a distinct
+technical requirement. `/interview` has a curated rollout exercise covering
+image digest, readiness, service/Route and safe rollback without broadening
+SCC or RBAC. Focused fit/interview tests: 87 passed; full isolated PostgreSQL:
+967 passed.
+
 ## 2026-10-15 — preserve timezone evidence in vacancy dates
 
 Vacancy detail cards now render timezone-aware publication timestamps in UTC,

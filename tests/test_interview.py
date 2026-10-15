@@ -89,3 +89,13 @@ def test_interview_agent_has_curated_exercises_for_infrastructure_as_code_cloud_
     assert "CloudTrail" in by_skill["AWS"]["criteria"][2]
     assert "missing samples" in by_skill["Grafana"]["criteria"][1]
     assert "rendered resources" in by_skill["Helm"]["criteria"][1]
+
+
+def test_interview_agent_has_safe_openshift_rollout_practice():
+    comparison = compare_facts("Requirements: Red Hat OpenShift.", [])
+    plan = build_interview_plan(comparison)
+
+    assert len(plan) == 1
+    assert plan[0]["skill"] == "OpenShift"
+    assert "readiness" in plan[0]["scenario"]
+    assert "do not broaden SCC" in plan[0]["criteria"][2]

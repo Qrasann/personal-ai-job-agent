@@ -2,6 +2,21 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `1dc06f0`, VERSION 3.5.7. Candidate Fit now recognizes
+OpenShift/Red Hat OpenShift as a distinct requirement; `/interview` has a
+curated rollout/readiness/Route exercise that avoids broad SCC/RBAC changes.
+Focused fit/interview/resume/score tests: 87 passed; full isolated PostgreSQL:
+967 passed. `compileall`, diff check and secret scan are next before local
+checkpoint. Earlier checkpoints in this run: `aa4ce65` safely refreshes repeat
+source IDs while retaining the verified details cache, provenance and saved
+package snapshots; `619a596` parses unambiguous nested flat Fit alternatives;
+`1dc06f0` preserves publication timezone evidence. Next: checkpoint this small
+Fit/Interview increment, then continue a separate practical Application
+Package or Relocation-first task. Pre-existing cross-source collision merging
+remains deferred because matches/statuses need a safe reconciliation policy.
+PostgreSQL used localhost:55432/tmpfs. No external/live/production change,
+publication, VERSION change, or proposal edits.
+
 Started from HEAD `619a596`, VERSION 3.5.7. Vacancy detail publication
 dates now retain timezone semantics: aware ISO timestamps are converted to
 UTC and marked, date-only values remain date-only, and naive date-times state

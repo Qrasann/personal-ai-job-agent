@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — add OpenShift to Fit and Interview practice
+
+OpenShift is now separately recognized by Candidate Fit, including its Red Hat
+name. Interview practice includes a rollout scenario with safe SCC/RBAC
+guidance. Focused fit/interview tests: 87 passed; full isolated PostgreSQL:
+967 passed.
+
 ## 2026-10-15 — preserve timezone evidence in vacancy dates
 
 Detail cards convert aware publication timestamps to UTC and mark them `UTC`;

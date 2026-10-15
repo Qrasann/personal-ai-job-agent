@@ -49,6 +49,18 @@ def test_extracts_canonical_devops_requirements_without_duplicates():
     assert len(skills) == len(set(skills))
 
 
+@pytest.mark.parametrize("mention", ["OpenShift", "Red Hat OpenShift"])
+def test_candidate_fit_recognizes_openshift_as_its_own_supported_skill(mention):
+    comparison = compare_facts(
+        f"Requirements: Experience operating {mention}.",
+        [fact(7, "Commercial OpenShift cluster operations", "commercial")],
+    )
+
+    assert [(item.skill, item.status, item.importance) for item in comparison.requirements] == [
+        ("OpenShift", "commercial", "required"),
+    ]
+
+
 def test_recognizes_common_remote_job_board_requirement_headings():
     text = clean_html_text(
         """
