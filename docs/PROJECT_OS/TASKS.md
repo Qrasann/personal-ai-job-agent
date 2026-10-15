@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-15 — disclose missing historical evidence snapshots
+
+Legacy Application Package previews/exports now identify missing structured
+mobility evidence and never backfill mutable current source state into the
+historical record. Focused tests: 12 passed; full isolated PostgreSQL: 984.
+
 ## 2026-10-15 — verify evidence refresh preserves package snapshot
 
 Extended the repeat-source PostgreSQL regression: current source location

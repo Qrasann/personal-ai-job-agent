@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — disclose missing evidence in legacy packages
+
+Package previews and exports identify when a historical record lacks a
+structured mobility evidence snapshot. They do not imply that current evidence
+was captured at preparation time. Focused tests: 12; full isolated PostgreSQL:
+984 passed.
+
 ## 2026-10-15 — source evidence refresh and package snapshot regression
 
 PostgreSQL regression checks that repeat discovery refreshes source-specific

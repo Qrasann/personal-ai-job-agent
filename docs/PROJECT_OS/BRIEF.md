@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — disclose unavailable historical mobility snapshots
+
+Older Application Package previews and exports now state when no
+source-scoped mobility evidence was captured. Current source data is not
+backfilled into historical records. Focused package/export tests: 12 passed;
+full isolated PostgreSQL: 984 passed.
+
 ## 2026-10-15 — test source evidence refresh against immutable package
 
 Isolated PostgreSQL regression proves a repeated source ID updates its

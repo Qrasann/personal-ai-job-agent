@@ -179,6 +179,7 @@ def test_application_package_preview_escapes_and_rejects_unsafe_links(url):
     assert "<a href=" not in text
     assert "не отправлен" in text
     assert "Draft &lt;script&gt;" in text
+    assert "Структурированный снимок условий источника не записан" in text
 
 
 def test_application_package_preview_explains_alternative_group_consistency():

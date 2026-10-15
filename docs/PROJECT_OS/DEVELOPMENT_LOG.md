@@ -2467,3 +2467,9 @@ passed; isolated PostgreSQL: 984 passed.
 Extended repeat-source PostgreSQL coverage to check that source location
 evidence updates while the prepared package retains its original evidence.
 Targeted integration test: 1 passed; full suite at parent checkpoint: 984.
+
+## 2026-10-15 — disclose missing historical mobility snapshots
+
+Application Package preview and export now clearly say when older records
+lack a structured source-evidence snapshot; current data is not backfilled.
+Focused package tests: 12 passed; full isolated PostgreSQL: 984 passed.

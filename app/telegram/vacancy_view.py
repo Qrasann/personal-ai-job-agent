@@ -734,6 +734,8 @@ def render_application_package(payload: dict) -> str:
     if isinstance(evidence_snapshot, dict) and evidence_snapshot.get("schema") == "relocation_evidence_v1":
         captured = html.escape(str(evidence_snapshot.get("captured_at") or "unknown")[:25])
         tail.extend(["", f"🧾 Снимок условий источника сохранён ({captured}); точные цитаты и provenance доступны в экспорте."])
+    else:
+        tail.extend(["", "🧾 Структурированный снимок условий источника не записан; не считай текущий текст историческим подтверждением."])
     tail.extend([
         "",
         "<b>Черновик сопроводительного</b>",
@@ -853,6 +855,11 @@ def render_application_export(application, events: list | None = None) -> str:
             "",
             "=== Saved source-scoped relocation evidence ===",
             json.dumps(saved_evidence, ensure_ascii=False, sort_keys=True, indent=2),
+        ])
+    else:
+        lines.extend([
+            "",
+            "No source-scoped relocation evidence snapshot is available for this record; current source data was not backfilled.",
         ])
     lines.extend([
         "",

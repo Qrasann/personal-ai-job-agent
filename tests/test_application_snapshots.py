@@ -34,6 +34,7 @@ def test_missing_posting_fields_remain_unknown_in_snapshot_export():
     assert "Saved vacancy: Role — not recorded" in exported
     assert "Saved vacancy URL: not recorded" in exported
     assert "No vacancy description snapshot" in exported
+    assert "No source-scoped relocation evidence snapshot is available" in exported
 
 
 def test_application_snapshot_freezes_relocation_evidence_and_exports_provenance():

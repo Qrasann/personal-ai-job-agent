@@ -2,6 +2,16 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `0fff52e`. Legacy Application Package previews and exports
+now explicitly disclose when no structured mobility evidence was saved and do
+not backfill current source evidence into past records. Focused package/export
+tests: 12 passed; full isolated PostgreSQL: 984 passed; compileall, diff check
+and secret scan passed. Next: continue useful Candidate Fit, Source Intelligence
+or Relocation Evidence work. No schema/production change; proposal files
+untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Started at Candidate Fit checkpoint `42a61f5`. Extended isolated repeat-source
 PostgreSQL regression: source location evidence refreshes for the same provider
 ID, but a previously prepared package keeps its earlier quote. Targeted DB
