@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — do not infer a salary period in match scoring
+
+Salary ranking no longer treats a missing period as monthly when comparing
+structured vacancy pay with a user's monthly reference. Unknown or unsupported
+periods remain reviewable and receive a neutral salary score; explicit monthly
+and annual periods keep their existing comparison. Focused salary/score tests:
+61 passed.
+
 ## 2026-10-15 — disclose unrecognized requirements in package review
 
 Application Package preview now says when the supported technical vocabulary

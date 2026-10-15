@@ -33,7 +33,7 @@ def test_matching_uses_candidate_facts_and_excludes_gambling():
         CandidateFact(profile_id=1, value="Practical Linux and Docker experience"),
         CandidateFact(profile_id=1, value="Configured Nginx reverse proxy"),
     ]
-    good = Job(fingerprint="g", title="DevOps Engineer", company="ACME", description="Linux Docker Nginx", work_mode="remote", salary_from=2000, salary_currency="USD")
+    good = Job(fingerprint="g", title="DevOps Engineer", company="ACME", description="Linux Docker Nginx", work_mode="remote", salary_from=2000, salary_currency="USD", salary_period="monthly")
     bad = Job(fingerprint="b", title="DevOps Engineer", company="Casino", description="gambling platform Linux Docker")
     assert score_job(good, search, facts, []).total_score >= 70
     assert score_job(bad, search, facts, []).total_score == 0

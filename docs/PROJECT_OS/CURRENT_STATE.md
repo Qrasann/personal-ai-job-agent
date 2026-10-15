@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — do not infer a salary period in match scoring
+
+Salary score comparison now requires an explicit supported period when a
+monthly profile minimum is configured. Missing or unrecognized periods remain
+visible for review and score neutrally instead of being treated as monthly.
+Focused salary/score tests: 61 passed.
+
 ## 2026-10-15 — disclose unrecognized requirements in package review
 
 When no technical skills or alternatives are recognized, the Application

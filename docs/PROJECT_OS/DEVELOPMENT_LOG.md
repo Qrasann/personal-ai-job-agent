@@ -2318,3 +2318,12 @@ An empty Candidate Fit diff previously rendered as “no additional
 discrepancies” even when the supported skill vocabulary had recognized nothing.
 The package preview now discloses that state and directs manual review of the
 full posting. Focused package tests: 20 passed.
+## 2026-10-15 — do not infer a salary period in match scoring
+
+Fixed a source-agnostic assumption that a structured salary with no period was
+monthly. Monthly profile references now compare only against explicit
+monthly/per-month or annual/yearly/per-year values; unsupported or missing
+periods remain reviewable and receive the neutral 58 salary score. Existing
+fixtures that intend monthly semantics now state that period explicitly.
+Focused salary, technical-score, personal-scope and recommendation tests: 61
+passed.

@@ -456,7 +456,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         salary = 58 if not (job.salary_from or job.salary_to) else 72
     else:
         observed = job.salary_to or job.salary_from or 0
-        period = (getattr(job, "salary_period", None) or "monthly").strip().casefold()
+        period = str(getattr(job, "salary_period", None) or "").strip().casefold()
         if period in {"annual", "yearly", "per-year"}:
             # Profile minimums are monthly. Preserve the source's annual
             # amount in storage/display and compare its monthly equivalent.

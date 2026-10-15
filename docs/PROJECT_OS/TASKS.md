@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — do not infer a salary period in match scoring
+
+Removed the implicit monthly fallback in salary ranking. Unknown periods
+remain reviewable and receive a neutral score; explicitly monthly/annual values
+retain their established normalized comparison. Focused regression suite: 61
+passed; full isolated PostgreSQL suite: 955 passed.
+
 ## 2026-10-15 — disclose unrecognized requirements in package review
 
 Package review now distinguishes “no recognized technical requirements” from

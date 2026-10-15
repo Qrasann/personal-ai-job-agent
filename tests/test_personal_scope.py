@@ -275,6 +275,7 @@ def test_rub_and_rur_share_salary_minimum():
         country="RU",
         salary_to=80000,
         salary_currency="RUR",
+        salary_period="monthly",
     )
     above = Job(
         fingerprint="salary-rur-above",
@@ -284,6 +285,7 @@ def test_rub_and_rur_share_salary_minimum():
         country="RU",
         salary_to=150000,
         salary_currency="RUR",
+        salary_period="monthly",
     )
 
     below_result = score_job(below, search, _facts(), [])

@@ -278,6 +278,7 @@ Kubernetes
         country="RU",
         salary_to=150000,
         salary_currency="RUR",
+        salary_period="monthly",
     )
     facts = [
         _fact("Linux", "commercial", fact_id=1),
@@ -320,6 +321,7 @@ def test_score_job_can_use_full_details_for_technical_only():
         country="RU",
         salary_to=150000,
         salary_currency="RUR",
+        salary_period="monthly",
     )
     facts = [
         _fact("Linux", "commercial", fact_id=1),

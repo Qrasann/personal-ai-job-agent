@@ -10,7 +10,8 @@ from app.matching.engine import score_job
     ("yearly", 18000, 50),
     ("monthly", 3000, 100),
     ("per-month", 1500, 50),
-    (None, 3000, 100),
+    (None, 3000, 58),
+    ("unspecified", 6000, 58),
     ("hourly", 50, 58),
     ("per-week", 1000, 58),
 ])
