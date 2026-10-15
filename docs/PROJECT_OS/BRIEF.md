@@ -1,5 +1,17 @@
 # Codex Brief
 
+## 2026-10-15 — refresh repeated source postings safely
+
+Repeated source IDs now refresh nonempty Job fields and current source raw
+data, preserving unknown-but-previously-known Job fields, verified
+`details_cache_v1`, source ID/first-seen provenance, and already saved
+Application Package snapshots. Transaction advisory locks serialize natural
+source/fingerprint keys; row locks serialize existing records. Complete new
+fingerprints are adopted only if no other Job owns them. Focused PostgreSQL
+regressions cover refresh, cache/provenance preservation, immutable snapshots,
+cross-source deduplication and concurrent inserts. Full isolated suite: 957
+passed.
+
 ## 2026-10-15 — do not infer a salary period in match scoring
 
 Salary ranking no longer treats a missing period as monthly when comparing

@@ -2327,3 +2327,15 @@ periods remain reviewable and receive the neutral 58 salary score. Existing
 fixtures that intend monthly semantics now state that period explicitly.
 Focused salary, technical-score, personal-scope and recommendation tests: 61
 passed.
+## 2026-10-15 — refresh repeated source postings safely
+
+PostgreSQL regressions reproduced stale Job fields on repeat discovery and
+covered competing cross-source inserts. `upsert_job` now serializes source and
+canonical natural keys with transaction advisory locks; existing refs/Jobs are
+row-locked before refreshing. Only supplied nonempty values replace Job data,
+so unknown fields do not erase evidence. Current raw provider data is retained
+with the verified details cache; source key and first-seen timestamp remain
+stable. A complete new fingerprint is adopted only if it is unclaimed; the
+code does not merge conflicting Jobs or reassign their matches. Application
+snapshots are unchanged. Focused HH-cache and database regressions passed; full
+isolated PostgreSQL suite: 957 passed.

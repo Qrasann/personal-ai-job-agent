@@ -268,13 +268,56 @@ async def set_user_country(user_id: int, code: str | None) -> None:
 
 async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
     async with SessionLocal() as session:
-        source_ref = await session.scalar(select(JobSourceRef).where(JobSourceRef.source_id == job.source, JobSourceRef.source_job_id == job.source_job_id))
-        if source_ref:
-            existing = await session.get(Job, source_ref.job_id)
-            return existing, False
-
         fingerprint = job.canonical_fingerprint()
-        existing = await session.scalar(select(Job).where(Job.fingerprint == fingerprint))
+        # Serialize the two natural-key decisions (provider identity and
+        # cross-provider fingerprint) before reading either row. Sorting keeps
+        # lock acquisition order stable when both keys overlap across workers.
+        lock_keys = sorted((
+            f"source:{job.source}:{job.source_job_id}",
+            f"fingerprint:{fingerprint}",
+        ))
+        for lock_key in lock_keys:
+            await session.execute(
+                select(func.pg_advisory_xact_lock(func.hashtextextended(lock_key, 0)))
+            )
+
+        source_ref = await session.scalar(
+            select(JobSourceRef)
+            .where(JobSourceRef.source_id == job.source, JobSourceRef.source_job_id == job.source_job_id)
+            .with_for_update()
+        )
+        if source_ref:
+            existing = await session.scalar(
+                select(Job).where(Job.id == source_ref.job_id).with_for_update()
+            )
+            if existing:
+                _refresh_job_from_source(existing, job)
+                # A fully specified new identity can improve later cross-source
+                # deduplication. Keep the old fingerprint when the normalized
+                # identity is incomplete or already belongs to another Job;
+                # reassignment/merging would require reconciling its matches.
+                if _has_complete_identity(job):
+                    collision = await session.scalar(
+                        select(Job)
+                        .where(Job.fingerprint == fingerprint, Job.id != existing.id)
+                    )
+                    if not collision:
+                        existing.fingerprint = fingerprint
+                incoming_raw = dict(job.raw or {})
+                old_raw = dict(source_ref.raw or {})
+                cached_details = old_raw.get("details_cache_v1")
+                if isinstance(cached_details, dict):
+                    incoming_raw["details_cache_v1"] = cached_details
+                source_ref.raw = incoming_raw
+                if job.url:
+                    source_ref.url = str(job.url)[:100000]
+                await session.commit()
+                await session.refresh(existing)
+                return existing, False
+
+        existing = await session.scalar(
+            select(Job).where(Job.fingerprint == fingerprint).with_for_update()
+        )
         created = False
         if not existing:
             existing = Job(
@@ -303,6 +346,33 @@ async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
         return existing, created
 
 
+def _refresh_job_from_source(existing: Job, incoming: NormalizedJob) -> None:
+    """Apply known nonempty source fields without erasing other-source evidence."""
+    string_limits = {
+        "title": 512, "company": 512, "description": 100000,
+        "country": 128, "city": 256, "work_mode": 64,
+        "remote_scope": 128, "salary_currency": 16,
+        "salary_period": 32, "published_at": 64,
+    }
+    for field, limit in string_limits.items():
+        value = getattr(incoming, field)
+        if value is not None and str(value).strip():
+            setattr(existing, field, str(value)[:limit])
+    for field in ("relocation", "visa_sponsorship", "salary_from", "salary_to"):
+        value = getattr(incoming, field)
+        if value is not None:
+            setattr(existing, field, value)
+
+
+def _has_complete_identity(job: NormalizedJob) -> bool:
+    return bool(
+        job.title.strip()
+        and (job.company.strip() or job.description.strip())
+        and job.country is not None
+        and job.city is not None
+    )
+
+
 async def source_ref(job_id: int, source_id: str | None = None) -> JobSourceRef | None:
     async with SessionLocal() as session:
         stmt = select(JobSourceRef).where(JobSourceRef.job_id == job_id)
@@ -317,6 +387,20 @@ async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
         if not item:
             return
         item.raw = dict(raw or {})
+        await session.commit()
+
+
+async def save_source_ref_detail_cache(ref_id: int, details: dict) -> None:
+    """Update only the verified details cache under a source-ref row lock."""
+    async with SessionLocal() as session:
+        item = await session.scalar(
+            select(JobSourceRef).where(JobSourceRef.id == ref_id).with_for_update()
+        )
+        if not item:
+            return
+        raw = dict(item.raw or {})
+        raw["details_cache_v1"] = dict(details or {})
+        item.raw = raw
         await session.commit()
 
 

@@ -21,11 +21,10 @@ def test_hh_details_cache_fetches_once_then_reuses_source_ref_raw(monkeypatch):
         assert source_id == "hh"
         return ref
 
-    async def fake_update_source_ref_raw(ref_id, raw):
+    async def fake_save_source_ref_detail_cache(ref_id, details):
         assert ref_id == 91
-        update_calls.append(dict(raw))
-        stored_raw.clear()
-        stored_raw.update(raw)
+        update_calls.append(dict(details))
+        stored_raw["details_cache_v1"] = dict(details)
 
     async def fake_vacancy_web(source_job_id):
         vacancy_calls.append(source_job_id)
@@ -40,7 +39,7 @@ def test_hh_details_cache_fetches_once_then_reuses_source_ref_raw(monkeypatch):
         }
 
     monkeypatch.setattr(services.repo, "source_ref", fake_source_ref)
-    monkeypatch.setattr(services.repo, "update_source_ref_raw", fake_update_source_ref_raw)
+    monkeypatch.setattr(services.repo, "save_source_ref_detail_cache", fake_save_source_ref_detail_cache)
     monkeypatch.setattr(services.hh_client, "vacancy_web", fake_vacancy_web)
     monkeypatch.setattr(services.HHSource, "parse_vacancy_web_html", staticmethod(fake_parse))
 

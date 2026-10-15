@@ -678,6 +678,141 @@ async def _repository_repost_flow(monkeypatch):
 
 
 @pytest.mark.integration
+def test_repeated_source_upsert_refreshes_job_without_losing_cache_or_application_snapshot(monkeypatch):
+    _require_test_database()
+    asyncio.run(_repeated_source_upsert_flow(monkeypatch))
+
+
+async def _repeated_source_upsert_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    try:
+        user = await repo.create_user("refresh-owner", "Refresh Owner")
+        original = NormalizedJob(
+            source="refresh-source", source_job_id="stable-posting-id",
+            title="Linux Engineer", company="Refresh Co", description="Old summary",
+            url="https://jobs.example/old", city="Tbilisi", country="GE",
+            salary_from=1000, salary_currency="USD", salary_period="monthly",
+            visa_sponsorship=True,
+            raw={"listing_revision": "old", "details_cache_v1": {"description": "Verified full details"}},
+        )
+        job, created = await repo.upsert_job(original)
+        assert created is True
+        application = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="refresh-source",
+            source_application_id=None, external_url=original.url, resume_id=None,
+            resume_snapshot="Saved CV", resume_external_id=None,
+            vacancy_snapshot={
+                "title": job.title, "company": job.company,
+                "description": job.description, "source_url": original.url,
+            },
+            message="Saved cover letter", status="prepared",
+        )
+        first_ref = await repo.source_ref(job.id, "refresh-source")
+
+        refreshed = NormalizedJob(
+            source="refresh-source", source_job_id="stable-posting-id",
+            title="Senior Linux Engineer", company="Refresh Co", description="Updated summary with Kubernetes",
+            url="https://jobs.example/current", city="Tbilisi", country="GE",
+            salary_from=2400, salary_currency="USD", salary_period="monthly",
+            visa_sponsorship=None,
+            raw={"listing_revision": "new", "new_provenance": "present in latest response"},
+        )
+        same_job, created_again = await repo.upsert_job(refreshed)
+
+        assert same_job.id == job.id
+        assert created_again is False
+        assert same_job.title == "Senior Linux Engineer"
+        assert same_job.description == refreshed.description
+        assert same_job.salary_from == 2400
+        assert same_job.salary_period == "monthly"
+        assert same_job.visa_sponsorship is True
+        latest_ref = await repo.source_ref(job.id, "refresh-source")
+        assert latest_ref.url == refreshed.url
+        assert latest_ref.raw["listing_revision"] == "new"
+        assert latest_ref.raw["new_provenance"] == "present in latest response"
+        assert latest_ref.raw["details_cache_v1"] == {"description": "Verified full details"}
+        assert latest_ref.first_seen_at == first_ref.first_seen_at
+
+        saved = await repo.get_application(user.id, application.id)
+        assert saved.vacancy_snapshot == {
+            "title": "Linux Engineer", "company": "Refresh Co",
+            "description": "Old summary", "source_url": original.url,
+        }
+        assert saved.resume_snapshot == "Saved CV"
+        assert saved.message == "Saved cover letter"
+
+        cache_race_job = NormalizedJob(
+            source="refresh-source", source_job_id="stable-posting-id",
+            title="Senior Linux Engineer", company="Refresh Co",
+            description="Another refreshed summary", city="Tbilisi", country="GE",
+            raw={"listing_revision": "newest"},
+        )
+        await asyncio.gather(
+            repo.upsert_job(cache_race_job),
+            repo.save_source_ref_detail_cache(
+                latest_ref.id, {"description": "Newly verified full details"}
+            ),
+        )
+        raced_ref = await repo.source_ref(job.id, "refresh-source")
+        assert raced_ref.raw["listing_revision"] == "newest"
+        assert raced_ref.raw["details_cache_v1"] == {
+            "description": "Newly verified full details"
+        }
+
+        cross_source, cross_source_created = await repo.upsert_job(NormalizedJob(
+            source="second-board", source_job_id="same-role",
+            title="Senior Linux Engineer", company="Refresh Co", description="Cross-post",
+            city="Tbilisi", country="GE",
+        ))
+        assert cross_source.id == job.id
+        assert cross_source_created is False
+    finally:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_parallel_cross_source_upserts_share_one_canonical_job(monkeypatch):
+    _require_test_database()
+    asyncio.run(_parallel_cross_source_upsert_flow(monkeypatch))
+
+
+async def _parallel_cross_source_upsert_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    try:
+        postings = [
+            NormalizedJob(
+                source=f"parallel-board-{index}", source_job_id=f"posting-{index}",
+                title="Platform Engineer", company="Parallel Co",
+                description=f"Listing from board {index}", country="GE", city="Tbilisi",
+            )
+            for index in range(2)
+        ]
+        results = await asyncio.gather(*(repo.upsert_job(posting) for posting in postings))
+        assert results[0][0].id == results[1][0].id
+        assert sorted(created for _, created in results) == [False, True]
+        refs = [await repo.source_ref(results[0][0].id, posting.source) for posting in postings]
+        assert all(ref is not None for ref in refs)
+    finally:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine.dispose()
+
+
+@pytest.mark.integration
 def test_review_and_saved_backlogs_exceed_ten_real_postgres(monkeypatch):
     _require_test_database()
     asyncio.run(_review_saved_backlog_flow(monkeypatch))

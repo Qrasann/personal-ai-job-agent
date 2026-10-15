@@ -2,6 +2,23 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `c8ca19b` (code checkpoint `4f070b8`), VERSION 3.5.7.
+`upsert_job` now refreshes nonempty source fields/raw data for a repeated
+provider ID, keeps verified `details_cache_v1`, source identity/first-seen
+metadata and saved Application Package snapshots, and serializes same-source
+and canonical-fingerprint updates with PostgreSQL advisory/row locks. A
+complete changed fingerprint is adopted only when unclaimed; existing Jobs
+with colliding identities are not merged or reparented. Two new isolated
+PostgreSQL regressions cover refresh/snapshot/cache behavior and concurrent
+cross-source insertion. Full isolated suite: 957 passed; HH cache tests: 3
+passed. `compileall`, `git diff --check` and secret scan must pass before local
+checkpoint. All DB testing is against localhost:55432/tmpfs only. Next: create
+the code checkpoint, then take a focused look at whether collision-safe
+reconciliation of already diverged cross-source records can preserve match
+ownership, statuses and application snapshots; if not, proceed to the next
+Candidate Fit/Relocation-first item. Both owner proposals remain untouched. No
+push, merge, release, deployment, VERSION or production DB/volume change.
+
 Current code checkpoint: HEAD `4f070b8`, VERSION 3.5.7. Salary ranking no
 longer assumes that structured pay with an unknown
 period is monthly when compared with a monthly profile reference. Unknown and

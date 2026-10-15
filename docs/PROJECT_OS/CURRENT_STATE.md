@@ -1,5 +1,15 @@
 # Current State
 
+## 2026-10-15 — refresh repeated source postings safely
+
+An existing `(source_id, source_job_id)` now refreshes nonempty vacancy fields
+and source raw values. Missing values do not erase earlier evidence, verified
+HH detail cache survives, and source identity/first-seen metadata is retained.
+Saved application snapshots remain immutable. PostgreSQL advisory and row
+locks serialize concurrent upserts; cross-source canonical dedup remains in
+place, and identity changes do not overwrite another Job's fingerprint. Two
+new PostgreSQL regressions added; full isolated suite: 957 passed.
+
 ## 2026-10-15 — do not infer a salary period in match scoring
 
 Salary score comparison now requires an explicit supported period when a

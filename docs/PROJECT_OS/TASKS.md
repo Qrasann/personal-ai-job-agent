@@ -1,5 +1,15 @@
 # Tasks
 
+## 2026-10-15 — refresh repeated source postings safely
+
+Completed repeat-discovery refresh for existing provider IDs. Nonempty Job
+fields/current raw values update; unknown values, verified detail cache,
+source provenance and prior Application Package snapshots are retained.
+Advisory/row locks protect concurrent source/fingerprint upserts. Existing
+identity collisions are not merged. Two new isolated PostgreSQL regressions;
+full suite: 957 passed. Next: investigate safe reconciliation of already
+diverged cross-source Job rows, or continue Candidate Fit/Relocation-first work.
+
 ## 2026-10-15 — do not infer a salary period in match scoring
 
 Removed the implicit monthly fallback in salary ranking. Unknown periods

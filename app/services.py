@@ -657,8 +657,7 @@ async def get_cached_hh_details(job_id: int) -> dict:
     if not isinstance(details, dict):
         details = {}
 
-    raw["details_cache_v1"] = dict(details)
-    await repo.update_source_ref_raw(ref.id, raw)
+    await repo.save_source_ref_detail_cache(ref.id, details)
 
     return dict(details)
 
