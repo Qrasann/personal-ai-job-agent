@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from openai import OpenAI
 
 from app.config import settings
@@ -126,11 +127,13 @@ requires_human и reason.
         requested_human = data.get("requires_human")
         if isinstance(requested_human, str):
             requested_human = requested_human.strip().casefold() == "true"
+        confidence = float(data.get("confidence", 0))
+        valid_confidence = math.isfinite(confidence) and 0.0 <= confidence <= 1.0
         return (
             str(data.get("reply", "")).strip(),
-            float(data.get("confidence", 0)),
-            requested_human is not False or sensitive,
-            str(data.get("reason", "")),
+            confidence if valid_confidence else 0.0,
+            requested_human is not False or sensitive or not valid_confidence,
+            str(data.get("reason", "")) if valid_confidence else "Некорректная уверенность модели; требуется ручная проверка",
         )
     except Exception:
         return raw[:3000], 0.4, True, "Неструктурированный ответ LLM"
