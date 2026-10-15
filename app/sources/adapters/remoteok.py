@@ -57,7 +57,10 @@ class RemoteOKSource(JobSource):
                     company=str(row.get("company") or ""),
                     description=str(row.get("description") or ""),
                     url=str(row.get("url") or row.get("apply_url") or ""),
-                    country=str(row.get("location") or "") or None,
+                    # RemoteOK's location is free-form and may be an office,
+                    # region or "Worldwide" label. Preserve it as source text,
+                    # not as a normalized work-country claim.
+                    country=None,
                     work_mode="remote",
                     # RemoteOK marks work as remote but does not state which
                     # countries the employer can hire from.
@@ -67,7 +70,7 @@ class RemoteOKSource(JobSource):
                     salary_currency="USD" if row.get("salary_min") or row.get("salary_max") else None,
                     skills=tags,
                     published_at=str(row.get("date") or "") or None,
-                    raw=row,
+                    raw={**row, "source_location": row.get("location")},
                 )
             )
         return out

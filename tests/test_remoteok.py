@@ -4,6 +4,7 @@ import httpx
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
+from app.domain.relocation_evidence import build_relocation_evidence
 from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.base import SourceContext
 
@@ -35,7 +36,12 @@ def test_remoteok_does_not_turn_unspecified_country_eligibility_into_worldwide(m
 
     assert len(jobs) == 1
     assert jobs[0].work_mode == "remote"
+    assert jobs[0].country is None
     assert jobs[0].remote_scope == "unspecified"
+    country_evidence = build_relocation_evidence(jobs[0])["fields"]["work_country"]
+    assert country_evidence["status"] == "unknown"
+    assert country_evidence["value"] is None
+    assert country_evidence["excerpt"] == "Worldwide"
     signals = analyze_job_signals(
         Job(
             fingerprint="remoteok-1",

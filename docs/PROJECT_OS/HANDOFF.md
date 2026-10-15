@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `290d6bd`. Fixed RemoteOK's free-form `location` being treated as a normalized work country. The original string is retained as `source_location`; country/work-country are unknown and remote hiring scope stays unspecified. Regression reproduces “Worldwide” before the fix. Focused RemoteOK/location/relocation tests: 54 passed; full isolated PostgreSQL: 990 passed. Next: continue an independent roadmap task in Application Package, Source Intelligence or Relocation Evidence. Candidate Fit threshold fix remains in prior checkpoint `290d6bd`; Candidate Facts and scores outside country normalization are unchanged. No production/external actions. Proposals untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `e538e0f`. Fixed a reproduced Candidate Fit defect where “Minimum 3 years … required. 5 years of experience preferred” imposed a hard 5-year threshold. Explicitly preferred years are excluded from the required minimum; preferred-only years do not produce an experience requirement. Focused fit/resume tests: 60 passed; full isolated PostgreSQL suite: 990 passed. Next: continue the canonical roadmap with a focused Source Intelligence, Relocation-first evidence or Application Package task. Candidate Facts and Career-first/Relocation-first independence are unchanged. No production or external actions. Proposal files remain untouched.
 
 ## Current development checkpoint — 2026-10-15
