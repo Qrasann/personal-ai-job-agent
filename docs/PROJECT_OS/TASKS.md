@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — isolate cover-letter instructions from vacancy content
+
+Separates cover-letter developer instructions from JSON vacancy/resume/fact
+data and treats embedded instructions as untrusted. This is a prompt-injection
+mitigation, not a guarantee of factual output; the user still reviews every
+draft. Focused LLM tests: 5 passed; isolated PostgreSQL suite: 968 passed.
+
 ## 2026-10-15 — add OpenShift to Fit and Interview practice
 
 Added OpenShift (including Red Hat OpenShift) as a distinct requirement and

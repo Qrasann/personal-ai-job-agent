@@ -2361,3 +2361,11 @@ Added a distinct OpenShift Candidate Fact skill alias and a deterministic
 exercise discourages broad SCC/RBAC changes and uses no model call. Focused
 fit/interview/resume/score tests: 87 passed; full isolated PostgreSQL suite:
 967 passed.
+## 2026-10-15 — isolate cover-letter instructions from vacancy content
+
+Moved cover-letter rules into the Responses API `instructions` field and
+passed Candidate Facts, résumé metadata and vacancy fields as JSON input.
+Explicitly treat all input values as data and disallow embedded instructions,
+unfounded candidate claims or external actions. The output remains an
+unverified draft for user review. Focused tests: 5 passed; isolated PostgreSQL
+suite: 968 passed.

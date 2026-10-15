@@ -2,6 +2,22 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `9f111cd`, VERSION 3.5.7. Application Package cover-letter
+generation now passes fixed developer instructions separately from JSON
+Candidate Facts, resume metadata and vacancy content; embedded instructions
+are treated as untrusted, claims are constrained to facts, and output remains
+a draft requiring human review. OpenAI Responses API documentation supports
+the separate `instructions` field; focused LLM tests: 5 passed; full isolated
+PostgreSQL suite: 968 passed. `compileall`, diff check and secret scan are
+next before checkpoint. Previous code checkpoints in this run: `aa4ce65`
+refreshes repeated source postings while preserving detail cache/provenance and
+snapshots; `619a596` parses nested flat Fit alternatives; `1dc06f0` preserves
+publication timezone evidence; `9f111cd` adds OpenShift Fit/Interview support.
+Next: checkpoint this prompt-safety increment, then continue a practical
+Relocation-first or Application Package task. PostgreSQL uses only
+localhost:55432/tmpfs. No push, merge, release, deployment, VERSION or
+production DB/volume change. Proposal files remain untouched.
+
 Started from HEAD `1dc06f0`, VERSION 3.5.7. Candidate Fit now recognizes
 OpenShift/Red Hat OpenShift as a distinct requirement; `/interview` has a
 curated rollout/readiness/Route exercise that avoids broad SCC/RBAC changes.

@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-15 — isolate cover-letter instructions from vacancy content
+
+Cover-letter model calls now use separate developer instructions and
+JSON-encoded data fields. Embedded vacancy/resume/fact instructions are
+explicitly untrusted, and candidate claims must be grounded in Candidate Facts.
+This does not replace human review. Focused LLM tests: 5 passed; full isolated
+PostgreSQL: 968 passed.
+
 ## 2026-10-15 — add OpenShift to Fit and Interview practice
 
 OpenShift is now separately recognized by Candidate Fit, including its Red Hat

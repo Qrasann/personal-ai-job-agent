@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — isolate cover-letter instructions from vacancy content
+
+Cover-letter generation now sends fixed developer instructions separately
+from JSON-encoded Candidate Facts, résumé metadata and vacancy content. The
+instructions treat those fields as data, reject embedded instructions and
+restrict candidate claims to facts. Manual review remains required. Focused
+LLM tests: 5 passed; full isolated PostgreSQL suite: 968 passed.
+
 ## 2026-10-15 — add OpenShift to Fit and Interview practice
 
 Candidate Fit recognizes OpenShift and “Red Hat OpenShift” as a distinct
