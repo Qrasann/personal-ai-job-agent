@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-15 — ground fallback application drafts in active facts
+
+The fallback cover letter uses only active, nondeleted Candidate Facts; without them it asks to discuss the role without claiming relevant experience. LLM candidate-fact payloads use the same active/deleted filter. Focused 32; full isolated PostgreSQL 1007 passed. Owner review remains required.
+
 ## 2026-10-15 — bind HH full-detail cache to its source posting
 
 New HH detail caches carry a digest of the normalized source posting. Changed source cards preserve older cache data but do not overlay it on review or package drafting; HH detail view refetches on the next read. Concurrent refresh cannot save fetched details under a mismatched posting digest. Legacy caches without an anchor retain prior behavior. Full isolated PostgreSQL: 1004 passed.

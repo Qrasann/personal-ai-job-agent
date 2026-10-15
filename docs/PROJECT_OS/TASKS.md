@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — fallback letter fact grounding completed
+
+- [x] Reproduce inactive/deleted facts appearing in fallback draft and unsupported experience wording when facts are absent.
+- [x] Filter both fallback and model Candidate Fact payloads to active, nondeleted facts; use neutral wording for empty evidence.
+- [x] Focused 32 and full isolated PostgreSQL 1007 passed.
+- [ ] Next: continue Application Package claim review, Source Intelligence and Relocation-first; then Recruiter/Interview and remaining roadmap.
+
 ## 2026-10-15 — source-bound HH details cache completed
 
 - [x] Reproduce stale full details overlaying a changed source card and stale cache reuse.

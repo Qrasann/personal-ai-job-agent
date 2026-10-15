@@ -4,6 +4,41 @@ from types import SimpleNamespace
 from app.agents import llm
 
 
+def test_fallback_cover_letter_omits_inactive_and_deleted_facts():
+    job = SimpleNamespace(title="Platform Engineer")
+    facts = [
+        SimpleNamespace(value="Old Kubernetes claim", active=False, deleted_at=None),
+        SimpleNamespace(value="Deleted AWS claim", active=True, deleted_at="2026-01-01"),
+        SimpleNamespace(value="Linux lab practice", active=True, deleted_at=None),
+    ]
+
+    draft = llm.fallback_cover_letter(job, facts)
+
+    assert "Linux lab practice" in draft
+    assert "Old Kubernetes claim" not in draft
+    assert "Deleted AWS claim" not in draft
+    assert "коммерческ" not in draft.casefold()
+
+
+def test_fallback_cover_letter_with_no_active_facts_makes_no_experience_claim():
+    draft = llm.fallback_cover_letter(SimpleNamespace(title="Engineer"), [])
+
+    assert "релевантны" not in draft
+    assert "опыт" not in draft.casefold()
+    assert "Engineer" in draft
+
+
+def test_model_payload_excludes_deleted_candidate_facts():
+    facts = [
+        SimpleNamespace(active=True, deleted_at=None, category="skill", key="Linux",
+                        value="Linux lab practice", commercial=False, evidence="confirmed"),
+        SimpleNamespace(active=True, deleted_at="2026-01-01", category="skill", key="AWS",
+                        value="Deleted AWS claim", commercial=True, evidence="old"),
+    ]
+
+    assert [item["value"] for item in llm._facts_payload(facts)] == ["Linux lab practice"]
+
+
 def test_cover_letter_keeps_vacancy_instructions_in_untrusted_json_input(monkeypatch):
     captured = {}
 

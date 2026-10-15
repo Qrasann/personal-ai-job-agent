@@ -1,3 +1,7 @@
+## 2026-10-15 — ground fallback application drafts in active facts
+
+Red regressions showed the fallback letter quoted inactive/deleted facts and asserted relevant experience with no facts. It now includes at most four active, nondeleted facts and uses a neutral no-facts draft. `_facts_payload` also excludes deleted facts from model input. Focused 32 and full isolated PostgreSQL 1007 passed. No model call or external application in tests.
+
 ## 2026-10-15 — bind HH full-detail cache to its source posting
 
 Added deterministic digest of normalized source posting to new HH detail-cache writes. Source rediscovery preserves cache bytes and digest; a mismatch prevents old full text from overlaying the current posting and triggers a refetch when HH details are next viewed. Cache write checks the expected digest under the source-ref row lock so a concurrent update cannot mislabel old fetch data. Legacy unbound cache remains usable because its historical version cannot be established. Synthetic regressions and real PostgreSQL upsert/race test passed; full isolated PostgreSQL: 1004 passed. No production or live HH requests during tests.

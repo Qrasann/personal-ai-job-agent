@@ -20,16 +20,28 @@ def _facts_payload(facts: list[CandidateFact]) -> list[dict]:
             "commercial": f.commercial,
             "evidence": f.evidence,
         }
-        for f in facts if f.active
+        for f in facts
+        if f.active is not False and getattr(f, "deleted_at", None) is None
     ]
 
 
 def fallback_cover_letter(job: Job, facts: list[CandidateFact]) -> str:
-    known = " ".join(f.value for f in facts[:4])
+    active_values = [
+        str(f.value).strip() for f in facts
+        if f.active is not False
+        and getattr(f, "deleted_at", None) is None
+        and str(f.value or "").strip()
+    ]
+    known = " ".join(active_values[:4])[:650]
+    opening = f"Здравствуйте! Заинтересовала вакансия «{job.title}». "
+    if known:
+        return (
+            opening + f"В моём профиле указаны: {known}. "
+            "Буду рад обсудить задачи команды и подробнее рассказать об этих пунктах."
+        )[:1800]
     return (
-        f"Здравствуйте! Заинтересовала вакансия «{job.title}». "
-        f"Мой опыт и практические навыки релевантны части требований: {known[:650]}. "
-        "Буду рад обсудить задачи команды и рассказать подробнее о своём опыте."
+        opening + "Хотел бы узнать больше о задачах и ожиданиях по роли. "
+        "Буду рад обсудить возможное сотрудничество."
     )[:1800]
 
 

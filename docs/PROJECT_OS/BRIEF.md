@@ -1,3 +1,7 @@
+## 2026-10-15 — ground fallback application drafts in active facts
+
+The no-LLM cover-letter fallback no longer uses inactive/deleted Candidate Facts or claims relevant experience when none is recorded. Model payloads also exclude deleted facts. Synthetic regressions were red before the fix; focused 32 and full isolated PostgreSQL 1007 tests passed. Drafts still require owner review.
+
 ## 2026-10-15 — bind HH full-detail cache to its source posting
 
 New HH detail-cache writes retain a digest of the source posting reviewed at fetch time. If the same source ID is rediscovered with changed normalized fields, review and `/prepare` use the current posting, while old verified details remain stored; the next HH detail view refetches. A row-locked digest check rejects a cache save raced by another card refresh. Legacy caches without a digest remain usable until refreshed. Full isolated PostgreSQL: 1004 passed.

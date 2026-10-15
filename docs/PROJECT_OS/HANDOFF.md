@@ -2,6 +2,10 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD `f344083`. Fixed fallback cover letter using inactive/deleted facts and claiming relevant experience with no active facts. Model Candidate Fact payloads now exclude deleted records too; drafts remain subject to owner review. Red synthetic regressions; focused 32 and full isolated PostgreSQL 1007 passed. Next: Application Package claim review, Source Intelligence quality and Relocation-first evidence utility; continue Recruiter/Interview/AI Router/v4.x afterward. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Starting HEAD `cf1111c`. Newly fetched HH detail caches are bound to the exact normalized source posting digest. When a source card changes, older verified cache stays in raw provenance but no longer overrides review/`/prepare`; the next HH detail read refetches. Row-locked save rejects a fetch raced by a newer card. Legacy unbound caches retain old behavior until refreshed. Synthetic and real PostgreSQL upsert/race regressions passed; full isolated PostgreSQL: 1004 passed. Next: broader source-quality utility or Relocation-first practical evidence, then full roadmap. No production, VERSION, deployment, push or external action. Owner proposal files untouched.
 
 ## Current development checkpoint — 2026-10-15
