@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — preserve source work-location excerpt
+
+When the source adapter provides `source_location` or `source_country`, the
+work-country evidence retains and displays that exact bounded field alongside
+the normalized country value. Otherwise it falls back to the source country
+code. Focused tests: 41; isolated PostgreSQL: 975 passed.
+
 ## 2026-10-15 — separate citizenship from residence scope
 
 Restriction evidence now classifies explicit source text as citizenship,

@@ -399,7 +399,7 @@ def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns(
     evidence = {
         "captured_at": "2026-10-15T12:30:00+00:00",
         "fields": {
-            "work_country": {"status": "confirmed", "value": "DE", "source_id": "fixture", "source_url": "https://example.invalid", "excerpt": "DE", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "source_structured"},
+            "work_country": {"status": "confirmed", "value": "DE", "source_id": "fixture", "source_url": "https://example.invalid", "excerpt": "Berlin, Germany", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "source_structured"},
             "visa_sponsorship": {"status": "unknown", "value": None, "source_id": "fixture", "excerpt": None, "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "unknown"},
             "citizenship_or_residence_restriction": {"status": "confirmed", "value": "Candidates must currently reside in Germany", "source_id": "fixture", "excerpt": "Candidates must currently reside in Germany", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_text", "interpretation": {"scope": "residence"}},
             "housing_provided": {"status": "confirmed", "value": False, "source_id": "fixture", "excerpt": "Housing is not provided", "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "explicit_text"},
@@ -410,7 +410,7 @@ def test_structured_relocation_evidence_displays_per_signal_source_and_unknowns(
         "job": job, "match": match, "source": "fixture", "url": "",
         "details": {}, "relocation_evidence": evidence,
     })
-    assert "Страна работы по источнику: DE (сообщено источником)" in text
+    assert "Страна работы по источнику: DE (сообщено источником) — “Berlin, Germany”" in text
     assert "Visa sponsorship: неизвестно по доступному тексту" in text
     assert "ограничение по месту проживания (текст источника)" in text
     assert "Обеспечение жильём: явно не предоставляется" in text

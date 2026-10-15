@@ -1,5 +1,13 @@
 # Codex Brief
 
+## 2026-10-15 — retain the source location excerpt
+
+Work-country evidence now preserves the source adapter's structured
+`source_location`/`source_country` text when present, beside the normalized
+country code. Detail cards show both, making the raw supporting location
+reviewable. Synthetic fixture/detail tests: 41 passed; full isolated
+PostgreSQL: 975 passed.
+
 ## 2026-10-15 — distinguish citizenship and residence restrictions
 
 Hiring restriction evidence now labels explicit citizenship scope separately

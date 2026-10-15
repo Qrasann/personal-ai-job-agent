@@ -14,6 +14,7 @@ def _fixture_job():
         source="synthetic_fixture", source_job_id="synthetic-101",
         title=fixture["title"], description=fixture["description"],
         country=fixture["country"], url=fixture["url"],
+        raw={"source_location": fixture["source_location"]},
     )
 
 
@@ -25,7 +26,7 @@ def test_relocation_evidence_keeps_explicit_source_excerpt_and_capture_time():
     assert set(evidence["fields"]) == set(EVIDENCE_FIELDS)
     assert evidence["fields"]["work_country"] == {
         "status": "confirmed", "value": "DE", "source_id": "synthetic_fixture",
-        "source_url": "https://jobs.example.invalid/synthetic-101", "excerpt": "DE",
+        "source_url": "https://jobs.example.invalid/synthetic-101", "excerpt": "Berlin, Germany",
         "captured_at": "2026-10-15T12:30:00+00:00", "confidence": "source_structured",
     }
     auth = evidence["fields"]["existing_work_authorization_required"]

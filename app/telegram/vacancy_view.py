@@ -206,6 +206,8 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
             detail = "неизвестно по доступному тексту"
         elif key == "work_country":
             detail = html.escape(str(value or "неизвестно")) + " (сообщено источником)"
+            if excerpt and excerpt != str(value or ""):
+                detail += " — “" + html.escape(excerpt[:180]) + "”"
         elif key in {"visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"}:
             detail = "да" if value is True else "нет" if value is False else "неизвестно"
         elif key == "housing_provided":

@@ -2405,3 +2405,10 @@ Explicit hiring-scope excerpts now retain a bounded category for citizenship
 versus residence/location restrictions, and the detail card states that the
 category reflects source text only. No legal eligibility inference is made.
 Focused evidence/detail tests: 41 passed; isolated PostgreSQL: 975 passed.
+
+## 2026-10-15 — retain source work-location excerpt
+
+Work-country evidence now uses the adapter's structured source location/country
+text as its supporting excerpt when available, and details show it beside the
+normalized code. It does not infer a country from arbitrary posting prose.
+Focused tests: 41 passed; isolated PostgreSQL: 975 passed.

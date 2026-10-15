@@ -110,7 +110,17 @@ def build_relocation_evidence(
         "fields": {},
     }
     fields = findings["fields"]
-    fields["work_country"] = record(country or None, country or None, "source_structured" if country else "unknown")
+    location_excerpt = None
+    for raw_key in ("source_location", "source_country"):
+        raw_value = (job.raw or {}).get(raw_key)
+        if isinstance(raw_value, str) and raw_value.strip():
+            location_excerpt = " ".join(raw_value.split())[:240]
+            break
+    fields["work_country"] = record(
+        country or None,
+        location_excerpt or country or None,
+        "source_structured" if country else "unknown",
+    )
 
     restriction = _excerpt(job.description or "", _RULES["citizenship_or_residence_restriction"])
     restriction_field = record(

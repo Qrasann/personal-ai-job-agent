@@ -2,6 +2,15 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Starting HEAD: `9702299`. Work-country evidence now preserves and displays a
+source adapter's structured location/country excerpt beside its normalized
+country value (for example, fixture-only `DE` plus `Berlin, Germany`). It does
+not infer country from free text. Focused relocation/detail tests: 41 passed;
+full isolated PostgreSQL: 975 passed. Next: review supported adapters for
+structured locale provenance, then resume independent Fit/Source Intelligence
+tasks. No scoring, Candidate Facts, legal conclusions or production changes.
+Test DB: localhost:55432/jobagent_test. Owner proposals untouched.
+
 Starting HEAD: `86e4c83`. Added distinct labels for explicit citizenship and
 residence/location hiring restrictions, retaining the source excerpt and
 provenance on vacancy details. This is only a description of source wording,

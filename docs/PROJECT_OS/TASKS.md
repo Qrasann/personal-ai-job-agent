@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-15 — preserve source work-location excerpt
+
+Work-country evidence now includes an adapter-provided structured location
+excerpt when available and displays it alongside the normalized code. No
+country is inferred from unrelated description text. Focused tests: 41; full
+isolated PostgreSQL: 975 passed. Continue with source-specific locale mappings
+only where adapters provide explicit structured provenance.
+
 ## 2026-10-15 — separate citizenship and residence scope
 
 Added a bounded interpretation for explicit restriction snippets: citizenship
