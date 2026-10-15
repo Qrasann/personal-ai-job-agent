@@ -2454,3 +2454,10 @@ unknown status and an excerpt; scoring behavior is untouched. Focused tests:
 Added explicit German fixture coverage for residence, authorization, housing,
 language and start timing. It caught and fixed a `Deutschland`/`Deutsch` false
 match. Focused tests: 87 passed; isolated PostgreSQL: 982 passed.
+
+## 2026-10-15 — preserve explicit non-required Candidate Fit status
+
+Reproduced “no Kubernetes experience required” being classified as a
+must-have under Requirements. Added narrow per-clause negation handling;
+separate skills retain their own importance. Focused Fit/score tests: 64
+passed; isolated PostgreSQL: 984 passed.

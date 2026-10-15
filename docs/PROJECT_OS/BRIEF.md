@@ -1,5 +1,12 @@
 # Codex Brief
 
+## 2026-10-15 — keep explicit non-required skills out of must-have scoring
+
+Candidate Fit now recognizes narrow “no Kubernetes experience required” and
+“Kubernetes is not required” phrases under a Requirements heading. That skill
+stays unknown while separate positive requirements retain their status.
+Focused Fit/score tests: 64 passed; full isolated PostgreSQL: 984 passed.
+
 ## 2026-10-15 — add synthetic German relocation evidence
 
 Added German source-text fixture coverage for residence restrictions,

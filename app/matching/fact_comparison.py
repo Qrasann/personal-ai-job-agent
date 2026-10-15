@@ -171,6 +171,32 @@ def _matches_skill(text: str, spec: SkillSpec) -> bool:
     return any(_contains_alias(text, alias) for alias in spec.aliases)
 
 
+def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
+    """Recognize narrow, direct negations of a skill requirement."""
+    normalized = _normalize_text(text)
+    for alias in spec.aliases:
+        target = re.escape(_normalize_text(alias)).replace(r"\ ", r"\s+")
+        patterns = (
+            rf"\bno (?:prior |previous )?(?:experience|knowledge|proficiency) (?:with |in |of )?{target}\b",
+            rf"\bno {target} (?:experience|knowledge|proficiency)\b",
+            rf"\b{target}(?: (?:experience|knowledge|proficiency))? (?:is )?(?:not required|not mandatory|not necessary|not needed|optional)\b",
+            rf"\b(?:not required|not mandatory|not necessary|not needed) (?:for )?(?:experience|knowledge|proficiency)(?: (?:with|in|of))? {target}\b",
+            rf"\bno experience (?:with|in|of) {target} required\b",
+        )
+        if any(re.search(pattern, normalized) for pattern in patterns):
+            return True
+    return False
+
+
+def _required_skill_in_section(text: str, spec: SkillSpec) -> bool:
+    # Clause boundaries prevent a negated skill from masking another explicit
+    # requirement elsewhere in the same heading.
+    for clause in re.split(r"[\n.!?;]+", text or ""):
+        if _matches_skill(clause, spec) and not _explicitly_not_required(clause, spec):
+            return True
+    return False
+
+
 _REQUIRED_HEADINGS = (
     "требования к кандидатам",
     "обязательные требования",
@@ -349,7 +375,7 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
     result: dict[str, str] = {}
 
     for spec in SKILLS:
-        if _matches_skill(required_text, spec):
+        if _required_skill_in_section(required_text, spec):
             result[spec.name] = "required"
         elif _matches_skill(sections["preferred"], spec):
             result[spec.name] = "preferred"

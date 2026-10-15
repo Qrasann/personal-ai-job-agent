@@ -2,6 +2,17 @@
 
 ## Current development checkpoint — 2026-10-15
 
+Started from HEAD `ed0b991`. Candidate Fit no longer treats a supported
+“no <skill> experience required” / “<skill> is not required” phrase as a
+must-have solely because it appears beneath Requirements. The skill remains
+unknown; separate positive requirements keep their status. Regression was red
+before the fix. Focused Fit/score tests: 64 passed; full isolated PostgreSQL:
+984 passed; compileall, diff check and secret scan passed. Next: continue
+Candidate Fit or Source Intelligence/Relocation Evidence. No Candidate Facts,
+production or external changes. Test DB localhost:55432; proposals untouched.
+
+## Current development checkpoint — 2026-10-15
+
 Started from HEAD `1d38344`. Added synthetic German Relocation Evidence for
 residence scope, work authorization, housing, language and start timing. Fixed
 a reproduced `Deutschland`/`Deutsch` false language match. Focused tests: 47

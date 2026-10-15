@@ -1,5 +1,12 @@
 # Current State
 
+## 2026-10-15 — explicit non-required skills
+
+Candidate Fit does not promote supported “no experience with this skill
+required” / “skill is not required” wording to mandatory status only because it
+appears under Requirements. Other skills keep their own classification.
+Focused tests: 64; isolated PostgreSQL: 984 passed.
+
 ## 2026-10-15 — German relocation evidence fixture
 
 Synthetic German wording now exercises residence, prior work authorization,

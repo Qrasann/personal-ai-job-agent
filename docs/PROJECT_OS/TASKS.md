@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-15 — exclude explicit non-required skills from must-haves
+
+Red test reproduced “No Kubernetes experience required” becoming a must-have
+under Requirements. Added narrow per-clause negation handling; separate skills
+retain their own importance. Focused tests: 64; full isolated PostgreSQL: 984
+passed.
+
 ## 2026-10-15 — German Relocation Evidence fixtures
 
 Added a synthetic German fixture covering several hiring and relocation
