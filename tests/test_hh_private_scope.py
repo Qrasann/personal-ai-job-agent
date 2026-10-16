@@ -181,7 +181,7 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
         id=5, source="hh", external_id="hh-resume", content="Saved resume",
     )]))
     monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
-    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True))
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=AsyncMock()))
     events = []
     async def reserve(**kwargs):
         events.append("reserved")
