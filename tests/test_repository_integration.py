@@ -712,7 +712,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         first_ref = await repo.source_ref(job.id, "refresh-source")
         saved_evidence = first_ref.raw["relocation_evidence_v1"]
         assert first_ref.raw["normalized_posting_v1"]["description"] == "Old summary"
-        await repo.save_source_ref_detail_cache(first_ref.id, {"description": "Verified full details"})
+        assert await repo.save_source_ref_detail_cache(first_ref.id, {"description": "Verified full details"}) is True
         first_ref = await repo.source_ref(job.id, "refresh-source")
         old_digest = posting_snapshot_digest(first_ref.raw["normalized_posting_v1"])
         assert first_ref.raw["details_cache_posting_digest_v1"] == old_digest
@@ -793,10 +793,11 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert raced_ref.raw["details_cache_v1"] == {
             "description": "Newly verified full details"
         }
-        await repo.save_source_ref_detail_cache(
+        rejected = await repo.save_source_ref_detail_cache(
             raced_ref.id, {"description": "Raced old details"},
             expected_posting_digest=posting_snapshot_digest(latest_ref.raw["normalized_posting_v1"]),
         )
+        assert rejected is False
         assert (await repo.source_ref(job.id, "refresh-source")).raw["details_cache_v1"] == {
             "description": "Newly verified full details"
         }
