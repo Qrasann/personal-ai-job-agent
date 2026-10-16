@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.telegram import handlers
+from app.telegram.vacancy_view import render_applications
 from app.telegram.ui import jobs_keyboard
 
 
