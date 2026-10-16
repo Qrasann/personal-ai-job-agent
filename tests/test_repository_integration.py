@@ -980,6 +980,12 @@ async def _hh_submission_reservation_flow(monkeypatch):
             resume_snapshot="Saved CV", message="Grounded letter",
             vacancy_snapshot=snapshot,
         )
+        # Reviewed-but-unsent packages must not block the initial submission.
+        draft = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="hh",
+            status="prepared", vacancy_snapshot=snapshot,
+        )
+        assert await repo.set_application_status(user.id, draft.id, "reviewed")
         outcomes = await asyncio.gather(
             repo.reserve_hh_application(**kwargs),
             repo.reserve_hh_application(**kwargs),
