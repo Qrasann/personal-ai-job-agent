@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.telegram import handlers
+from app.telegram.vacancy_view import render_applications
 from app.telegram.ui import jobs_keyboard
 
 
@@ -501,3 +502,41 @@ def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkey
     document = message.answer_document.await_args.args[0]
     assert document.filename == "application-42.txt"
     assert "Пакет #42" in message.answer_document.await_args.kwargs["caption"]
+
+
+@pytest.mark.parametrize(("result", "expected_text"), [
+    ({"status": "sent"}, "подтвердил отправку"),
+    ({"status": "external"}, "ещё не подтверждён"),
+    ({"status": "unknown"}, "Статус отправки HH неизвестен"),
+])
+def test_apply_callback_distinguishes_external_redirect_from_submission(monkeypatch, result, expected_text):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    apply = AsyncMock(return_value=result)
+    monkeypatch.setattr(handlers, "apply_match", apply)
+    msg = SimpleNamespace(
+        chat=SimpleNamespace(id=777),
+        answer=AsyncMock(),
+        edit_reply_markup=AsyncMock(),
+    )
+    callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
+
+    asyncio.run(handlers.apply_callback(callback, object()))
+
+    assert expected_text in msg.answer.await_args.args[0]
+    apply.assert_awaited_once()
+    msg.edit_reply_markup.assert_awaited_once_with(reply_markup=None)
+
+
+def test_external_application_and_history_do_not_claim_provider_receipt():
+    from app.telegram.vacancy_view import render_application_history
+
+    entry = SimpleNamespace(
+        id=3, job_id=42, status="external", source_id="hh", message="Draft",
+        created_at=None, resume_id=None,
+    )
+    rendered = render_applications([entry])
+    assert "отправка не подтверждена" in rendered
+
+    event = SimpleNamespace(status="external", created_at=None)
+    assert "отправка не подтверждена" in render_application_history([event])
+

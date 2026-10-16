@@ -905,9 +905,12 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
             relocation_evidence=(getattr(ref, "raw", None) or {}).get("relocation_evidence_v1"),
         ),
         message=cover,
-        status=result.get("status", "sent"),
+        status=result.get("status") or "unknown",
     )
-    await repo.set_match_status(match.id, "applied")
+    # A 303 HH redirect opens an external application form. It does not prove
+    # that the candidate submitted an application to the employer.
+    if result.get("status") == "sent":
+        await repo.set_match_status(match.id, "applied")
     return result
 
 
