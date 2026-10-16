@@ -10,7 +10,7 @@ import json
 import secrets
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import case, cast, select
+from sqlalchemy import and_, case, cast, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.database.db import SessionLocal
@@ -180,12 +180,18 @@ async def due_job_notifications(
 ) -> list[tuple[int, int]]:
     """Query only due rows; completed notifications never enter the retry scan."""
     now = _stamp(_utc(now))
-    # RuntimeState also contains plain-text settings (e.g. "not-a-json").
-    # SQL predicates are not evaluation-order guarantees, so never cast an
-    # unrelated row to JSONB: CASE guards that conversion in PostgreSQL.
+    # RuntimeState contains unrelated plain-text settings, and a damaged
+    # jobnotify row may contain malformed JSON. A WHERE predicate does not
+    # guarantee evaluation order; guard the JSONB cast inside SQL CASE so one
+    # corrupted journal entry cannot block every other due notification.
+    # pg_input_is_valid() is available on the project's PostgreSQL 16 baseline.
     prefix = RuntimeState.key.like(f"{_KEY_PREFIX}%")
+    valid_notification_json = and_(
+        prefix,
+        func.pg_input_is_valid(RuntimeState.value, text("'jsonb'::regtype")),
+    )
     data = case(
-        (prefix, cast(RuntimeState.value, JSONB)),
+        (valid_notification_json, cast(RuntimeState.value, JSONB)),
         else_=cast("{}", JSONB),
     )
     stmt = (
