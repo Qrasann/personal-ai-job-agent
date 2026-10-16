@@ -24,6 +24,7 @@ from app.candidates.importer import (
 )
 from app.config import settings
 from app.database import repository as repo
+from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
@@ -230,6 +231,35 @@ async def version(message: Message) -> None:
         f"Migration: {'✅ OK' if schema == expected else '⚠️ CHECK'}",
         parse_mode="HTML",
     )
+
+
+@router.message(Command("delivery"))
+async def delivery_status_command(message: Message) -> None:
+    """Show per-user notification state without exposing vacancy content."""
+    user = await _require_user(message)
+    if not user:
+        return
+    try:
+        entries = await delivery_repo.recent_job_notification_journal(user.id)
+    except Exception:
+        await message.answer("⚠️ Журнал доставки временно недоступен.")
+        return
+    if not entries:
+        await message.answer("📬 Журнал уведомлений пока пуст.")
+        return
+    status_labels = {
+        "sent": "✅ доставлено",
+        "retry": "🔁 ожидает повтора",
+        "sending": "⏳ отправляется / ожидает подтверждения",
+    }
+    lines = ["📬 <b>Журнал доставки вакансий</b>"]
+    for entry in entries:
+        label = status_labels.get(entry["status"], "⚠️ неизвестно")
+        lines.append(
+            f"#{html.escape(str(entry['match_id']))}: {label} "
+            f"· попыток {html.escape(str(entry['attempts']))}"
+        )
+    await message.answer("\n".join(lines), parse_mode="HTML")
 
 
 @router.message(Command("status"))
