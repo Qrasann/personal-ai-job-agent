@@ -7,6 +7,7 @@ import pytest
 
 from app.sources.diagnostics import classify_source_error, render_source_notice, SourceInvalidResponse
 from app.search.source_summary import aggregate_source, scan_outcome, SourceSummaryError, render_source_summary
+from app.telegram.handlers import _render_search_profiles
 
 
 @pytest.mark.parametrize('error,code,stage', [
@@ -101,12 +102,37 @@ def test_source_dashboard_shows_stretch_yield_per_source():
     line = render_source_summary("eures", {
         "name": "EURES", "found": 4, "processed": 4,
         "qualified": 1, "stretch": 2, "filtered": 3, "duplicate": 1,
+        "scoring_exclusion_reasons": {"technical_gap": 2, "fit_skip": 1},
     })
 
     assert "Good: 1" in line
     assert "Stretch: 2" in line
     assert "отфильтровано: 3" in line
     assert "дубликатов: 1" in line
+    assert "главный дефицит — техническое соответствие: 2" in line
+    assert "блокирующее fit-правило: 1" in line
+
+
+def test_search_profile_summary_separates_settings_and_scoring_causes():
+    text = _render_search_profiles({"12": {
+        "name": "Relocation-first <DE>", "processed": 4, "qualified": 1,
+        "stretch": 1, "filtered": 2, "preference_filtered": 3,
+        "preference_exclusion_reasons": {"domestic_onsite": 3},
+        "scoring_exclusion_reasons": {"technical_gap": 2},
+    }})
+
+    assert "Relocation-first &lt;DE&gt;" in text
+    assert "2 ниже scoring" in text
+    assert "3 исключено настройками" in text
+    assert "локальная onsite-вакансия не является релокацией: 3" in text
+    assert "главный дефицит — техническое соответствие: 2" in text
+
+    bounded = _render_search_profiles({str(index): {
+        "name": "Relocation <&> " * 10,
+        "preference_exclusion_reasons": {"domestic_onsite": 10},
+    } for index in range(20)}, limit=300)
+    assert len(bounded) <= 300
+    assert "&amp;" in bounded or "Остальные профили" in bounded
 
 
 def test_source_dashboard_reports_publication_date_field_coverage_without_staleness_claim():

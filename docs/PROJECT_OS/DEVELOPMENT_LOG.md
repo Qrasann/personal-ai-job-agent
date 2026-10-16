@@ -1,3 +1,7 @@
+## 2026-10-17 — explain below-threshold scoring
+
+Extended the settings-exclusion ledger with scoring-filter factors. Filtered matches now report a hard fit rule, a score cap/risk, or the largest weighted technical/geography/salary/relocation deficit calculated from structured MatchResult fields. No human reason text is parsed. Counts aggregate per source and per Career-first/Relocation-first profile; `/scan` and `/scanstatus` render a bounded list of leading causes. The score and 65 threshold are unchanged. Final targeted 66 passed; full isolated PostgreSQL suite: 1061 passed.
+
 ## 2026-10-17 — explain search-settings exclusions
 
 Source summaries previously reported only the total excluded by settings, so a zero-yield Relocation-first result could not distinguish domestic onsite, geography, required support evidence or strict salary policy. Added deterministic exclusion codes that share the exact filter decision, per-attempt/source aggregation and bounded Russian dashboard labels. Unknown salary, country and relocation evidence remains eligible for review. No threshold, source access or production setting changed. Targeted search/source tests: 96 passed; full isolated PostgreSQL suite: 1058 passed.

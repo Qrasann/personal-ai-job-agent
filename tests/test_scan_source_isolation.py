@@ -168,6 +168,30 @@ def test_scan_summary_counts_nonempty_source_publication_date_fields(monkeypatch
     assert info["publication_date_missing"] == 2
 
 
+def test_scan_summary_keeps_scoring_filter_reasons_from_ingestion(monkeypatch):
+    class Source:
+        source_id = name = "remoteok"
+
+        async def discover(self, _context):
+            return [NormalizedJob(source="remoteok", source_job_id="hard", title="DevOps")]
+
+    configure_scan(monkeypatch, {"remoteok": Source})
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={
+        "processed": 1, "filtered": 1,
+        "scoring_exclusion_reasons": {"technical_gap": 1},
+    }))
+    monkeypatch.setattr(services, "notify_chat", AsyncMock())
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert summary["sources"]["remoteok"]["scoring_exclusion_reasons"] == {
+        "technical_gap": 1,
+    }
+    assert summary["searches"]["11"]["scoring_exclusion_reasons"] == {
+        "technical_gap": 1,
+    }
+
+
 def test_source_summary_explains_zero_relocation_yield_without_losing_career_results(monkeypatch):
     class Source:
         source_id = name = "remoteok"
@@ -199,6 +223,9 @@ def test_source_summary_explains_zero_relocation_yield_without_losing_career_res
     assert (career["discovered"], career["found"], career["preference_filtered"]) == (1, 1, 0)
     assert (relocation["discovered"], relocation["found"], relocation["preference_filtered"]) == (1, 0, 1)
     assert relocation["preference_exclusion_reasons"] == {"domestic_onsite": 1}
+    assert summary["searches"]["12"]["preference_exclusion_reasons"] == {
+        "domestic_onsite": 1,
+    }
     assert relocation["status"] == "success"
     assert summary["sources"]["remoteok"]["discovered"] == 2
     assert summary["sources"]["remoteok"]["preference_filtered"] == 1

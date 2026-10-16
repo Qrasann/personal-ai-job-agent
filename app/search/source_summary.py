@@ -24,6 +24,33 @@ PREFERENCE_EXCLUSION_LABELS = {
     "other_settings": "другая настройка поиска",
 }
 
+SCORING_EXCLUSION_LABELS = {
+    "fit_skip": "блокирующее fit-правило",
+    "score_cap_or_risk": "ограничение или риск снизили итог",
+    "technical_gap": "главный дефицит — техническое соответствие",
+    "geography_gap": "главный дефицит — география",
+    "salary_gap": "главный дефицит — зарплатный сигнал",
+    "relocation_gap": "главный дефицит — relocation-сигнал",
+}
+
+
+def render_filter_reason_counts(
+    preference_reasons: dict | None, scoring_reasons: dict | None, *, limit: int = 2,
+) -> str:
+    """Render the largest deterministic exclusion factors as plain text."""
+    items = []
+    for reasons, labels in (
+        (preference_reasons, PREFERENCE_EXCLUSION_LABELS),
+        (scoring_reasons, SCORING_EXCLUSION_LABELS),
+    ):
+        if not isinstance(reasons, dict):
+            continue
+        for code, count in reasons.items():
+            if isinstance(count, int) and count > 0:
+                items.append((count, code, labels.get(code, "другая причина фильтрации")))
+    items.sort(key=lambda item: (-item[0], item[1]))
+    return "; ".join(f"{label}: {count}" for count, _, label in items[:max(1, limit)])
+
 
 def normalize_attempt(info: dict) -> dict:
     status = info.get("status")
@@ -45,6 +72,11 @@ def normalize_attempt(info: dict) -> dict:
         str(key): int(value) for key, value in reasons.items()
         if isinstance(value, int) and value > 0
     } if isinstance(reasons, dict) else {}
+    scoring_reasons = info.get("scoring_exclusion_reasons", {})
+    result["scoring_exclusion_reasons"] = {
+        str(key): int(value) for key, value in scoring_reasons.items()
+        if isinstance(value, int) and value > 0
+    } if isinstance(scoring_reasons, dict) else {}
     if info.get("error") and not result["diagnostics"]:
         result["diagnostics"] = [legacy_diagnostic(info["error"])]
     # Never retain an arbitrary legacy exception message.
@@ -101,6 +133,11 @@ def aggregate_source(sources: dict, source_id: str, info: dict) -> None:
         for reason, count in entry.get("preference_exclusion_reasons", {}).items():
             reason_totals[reason] = reason_totals.get(reason, 0) + int(count)
     result["preference_exclusion_reasons"] = reason_totals
+    scoring_totals = {}
+    for entry in history:
+        for reason, count in entry.get("scoring_exclusion_reasons", {}).items():
+            scoring_totals[reason] = scoring_totals.get(reason, 0) + int(count)
+    result["scoring_exclusion_reasons"] = scoring_totals
     if result["status"] == "failed":
         result["error"] = next((item["code"] for item in reversed(result["diagnostics"]) if item.get("action") != "fallback"), "SOURCE_PROCESSING_FAILED")
     sources[source_id] = result
@@ -131,10 +168,7 @@ def render_source_summary(source_id: str, info: dict) -> str:
         if isinstance(reasons, dict):
             ranked = sorted(reasons.items(), key=lambda item: (-int(item[1]), item[0]))[:3]
             if ranked:
-                rendered = "; ".join(
-                    f"{PREFERENCE_EXCLUSION_LABELS.get(code, 'другая настройка поиска')}: {int(count)}"
-                    for code, count in ranked
-                )
+                rendered = render_filter_reason_counts(dict(ranked), None, limit=3)
                 line += f"\n  Причины исключения: {rendered}"
     date_total = int(info.get("publication_date_provided", 0)) + int(info.get("publication_date_missing", 0))
     if date_total:
@@ -142,6 +176,11 @@ def render_source_summary(source_id: str, info: dict) -> str:
     for key, title in (("processed", "обработано"), ("qualified", "Good"), ("stretch", "Stretch"), ("filtered", "отфильтровано"), ("duplicate", "дубликатов"), ("failed", "ошибок попыток"), ("skipped", "пропусков"), ("processing_errors", "ошибок обработки"), ("partial_attempts", "частичных попыток"), ("retry", "повторов"), ("fallback", "fallback")):
         if isinstance(info.get(key), int) and info[key]:
             line += f" · {title}: {info[key]}"
+    scoring_reasons = info.get("scoring_exclusion_reasons", {})
+    if isinstance(scoring_reasons, dict) and scoring_reasons:
+        ranked = sorted(scoring_reasons.items(), key=lambda item: (-int(item[1]), item[0]))[:3]
+        rendered = render_filter_reason_counts(None, dict(ranked), limit=3)
+        line += f"\n  Причины scoring-фильтра: {rendered}"
     items = info.get("diagnostics", []) or ([legacy_diagnostic(info["error"])] if info.get("error") else [])
     issues = {}
     for item in items:

@@ -94,8 +94,10 @@ retain deterministic reason counts per attempt and source. `/scan` and
 `/scanstatus` distinguish domestic onsite Relocation-first exclusions,
 disabled geography, missing required support signals and proven strict salary
 floor misses from later score filtering. Unknown evidence remains reviewable;
-the 65 threshold and source policies are unchanged. Below-threshold scoring
-causes and live source/query relevance measurement remain open.
+the 65 threshold and source policies are unchanged. Source and per-profile
+views also classify below-threshold results from structured scores as hard fit,
+cap/risk, or the largest weighted component deficit. Live source/query
+relevance measurement remains open.
 
 ## Historical v3.5.7 development notes
 

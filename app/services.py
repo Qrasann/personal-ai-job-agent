@@ -267,6 +267,29 @@ def _match_lane(result, threshold: int) -> str:
         return "stretch"
     return "qualified"
 
+
+def _scoring_exclusion_reason(result, threshold: int) -> str | None:
+    """Explain a filtered result from structured scores without parsing prose."""
+    if getattr(result, "fit", "good") == "skip":
+        return "fit_skip"
+    if result.total_score >= threshold:
+        return None
+    weights = {
+        "technical_gap": (100 - result.technical_score) * 48,
+        "geography_gap": (100 - result.geography_score) * 27,
+        "salary_gap": (100 - result.salary_score) * 12,
+        "relocation_gap": (100 - result.relocation_score) * 13,
+    }
+    weighted_total = round(
+        result.technical_score * 0.48
+        + result.geography_score * 0.27
+        + result.salary_score * 0.12
+        + result.relocation_score * 0.13
+    )
+    if weighted_total >= threshold:
+        return "score_cap_or_risk"
+    return max(weights, key=weights.get)
+
 async def ingest_and_match(
     bot: Bot,
     normalized: NormalizedJob,
@@ -274,7 +297,8 @@ async def ingest_and_match(
     only_user_id: int | None = None,
     only_search_profile_id: int | None = None,
 ) -> dict:
-    counters = {"processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+    counters = {"processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0,
+                "scoring_exclusion_reasons": {}}
     job, _ = await repo.upsert_job(normalized)
     src = await repo.source_ref(
         job.id, normalized.source, source_job_id=normalized.source_job_id
@@ -335,6 +359,9 @@ async def ingest_and_match(
             lane = _match_lane(result, threshold)
             if lane == "filtered":
                 counters["filtered"] += 1
+                reason = _scoring_exclusion_reason(result, threshold) or "score_cap_or_risk"
+                reasons = counters["scoring_exclusion_reasons"]
+                reasons[reason] = reasons.get(reason, 0) + 1
                 if match.status not in {"applied", "prepared", "skipped", "saved"}:
                     await repo.set_match_status(match.id, "filtered")
                 continue
@@ -439,7 +466,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             source_ids.discard("eures")
         context = SourceContext(user_id=user.id, current_country=user.current_country,
                                 target_countries=targets, queries=queries, force_refresh=force_refresh)
-        search_summary = {"name": search.name, "sources": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+        search_summary = {"name": search.name, "sources": {}, "discovered": 0,
+                          "preference_filtered": 0, "processed": 0, "qualified": 0,
+                          "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0,
+                          "preference_exclusion_reasons": {}, "scoring_exclusion_reasons": {}}
         summary["searches"][str(search.id)] = search_summary
 
         adapters = []
@@ -621,11 +651,20 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                         summary[key] += value
                         search_summary[key] += value
                         info[key] = info.get(key, 0) + value
+                    for reason, count in counters.get("scoring_exclusion_reasons", {}).items():
+                        scoring_reasons = info.setdefault("scoring_exclusion_reasons", {})
+                        scoring_reasons[reason] = scoring_reasons.get(reason, 0) + int(count)
                     if index % 5 == 0 or index == len(jobs):
                         await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
                 if processing_errors:
                     info.update(status="partial", processing_errors=processing_errors)
             info = normalize_attempt(info)
+            search_summary["discovered"] += info.get("discovered", 0)
+            search_summary["preference_filtered"] += info.get("preference_filtered", 0)
+            for key in ("preference_exclusion_reasons", "scoring_exclusion_reasons"):
+                totals = search_summary[key]
+                for reason, count in info.get(key, {}).items():
+                    totals[reason] = totals.get(reason, 0) + int(count)
             search_summary["sources"][adapter.source_id] = info
             # Summary errors belong to application telemetry, not the provider.
             try:

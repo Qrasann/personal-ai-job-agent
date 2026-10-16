@@ -5,7 +5,8 @@
 - [x] Preserve a deterministic reason for every vacancy excluded by search settings without changing score thresholds or treating unknown evidence as refusal.
 - [x] Aggregate reason counts across source attempts and show the three largest causes in `/scan` and `/scanstatus` source diagnostics.
 - [x] Cover Career-first/Relocation-first separation, geography, required visa evidence, salary and source aggregation. Targeted 96 passed; full isolated PostgreSQL suite 1058 passed.
-- [ ] Next: distinguish below-threshold scoring causes in per-profile scan summaries, then use those measurements to improve source/query relevance without weakening the 65 threshold.
+- [x] Distinguish below-threshold scoring causes in source and per-profile scan summaries using structured scores rather than parsing human prose.
+- [ ] Next: use measured settings/scoring causes to improve source/query relevance without weakening the 65 threshold; live measurements require an explicitly authorized scan environment.
 
 ## 2026-10-17 — `/prepare` failure integrity
 

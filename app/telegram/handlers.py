@@ -13,7 +13,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.types import BufferedInputFile
 
-from app.search.source_summary import render_source_dashboard, scan_outcome, select_scan_dashboard
+from app.search.source_summary import render_filter_reason_counts, render_source_dashboard, scan_outcome, select_scan_dashboard
 from app.sources.diagnostics import classify_source_error, legacy_diagnostic
 
 from app.candidates.bootstrap import bootstrap_user
@@ -56,6 +56,33 @@ router.message.filter(F.chat.type == "private")
 router.callback_query.filter(F.message.chat.type == "private")
 _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
 _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
+
+
+def _render_search_profiles(searches: dict, *, limit: int = 900) -> str:
+    lines = []
+    for info in searches.values():
+        line = (
+            f"• {html.escape(str(info.get('name') or 'Search')[:80])}: "
+            f"{int(info.get('processed', 0))} обработано, "
+            f"{int(info.get('qualified', 0))} Good, "
+            f"{int(info.get('stretch', 0))} Stretch, "
+            f"{int(info.get('filtered', 0))} ниже scoring, "
+            f"{int(info.get('preference_filtered', 0))} исключено настройками"
+        )
+        reasons = render_filter_reason_counts(
+            info.get("preference_exclusion_reasons"),
+            info.get("scoring_exclusion_reasons"),
+        )
+        if reasons:
+            line += "\n  Основные причины: " + html.escape(reasons)
+        if len("\n".join(lines + [line])) > limit:
+            suffix = "… Остальные профили сохранены в диагностике."
+            while lines and len("\n".join(lines + [suffix])) > limit:
+                lines.pop()
+            lines.append(suffix)
+            break
+        lines.append(line)
+    return "\n".join(lines)
 
 
 async def _save_scan_dashboard(user_id: int, *, reset: bool = False, **values) -> None:
@@ -1062,15 +1089,8 @@ async def scan(message: Message, bot: Bot) -> None:
         outcome = scan_outcome(summary)
         await _save_scan_dashboard(user.id, status=outcome, stage="Готово" if outcome == "completed" else "Завершено с неполными результатами", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()), summary=summary)
         details = render_source_dashboard(summary.get("sources") or {}) or "• активных источников нет"
-        profile_bits = []
-        for info in (summary.get("searches") or {}).values():
-            profile_bits.append(
-                f"• {html.escape(str(info.get('name') or 'Search'))}: "
-                f"{int(info.get('processed', 0))} обработано, "
-                f"{int(info.get('qualified', 0))} Good, "
-                f"{int(info.get('stretch', 0))} Stretch"
-            )
-        profile_details = "\n\n<b>Профили поиска</b>\n" + "\n".join(profile_bits) if profile_bits else ""
+        profile_bits = _render_search_profiles(summary.get("searches") or {})
+        profile_details = "\n\n<b>Профили поиска</b>\n" + profile_bits if profile_bits else ""
 
         await progress.edit_text(
             ("✅ <b>Проход поиска завершён</b>\n\n" if outcome == "completed" else "⚠️ <b>Поиск завершён с неполными результатами</b>\n\n")
@@ -1135,13 +1155,15 @@ async def scan_status(message: Message) -> None:
     if state.get("status") == "completed" and summary:
         state["status"] = scan_outcome(summary)
     sources = render_source_dashboard(summary.get("sources") or {})
+    profiles = _render_search_profiles(summary.get("searches") or {})
     await message.answer(
         ("📊 Плановое сканирование: <b>" if state.get("kind") == "scheduled" else "📊 Сканирование: <b>")
         + f"{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
         f"Начато: {html.escape(str(state.get('started_at', '—')))}\n"
         f"Завершено: {html.escape(str(state.get('finished_at', '—')))}\n"
         f"Этап: {html.escape(str(state.get('stage', '—')))}\n"
-        + (sources if sources else "Источники ещё не завершили поиск."),
+        + (sources if sources else "Источники ещё не завершили поиск.")
+        + ("\n\n<b>Профили поиска</b>\n" + profiles if profiles else ""),
         parse_mode="HTML",
     )
 
