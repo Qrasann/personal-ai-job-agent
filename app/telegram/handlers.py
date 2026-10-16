@@ -254,7 +254,8 @@ async def status(message: Message) -> None:
         f"LLM: {'ON' if settings.openai_api_key else 'fallback'}\n"
         f"HH поиск: PUBLIC/ANONYMOUS\n"
         f"HH private actions: {'ON' if hh_client.private_api_available else 'OFF'}\n"
-        f"Auto apply: {'ON' if settings.auto_apply else 'OFF'}",
+        "Автоотклик: не реализован; отправка только вручную"
+        + (" (AUTO_APPLY=true сейчас не запускает отклики)" if settings.auto_apply else ""),
         parse_mode="HTML",
     )
 
