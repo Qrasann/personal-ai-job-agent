@@ -1,3 +1,13 @@
+## 2026-10-17 — Codex session inventory and context sync
+
+At `dabe9a3`, checked clean tracked Git state, current AGENTS/ROADMAP/BRIEF,
+the local Codex thread index and rollout metadata. Found 5 indexed primary
+threads, 17 child threads and one unindexed metadata-only rollout. Added a
+sanitized inventory of distinct owner requirements, historical decisions and
+child findings; linked it from BRIEF and corrected the old `9b938ed` HEAD.
+No session archive/delete/resume, project code edit, main/production operation
+or test run. Two untracked owner proposal files remained untouched.
+
 ## 2026-10-15 — score exact incoming source posting
 
 Red synthetic regression: ingestion scored a cross-source canonical Job instead of the incoming Jobs.ge posting. `source_ref` can now filter by provider posting ID; ingestion uses the exact ref's normalized snapshot for score and notification fields, and HH detail prefilter uses the same provider ID. Real PostgreSQL regression covered two IDs from one feed sharing a Job. Full isolated PostgreSQL 1017 passed. No live notification was sent in tests.

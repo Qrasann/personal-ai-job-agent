@@ -1,5 +1,23 @@
 # Handoff
 
+## Current entry point — 2026-10-17
+
+HEAD `dabe9a3` on `feature/v3.5.7-international-market-coverage`, matching
+origin feature. The two user-owned proposal files are the only pre-existing
+untracked paths; do not stage or modify them. This documentation-only pass
+indexed local Codex history in [CODEX_SESSION_INVENTORY.md](CODEX_SESSION_INVENTORY.md)
+and updated BRIEF from the stale `9b938ed` checkpoint. The index contains 5
+primary and 17 child threads; one additional rollout has metadata only.
+No session was archived/deleted, no test suite was rerun, and no main,
+production, release or external action occurred. Session reports are dated
+evidence, not current runtime/test claims. Resume with BRIEF's existing
+priorities: HH submission reservation/ambiguous outcome and isolated DB
+acceptance, notification journal/live Telegram acceptance, Application
+history deletion safety, then offline end-to-end and roadmap quality work.
+External/live or production steps still require separate owner authorization.
+Keep candidate/relocation personal details in private context, not tracked
+session summaries.
+
 ## Current entry point — 2026-10-16
 
 Read [BRIEF.md](BRIEF.md) for the short active checkpoint, merged audit fixes #19–#26, and owner-approved Telegram at-least-once notification delivery merged via PR #28 (HEAD `9b938ed`). The independent schema migration PR #27 remains unmerged; no production changes. Read [delivery protocol](../developer/NOTIFICATION_DELIVERY.md) for retry semantics. The sections below are **historical** and their HEAD/test counts are not current. Feature tree at this entry: `9b938ed`, formal release/main v3.5.6. No deployment, release, production DB or main change.

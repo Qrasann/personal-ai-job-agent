@@ -1,5 +1,15 @@
 # Tasks
 
+## 2026-10-17 — local Codex history inventory
+
+- [x] Reconcile `dabe9a3` with BRIEF and inventory 22 indexed Codex threads
+  plus one metadata-only rollout without archiving or deleting sessions.
+- [x] Preserve distinct owner input, historical results and child-agent
+  findings in [CODEX_SESSION_INVENTORY.md](CODEX_SESSION_INVENTORY.md), with
+  private relocation facts kept outside Git and no duplicated roadmap.
+- [ ] Follow current BRIEF priorities; validate historical risks against
+  current code/tests before changing implementation or status.
+
 ## Active priorities — 2026-10-16
 
 - [x] Independent audit fixes #19–#26 merged; PR #28 at-least-once notifications merged with green PR CI. Latest combined CI needs independent check.
