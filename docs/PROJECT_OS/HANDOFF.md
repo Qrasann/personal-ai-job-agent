@@ -1,5 +1,37 @@
 # Handoff
 
+## Current entry point — 2026-10-17 offline workflow follow-up
+
+One new isolated-PostgreSQL end-to-end test in
+`tests/test_offline_application_flow.py` covers source-scoped score/review/
+saved/package export and another user's denial, including refresh of the
+other source after package preparation. Baseline full 1051 passed; targeted
+1 passed; final full **1052 passed**. Only `job-agent-tests` tmpfs PostgreSQL
+was started on localhost 55432; production Compose/volumes untouched. This is
+one of the requested 3–5 offline paths, not a live `/prepare` or HH acceptance.
+The next independent roadmap increment should test the grounded `/prepare`
+handler or a failure-injection path, avoiding a duplicate of this happy path.
+The docs/launcher/test changes passed final local gates and were saved as
+local checkpoints; check actual Git HEAD before further work.
+
+## Current entry point — 2026-10-17 consolidation follow-up
+
+Starting HEAD `374b375`, feature branch two docs commits ahead of origin; two
+owner proposal files remain untouched/untracked. `codex agents` showed eight
+tasks. Five correspond to indexed primary sessions. Three `Untitled task`
+IDs (`01a1467c-5690`, `01a1467c-7836`, `01a14682-4913`) failed with
+`no rollout found` and have no local SQLite history; manual review required.
+All 17 child findings now have transfer destinations and remaining unknowns in
+`CODEX_SESSION_INVENTORY.md`. No history archived/deleted.
+`scripts/job-agent-codex` plus `~/.local/bin/{main,fast,deep,agents}` provide
+one-word launchers. Main resumes exact existing thread `01a13763-4d60-7461-
+bdcb-5d6f2076d0bb`; Fast/Deep use ephemeral read-only role TOMLs and were
+actually seen on Luna/low and 6.1 Sol/high. `agents` opens the native browser.
+These checks used model tokens; no cost saving is claimed. The startup/CLI
+smoke changed no application code. Next: safely verify current test branch and
+implement one focused offline roadmap increment. No main, production, release,
+external employer action or proposal-file change.
+
 ## Current entry point — 2026-10-17
 
 Audited code baseline `dabe9a3` on

@@ -46,6 +46,13 @@ idempotent context-delta import. Current Context Watch does not imply live
 access to other chats. `docs/PROJECT_OS/` stays the portable handoff; this file
 is its sole canonical roadmap.
 
+Offline workflow acceptance (2026-10-17): the first isolated-PostgreSQL
+end-to-end regression covers cross-source posting selection, Candidate Fact
+technical score, review/saved state, prepared package snapshot/export and
+cross-user denial after another source refreshes the canonical vacancy.
+It performs no external submission. Additional failure-injection and
+real Telegram acceptance remain open; this does not change feature status.
+
 Local reliability/security follow-up (2026-10-14): per-user scheduled scan
 isolation, private-chat Telegram user routes, owner-only global HH applicant
 actions and safe source error summaries are implemented with regressions.

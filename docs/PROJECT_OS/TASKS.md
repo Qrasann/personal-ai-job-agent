@@ -1,5 +1,27 @@
 # Tasks
 
+## 2026-10-17 — first offline workflow acceptance
+
+- [x] Verify current feature branch on isolated tmpfs PostgreSQL: 1051 passed
+  before the new test; 1052 passed after it.
+- [x] Cover two postings sharing one canonical Job, selected-source score,
+  owner review/saved state, frozen package export and cross-user denial after
+  a different source refreshes its posting.
+- [ ] Add 2–4 distinct offline workflow tests for grounded `/prepare`,
+  tracking and failure injection; avoid repeating this happy path.
+
+## 2026-10-17 — command-center consolidation follow-up
+
+- [x] Match eight visible command-center tasks to five indexed primary
+  rollouts and three inaccessible untitled IDs; retain all histories.
+- [x] Map 17 child reports to current code/docs and remaining validation;
+  preserve reusable bug/review prompts and old experiment limits without
+  copying private candidate data.
+- [x] Add one-word Main/Fast/Deep/agents launchers for Codex CLI v0.163.0;
+  verify pinned Main and real ephemeral read-only Luna/low and Sol/high runs.
+- [ ] Owner decides archival after manual review of the three missing-rollout
+  tasks and private-context preservation. No automatic archive or deletion.
+
 ## 2026-10-17 — local Codex history inventory
 
 - [x] Reconcile `dabe9a3` with BRIEF and inventory 22 indexed Codex threads

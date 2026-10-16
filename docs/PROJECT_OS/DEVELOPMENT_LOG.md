@@ -1,3 +1,25 @@
+## 2026-10-17 — source-scoped offline application flow
+
+Started only `job-agent-tests` tmpfs PostgreSQL on localhost port 55432. Full
+baseline against the current feature code: 1051 passed. Added one real DB
+workflow regression: two boards share a canonical Job but have different
+required skills; selected board B scores against its Linux posting, is saved
+for owner review, and freezes board B's ID/link/text in the prepared package.
+Refreshing board A does not alter the export; another user cannot read the
+package or status history. Targeted test passed; full isolated suite 1052
+passed. No provider request, employer message or production DB action.
+
+## 2026-10-17 — consolidate command-center tasks and on-demand roles
+
+The native command center showed eight tasks; three untitled tasks failed to
+attach with `no rollout found` and had no local SQLite history. Expanded the
+existing inventory with all eight IDs, per-child transfer/unknown status,
+short reusable prompts, experiment limits and an archive-review matrix.
+Added a tracked one-word launcher using exact Main resume ID; Fast and Deep
+read existing role TOMLs and run ephemeral/read-only on different models.
+CLI v0.163.0, dry-run and real role headers confirm Luna/low and 6.1 Sol/high.
+No archival, deletion, Main session duplication or production action.
+
 ## 2026-10-17 — Codex session inventory and context sync
 
 At `dabe9a3`, checked clean tracked Git state, current AGENTS/ROADMAP/BRIEF,
