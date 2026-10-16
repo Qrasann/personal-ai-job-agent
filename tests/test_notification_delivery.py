@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app import services
 from app.database import notification_delivery as journal
 from app.database import repository as repo
-from app.database.models import Base, JobMatch
+from app.database.models import Base, JobMatch, RuntimeState
 from app.domain.jobs import NormalizedJob
 from app.telegram import handlers
 
@@ -133,6 +133,17 @@ async def _postgres_retry_flow(monkeypatch):
         # A corrupt notification state must be quarantined by the due query,
         # never abort the entire user's retry queue.
         await repo.set_state(owner.id, "jobnotify:malformed", "{not-valid-json")
+        # Completed entries can fill more than one query page. The later due
+        # entry still must be found without parsing the corrupt one as JSONB.
+        async with sessions() as session:
+            session.add_all([
+                RuntimeState(
+                    user_id=owner.id, key=f"jobnotify:archived-{i:04d}",
+                    value='{"status":"sent"}',
+                )
+                for i in range(275)
+            ])
+            await session.commit()
         profile = await repo.ensure_default_profile(owner.id)
         searches = await repo.list_search_profiles(profile.id)
         job, _ = await repo.upsert_job(NormalizedJob(
