@@ -187,7 +187,8 @@ class Application(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
+    # Never let routine vacancy cleanup delete the immutable application audit trail.
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="RESTRICT"), index=True)
     source_id: Mapped[str] = mapped_column(String(64))
     source_application_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
     external_url: Mapped[str | None] = mapped_column(Text, nullable=True)
