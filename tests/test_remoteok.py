@@ -1,12 +1,56 @@
 import asyncio
 
 import httpx
+import pytest
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
 from app.domain.relocation_evidence import build_relocation_evidence
 from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.base import SourceContext
+
+
+@pytest.mark.parametrize(
+    ("query", "matching_title", "unrelated_title"),
+    [
+        ("QA Engineer", "Senior QA Engineer", "Platform Engineer"),
+        ("Go Developer", "Go Developer", "Google Cloud Developer"),
+        ("HR", "HR Specialist", "Threat Analyst"),
+        ("C# Developer", "C# Developer", "C++ Developer"),
+        ("C++ Developer", "C++ Developer", "C# Developer"),
+        ("Java Developer", "Java Engineer", "JavaScript Developer"),
+        ("DevOps Engineer", "DevOps/SRE Engineer", "Software Engineer"),
+        ("Linux Administrator", "Linux-System Administrator", "Windows Administrator"),
+    ],
+)
+def test_remoteok_matches_role_tokens_without_dropping_short_terms(
+    monkeypatch, query, matching_title, unrelated_title,
+):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[
+            {"id": 1, "position": matching_title, "tags": []},
+            # Description mentions must not turn an unrelated role into a match.
+            {"id": 2, "position": unrelated_title, "description": query, "tags": []},
+        ], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    jobs = asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1, queries=[query])))
+    assert [job.source_job_id for job in jobs] == ["1"]
+
+
+def test_remoteok_matches_all_specific_query_tokens_across_title_and_tags(monkeypatch):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[
+            {"id": 1, "position": "QA Engineer", "tags": ["automation"]},
+            {"id": 2, "position": "Automation Engineer", "tags": ["manufacturing"]},
+            {"id": 3, "position": "Customer Support", "tags": []},
+        ], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    jobs = asyncio.run(RemoteOKSource().discover(
+        SourceContext(user_id=1, queries=["QA Automation Engineer", "Customer Support"])
+    ))
+    assert [job.source_job_id for job in jobs] == ["1", "3"]
 
 
 def test_remoteok_does_not_turn_unspecified_country_eligibility_into_worldwide(monkeypatch):

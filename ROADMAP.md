@@ -99,6 +99,11 @@ views also classify below-threshold results from structured scores as hard fit,
 cap/risk, or the largest weighted component deficit. Live source/query
 relevance measurement remains open.
 
+RemoteOK role precision follow-up (2026-10-17): IMPLEMENTED offline regression
+coverage for short role/language terms and whole title/tag matching, avoiding
+generic-role leakage and Java/JavaScript substring collisions. Live usefulness
+and source coverage remain PARTIAL; no threshold reduction.
+
 ## Historical v3.5.7 development notes
 
 The following entries preserve the dated development record. Where their

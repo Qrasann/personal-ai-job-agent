@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — local search-quality increments
+
+Current branch `work/v357-rejection-diagnostics` adds per-profile/source rejection reasons and RemoteOK whole-term role filtering, including short names QA/HR/Go/C#. Six failing synthetic scenarios reproduced the source filter bug; full isolated PostgreSQL now 1070 passed. Live usefulness remains unverified; PR #31 stays separate and unmerged. Use BRIEF/HANDOFF for current work; older entries below are dated evidence.
+
 ## 2026-10-15 — score exact incoming source posting
 
 Ingestion scoring and notification use the normalized snapshot of the exact source ID/provider posting ID being processed. HH full-detail prefilter uses that exact provider ID. This avoids cross-source canonical fields and links in a new observation. Full isolated PostgreSQL 1017 passed.

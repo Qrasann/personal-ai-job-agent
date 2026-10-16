@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 source relevance
+
+Branch `work/v357-rejection-diagnostics`, base `2652416`, diagnostics checkpoints `ed34061` and `3bcd396`. RemoteOK role filtering now preserves QA/HR/Go/C# and distinguishes whole terms (including Java/JavaScript); six regression failures reproduced the old leakage/missed-role behavior. Targeted 71 passed; full isolated PostgreSQL **1070 passed**. No live feed request or threshold change. PRs #31/#27/#18 checked open, untouched. Next: conservatively preserve explicit location-label restrictions for remote postings without treating office labels as eligibility, then other source/fit roadmap work. Keep two proposals untracked. Only local checkpoints are currently authorized; quota percentage is unavailable, so save completed stages proactively.
+
 ## Current entry point — 2026-10-17 v3.5.7 rejection diagnostics
 
 Work branch `work/v357-rejection-diagnostics` starts from feature commit `2652416`; Draft PR #31 remains separate and unmerged. Search filtering now records deterministic settings-exclusion reasons and structured scoring-filter factors, aggregates them per source and per Career-first/Relocation-first profile, and renders a bounded list of leading causes in `/scan` and `/scanstatus`. Settings coverage includes domestic onsite, geography, required visa signal, strict salary floor and unknown-evidence preservation. Scoring coverage distinguishes hard fit, cap/risk and the largest weighted component deficit without parsing prose. Final targeted 66 passed; full isolated PostgreSQL **1061 passed**. No source query, threshold, production data or external request changed. Compileall, diff and secret gates passed before checkpoint. Next: use these measurements for source/query relevance; live measurement needs explicit authorization.

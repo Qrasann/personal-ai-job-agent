@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-17 — source relevance follow-up
+
+- [x] Reproduce RemoteOK short-role loss and substring false positives; retain whole QA/HR/Go/C# terms with title/tag matching and all-specific-token semantics. Targeted 71; full isolated PostgreSQL 1070 passed.
+- [ ] Preserve explicit location restrictions from source metadata conservatively; never infer worldwide eligibility or residence from a plain office label.
+- [ ] Live source/query usefulness remains pending an explicitly authorized scan environment.
+
 ## 2026-10-17 — v3.5.7 rejection diagnostics
 
 - [x] Preserve a deterministic reason for every vacancy excluded by search settings without changing score thresholds or treating unknown evidence as refusal.

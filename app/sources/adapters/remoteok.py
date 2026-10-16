@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import httpx
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
@@ -12,6 +14,12 @@ class RemoteOKSource(JobSource):
     name = "Remote OK"
     capabilities = SourceCapabilities(discovery=True, details=True, apply=False, messages=False)
     endpoint = "https://remoteok.com/api"
+
+    @staticmethod
+    def _role_tokens(text: str) -> set[str]:
+        # Keep short role/language names (QA, HR, Go, C#) and distinguish
+        # whole terms such as Java/JavaScript and C/C++/C#.
+        return set(re.findall(r"\.?[^\W_]+(?:\+\+|#)?", text.casefold()))
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
         headers = {"User-Agent": "JobAgentV3/0.1 (job discovery client)"}
@@ -28,10 +36,10 @@ class RemoteOKSource(JobSource):
             "engineer", "administrator", "admin", "specialist", "developer",
             "инженер", "администратор", "специалист", "разработчик",
         }
-        meaningful_queries: list[list[str]] = []
+        meaningful_queries: list[set[str]] = []
         for query in queries:
-            tokens = [t for t in query.replace("/", " ").split() if len(t) >= 3]
-            meaningful = [t for t in tokens if t not in generic_role_tokens]
+            tokens = self._role_tokens(query)
+            meaningful = tokens - generic_role_tokens
             meaningful_queries.append(meaningful or tokens)
         out: list[NormalizedJob] = []
         for row in payload:
@@ -43,9 +51,9 @@ class RemoteOKSource(JobSource):
             # "engineer" buried somewhere in a long description. This avoids
             # unrelated RemoteOK rows such as housekeeping/data/software roles
             # entering the DevOps feed.
-            role_hay = " ".join([title, " ".join(tags)]).casefold()
+            role_tokens = self._role_tokens(" ".join([title, *tags]))
             if meaningful_queries and not any(
-                tokens and all(token in role_hay for token in tokens)
+                tokens and tokens <= role_tokens
                 for tokens in meaningful_queries
             ):
                 continue
