@@ -286,7 +286,7 @@ def test_hh_timeout_is_ambiguous_and_forces_reconciliation(monkeypatch):
     monkeypatch.setattr(services.repo, "reserve_hh_application", reserve)
     monkeypatch.setattr(services.repo, "finish_hh_application", finish)
 
-    with pytest.raises(RuntimeError, match="проверь") as exc:
+    with pytest.raises(RuntimeError, match="не подтвердил") as exc:
         asyncio.run(services.apply_match(object(), 17, 1))
 
     assert "HH response lost" not in str(exc.value)
