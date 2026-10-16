@@ -540,3 +540,54 @@ def test_external_application_and_history_do_not_claim_provider_receipt():
     event = SimpleNamespace(status="external", created_at=None)
     assert "отправка не подтверждена" in render_application_history([event])
 
+
+@pytest.mark.parametrize("bad_match_id", ["apply:abc", "apply:-2", "apply:0", "apply:" + "9" * 100])
+def test_hh_apply_callback_rejects_malformed_match_id(monkeypatch, bad_match_id):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    attempt = AsyncMock()
+    monkeypatch.setattr(handlers, "apply_match", attempt)
+    msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
+    callback = SimpleNamespace(data=bad_match_id, message=msg, answer=AsyncMock())
+
+    asyncio.run(handlers.apply_callback(callback, object()))
+
+    callback.answer.assert_awaited_once_with("Неверный идентификатор отклика.", show_alert=True)
+    attempt.assert_not_awaited()
+    msg.answer.assert_not_awaited()
+
+
+@pytest.mark.parametrize(("error", "public_text"), [
+    (RuntimeError("Повторный HH-отклик заблокирован: запись #22"), "Повторный HH-отклик заблокирован"),
+    (RuntimeError("HH не подтвердил результат попытки #96"), "HH не подтвердил результат"),
+])
+def test_hh_apply_callback_displays_only_controlled_actionable_errors(monkeypatch, error, public_text):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "apply_match", AsyncMock(side_effect=error))
+    msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
+    callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
+
+    asyncio.run(handlers.apply_callback(callback, object()))
+
+    assert public_text in msg.answer.await_args.args[0]
+    assert msg.answer.await_args.kwargs["parse_mode"] == "HTML"
+
+
+@pytest.mark.parametrize("error", [
+    RuntimeError("POST failed: Authorization Bearer hh-secret-provider-token"),
+    ValueError("sql DB URL postgresql://admin:secret@example.net"),
+    Exception("secret-from-third-party"),
+])
+def test_hh_apply_callback_never_echoes_untrusted_error_payload(monkeypatch, error):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "apply_match", AsyncMock(side_effect=error))
+    msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
+    callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
+
+    asyncio.run(handlers.apply_callback(callback, object()))
+
+    message = msg.answer.await_args.args[0]
+    assert "hh-secret-provider-token" not in message
+    assert "secret@example.net" not in message
+    assert "secret-from-third-party" not in message
+    assert "Проверь /applications" in message
+
