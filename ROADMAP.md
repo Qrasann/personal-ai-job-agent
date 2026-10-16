@@ -106,6 +106,8 @@ and source coverage remain PARTIAL; no threshold reduction.
 Remote location follow-up: IMPLEMENTED preservation of explicit known-geography
 `only` labels for RemoteOK/Arbeitnow in scope and source evidence. Office/global
 labels remain unknown; candidate-specific legal eligibility stays PARTIAL.
+Scan diagnostic Telegram budgets now include emoji UTF-16 units with complete
+history retained; verified in offline manual scan/status handler coverage.
 
 ## Historical v3.5.7 development notes
 

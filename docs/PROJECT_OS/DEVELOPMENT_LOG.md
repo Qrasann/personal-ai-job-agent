@@ -1,3 +1,7 @@
+## 2026-10-17 — bound scan diagnostics in UTF-16
+
+Emoji-heavy diagnostics used 3480 UTF-16 units despite a 2600-character section budget; tiny custom budgets also overflowed their omission note. Source/profile renderers now count UTF-16, preserve HTML entities and bound the omission note. An offline scan/status handler scenario validates combined message size, parseable HTML and complete stored history. Targeted 56; full isolated PostgreSQL 1096 passed. No live Telegram send.
+
 ## 2026-10-17 — preserve explicit remote location limits
 
 Two adapter regressions reproduced RemoteOK/Arbeitnow dropping `Germany only` and leaving worldwide boilerplate unqualified. A shared bounded recognizer retains known-geography `only` labels in remote scope and source evidence; existing signal/card handling now displays the restriction. Bare office/global labels, questions, negation and unfamiliar wording remain unknown. This is source scope, not residence/citizenship, visa or legal eligibility proof. Targeted 79 and full isolated PostgreSQL 1091 passed. Existing stored rows acquire the scope on rediscovery; no backfill or live scan performed.

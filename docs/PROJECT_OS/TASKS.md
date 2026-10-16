@@ -4,7 +4,8 @@
 
 - [x] Reproduce RemoteOK short-role loss and substring false positives; retain whole QA/HR/Go/C# terms with title/tag matching and all-specific-token semantics. Targeted 71; full isolated PostgreSQL 1070 passed.
 - [x] Preserve explicit known-geography `only` labels from RemoteOK/Arbeitnow in remote scope and source evidence; bare office/global labels remain unknown. Two adapter regressions reproduced the loss; targeted 79 and full isolated PostgreSQL 1091 passed.
-- [ ] Check scan diagnostic Telegram UTF-16 budgets with emoji/profile names, then continue source/fit quality.
+- [x] Enforce scan diagnostic UTF-16 budgets with emoji/profile names and intact HTML; offline scan/status test preserves complete saved history. Targeted 56; full isolated PostgreSQL 1096 passed.
+- [ ] Reproduce and fix fallback matching dropping short role tokens; preserve structured skill scoring and thresholds.
 - [ ] Live source/query usefulness remains pending an explicitly authorized scan environment.
 
 ## 2026-10-17 — v3.5.7 rejection diagnostics

@@ -273,6 +273,45 @@ def test_scan_status_renders_persisted_source_timing(monkeypatch):
     assert "jobbank: готово · 2 вакансий (12.0 с)" in rendered
 
 
+def test_scan_and_status_dense_emoji_diagnostics_fit_telegram(monkeypatch):
+    from xml.etree import ElementTree
+
+    stored = {}
+    name = "🚀" * 65 + " <&>"
+    summary = {
+        "sources": {str(n): {
+            "name": "Remote API", "found": 3, "partial": True,
+            "diagnostics": [{"code": "NETWORK_CONNECT_TIMEOUT", "profiles": [name]}],
+        } for n in range(12)},
+        "searches": {str(n): {"name": name, "processed": 3} for n in range(6)},
+    }
+
+    async def set_state(user_id, key, value):
+        stored[key] = value
+
+    monkeypatch.setattr(handlers, "_ACTIVE_SCAN_TASKS", {})
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "scan_for_user", AsyncMock(return_value=summary))
+    monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(side_effect=lambda uid, key, default: stored.get(key, default)))
+    monkeypatch.setattr(handlers.repo, "set_state", set_state)
+    scan_message, status_message = IncomingMessage("/scan"), IncomingMessage("/scanstatus")
+
+    async def scenario():
+        await handlers.scan(scan_message, bot=object())
+        await handlers.scan_status(status_message)
+
+    asyncio.run(scenario())
+    for rendered, kwargs in (scan_message.progress.edits[-1], status_message.answers[0]):
+        assert len(rendered.encode("utf-16-le")) // 2 <= 4096
+        assert kwargs["parse_mode"] == "HTML"
+        ElementTree.fromstring("<root>" + rendered + "</root>")
+        assert "NETWORK_CONNECT_TIMEOUT" in rendered
+        assert "Профили поиска" in rendered
+        assert "🚀" in rendered
+    # Display truncation must not lose the diagnostic history.
+    assert json.loads(stored["scan_dashboard"])["summary"] == summary
+
+
 @pytest.mark.parametrize("skip_reason", ["ConnectError", "connection cooldown"])
 def test_scan_and_persisted_status_show_quiet_source_skip(monkeypatch, skip_reason):
     stored = "{}"

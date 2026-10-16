@@ -26,6 +26,7 @@ from app.config import settings
 from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
+from app.domain.text_limits import utf16_length
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
@@ -59,6 +60,8 @@ _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
 
 
 def _render_search_profiles(searches: dict, *, limit: int = 900) -> str:
+    if limit <= 0:
+        return ""
     lines = []
     for info in searches.values():
         line = (
@@ -75,9 +78,11 @@ def _render_search_profiles(searches: dict, *, limit: int = 900) -> str:
         )
         if reasons:
             line += "\n  Основные причины: " + html.escape(reasons)
-        if len("\n".join(lines + [line])) > limit:
+        if utf16_length("\n".join(lines + [line])) > limit:
             suffix = "… Остальные профили сохранены в диагностике."
-            while lines and len("\n".join(lines + [suffix])) > limit:
+            if utf16_length(suffix) > limit:
+                return "…"
+            while lines and utf16_length("\n".join(lines + [suffix])) > limit:
                 lines.pop()
             lines.append(suffix)
             break

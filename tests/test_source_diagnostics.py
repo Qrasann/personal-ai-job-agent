@@ -193,6 +193,34 @@ def test_dense_dashboard_is_bounded_without_breaking_html_entities():
     assert html.escape(decoded)==view
 
 
+def test_dashboard_budgets_include_emoji_utf16_units_and_preserve_html():
+    import html
+    from app.search.source_summary import render_source_dashboard
+
+    profiles = {str(n): {"name": "🚀" * 80 + "<&>", "processed": 3} for n in range(10)}
+    sources = {str(n): {
+        "name": "Remote API", "found": 3, "partial": True,
+        "diagnostics": [{"code": "NETWORK_CONNECT_TIMEOUT", "profiles": ["🚀" * 80 + "<&>"]}],
+    } for n in range(20)}
+    source_view = render_source_dashboard(sources)
+    profile_view = _render_search_profiles(profiles)
+    assert len(source_view.encode("utf-16-le")) // 2 <= 2600
+    assert len(profile_view.encode("utf-16-le")) // 2 <= 900
+    assert "🚀" in source_view and "🚀" in profile_view
+    assert html.escape(html.unescape(source_view)) == source_view
+    assert html.escape(html.unescape(profile_view)) == profile_view
+
+
+@pytest.mark.parametrize("limit", [0, 1, 20])
+def test_diagnostic_overflow_note_respects_small_budget(limit):
+    from app.search.source_summary import render_source_dashboard
+
+    sources = {"remoteok": {"name": "Remote OK", "found": 5}}
+    profiles = {"12": {"name": "Relocation-first", "processed": 5}}
+    for view in (render_source_dashboard(sources, limit=limit), _render_search_profiles(profiles, limit=limit)):
+        assert len(view.encode("utf-16-le")) // 2 <= limit
+
+
 @pytest.mark.parametrize('source', ['eures','jobbank','himalayas','remotive','greenhouse','lever','smartrecruiters','arbeitnow'])
 def test_adapter_contract_failures_are_response_errors_not_internal_errors(source):
     from app.sources.base import SourceContext

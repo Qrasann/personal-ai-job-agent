@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.domain.text_limits import utf16_length
 from app.sources.diagnostics import SourceSummaryError, legacy_diagnostic
 
 
@@ -205,19 +206,23 @@ def select_scan_dashboard(manual: dict, scheduled: dict) -> dict:
 
 
 def render_source_dashboard(sources: dict, *, limit: int = 2600) -> str:
-    """Bound the HTML source section before Telegram's 4096-character limit."""
+    """Bound escaped HTML conservatively in Telegram UTF-16 units."""
     import html
+    if limit <= 0:
+        return ""
     text = "\n".join(render_source_summary(name, info) for name, info in sources.items())
     encoded = html.escape(text)
-    if len(encoded) <= limit:
+    if utf16_length(encoded) <= limit:
         return encoded
     suffix = "\n… Остальные сведения сохранены в диагностике; новые ошибки сообщаются отдельно."
+    if utf16_length(suffix) > limit:
+        return "…"
     # Cut plain text before escaping; splitting an encoded entity is invalid.
-    budget = limit - len(html.escape(suffix))
+    budget = limit - utf16_length(html.escape(suffix))
     low, high = 0, len(text)
     while low < high:
         middle = (low + high + 1) // 2
-        if len(html.escape(text[:middle])) <= budget:
+        if utf16_length(html.escape(text[:middle])) <= budget:
             low = middle
         else:
             high = middle - 1
