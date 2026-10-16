@@ -6,7 +6,8 @@
 - [x] Preserve explicit known-geography `only` labels from RemoteOK/Arbeitnow in remote scope and source evidence; bare office/global labels remain unknown. Two adapter regressions reproduced the loss; targeted 79 and full isolated PostgreSQL 1091 passed.
 - [x] Enforce scan diagnostic UTF-16 budgets with emoji/profile names and intact HTML; offline scan/status test preserves complete saved history. Targeted 56; full isolated PostgreSQL 1096 passed.
 - [x] Fix fallback matching dropping short role names and substring collisions; eight red regressions, targeted 83 and full isolated PostgreSQL 1104 passed. Structured skill scoring/thresholds unchanged.
-- [ ] v3.6: reproduce resume selection ambiguity for short role names and retain factual/scoring independence.
+- [x] v3.6: fix resume role/content ambiguity for short names and Java/JavaScript; six red regressions, targeted 69 and full isolated PostgreSQL 1110 passed. CV/facts unchanged; no score boost from CV selection.
+- [ ] Source reliability: malformed optional RemoteOK tags/salaries must not lose valid roles or sibling rows.
 - [ ] Live source/query usefulness remains pending an explicitly authorized scan environment.
 
 ## 2026-10-17 — v3.5.7 rejection diagnostics

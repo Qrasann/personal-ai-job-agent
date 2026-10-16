@@ -111,6 +111,10 @@ history retained; verified in offline manual scan/status handler coverage.
 Fallback role matching also preserves recognized short roles and distinguishes
 whole title terms; Career-first/Relocation-first queries stay independent and
 structured skill scoring/weights/thresholds are unchanged.
+v3.6 CV selection follow-up: IMPLEMENTED exact role/content term matching for
+short known roles/languages and Java/JavaScript distinction. Stored CV/facts
+remain untouched and selection does not boost match scores. Reviewed tailored
+RU/EN CV generation remains PLANNED; the overall milestone remains PARTIAL.
 
 ## Historical v3.5.7 development notes
 

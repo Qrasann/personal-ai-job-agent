@@ -1,3 +1,7 @@
+## 2026-10-17 — select CV by exact role/content terms
+
+Six regressions reproduced a less suitable CV winning an ID tie after QA/Go/HR/C# terms were discarded or Java matched JavaScript. Resume role/content matching now reuses whole terms and the explicit short vocabulary. Original selection weights/language preference and active/deleted filtering remain; no CV or Candidate Fact is rewritten, and resume selection does not increase vacancy scores. Targeted 69; full isolated PostgreSQL 1110 passed. Wider v3.6 tailored RU/EN CV work remains partial/planned.
+
 ## 2026-10-17 — align fallback role matching with specific queries
 
 Eight red regressions reproduced a role bonus for unrelated QA/Go/C#/IT/UX/Java titles and a lost HR role. Fallback matching now compares whole tokens shared with RemoteOK and admits a small explicit short-role vocabulary; other short fragments retain the minimum length. Career/Relocation query separation and Unicode roles are covered. Structured Candidate Facts scoring, weights and score thresholds are unchanged. Targeted 83; full isolated PostgreSQL 1104 passed.

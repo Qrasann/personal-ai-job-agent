@@ -36,31 +36,17 @@ _RESUME_GENERIC_TOKENS = {
     "опыт", "работа", "года", "лет",
 }
 
-# Unicode word characters, with the same technical punctuation and underscore
-# separation as the historical Latin/Cyrillic tokenizer. No translation or role
-# alias is inferred; the owner still supplies the actual query text.
-_ROLE_TOKEN_PATTERN = r"(?:[^\W_]|[+#.-])+"
 # Other short fragments retain the previous minimum-length policy.
 _SHORT_ROLE_TERMS = frozenset({"qa", "hr", "go", "c", "c#", "it", "ui", "ux"})
 
 
+def _matching_role_tokens(text: str) -> set[str]:
+    return {token for token in role_tokens(text) if len(token) >= 3 or token in _SHORT_ROLE_TERMS}
+
+
 def _resume_content_overlap(job: Job, resume: ResumeProfile) -> int:
-    job_tokens = {
-        token
-        for token in re.findall(
-            _ROLE_TOKEN_PATTERN,
-            f"{job.title} {job.description}".casefold(),
-        )
-        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
-    }
-    resume_tokens = {
-        token
-        for token in re.findall(
-            _ROLE_TOKEN_PATTERN,
-            str(resume.content or "").casefold(),
-        )
-        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
-    }
+    job_tokens = _matching_role_tokens(f"{job.title} {job.description}") - _RESUME_GENERIC_TOKENS
+    resume_tokens = _matching_role_tokens(str(resume.content or "")) - _RESUME_GENERIC_TOKENS
     return len(job_tokens & resume_tokens)
 
 def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
@@ -72,12 +58,12 @@ def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
     if not available:
         return None
 
-    hay = f"{job.title} {job.description}".casefold()
+    job_tokens = _matching_role_tokens(f"{job.title} {job.description}")
     ranked: list[tuple[int, int]] = []
     for resume in available:
         score = 0
-        for token in re.findall(_ROLE_TOKEN_PATTERN, resume.role.casefold()):
-            if len(token) >= 3 and token in hay:
+        for token in _matching_role_tokens(resume.role):
+            if token in job_tokens:
                 score += 5
 
         score += min(10, _resume_content_overlap(job, resume))
@@ -414,7 +400,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     }
     role_queries = [query.casefold() for query in discovery_queries(settings)]
     for query in role_queries:
-        all_tokens = {x for x in role_tokens(query) if len(x) >= 3 or x in _SHORT_ROLE_TERMS}
+        all_tokens = _matching_role_tokens(query)
         meaningful = all_tokens - generic_role_tokens
         tokens = meaningful or all_tokens
         if tokens and tokens <= title_tokens:
