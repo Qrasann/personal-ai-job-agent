@@ -2,8 +2,9 @@
 
 ## Current entry point — 2026-10-17
 
-HEAD `dabe9a3` on `feature/v3.5.7-international-market-coverage`, matching
-origin feature. The two user-owned proposal files are the only pre-existing
+Audited code baseline `dabe9a3` on
+`feature/v3.5.7-international-market-coverage`, then saved this documentation
+inventory in a local checkpoint. The two user-owned proposal files are the only pre-existing
 untracked paths; do not stage or modify them. This documentation-only pass
 indexed local Codex history in [CODEX_SESSION_INVENTORY.md](CODEX_SESSION_INVENTORY.md)
 and updated BRIEF from the stale `9b938ed` checkpoint. The index contains 5

@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Source tree: `feature/v3.5.7-international-market-coverage`, `VERSION=3.5.7`. Current local HEAD and its upstream: `dabe9a3` (merged notification-journal isolation PR #30). PR #29 documentation also merged after Telegram delivery PR #28. The last verified formal release is v3.5.6; `main` and production were not modified by this documentation review.
+- Source tree: `feature/v3.5.7-international-market-coverage`, `VERSION=3.5.7`. Audited code/upstream baseline: `dabe9a3` (merged notification-journal isolation PR #30); later local documentation commits do not change that code. PR #29 documentation also merged after Telegram delivery PR #28. The last verified formal release is v3.5.6; `main` and production were not modified by this documentation review.
 - Independent audit fixes #19–#26 and delivery PR #28 are merged into the feature branch. The feature is **not deployed**. PR #28 CI passed 1051 pytest cases, 82.94% coverage, Docker build and secret scan; check combined-branch CI before any release claim.
 - Full previous `BRIEF.md` is preserved in `history/BRIEF_PRE_AUDIT_2026-10-16.md`. Root `ROADMAP.md` is the sole canonical product roadmap; this file records the current working checkpoint.
 - User-owned untracked files `AI-JOB-AGENT-MERGED-ROADMAP-PROPOSAL.md` and `CODEX-MAIN-ROADMAP-SYNC-PROMPT.md` must stay untouched and uncommitted.
