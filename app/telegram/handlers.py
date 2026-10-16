@@ -1926,12 +1926,13 @@ async def apply_callback(callback: CallbackQuery, bot: Bot) -> None:
         result = await apply_match(bot, match_id, user.id)
         status = result.get("status")
         if status == "sent":
-            text = "✅ HH подтвердил отправку отклика. Сведения сохранены в /applications."
+            text = f"✅ HH подтвердил отправку отклика. Запись #{result.get('application_id', '?')} в /applications."
         elif status == "external":
             text = (
                 "↗ HH направил на внешнюю форму работодателя. "
                 "Отклик ещё не подтверждён как отправленный: заверши его вручную. "
-                "Адрес перехода сохранён в /applications (экспорт пакета через /application <id> export)."
+                f"Запись #{result.get('application_id', '?')} сохранена в /applications; "
+                "адрес перехода доступен в экспорте через /application <id> export."
             )
         else:
             text = (

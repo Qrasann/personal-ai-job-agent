@@ -868,6 +868,7 @@ def render_applications(applications: list) -> str:
         "rejected": "отказ",
         "withdrawn": "снят",
         "sent": "отправлен",
+        "sending": "попытка начата — результат не подтверждён",
         "external": "внешняя форма — отправка не подтверждена",
         "unknown": "отправка не подтверждена",
     }
@@ -901,6 +902,7 @@ def render_application_history(events: list) -> str:
         "rejected": "отмечен отказ",
         "withdrawn": "отмечен снятым",
         "sent": "отправлен",
+        "sending": "HH-попытка зарезервирована; результат не подтверждён",
         "external": "переход на внешнюю форму, отправка не подтверждена",
         "unknown": "исход отправки неизвестен",
     }

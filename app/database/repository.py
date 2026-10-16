@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.database.db import SessionLocal
@@ -636,6 +636,111 @@ async def save_application(**kwargs) -> Application:
         await session.commit()
         await session.refresh(item)
         return item
+
+
+
+
+async def reserve_hh_application(
+    *, user_id: int, job_id: int, source_job_id: str, **snapshot_kwargs
+) -> Application:
+    """Record a non-retryable attempt before any external HH side effect.
+
+    Serialize all HH claims for an owner through the user row lock. Check both
+    canonical job id and provider posting id across independent search profiles
+    and changed fingerprints. Existing prepared drafts are not submissions.
+    """
+    async with SessionLocal() as session:
+        owner = await session.scalar(
+            select(User).where(
+                User.id == user_id, User.is_active.is_(True), User.deleted_at.is_(None)
+            ).with_for_update()
+        )
+        if not owner:
+            raise RuntimeError("HH owner не найден или отключён")
+        # A user may have prepared and explicitly reviewed an unsent draft.
+        # Permit that workflow only when the history proves it began as a draft
+        # and contains no attempted/submitted outcome.
+        had_draft = select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == Application.id,
+            ApplicationStatusEvent.status == "prepared",
+        ).exists()
+        had_outbound_status = select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == Application.id,
+            ApplicationStatusEvent.status.notin_(("prepared", "reviewed")),
+        ).exists()
+        safe_reviewed_draft = and_(
+            Application.status == "reviewed", had_draft, ~had_outbound_status,
+        )
+        duplicate = await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.source_id == "hh",
+                ~or_(Application.status == "prepared", safe_reviewed_draft),
+                or_(
+                    Application.job_id == job_id,
+                    Application.vacancy_snapshot["source_job_id"].astext == source_job_id,
+                ),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+        if duplicate:
+            raise RuntimeError(
+                f"Повторный HH-отклик заблокирован: запись #{duplicate.id}, "
+                f"статус {duplicate.status}. Проверь /applications и кабинет HH; "
+                "не отправляй повторно без ручной сверки."
+            )
+        item = Application(
+            user_id=user_id, job_id=job_id, source_id="hh",
+            status="sending", **snapshot_kwargs,
+        )
+        session.add(item)
+        await session.flush()
+        session.add(ApplicationStatusEvent(
+            application_id=item.id, user_id=user_id, status="sending",
+        ))
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
+async def finish_hh_application(
+    *, user_id: int, application_id: int, match_id: int,
+    status: str, source_application_id: str | None = None,
+    external_url: str | None = None,
+) -> None:
+    """Record the provider outcome, history and confirmed match in one transaction.
+
+    Unknown results remain in a blocking state. Never assume a failed response
+    means HH did not receive the application.
+    """
+    status = status if status in {"sent", "external"} else "unknown"
+    async with SessionLocal() as session:
+        item = await session.scalar(
+            select(Application).where(
+                Application.id == application_id,
+                Application.user_id == user_id,
+                Application.source_id == "hh",
+            ).with_for_update()
+        )
+        if not item or item.status != "sending":
+            raise RuntimeError("HH-попытка отсутствует или уже обработана")
+        if status == "sent":
+            match = await session.scalar(
+                select(JobMatch).where(
+                    JobMatch.id == match_id,
+                    JobMatch.user_id == user_id,
+                    JobMatch.job_id == item.job_id,
+                ).with_for_update()
+            )
+            if not match:
+                raise RuntimeError("Исходный HH match отсутствует; проверь кабинет HH")
+            match.status = "applied"
+        item.status = status
+        item.source_application_id = source_application_id if status == "sent" else None
+        item.external_url = external_url
+        session.add(ApplicationStatusEvent(
+            application_id=item.id, user_id=user_id, status=status,
+        ))
+        await session.commit()
 
 
 async def list_applications(user_id: int, limit: int = 20) -> list[Application]:

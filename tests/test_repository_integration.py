@@ -937,3 +937,114 @@ async def _review_saved_backlog_flow(monkeypatch):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
         await engine.dispose()
+
+
+
+@pytest.mark.integration
+def test_hh_submission_reservation_blocks_concurrent_owner_attempts(monkeypatch):
+    _require_test_database()
+    asyncio.run(_hh_submission_reservation_flow(monkeypatch))
+
+
+async def _hh_submission_reservation_flow(monkeypatch):
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        connect_args={"server_settings": {
+            "application_name": "jobagent-hh-reservation-test",
+            "lock_timeout": "5s",
+        }},
+    )
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        user = await repo.create_user("hh-reserve-owner", "HH Owner")
+        profile = await repo.ensure_default_profile(user.id)
+        searches = await repo.list_search_profiles(profile.id)
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="hh-posting-44",
+            title="SRE", company="Company", description="Current job",
+            url="https://hh.ru/vacancy/hh-posting-44",
+        ))
+        match = await repo.save_match(
+            job_id=job.id, user_id=user.id,
+            profile_id=profile.id, search_profile_id=searches[0].id,
+        )
+        snapshot = snapshot_vacancy(
+            job, source_id="hh", source_job_id="hh-posting-44",
+        )
+        kwargs = dict(
+            user_id=user.id, job_id=job.id, source_job_id="hh-posting-44",
+            resume_snapshot="Saved CV", message="Grounded letter",
+            vacancy_snapshot=snapshot,
+        )
+        # Reviewed-but-unsent packages must not block the initial submission.
+        draft = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="hh",
+            status="prepared", vacancy_snapshot=snapshot,
+        )
+        assert await repo.set_application_status(user.id, draft.id, "reviewed")
+        outcomes = await asyncio.gather(
+            repo.reserve_hh_application(**kwargs),
+            repo.reserve_hh_application(**kwargs),
+            return_exceptions=True,
+        )
+        successes = [x for x in outcomes if isinstance(x, Application)]
+        failures = [x for x in outcomes if isinstance(x, RuntimeError)]
+        assert len(successes) == 1
+        assert len(failures) == 1
+        assert "заблокирован" in str(failures[0])
+        reserved = successes[0]
+        assert reserved.status == "sending"
+        assert [e.status for e in await repo.application_status_history(user.id, reserved.id)] == ["sending"]
+
+        # No second attempt after an ambiguous result or after a success.
+        await repo.finish_hh_application(
+            user_id=user.id, application_id=reserved.id,
+            match_id=match.id, status="unknown",
+        )
+        with pytest.raises(RuntimeError, match="заблокирован"):
+            await repo.reserve_hh_application(**kwargs)
+        assert [e.status for e in await repo.application_status_history(user.id, reserved.id)] == [
+            "sending", "unknown",
+        ]
+
+        # A fresh independent job can complete and update JobMatch atomically.
+        second, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="hh-posting-45",
+            title="Linux Administrator", company="Another employer",
+            url="https://hh.ru/vacancy/hh-posting-45",
+        ))
+        other_match = await repo.save_match(
+            job_id=second.id, user_id=user.id,
+            profile_id=profile.id, search_profile_id=searches[0].id,
+        )
+        accepted = await repo.reserve_hh_application(
+            user_id=user.id, job_id=second.id, source_job_id="hh-posting-45",
+            vacancy_snapshot=snapshot_vacancy(
+                second, source_id="hh", source_job_id="hh-posting-45",
+            ),
+            message="Supported draft",
+        )
+        await repo.finish_hh_application(
+            user_id=user.id, application_id=accepted.id, match_id=other_match.id,
+            status="sent", source_application_id="receipt-45",
+        )
+        latest = await repo.get_application(user.id, accepted.id)
+        assert latest.status == "sent"
+        assert latest.source_application_id == "receipt-45"
+        assert (await repo.get_match(other_match.id)).status == "applied"
+        assert [e.status for e in await repo.application_status_history(user.id, accepted.id)] == [
+            "sending", "sent",
+        ]
+        with pytest.raises(RuntimeError, match="заблокирован"):
+            await repo.reserve_hh_application(**kwargs)
+        with pytest.raises(RuntimeError, match="заблокирован"):
+            await repo.reserve_hh_application(
+                user_id=user.id, job_id=second.id, source_job_id="hh-posting-45",
+            )
+    finally:
+        await engine.dispose()
+

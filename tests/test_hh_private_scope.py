@@ -181,34 +181,52 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
         id=5, source="hh", external_id="hh-resume", content="Saved resume",
     )]))
     monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
-    send = AsyncMock(return_value={
-        "status": submission_status,
-        "negotiation_id": "receipt-1" if submission_status == "sent" else None,
-        "external_url": "https://example.invalid/receipt",
-    })
-    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
-    save = AsyncMock()
-    monkeypatch.setattr(services.repo, "save_application", save)
-    match_status = AsyncMock()
-    monkeypatch.setattr(services.repo, "set_match_status", match_status)
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=AsyncMock()))
+    events = []
+    async def reserve(**kwargs):
+        events.append("reserved")
+        return SimpleNamespace(id=96)
+    async def finish(**kwargs):
+        events.append("finished")
+    reserve_mock = AsyncMock(side_effect=reserve)
+    finish_mock = AsyncMock(side_effect=finish)
+    monkeypatch.setattr(services.repo, "reserve_hh_application", reserve_mock)
+    monkeypatch.setattr(services.repo, "finish_hh_application", finish_mock)
+    async def guarded_send(*args):
+        assert events == ["reserved"], "HH must never send before database reservation"
+        events.append("sent_to_provider")
+        return {
+            "status": submission_status,
+            "negotiation_id": "receipt-1" if submission_status == "sent" else None,
+            "external_url": "https://example.invalid/receipt",
+        }
+    client_send = AsyncMock(side_effect=guarded_send)
+    monkeypatch.setattr(services.hh_client, "apply", client_send)
 
-    asyncio.run(services.apply_match(object(), 17, 1))
+    result = asyncio.run(services.apply_match(object(), 17, 1))
 
-    send.assert_awaited_once_with("hh-job", "hh-resume", "HH source requirements")
-    saved = save.await_args.kwargs
+    client_send.assert_awaited_once_with("hh-job", "hh-resume", "HH source requirements")
+    assert events == ["reserved", "sent_to_provider", "finished"]
+    assert result["application_id"] == 96
+    saved = reserve_mock.await_args.kwargs
     assert saved["vacancy_snapshot"] == {
         "title": "HH role", "company": "Saved employer",
         "description": "HH source requirements", "source_url": "https://example.invalid/posting",
         "source_id": "hh", "source_job_id": "hh-job",
         "relocation_evidence": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}},
     }
-    assert saved["external_url"] == "https://example.invalid/receipt"
-    assert saved["source_application_id"] == ("receipt-1" if submission_status == "sent" else None)
-    assert saved["status"] == submission_status
-    if submission_status == "sent":
-        match_status.assert_awaited_once_with(17, "applied")
-    else:
-        match_status.assert_not_awaited()
+    assert "external_url" not in saved
+    assert saved["source_job_id"] == "hh-job"
+    assert saved["resume_external_id"] == "hh-resume"
+    completed = finish_mock.await_args.kwargs
+    assert completed["status"] == submission_status
+    assert completed["user_id"] == 1
+    assert completed["application_id"] == 96
+    assert completed["match_id"] == 17
+    assert completed["source_application_id"] == (
+        "receipt-1" if submission_status == "sent" else None
+    )
+    assert completed["external_url"] == "https://example.invalid/receipt"
 
 
 def test_hh_applicant_credential_requires_configured_owner(monkeypatch):
@@ -238,3 +256,65 @@ def test_hh_chat_polling_log_does_not_include_exception_payload(monkeypatch, cap
     asyncio.run(services.scan_hh_chats(object()))
     assert "HH chats failed" in caplog.text
     assert secret not in caplog.text
+
+
+
+def test_hh_timeout_is_ambiguous_and_forces_reconciliation(monkeypatch):
+    monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "owner-chat")
+    monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
+        id=17, user_id=1, job_id=42, profile_id=3, resume_id=None,
+    )))
+    monkeypatch.setattr(services.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=1)))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=SimpleNamespace(
+        id=42, title="Engineer", company="Employer", description="Role description",
+    )))
+    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=SimpleNamespace(
+        source_job_id="hh-job", url="https://hh.ru/vacancy/hh-job", raw={},
+    )))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.settings, "hh_resume_id", "external-resume")
+    monkeypatch.setattr(services, "make_cover_letter", lambda *_args: "Supported draft")
+    send = AsyncMock(side_effect=TimeoutError("HH response lost"))
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
+    reserve = AsyncMock(return_value=SimpleNamespace(id=96))
+    finish = AsyncMock()
+    monkeypatch.setattr(services.repo, "reserve_hh_application", reserve)
+    monkeypatch.setattr(services.repo, "finish_hh_application", finish)
+
+    with pytest.raises(RuntimeError, match="не подтвердил") as exc:
+        asyncio.run(services.apply_match(object(), 17, 1))
+
+    assert "HH response lost" not in str(exc.value)
+    reserve.assert_awaited_once()
+    send.assert_awaited_once()
+    assert finish.await_args.kwargs["status"] == "unknown"
+
+
+def test_hh_reservation_error_prevents_external_call(monkeypatch):
+    monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "owner-chat")
+    monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
+        id=17, user_id=1, job_id=42, profile_id=3, resume_id=None,
+    )))
+    monkeypatch.setattr(services.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=1)))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=SimpleNamespace(
+        id=42, title="Engineer", company="Employer", description="Role",
+    )))
+    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=SimpleNamespace(
+        source_job_id="hh-job", url="https://hh.ru/vacancy/hh-job", raw={},
+    )))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.settings, "hh_resume_id", "external-resume")
+    monkeypatch.setattr(services, "make_cover_letter", lambda *_args: "Supported draft")
+    send = AsyncMock()
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
+    monkeypatch.setattr(services.repo, "reserve_hh_application", AsyncMock(
+        side_effect=RuntimeError("Previous ambiguous attempt #96"),
+    ))
+
+    with pytest.raises(RuntimeError, match="Previous ambiguous"):
+        asyncio.run(services.apply_match(object(), 17, 1))
+
+    send.assert_not_awaited()
+
