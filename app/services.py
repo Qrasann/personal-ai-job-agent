@@ -670,10 +670,13 @@ async def get_cached_hh_details(job_id: int, *, source_job_id: str | None = None
     if not isinstance(details, dict):
         details = {}
 
-    await repo.save_source_ref_detail_cache(
+    saved = await repo.save_source_ref_detail_cache(
         ref.id, details, expected_posting_digest=posting_digest
     )
-
+    if saved is False:
+        # A newer observation replaced this source posting mid-fetch. Never
+        # score or show its stale network response as current verified detail.
+        return {}
     return dict(details)
 
 
