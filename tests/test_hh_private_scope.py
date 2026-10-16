@@ -181,12 +181,7 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
         id=5, source="hh", external_id="hh-resume", content="Saved resume",
     )]))
     monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
-    send = AsyncMock(return_value={
-        "status": submission_status,
-        "negotiation_id": "receipt-1" if submission_status == "sent" else None,
-        "external_url": "https://example.invalid/receipt",
-    })
-    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True))
     events = []
     async def reserve(**kwargs):
         events.append("reserved")
@@ -220,7 +215,7 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
         "source_id": "hh", "source_job_id": "hh-job",
         "relocation_evidence": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}},
     }
-    assert saved["external_url"] == "https://example.invalid/receipt"
+    assert "external_url" not in saved
     assert saved["source_job_id"] == "hh-job"
     assert saved["resume_external_id"] == "hh-resume"
     completed = finish_mock.await_args.kwargs
@@ -231,6 +226,7 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
     assert completed["source_application_id"] == (
         "receipt-1" if submission_status == "sent" else None
     )
+    assert completed["external_url"] == "https://example.invalid/receipt"
 
 
 def test_hh_applicant_credential_requires_configured_owner(monkeypatch):
