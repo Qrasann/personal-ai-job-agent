@@ -2,10 +2,11 @@
 
 ## Active priorities — 2026-10-16
 
-- [x] Independent audit fixes #19–#25 merged in feature with green individual PR CI; latest combined CI requires its own check.
+- [x] Independent audit fixes #19–#26 merged; PR #28 at-least-once notifications merged with green PR CI. Latest combined CI needs independent check.
 - [ ] Review HH reservation ambiguity/reconciliation and offline acceptance; no live submissions.
 - [x] Owner chose at-least-once job alerts; delivery journal, leased PostgreSQL claims, independent minute retries and /delivery implemented in PR #28.
-- [ ] Review PR #28 PostgreSQL end-to-end tests, latest CI and live Telegram acceptance before deployment.
+- [x] PR #28 offline PostgreSQL, callback UX, concurrency and failure tests passed CI (1051 passed, 82.94%).
+- [ ] Live Telegram acceptance and operational retry monitoring before deployment; do not send to real users without owner approval.
 - [ ] Test safe preservation of Application snapshots/history under future Job deletion (no production migrations now).
 - [ ] End-to-end isolated PostgreSQL workflow and source provenance/multiuser regressions.
 - [ ] Return to canonical ROADMAP's v3.5.7 acceptance, then Source Intelligence, Candidate Fit, Application Package, Recruiter and Interview stages.
