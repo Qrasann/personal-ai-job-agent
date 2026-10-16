@@ -1924,7 +1924,21 @@ async def apply_callback(callback: CallbackQuery, bot: Bot) -> None:
     await callback.answer("Отправляю…")
     try:
         result = await apply_match(bot, match_id, user.id)
-        await callback.message.answer("✅ Отклик обработан: " + html.escape(str(result.get("status", "sent"))), parse_mode="HTML")
+        status = result.get("status")
+        if status == "sent":
+            text = "✅ HH подтвердил отправку отклика. Сведения сохранены в /applications."
+        elif status == "external":
+            text = (
+                "↗ HH направил на внешнюю форму работодателя. "
+                "Отклик ещё не подтверждён как отправленный: заверши его вручную. "
+                "Адрес перехода сохранён в /applications (экспорт пакета через /application <id> export)."
+            )
+        else:
+            text = (
+                "⚠️ Статус отправки HH неизвестен. Перед повтором проверь кабинет HH "
+                "и /applications, чтобы не отправить повторный отклик."
+            )
+        await callback.message.answer(text, parse_mode=None)
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception as exc:
         await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
