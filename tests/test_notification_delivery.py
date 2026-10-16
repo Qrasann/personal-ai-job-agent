@@ -259,3 +259,52 @@ def test_delivery_command_shows_only_scoped_metadata(monkeypatch):
     assert "#48" in rendered
     assert "#49" in rendered
     assert "secret" not in rendered
+
+
+
+@pytest.mark.integration
+def test_end_to_end_ingestion_alert_then_rescan_does_not_repeat_sent_message(monkeypatch):
+    _postgres_required()
+    asyncio.run(_ingestion_delivery_flow(monkeypatch))
+
+
+async def _ingestion_delivery_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL)
+    sessions = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", sessions)
+    monkeypatch.setattr(journal, "SessionLocal", sessions)
+    monkeypatch.setattr(services, "score_job", lambda *_args, **_kwargs: SimpleNamespace(
+        technical_score=85, geography_score=90, salary_score=75,
+        relocation_score=75, total_score=86,
+        reason="Observed Linux requirements", track="career", fit="good",
+        resume_id=None, recommendation_scores={},
+    ))
+    bot = SimpleNamespace(send_message=AsyncMock(return_value=SimpleNamespace(message_id=803)))
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        owner = await repo.create_user("987001", "Owner")
+        await repo.ensure_default_profile(owner.id)
+        normalized = NormalizedJob(
+            source="arbeitnow", source_job_id="unique-posting-802",
+            title="Linux Engineer", company="Employer", description="Linux Bash Docker",
+            url="https://example.invalid/job/802",
+        )
+        first = await services.ingest_and_match(
+            bot, normalized, only_user_id=owner.id,
+        )
+        second = await services.ingest_and_match(
+            bot, normalized, only_user_id=owner.id,
+        )
+        assert first["notified"] == 1
+        assert second["notified"] == 0
+        bot.send_message.assert_awaited_once()
+        assert bot.send_message.await_args.args[0] == 987001
+        entry = (await journal.recent_job_notification_journal(owner.id))[0]
+        assert entry["status"] == "sent"
+        assert entry["attempts"] == 1
+        assert entry["telegram_message_id"] == 803
+        assert not await journal.due_job_notifications(user_id=owner.id)
+    finally:
+        await engine.dispose()
