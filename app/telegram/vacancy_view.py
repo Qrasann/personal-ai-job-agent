@@ -868,6 +868,8 @@ def render_applications(applications: list) -> str:
         "rejected": "отказ",
         "withdrawn": "снят",
         "sent": "отправлен",
+        "external": "внешняя форма — отправка не подтверждена",
+        "unknown": "отправка не подтверждена",
     }
     lines = ["📂 <b>Отклики</b>", ""]
     if not applications:
@@ -899,6 +901,8 @@ def render_application_history(events: list) -> str:
         "rejected": "отмечен отказ",
         "withdrawn": "отмечен снятым",
         "sent": "отправлен",
+        "external": "переход на внешнюю форму, отправка не подтверждена",
+        "unknown": "исход отправки неизвестен",
     }
     if not events:
         return "История статусов пуста."
