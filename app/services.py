@@ -13,6 +13,7 @@ import httpx
 from app.agents.llm import make_cover_letter, recruiter_reply
 from app.config import settings
 from app.database import repository as repo
+from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
@@ -177,8 +178,67 @@ async def _discover_remotive(
         return adapter.parse_payload(payload, context), False, fetched_mono
 
 
-async def notify_chat(bot: Bot, chat_id: str | int, text: str, **kwargs) -> None:
-    await bot.send_message(int(chat_id), text[:4096], **kwargs)
+async def notify_chat(bot: Bot, chat_id: str | int, text: str, **kwargs):
+    return await bot.send_message(int(chat_id), text[:4096], **kwargs)
+
+
+async def _send_claimed_job_alert(bot: Bot, claim: dict) -> bool:
+    """Retry the frozen message even when its original source no longer responds."""
+    payload = claim["payload"]
+    delivered = False
+    try:
+        response = await notify_chat(
+            bot, claim["chat_id"], payload["text"], parse_mode="HTML",
+            reply_markup=job_keyboard(
+                claim["match_id"], payload.get("url") or "",
+                can_apply=bool(payload.get("can_apply")),
+                job_id=payload.get("job_id"),
+            ),
+        )
+        delivered = True
+        message_id = getattr(response, "message_id", None)
+        ok = await delivery_repo.settle_job_notification(
+            user_id=claim["user_id"], match_id=claim["match_id"],
+            token=claim["token"], delivered=True,
+            message_id=message_id if isinstance(message_id, int) else None,
+        )
+        if not ok:
+            log.warning("job notification claim was superseded before finalization")
+        return bool(ok)
+    except Exception as exc:
+        # If DB confirmation fails *after* Telegram succeeds, preserve the
+        # in-flight lease. Its expiry allows an at-least-once retry.
+        if not delivered:
+            try:
+                await delivery_repo.settle_job_notification(
+                    user_id=claim["user_id"], match_id=claim["match_id"],
+                    token=claim["token"], delivered=False,
+                )
+            except Exception:
+                log.warning("cannot persist failed job notification; lease will expire")
+        log.warning("job notification delivery incomplete (%s)", type(exc).__name__)
+        return False
+
+
+async def retry_job_notifications(bot: Bot) -> None:
+    """Retry due journal entries independently of source discovery and scans."""
+    try:
+        due = await delivery_repo.due_job_notifications(limit=100)
+    except Exception as exc:
+        log.warning("job notification retry scan failed (%s)", type(exc).__name__)
+        return
+    for user_id, match_id in due:
+        try:
+            if await repo.get_state(user_id, "paused", "false") == "true":
+                continue
+            claim = await delivery_repo.claim_job_notification(
+                user_id=user_id, match_id=match_id,
+            )
+            if claim:
+                await _send_claimed_job_alert(bot, claim)
+        except Exception as exc:
+            # A broken individual notification must not starve other jobs.
+            log.warning("individual job notification retry failed (%s)", type(exc).__name__)
 
 
 async def _user_context(user_id: int):
@@ -320,20 +380,19 @@ async def ingest_and_match(
                 f"🧭 Режим: <b>{html.escape(result.track)}</b>\n\n"
                 f"{html.escape(result.reason)}"
             )
-            await notify_chat(
-                bot,
-                user.telegram_chat_id,
-                text,
-                parse_mode="HTML",
-                reply_markup=job_keyboard(
-                    match.id,
-                    src.url if src else "",
-                    can_apply=source_capabilities(normalized.source).apply,
-                    job_id=job.id,
-                ),
+            # Persist original observed content before network delivery.
+            # A concurrent scan and scheduled retry cannot claim the same
+            # vacancy while the lease is active.
+            claim = await delivery_repo.claim_job_notification(
+                user_id=user.id, match_id=match.id,
+                payload={
+                    "match_id": match.id, "job_id": job.id, "text": text,
+                    "url": src.url if src else "",
+                    "can_apply": source_capabilities(normalized.source).apply,
+                },
             )
-            await repo.set_match_status(match.id, "notified")
-            counters["notified"] += 1
+            if claim and await _send_claimed_job_alert(bot, claim):
+                counters["notified"] += 1
     return counters
 
 

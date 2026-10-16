@@ -10,7 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.candidates.bootstrap import bootstrap_user
 from app.config import settings
 from app.database.db import init_db
-from app.services import scan_all, scan_hh_chats
+from app.services import scan_all, scan_hh_chats, retry_job_notifications
 from app.sources.telegram_watch import retry_telegram_watch
 from app.telegram.handlers import router
 from app.telegram.settings_handlers import router as settings_router
@@ -36,6 +36,11 @@ def _schedule_jobs(scheduler: AsyncIOScheduler, bot: Bot) -> None:
     )
     scheduler.add_job(retry_telegram_watch, "interval", minutes=1, args=[bot],
                       id="telegram_watch_retry", max_instances=1, coalesce=True)
+    scheduler.add_job(
+        retry_job_notifications, "interval", minutes=1, args=[bot],
+        id="job_alert_retry", max_instances=1, coalesce=True,
+        next_run_time=datetime.now(),
+    )
     if settings.hh_private_api_enabled and settings.hh_access_token:
         scheduler.add_job(
             scan_hh_chats,

@@ -20,6 +20,7 @@ def test_main_menu_contains_core_commands():
         "/stretch",
         "/saved",
         "/jobs",
+        "/delivery",
         "/city",
         "/domestic_relocation",
         "/settings",
