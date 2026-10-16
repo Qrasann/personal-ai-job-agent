@@ -10,7 +10,7 @@ import json
 import secrets
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import cast, select
+from sqlalchemy import case, cast, select
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.database.db import SessionLocal
@@ -180,12 +180,19 @@ async def due_job_notifications(
 ) -> list[tuple[int, int]]:
     """Query only due rows; completed notifications never enter the retry scan."""
     now = _stamp(_utc(now))
-    data = cast(RuntimeState.value, JSONB)
+    # RuntimeState also contains plain-text settings (e.g. "not-a-json").
+    # SQL predicates are not evaluation-order guarantees, so never cast an
+    # unrelated row to JSONB: CASE guards that conversion in PostgreSQL.
+    prefix = RuntimeState.key.like(f"{_KEY_PREFIX}%")
+    data = case(
+        (prefix, cast(RuntimeState.value, JSONB)),
+        else_=cast("{}", JSONB),
+    )
     stmt = (
         select(RuntimeState.user_id, RuntimeState.key)
         .join(User, User.id == RuntimeState.user_id)
         .where(
-            RuntimeState.key.like(f"{_KEY_PREFIX}%"),
+            prefix,
             User.is_active.is_(True), User.deleted_at.is_(None),
             data["status"].astext.in_(("retry", "sending")),
             data["next_attempt_at"].astext <= now,
