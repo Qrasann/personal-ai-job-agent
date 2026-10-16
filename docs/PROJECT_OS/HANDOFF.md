@@ -2,7 +2,7 @@
 
 ## Current entry point — 2026-10-16
 
-Read [BRIEF.md](BRIEF.md) for the short active checkpoint, merged audit fixes #19–#26, and owner-approved Telegram at-least-once notification delivery in PR #28. The independent schema migration PR #27 remains unmerged; no production changes. Read [delivery protocol](../developer/NOTIFICATION_DELIVERY.md) for retry semantics. The sections below are **historical** and their HEAD/test counts are not current. Feature tree at this entry: `b6d41d4`, formal release/main v3.5.6. No deployment, release, production DB or main change.
+Read [BRIEF.md](BRIEF.md) for the short active checkpoint, merged audit fixes #19–#26, and owner-approved Telegram at-least-once notification delivery merged via PR #28 (HEAD `9b938ed`). The independent schema migration PR #27 remains unmerged; no production changes. Read [delivery protocol](../developer/NOTIFICATION_DELIVERY.md) for retry semantics. The sections below are **historical** and their HEAD/test counts are not current. Feature tree at this entry: `9b938ed`, formal release/main v3.5.6. No deployment, release, production DB or main change.
 
 ## Current development checkpoint — 2026-10-15
 
