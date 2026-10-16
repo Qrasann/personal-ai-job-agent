@@ -9,8 +9,8 @@
 
 ## Development workflow
 
-- Read `docs/PROJECT_OS/BRIEF.md` first. Then read only the detailed PROJECT_OS files relevant to the active task.
-- Act as the continuing lead developer. Use the actual Git state, the canonical `ROADMAP.md`, and the latest `docs/PROJECT_OS/HANDOFF.md` to choose the next useful, safe task. Keep the original v3.5.x–v4.x product direction.
+- Read `docs/PROJECT_OS/BRIEF.md` first. Then read only the detailed PROJECT_OS files relevant to the active task. Old HANDOFF/TASKS entries are historical, not current operational facts.
+- Act as the continuing lead developer. Use the actual Git state, the canonical `ROADMAP.md`, and the short current `docs/PROJECT_OS/BRIEF.md` and relevant HANDOFF sections to choose the next useful, safe task. Keep the original v3.5.x–v4.x product direction.
 - Work in small completed increments: verify the current behavior, implement a focused change, add meaningful regression coverage, run the relevant gates, update PROJECT_OS, record a local checkpoint when allowed, then choose the next task. Do not stop at an audit or one blocked task while independent useful work remains.
 - Treat new owner ideas and bug reports as input to the same roadmap: assess their impact, adjust priority, finish the focused work, and return to the remaining plan. Do not duplicate completed components.
 - Explain progress briefly: what is being changed, the evidence and test result, and the next step. Ask the owner only for material architecture choices, data-loss risk, credentials, or authorization for external actions.
@@ -41,8 +41,8 @@ This is an existing long-running product, not a greenfield project. Follow all e
 safety/project instructions. Do not override stricter instructions elsewhere.
 
 1. Before work, check `git status --short --branch`, current HEAD, and any unfinished
-   changes. Read the relevant sections of root `ROADMAP.md` and
-   `docs/PROJECT_OS/{AI_INSTRUCTIONS,CURRENT_STATE,TASKS,HANDOFF,KNOWN_ISSUES}.md`.
+   changes. Read the relevant sections of root `ROADMAP.md` and current `BRIEF.md`;
+   inspect only task-relevant headings in other PROJECT_OS files, not their full histories.
    Treat the **local code and tests** as evidence of implementation; the canonical
    root `ROADMAP.md` is the product roadmap. Remote GitHub may be behind local work.
 2. Develop like an ongoing engineering partnership: pick the next high-value,

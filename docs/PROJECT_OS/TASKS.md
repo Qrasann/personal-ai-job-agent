@@ -1,5 +1,16 @@
 # Tasks
 
+## Active priorities — 2026-10-16
+
+- [x] Independent audit fixes #19–#25 merged in feature with green individual PR CI; latest combined CI requires its own check.
+- [ ] Review HH reservation ambiguity/reconciliation and offline acceptance; no live submissions.
+- [ ] Decide Telegram notification delivery guarantee, then design durable delivery state with observable failures.
+- [ ] Test safe preservation of Application snapshots/history under future Job deletion (no production migrations now).
+- [ ] End-to-end isolated PostgreSQL workflow and source provenance/multiuser regressions.
+- [ ] Return to canonical ROADMAP's v3.5.7 acceptance, then Source Intelligence, Candidate Fit, Application Package, Recruiter and Interview stages.
+
+Older task logs below are historical. Current priorities and restrictions: [BRIEF.md](BRIEF.md).
+
 ## 2026-10-15 — exact source posting at ingestion completed
 
 - [x] Reproduce a cross-source canonical Job causing score inputs from a different posting.
