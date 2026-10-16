@@ -10,8 +10,7 @@ import json
 import secrets
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import case, cast, select
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import select
 
 from app.database.db import SessionLocal
 from app.database.models import JobMatch, RuntimeState, User
@@ -178,38 +177,55 @@ async def due_job_notifications(
     *, user_id: int | None = None, limit: int = 100,
     now: datetime | None = None,
 ) -> list[tuple[int, int]]:
-    """Query only due rows; completed notifications never enter the retry scan."""
-    now = _stamp(_utc(now))
-    # RuntimeState also contains plain-text settings (e.g. "not-a-json").
-    # SQL predicates are not evaluation-order guarantees, so never cast an
-    # unrelated row to JSONB: CASE guards that conversion in PostgreSQL.
-    prefix = RuntimeState.key.like(f"{_KEY_PREFIX}%")
-    data = case(
-        (prefix, cast(RuntimeState.value, JSONB)),
-        else_=cast("{}", JSONB),
-    )
-    stmt = (
-        select(RuntimeState.user_id, RuntimeState.key)
-        .join(User, User.id == RuntimeState.user_id)
-        .where(
-            prefix,
-            User.is_active.is_(True), User.deleted_at.is_(None),
-            data["status"].astext.in_(("retry", "sending")),
-            data["next_attempt_at"].astext <= now,
-        )
-        .order_by(RuntimeState.id)
-        .limit(max(1, min(int(limit), 500)))
-    )
-    if user_id is not None:
-        stmt = stmt.where(RuntimeState.user_id == user_id)
+    """Find due alerts safely, even when a journal row contains invalid JSON.
+
+    RuntimeState.value is TEXT, shared with arbitrary settings. Keep JSON
+    decoding in Python instead of letting one invalid ::jsonb cast abort the
+    entire PostgreSQL query. Use keyset paging so older delivered records cannot
+    starve newer due entries when the queue has grown beyond one batch.
+    """
+    stamp = _stamp(_utc(now))
+    limit = max(1, min(int(limit), 500))
+    batch_size = 250
+    last_id = 0
+    out: list[tuple[int, int]] = []
     async with SessionLocal() as session:
-        result = await session.execute(stmt)
-        out = []
-        for owner_id, key in result:
-            tail = key.removeprefix(_KEY_PREFIX)
-            if tail.isdecimal():
-                out.append((owner_id, int(tail)))
-        return out
+        while len(out) < limit:
+            stmt = (
+                select(
+                    RuntimeState.id, RuntimeState.user_id,
+                    RuntimeState.key, RuntimeState.value,
+                )
+                .join(User, User.id == RuntimeState.user_id)
+                .where(
+                    RuntimeState.id > last_id,
+                    RuntimeState.key.like(f"{_KEY_PREFIX}%"),
+                    User.is_active.is_(True), User.deleted_at.is_(None),
+                )
+                .order_by(RuntimeState.id)
+                .limit(batch_size)
+            )
+            if user_id is not None:
+                stmt = stmt.where(RuntimeState.user_id == user_id)
+            rows = (await session.execute(stmt)).all()
+            if not rows:
+                break
+            for row_id, owner_id, key, value in rows:
+                last_id = row_id
+                entry = _read(value)
+                if entry.get("status") not in ("retry", "sending"):
+                    continue
+                next_attempt = entry.get("next_attempt_at")
+                if not isinstance(next_attempt, str) or not next_attempt or next_attempt > stamp:
+                    continue
+                tail = key.removeprefix(_KEY_PREFIX)
+                if tail.isdecimal():
+                    out.append((owner_id, int(tail)))
+                    if len(out) >= limit:
+                        break
+            if len(rows) < batch_size:
+                break
+    return out
 
 
 async def recent_job_notification_journal(user_id: int, *, limit: int = 10) -> list[dict]:
