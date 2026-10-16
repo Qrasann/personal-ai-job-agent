@@ -1920,7 +1920,11 @@ async def apply_callback(callback: CallbackQuery, bot: Bot) -> None:
     user = await repo.get_user_by_chat(callback.message.chat.id)
     if not user:
         return
-    match_id = int(callback.data.split(":", 1)[1])
+    raw_match_id = (callback.data or "").partition(":")[2]
+    if not raw_match_id.isdecimal() or len(raw_match_id) > 18 or int(raw_match_id) <= 0:
+        await callback.answer("Неверный идентификатор отклика.", show_alert=True)
+        return
+    match_id = int(raw_match_id)
     await callback.answer("Отправляю…")
     try:
         result = await apply_match(bot, match_id, user.id)
@@ -1942,7 +1946,32 @@ async def apply_callback(callback: CallbackQuery, bot: Bot) -> None:
         await callback.message.answer(text, parse_mode=None)
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception as exc:
-        await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
+        # Only our own predictable user-facing RuntimeErrors may be shown.
+        # Provider, database and parser exceptions may carry sensitive details.
+        safe_prefixes = (
+            "Match не найден",
+            "HH private applicant API доступен только owner-профилю",
+            "Вакансия не найдена",
+            "Для этой вакансии нет HH-источника",
+            "HH private applicant API отключён",
+            "Для выбранного профиля нет HH resume ID",
+            "HH owner не найден или отключён",
+            "Повторный HH-отклик заблокирован:",
+            "HH не подтвердил результат попытки #",
+            "Статус HH попытки #",
+        )
+        detail = str(exc)
+        if isinstance(exc, RuntimeError) and detail.startswith(safe_prefixes):
+            message = detail
+        else:
+            issue = classify_source_error(exc, stage="processing")
+            message = (
+                "Не удалось завершить HH-отклик. Проверь /applications "
+                f"и кабинет HH перед повтором. Код: {issue['code']}."
+            )
+        await callback.message.answer(
+            "⚠️ " + html.escape(message), parse_mode="HTML",
+        )
 
 
 @router.callback_query(F.data.startswith("sendreply:"))
