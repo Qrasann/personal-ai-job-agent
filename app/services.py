@@ -890,13 +890,12 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
     if not hh_resume_id:
         raise RuntimeError("Для выбранного профиля нет HH resume ID")
     cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
-    result = await hh_client.apply(ref.source_job_id, hh_resume_id, cover)
-    await repo.save_application(
+    # Persist an attempt before calling HH. A crash/timeout must not make a
+    # second button press look like a brand-new, safe submission.
+    attempt = await repo.reserve_hh_application(
         user_id=user_id,
         job_id=job.id,
-        source_id="hh",
-        source_application_id=result.get("negotiation_id"),
-        external_url=result.get("external_url"),
+        source_job_id=ref.source_job_id,
         resume_id=match.resume_id,
         resume_snapshot=chosen.content if chosen else "",
         resume_external_id=hh_resume_id,
@@ -908,13 +907,43 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
             relocation_evidence=(getattr(ref, "raw", None) or {}).get("relocation_evidence_v1"),
         ),
         message=cover,
-        status=result.get("status") or "unknown",
     )
-    # A 303 HH redirect opens an external application form. It does not prove
-    # that the candidate submitted an application to the employer.
-    if result.get("status") == "sent":
-        await repo.set_match_status(match.id, "applied")
-    return result
+    try:
+        result = await hh_client.apply(ref.source_job_id, hh_resume_id, cover)
+    except Exception:
+        # HH may have accepted the request even if the client timed out.
+        # If the DB is also down, the original "sending" claim still blocks retry.
+        try:
+            await repo.finish_hh_application(
+                user_id=user_id, application_id=attempt.id, match_id=match.id,
+                status="unknown",
+            )
+        except Exception:
+            log.warning("Could not finalize ambiguous HH submission (database error)")
+        raise RuntimeError(
+            f"HH не подтвердил результат попытки #{attempt.id}. "
+            "Проверь /applications и кабинет HH перед любым повтором."
+        ) from None
+
+    outcome = result.get("status") if isinstance(result, dict) else "unknown"
+    try:
+        await repo.finish_hh_application(
+            user_id=user_id, application_id=attempt.id, match_id=match.id,
+            status=outcome,
+            source_application_id=result.get("negotiation_id") if isinstance(result, dict) else None,
+            external_url=result.get("external_url") if isinstance(result, dict) else None,
+        )
+    except Exception:
+        # The provider may have accepted the request. Fail closed: reservation
+        # remains and an owner must reconcile the status before trying again.
+        log.warning("Could not persist HH result after external call")
+        raise RuntimeError(
+            f"Статус HH попытки #{attempt.id} не удалось сохранить. "
+            "Проверь /applications и кабинет HH; повторная отправка небезопасна."
+        ) from None
+    return {**result, "application_id": attempt.id} if isinstance(result, dict) else {
+        "status": "unknown", "application_id": attempt.id,
+    }
 
 
 async def scan_hh_chats(bot: Bot) -> None:
