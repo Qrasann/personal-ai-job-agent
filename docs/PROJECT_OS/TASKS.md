@@ -4,7 +4,8 @@
 
 - [x] Independent audit fixes #19–#25 merged in feature with green individual PR CI; latest combined CI requires its own check.
 - [ ] Review HH reservation ambiguity/reconciliation and offline acceptance; no live submissions.
-- [ ] Decide Telegram notification delivery guarantee, then design durable delivery state with observable failures.
+- [x] Owner chose at-least-once job alerts; delivery journal, leased PostgreSQL claims, independent minute retries and /delivery implemented in PR #28.
+- [ ] Review PR #28 PostgreSQL end-to-end tests, latest CI and live Telegram acceptance before deployment.
 - [ ] Test safe preservation of Application snapshots/history under future Job deletion (no production migrations now).
 - [ ] End-to-end isolated PostgreSQL workflow and source provenance/multiuser regressions.
 - [ ] Return to canonical ROADMAP's v3.5.7 acceptance, then Source Intelligence, Candidate Fit, Application Package, Recruiter and Interview stages.
