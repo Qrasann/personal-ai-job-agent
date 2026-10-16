@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 lost `/prepare` confirmation
+
+Commit `2652416` was re-audited, pushed to the feature branch and passed GitHub CI (Python checks, secret scan, Docker build). The next change is isolated on `work/prepare-delivery-idempotency`: persisted packages receive a private match marker in the existing vacancy JSON snapshot, and owner-scoped row locking reuses one prepared application for sequential or concurrent retries. `/prepare` command/callback now report that a package remains saved when Telegram delivery fails. No schema migration, production operation or employer action. Targeted handler and PostgreSQL tests passed; full isolated suite **1056 passed**. This persisted-data behavior should be published as a Draft PR and reviewed before merging into the feature branch. Next after review: an independent application-tracking failure path or source quality/Candidate Fit work.
+
 ## Current entry point — 2026-10-17 `/prepare` integrity
 
 Feature branch remote and local synchronized at `f53256e` after owner-authorized push of exactly three consolidation commits. The two proposal files remain untracked. Fresh login Bash now resolves `main`, `fast`, `deep`, `agents` to `~/.local/bin` symlinks into `scripts/job-agent-codex`; a `.bashrc` backup exists at `/home/roma/.bashrc.bak-job-agent-20261017-002714`. No archive/delete done. Archive candidates remain navigation-only `01a1277e`, completed Watcher primary `01a1375a`, and child rows marked candidate in `CODEX_SESSION_INVENTORY.md`; keep Main, three inaccessible Untitled tasks and large primaries pending owner review.

@@ -5,7 +5,8 @@
 - [x] Push only `f82c8d3`, `374b375`, `f53256e` to the feature branch after linear-history, secret and prior isolated-suite checks; remote SHA `f53256e` verified. Leave proposal files untracked.
 - [x] Remove obsolete `.bashrc` launcher functions after timestamped backup; fresh Bash resolves all four one-word commands through `scripts/job-agent-codex` symlinks and their distinct dry-runs.
 - [x] Render `/prepare` preview before saving; atomically save owner-scoped draft, status event and match status. Prove render failure has no write and injected PostgreSQL update failure rolls back the draft. Targeted 7 + 1 passed; full isolated suite 1053 passed.
-- [ ] Next: test failure after durable package commit during Telegram delivery and make retry behavior clear without sending any employer application; continue tracking and source/fit roadmap tasks.
+- [x] Handle failure after durable package commit during Telegram delivery: explain the saved state and make sequential/concurrent retries reuse the same draft without employer contact.
+- [ ] Next: continue an independent application-tracking failure path, then source quality/Candidate Fit and Relocation-first roadmap work.
 
 ## 2026-10-17 — first offline workflow acceptance
 

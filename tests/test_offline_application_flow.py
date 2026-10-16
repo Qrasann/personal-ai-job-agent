@@ -93,15 +93,29 @@ async def _offline_flow(database_url, monkeypatch):
         assert (await repo.get_match(match.id)).status == "saved"
         assert await repo.list_applications(owner.id) == []
 
-        package = await repo.save_prepared_application(
-            match.id, owner.id, job_id=second.id, source_id="board_b",
-            message="Reviewable draft",
-            vacancy_snapshot=snapshot_vacancy(
-                selected, source_id="board_b", source_job_id="posting-b",
-                source_url=ref_b.url,
-            ),
-        )
+        async def save_package():
+            return await repo.save_prepared_application(
+                match.id, owner.id, job_id=second.id, source_id="board_b",
+                message="Reviewable draft",
+                vacancy_snapshot=snapshot_vacancy(
+                    selected, source_id="board_b", source_job_id="posting-b",
+                    source_url=ref_b.url,
+                ),
+            )
+
+        first_save, retry_save = await asyncio.gather(save_package(), save_package())
+        assert sorted((first_save[1], retry_save[1])) == [False, True]
+        package = first_save[0]
+        assert retry_save[0].id == package.id
         assert (await repo.get_match(match.id)).status == "prepared"
+        same_package, created = await repo.save_prepared_application(
+            match.id, owner.id, job_id=second.id, source_id="board_b",
+            message="This regenerated text must not replace the durable draft",
+            vacancy_snapshot={"title": "Changed after lost Telegram response"},
+        )
+        assert created is False
+        assert same_package.id == package.id
+        assert len(await repo.list_applications(owner.id)) == 1
         await repo.upsert_job(NormalizedJob(
             source="board_a", source_job_id="posting-a",
             title="Platform Engineer", company="Example", country="GE",

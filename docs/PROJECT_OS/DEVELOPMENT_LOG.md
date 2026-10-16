@@ -719,6 +719,10 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-17 — idempotent `/prepare` after lost Telegram confirmation
+
+After `2652416` passed GitHub CI, continued on `work/prepare-delivery-idempotency` because the change affects persisted package behavior. Prepared applications now carry a private match marker inside the existing vacancy JSON snapshot. A row lock and marker lookup make sequential and concurrent retries reuse the same draft. Command and callback handlers distinguish preparation failures from Telegram delivery failures and tell the user that the package is already in `/applications`. No schema migration or external submission was added. Unit regressions cover both Telegram entry points and reuse without regeneration; isolated PostgreSQL covers concurrent retry and one-row persistence. Full isolated suite: 1056 passed.
+
 ## 2026-10-17 — feature sync, launcher repair, `/prepare` atomicity
 
 Pushed exactly `f82c8d3..f53256e` to the feature branch after checking linear history, changed files and secret scan; main/production untouched. Fresh Bash revealed older functions shadowing the one-word launchers; backed up `.bashrc` and removed those functions. All four commands now resolve to the tracked launcher and show distinct dry-runs. No session archived.

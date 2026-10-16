@@ -1502,9 +1502,15 @@ async def resume_diff_command(message: Message) -> None:
 
 
 async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
+    existing = await repo.prepared_application_for_match(match_id, user_id)
+    if existing is not None:
+        return (
+            f"ℹ Черновик отклика #{existing.id} уже был сохранён; новый дубликат не создан. "
+            f"Проверь /applications или экспортируй: /application {existing.id} export"
+        )
     result = await prepare_match(match_id, user_id)
     preview = render_application_package(result)
-    application = await repo.save_prepared_application(
+    application, created = await repo.save_prepared_application(
         match_id=match_id, user_id=user_id,
         job_id=result["job"].id,
         source_id=str(result.get("source") or "manual")[:64],
@@ -1524,6 +1530,11 @@ async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
         ),
         message=str(result.get("cover_letter") or ""),
     )
+    if not created:
+        return (
+            f"ℹ Черновик отклика #{application.id} уже был сохранён; новый дубликат не создан. "
+            f"Проверь /applications или экспортируй: /application {application.id} export"
+        )
     return preview + f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
 
 
@@ -1555,12 +1566,19 @@ async def prepare_command(message: Message) -> None:
             await progress.edit_text("❌ Вакансия не найдена среди твоих совпадений в выбранном поиске.")
             return
         preview = await _prepare_saved_preview(match.id, user.id)
-        await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
     except Exception as exc:
         issue = classify_source_error(exc, stage="processing")
         await progress.edit_text(
             f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
             parse_mode="HTML",
+        )
+        return
+    try:
+        await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
+    except Exception:
+        await message.answer(
+            "⚠ Пакет уже сохранён, но Telegram не показал подтверждение. "
+            "Проверь /applications; повторный /prepare не создаст дубликат."
         )
 
 
@@ -1932,16 +1950,23 @@ async def prepare_callback(callback: CallbackQuery) -> None:
     await callback.answer("Готовлю…")
     try:
         preview = await _prepare_saved_preview(match_id, user.id)
-        await callback.message.answer(
-            preview,
-            parse_mode="HTML",
-            disable_web_page_preview=True,
-        )
     except Exception as exc:
         issue = classify_source_error(exc, stage="processing")
         await callback.message.answer(
             f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
             parse_mode="HTML",
+        )
+        return
+    try:
+        await callback.message.answer(
+            preview,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    except Exception:
+        await callback.message.answer(
+            "⚠ Пакет уже сохранён, но Telegram не показал подтверждение. "
+            "Проверь /applications; повторная подготовка не создаст дубликат."
         )
 
 
