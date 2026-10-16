@@ -3,12 +3,17 @@ from __future__ import annotations
 import re
 
 from app.domain.job_text import clean_html_text
+from app.geo.countries import normalize_country
 
 
 _UNKNOWN_SCOPES = frozenset({"", "unknown", "unspecified", "none", "n/a", "remote"})
 _GLOBAL_SCOPES = frozenset({
     "worldwide", "global", "anywhere", "remote worldwide", "worldwide remote",
     "globally remote", "global remote", "work from anywhere", "anywhere in the world",
+})
+_OTHER_LOCATION_LABELS = frozenset({
+    "us", "usa", "u.s.", "united states", "united states of america",
+    "uk", "united kingdom", "eu", "european union", "europe", "emea",
 })
 _RESIDENCE = re.compile(
     r"(?:^|[.!?;]\s+|\n)\s*(?:[-*•]\s*)?"
@@ -29,6 +34,27 @@ def restricted_remote_scope(scope: str | None) -> bool:
     """A supplied non-global scope is a limit, not proof of applicant eligibility."""
     normalized = " ".join(clean_html_text(scope or "").casefold().split())
     return normalized not in _UNKNOWN_SCOPES | _GLOBAL_SCOPES
+
+
+def remote_location_restriction(value: object) -> str | None:
+    """Preserve an explicit '<known geography> only' label, without legal inference.
+
+    A bare country/city could be an office label. Unknown wording, worldwide
+    labels and qualifications stay unknown; do not promote them to a work country
+    or a residence/citizenship requirement.
+    """
+    if not isinstance(value, str) or len(value) > 512:
+        return None
+    label = " ".join(clean_html_text(value).split())
+    if len(label) > 128:
+        return None
+    match = re.fullmatch(r"(?P<location>.+?)(?:\s+|[-–])only\.?", label, re.I)
+    if not match:
+        return None
+    location = match.group("location").strip()
+    if normalize_country(location) or location.casefold() in _OTHER_LOCATION_LABELS:
+        return label
+    return None
 
 
 def remote_residence_requirement(description: str | None) -> str | None:

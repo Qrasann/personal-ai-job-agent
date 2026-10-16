@@ -3,7 +3,8 @@
 ## 2026-10-17 — source relevance follow-up
 
 - [x] Reproduce RemoteOK short-role loss and substring false positives; retain whole QA/HR/Go/C# terms with title/tag matching and all-specific-token semantics. Targeted 71; full isolated PostgreSQL 1070 passed.
-- [ ] Preserve explicit location restrictions from source metadata conservatively; never infer worldwide eligibility or residence from a plain office label.
+- [x] Preserve explicit known-geography `only` labels from RemoteOK/Arbeitnow in remote scope and source evidence; bare office/global labels remain unknown. Two adapter regressions reproduced the loss; targeted 79 and full isolated PostgreSQL 1091 passed.
+- [ ] Check scan diagnostic Telegram UTF-16 budgets with emoji/profile names, then continue source/fit quality.
 - [ ] Live source/query usefulness remains pending an explicitly authorized scan environment.
 
 ## 2026-10-17 — v3.5.7 rejection diagnostics

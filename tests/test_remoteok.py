@@ -10,6 +10,31 @@ from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.base import SourceContext
 
 
+def test_remoteok_preserves_explicit_location_limit_over_worldwide_boilerplate(monkeypatch):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[{
+            "id": 1, "position": "DevOps Engineer", "location": "Germany only",
+            "description": "Work from anywhere. Join our remote team.",
+        }], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    item = asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1)))[0]
+    assert item.remote_scope == "Germany only"
+    assert item.country is None
+    signals = analyze_job_signals(Job(
+        title=item.title, description=item.description,
+        work_mode=item.work_mode, remote_scope=item.remote_scope,
+    ))
+    assert signals.remote_eligibility == "uncertain"
+    evidence = build_relocation_evidence(item)["fields"]
+    restriction = evidence["citizenship_or_residence_restriction"]
+    assert restriction["excerpt"] == "Germany only"
+    assert restriction["interpretation"]["scope"] == "unspecified"
+    assert evidence["work_country"]["status"] == "unknown"
+    assert evidence["existing_work_authorization_required"]["status"] == "unknown"
+    assert evidence["visa_sponsorship"]["status"] == "unknown"
+
+
 @pytest.mark.parametrize(
     ("query", "matching_title", "unrelated_title"),
     [

@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.domain.jobs import NormalizedJob
+from app.domain.remote_evidence import remote_location_restriction
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 from app.matching.language_fit import compare_english_level
 
@@ -179,6 +180,8 @@ def build_relocation_evidence(
     )
 
     restriction = _excerpt(job.description or "", _RULES["citizenship_or_residence_restriction"])
+    if not restriction and job.work_mode == "remote":
+        restriction = remote_location_restriction((job.raw or {}).get("source_location"))
     restriction_field = record(
         restriction, restriction, "explicit_text" if restriction else "unknown"
     )

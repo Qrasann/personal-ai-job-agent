@@ -64,6 +64,26 @@ def test_arbeitnow_remote_free_form_location_does_not_confirm_work_country():
     assert country["excerpt"] == "Worldwide"
 
 
+def test_arbeitnow_keeps_explicit_remote_location_limit_in_card():
+    from types import SimpleNamespace
+    from app.database.models import Job
+    from app.telegram.vacancy_view import render_job_details
+
+    item = ArbeitnowSource.parse_payload({"data": [{
+        "slug": "remote-limit", "title": "DevOps Engineer", "location": "Germany only",
+        "remote": True, "description": "Work from anywhere.",
+    }]}, SourceContext(user_id=1))[0]
+    assert item.remote_scope == "Germany only"
+    assert item.country is None
+    job = Job(id=1, title=item.title, description=item.description,
+              work_mode=item.work_mode, remote_scope=item.remote_scope)
+    match = SimpleNamespace(total_score=72, technical_score=94, geography_score=100,
+                            salary_score=58, relocation_score=50, reason="")
+    card = render_job_details({"job": job, "match": match, "source": "arbeitnow"})
+    assert "Germany only указано источником" in card
+    assert "по всему миру указано источником" not in card
+
+
 @pytest.mark.parametrize("created_at", [None, True, "not-a-timestamp", 1e100])
 def test_arbeitnow_keeps_invalid_publication_timestamps_unknown(created_at):
     payload = {"data": [{

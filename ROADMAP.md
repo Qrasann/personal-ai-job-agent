@@ -103,6 +103,9 @@ RemoteOK role precision follow-up (2026-10-17): IMPLEMENTED offline regression
 coverage for short role/language terms and whole title/tag matching, avoiding
 generic-role leakage and Java/JavaScript substring collisions. Live usefulness
 and source coverage remain PARTIAL; no threshold reduction.
+Remote location follow-up: IMPLEMENTED preservation of explicit known-geography
+`only` labels for RemoteOK/Arbeitnow in scope and source evidence. Office/global
+labels remain unknown; candidate-specific legal eligibility stays PARTIAL.
 
 ## Historical v3.5.7 development notes
 

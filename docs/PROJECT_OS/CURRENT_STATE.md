@@ -2,7 +2,7 @@
 
 ## 2026-10-17 — local search-quality increments
 
-Current branch `work/v357-rejection-diagnostics` adds per-profile/source rejection reasons and RemoteOK whole-term role filtering, including short names QA/HR/Go/C#. Six failing synthetic scenarios reproduced the source filter bug; full isolated PostgreSQL now 1070 passed. Live usefulness remains unverified; PR #31 stays separate and unmerged. Use BRIEF/HANDOFF for current work; older entries below are dated evidence.
+Current branch `work/v357-rejection-diagnostics` adds per-profile/source rejection reasons, RemoteOK whole-term role filtering (including QA/HR/Go/C#), and explicit RemoteOK/Arbeitnow location limits such as `Germany only`. Synthetic regressions reproduced lost/irrelevant roles and lost scope. Plain office/global labels remain unknown; no legal eligibility is inferred. Full isolated PostgreSQL now 1091 passed. Live usefulness remains unverified; PR #31 stays separate and unmerged. Use BRIEF/HANDOFF for current work; older entries below are dated evidence.
 
 ## 2026-10-15 — score exact incoming source posting
 

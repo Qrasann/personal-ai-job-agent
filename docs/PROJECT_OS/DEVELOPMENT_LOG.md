@@ -1,3 +1,7 @@
+## 2026-10-17 — preserve explicit remote location limits
+
+Two adapter regressions reproduced RemoteOK/Arbeitnow dropping `Germany only` and leaving worldwide boilerplate unqualified. A shared bounded recognizer retains known-geography `only` labels in remote scope and source evidence; existing signal/card handling now displays the restriction. Bare office/global labels, questions, negation and unfamiliar wording remain unknown. This is source scope, not residence/citizenship, visa or legal eligibility proof. Targeted 79 and full isolated PostgreSQL 1091 passed. Existing stored rows acquire the scope on rediscovery; no backfill or live scan performed.
+
 ## 2026-10-17 — preserve specific RemoteOK roles
 
 Six new regression scenarios failed before the fix: short QA/Go/C# queries reduced to a generic role, HR yielded no matches, and Java also matched JavaScript. Token matching now retains short names and uses whole title/tag terms, with all specific query tokens required. No description keyword leakage, HTTP budget, score threshold or source access change. Targeted 71 passed; full isolated PostgreSQL 1070 passed. Main implemented; one read-only Scout researched the next location-evidence gap. No publication or production action.

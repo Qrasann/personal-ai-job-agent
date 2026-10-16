@@ -5,6 +5,7 @@ import re
 import httpx
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.remote_evidence import remote_location_restriction
 from app.sources.base import JobSource, SourceContext
 from app.sources.diagnostics import SourceInvalidResponse
 
@@ -70,9 +71,9 @@ class RemoteOKSource(JobSource):
                     # not as a normalized work-country claim.
                     country=None,
                     work_mode="remote",
-                    # RemoteOK marks work as remote but does not state which
-                    # countries the employer can hire from.
-                    remote_scope="unspecified",
+                    # Retain an explicit limit; bare office/global labels do
+                    # not establish which countries the employer can hire from.
+                    remote_scope=remote_location_restriction(row.get("location")) or "unspecified",
                     salary_from=row.get("salary_min"),
                     salary_to=row.get("salary_max"),
                     salary_currency="USD" if row.get("salary_min") or row.get("salary_max") else None,
