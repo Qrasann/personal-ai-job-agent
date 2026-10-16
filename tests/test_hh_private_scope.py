@@ -156,7 +156,8 @@ def test_owner_may_reach_normal_application_checks(monkeypatch):
     get_job.assert_awaited_once_with(42)
 
 
-def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypatch):
+@pytest.mark.parametrize("submission_status", ["sent", "external"])
+def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypatch, submission_status):
     monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "owner-chat")
     monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
         id=17, user_id=1, job_id=42, profile_id=3, resume_id=5,
@@ -180,11 +181,16 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
         id=5, source="hh", external_id="hh-resume", content="Saved resume",
     )]))
     monkeypatch.setattr(services, "make_cover_letter", lambda job, *_: job.description)
-    send = AsyncMock(return_value={"negotiation_id": "receipt-1", "external_url": "https://example.invalid/receipt"})
+    send = AsyncMock(return_value={
+        "status": submission_status,
+        "negotiation_id": "receipt-1" if submission_status == "sent" else None,
+        "external_url": "https://example.invalid/receipt",
+    })
     monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
     save = AsyncMock()
     monkeypatch.setattr(services.repo, "save_application", save)
-    monkeypatch.setattr(services.repo, "set_match_status", AsyncMock())
+    match_status = AsyncMock()
+    monkeypatch.setattr(services.repo, "set_match_status", match_status)
 
     asyncio.run(services.apply_match(object(), 17, 1))
 
@@ -197,7 +203,12 @@ def test_mocked_hh_application_preserves_posting_and_receipt_separately(monkeypa
         "relocation_evidence": {"schema": "relocation_evidence_v1", "captured_at": "fixed", "fields": {}},
     }
     assert saved["external_url"] == "https://example.invalid/receipt"
-    assert saved["source_application_id"] == "receipt-1"
+    assert saved["source_application_id"] == ("receipt-1" if submission_status == "sent" else None)
+    assert saved["status"] == submission_status
+    if submission_status == "sent":
+        match_status.assert_awaited_once_with(17, "applied")
+    else:
+        match_status.assert_not_awaited()
 
 
 def test_hh_applicant_credential_requires_configured_owner(monkeypatch):
