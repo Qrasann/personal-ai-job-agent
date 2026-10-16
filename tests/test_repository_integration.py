@@ -80,7 +80,7 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6, 7]
+        assert applied == [5, 6, 7, 8]
         async with engine.begin() as conn:
             assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
@@ -1045,6 +1045,85 @@ async def _hh_submission_reservation_flow(monkeypatch):
             await repo.reserve_hh_application(
                 user_id=user.id, job_id=second.id, source_job_id="hh-posting-45",
             )
+    finally:
+        await engine.dispose()
+
+@pytest.mark.integration
+def test_application_history_survives_job_delete_after_v7_upgrade(monkeypatch):
+    """Upgrade an old CASCADE FK in PostgreSQL and prove application audit remains."""
+    _require_test_database()
+    asyncio.run(_protect_application_history_flow(monkeypatch))
+
+
+async def _protect_application_history_flow(monkeypatch):
+    from sqlalchemy.exc import IntegrityError
+    from app.database.models import ApplicationStatusEvent, Job
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+            # Simulate a genuine v7 installation, not a fresh v8 installation.
+            await conn.execute(text("ALTER TABLE applications DROP CONSTRAINT applications_job_id_fkey"))
+            await conn.execute(text(
+                "ALTER TABLE applications ADD CONSTRAINT applications_job_id_fkey "
+                "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE"
+            ))
+        owner = await repo.create_user("history-migration-owner", "History Owner")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="history-1234", title="Linux Administrator",
+            company="Test Co", description="Before upgrade",
+        ))
+        application = await repo.save_application(
+            user_id=owner.id, job_id=job.id, source_id="hh",
+            vacancy_snapshot={"title": "Linux Administrator", "source_job_id": "history-1234"},
+            status="sent", message="Original approved text",
+        )
+        async with engine.begin() as conn:
+            for version in range(1, 8):
+                await conn.execute(
+                    text("INSERT INTO schema_migrations(version,name,applied_at) "
+                         "VALUES (:v,:n,CURRENT_TIMESTAMP)"),
+                    {"v": version, "n": f"existing_{version}"},
+                )
+            before = await conn.scalar(text(
+                "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                "WHERE conname = 'applications_job_id_fkey' "
+                "AND conrelid = 'applications'::regclass"
+            ))
+            assert "ON DELETE CASCADE" in before
+            assert await apply_migrations(conn) == [8]
+            definition = await conn.scalar(text(
+                "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                "WHERE conname = 'applications_job_id_fkey' "
+                "AND conrelid = 'applications'::regclass"
+            ))
+            assert "ON DELETE RESTRICT" in definition
+            assert await apply_migrations(conn) == []
+
+        # Deliberate physical deletion must now fail instead of silently erasing
+        # the frozen package and its append-only application status history.
+        with pytest.raises(IntegrityError):
+            async with engine.begin() as conn:
+                await conn.execute(text("DELETE FROM jobs WHERE id = :id"), {"id": job.id})
+        loaded = await repo.get_application(owner.id, application.id)
+        assert loaded is not None
+        assert loaded.message == "Original approved text"
+        assert loaded.vacancy_snapshot["title"] == "Linux Administrator"
+        assert [event.status for event in await repo.application_status_history(owner.id, application.id)] == ["sent"]
+        assert await repo.get_job(job.id) is not None
+
+        # Unreferenced jobs may still be cleaned up.
+        other, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="unreferenced-1235", title="Test Engineer",
+            company="Test Co",
+        ))
+        async with engine.begin() as conn:
+            await conn.execute(text("DELETE FROM jobs WHERE id = :id"), {"id": other.id})
+        assert await repo.get_job(other.id) is None
     finally:
         await engine.dispose()
 
