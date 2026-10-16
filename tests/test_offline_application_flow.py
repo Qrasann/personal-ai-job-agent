@@ -4,10 +4,11 @@ import asyncio
 import os
 
 import pytest
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.database import repository as repo
-from app.database.models import Base
+from app.database.models import Base, JobMatch
 from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.source_posting import source_posting_view
@@ -72,14 +73,35 @@ async def _offline_flow(database_url, monkeypatch):
         await repo.set_match_status(match.id, "saved")
         assert [item.id for item, _ in await repo.saved_matches(owner.id)] == [match.id]
 
-        package = await repo.save_application(
-            user_id=owner.id, job_id=second.id, source_id="board_b",
-            status="prepared", message="Reviewable draft",
+        with pytest.raises(ValueError, match="Match не найден"):
+            await repo.save_prepared_application(
+                match.id, stranger.id, job_id=second.id, source_id="board_b",
+            )
+
+        def reject_match_update(session, flush_context, instances):
+            if any(isinstance(item, JobMatch) and item.status == "prepared" for item in session.dirty):
+                raise RuntimeError("injected match update failure")
+
+        event.listen(AsyncSession.sync_session_class, "before_flush", reject_match_update)
+        try:
+            with pytest.raises(RuntimeError, match="injected match update failure"):
+                await repo.save_prepared_application(
+                    match.id, owner.id, job_id=second.id, source_id="board_b",
+                )
+        finally:
+            event.remove(AsyncSession.sync_session_class, "before_flush", reject_match_update)
+        assert (await repo.get_match(match.id)).status == "saved"
+        assert await repo.list_applications(owner.id) == []
+
+        package = await repo.save_prepared_application(
+            match.id, owner.id, job_id=second.id, source_id="board_b",
+            message="Reviewable draft",
             vacancy_snapshot=snapshot_vacancy(
                 selected, source_id="board_b", source_job_id="posting-b",
                 source_url=ref_b.url,
             ),
         )
+        assert (await repo.get_match(match.id)).status == "prepared"
         await repo.upsert_job(NormalizedJob(
             source="board_a", source_job_id="posting-a",
             title="Platform Engineer", company="Example", country="GE",

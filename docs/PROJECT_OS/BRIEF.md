@@ -1,19 +1,20 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Source tree: `feature/v3.5.7-international-market-coverage`, `VERSION=3.5.7`. Audited code/upstream baseline: `dabe9a3` (merged notification-journal isolation PR #30); later local documentation commits do not change that code. PR #29 documentation also merged after Telegram delivery PR #28. The last verified formal release is v3.5.6; `main` and production were not modified by this documentation review.
+- Source tree: `feature/v3.5.7-international-market-coverage`, `VERSION=3.5.7`. The three session-consolidation commits through `f53256e` were pushed to this feature branch on 2026-10-17; the earlier audited code baseline was `dabe9a3`. The last verified formal release is v3.5.6; `main` and production were not modified.
 - Independent audit fixes #19–#26 and delivery PR #28 are merged into the feature branch. The feature is **not deployed**. PR #28 CI passed 1051 pytest cases, 82.94% coverage, Docker build and secret scan; check combined-branch CI before any release claim.
 - Full previous `BRIEF.md` is preserved in `history/BRIEF_PRE_AUDIT_2026-10-16.md`. Root `ROADMAP.md` is the sole canonical product roadmap; this file records the current working checkpoint.
 - User-owned untracked files `AI-JOB-AGENT-MERGED-ROADMAP-PROPOSAL.md` and `CODEX-MAIN-ROADMAP-SYNC-PROMPT.md` must stay untouched and uncommitted.
 - [Codex session inventory](CODEX_SESSION_INVENTORY.md) records 22 indexed local threads plus one metadata-only rollout, historical owner input and consolidation recommendations. It contains no private candidate facts or full transcripts.
 - The current Agent command center shows eight tasks: five match indexed primary sessions; three untitled tasks have missing rollouts and cannot be reviewed or archived safely. On-demand `main`, `fast`, `deep`, `agents` launchers and the keep/archive-review table are documented in the inventory. No sessions were archived or deleted.
-- A local offline PostgreSQL workflow regression checks cross-source selected posting → Candidate Fact score → review/saved → package export with another user's access denied. Isolated full suite: **1052 passed**. It does not establish live Telegram or employer acceptance.
+- Offline PostgreSQL workflow checks selected posting → Candidate Fact score → review/saved → package export, cross-user denial, and `/prepare` transaction rollback on an injected match-update failure. Isolated full suite: **1053 passed**. Live Telegram and employer acceptance remain unverified.
 
 ## Product scope
 The personal flow is: discover → normalize/dedupe → fit/score → user review → grounded resume/cover letter package → explicit owner approval → application tracking → interview practice. Maintain independent **Career-first** (DevOps/Linux/Infrastructure/SRE) and **Relocation-first** (lawful international employment, including non-IT roles) search profiles. Never invent candidate experience, remote hiring eligibility, visa sponsorship, housing, salary period or employer promises. Unknown evidence remains unknown. Preserve selected provider/source-posting identity and snapshots in review and application packages.
 
 ## What is implemented (source + CI, not live acceptance)
 - Core bot, per-user profiles, PostgreSQL, source adapters, scan controls, Telegram /jobs, /review, /prepare and manual application status/history/export.
+- `/prepare` renders a reviewable preview before persistence, then saves the draft, status event and match status in one owner-scoped PostgreSQL transaction. Failed rendering or transaction leaves no partial draft. Telegram delivery failure after commit may still require checking `/applications` before retry.
 - Source-specific posting snapshots and HH cache digest/race guards. The current source observation is used for scoring, review and preparation; stale HH network/cache responses are not treated as verified.
 - HH owner-only submission now persists a `sending` reservation **before** the external API call. A concurrent, previously attempted or ambiguous submission blocks automatic repeat. Confirmed `sent`, external handoff and unknown states are distinguished in database/history/UI. A prepared or reviewed-but-never-sent draft is not considered a submission. No live HH sending was done.
 - Recruiter auto-reply defaults OFF; invalid/nonfinite confidence requires human review. HH callback errors redact unexpected provider/DB payloads and validate IDs.

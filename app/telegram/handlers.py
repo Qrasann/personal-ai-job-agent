@@ -1503,8 +1503,9 @@ async def resume_diff_command(message: Message) -> None:
 
 async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
     result = await prepare_match(match_id, user_id)
-    application = await repo.save_application(
-        user_id=user_id,
+    preview = render_application_package(result)
+    application = await repo.save_prepared_application(
+        match_id=match_id, user_id=user_id,
         job_id=result["job"].id,
         source_id=str(result.get("source") or "manual")[:64],
         source_application_id=None,
@@ -1522,10 +1523,7 @@ async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
             relocation_evidence=result.get("relocation_evidence"),
         ),
         message=str(result.get("cover_letter") or ""),
-        status="prepared",
     )
-    await repo.set_match_status(match_id, "prepared")
-    preview = render_application_package(result)
     return preview + f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
 
 

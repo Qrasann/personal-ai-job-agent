@@ -1,5 +1,11 @@
 # Handoff
 
+## Current entry point — 2026-10-17 `/prepare` integrity
+
+Feature branch remote and local synchronized at `f53256e` after owner-authorized push of exactly three consolidation commits. The two proposal files remain untracked. Fresh login Bash now resolves `main`, `fast`, `deep`, `agents` to `~/.local/bin` symlinks into `scripts/job-agent-codex`; a `.bashrc` backup exists at `/home/roma/.bashrc.bak-job-agent-20261017-002714`. No archive/delete done. Archive candidates remain navigation-only `01a1277e`, completed Watcher primary `01a1375a`, and child rows marked candidate in `CODEX_SESSION_INVENTORY.md`; keep Main, three inaccessible Untitled tasks and large primaries pending owner review.
+
+New local `/prepare` increment renders before persistence and commits prepared application, status event and match state atomically after owner/match validation. Render failure unit regression and isolated PostgreSQL transaction-failure injection passed; full isolated suite **1053 passed**. This remains offline acceptance only; no live Telegram or employer action. Next: test post-commit Telegram delivery failure/retry UX, then application tracking or source/fit roadmap work. Check current Git before continuing; this new increment has not been pushed.
+
 ## Current entry point — 2026-10-17 offline workflow follow-up
 
 One new isolated-PostgreSQL end-to-end test in

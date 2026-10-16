@@ -353,9 +353,7 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
     prepare = AsyncMock(return_value={"job": _job(25, "DevOps"), "resume_diff": {}})
     monkeypatch.setattr(handlers, "prepare_match", prepare)
     save_application = AsyncMock(return_value=SimpleNamespace(id=3))
-    monkeypatch.setattr(handlers.repo, "save_application", save_application)
-    update_match = AsyncMock()
-    monkeypatch.setattr(handlers.repo, "set_match_status", update_match)
+    monkeypatch.setattr(handlers.repo, "save_prepared_application", save_application)
     monkeypatch.setattr(handlers, "render_application_package", lambda payload: "REVIEW PREVIEW")
     answer = AsyncMock()
     callback = SimpleNamespace(
@@ -368,15 +366,26 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
 
     prepare.assert_awaited_once_with(51, 7)
     save_application.assert_awaited_once_with(
-        user_id=7, job_id=25, source_id="manual", source_application_id=None,
+        match_id=51, user_id=7, job_id=25, source_id="manual", source_application_id=None,
         external_url=None, resume_id=None, resume_snapshot="", resume_external_id=None,
         vacancy_snapshot={"title": "DevOps", "company": "ACME", "description": "Linux Docker", "source_url": ""},
-        message="", status="prepared",
+        message="",
     )
-    update_match.assert_awaited_once_with(51, "prepared")
     answer.assert_awaited_once()
     assert answer.await_args.args[0] == "REVIEW PREVIEW\n\n💾 Черновик письма сохранён как отклик #3. /applications"
     assert answer.await_args.kwargs["disable_web_page_preview"] is True
+
+
+def test_prepare_preview_render_failure_does_not_save_draft(monkeypatch):
+    monkeypatch.setattr(handlers, "prepare_match", AsyncMock(return_value={"job": _job(25, "DevOps")}))
+    monkeypatch.setattr(handlers, "render_application_package", lambda payload: (_ for _ in ()).throw(ValueError("bad preview")))
+    save = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "save_prepared_application", save)
+
+    with pytest.raises(ValueError, match="bad preview"):
+        asyncio.run(handlers._prepare_saved_preview(51, 7))
+
+    save.assert_not_awaited()
 
 
 @pytest.mark.parametrize(("text", "search_id"), [

@@ -719,6 +719,12 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-17 — feature sync, launcher repair, `/prepare` atomicity
+
+Pushed exactly `f82c8d3..f53256e` to the feature branch after checking linear history, changed files and secret scan; main/production untouched. Fresh Bash revealed older functions shadowing the one-word launchers; backed up `.bashrc` and removed those functions. All four commands now resolve to the tracked launcher and show distinct dry-runs. No session archived.
+
+The `/prepare` path previously saved a draft before preview rendering and updated the match in a separate commit. Now rendering precedes writes, while a new owner-scoped repository operation commits the draft, event and match status together. A unit test covers rendering failure, and the isolated PostgreSQL workflow injects a match-update failure to prove rollback and validates cross-user rejection. Targeted tests 7 + 1 passed; full isolated suite 1053 passed. Live Telegram delivery remains untested.
+
 ## 2026-10-13 — Owner-requested shutdown checkpoint
 
 At 08:28 Moscow inspected clean Git at bacdcc7 on the existing v3.5.7 branch.

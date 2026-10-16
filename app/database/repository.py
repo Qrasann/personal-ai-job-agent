@@ -638,6 +638,28 @@ async def save_application(**kwargs) -> Application:
         return item
 
 
+async def save_prepared_application(match_id: int, user_id: int, **kwargs) -> Application:
+    """Save a reviewable draft and its match state in one transaction."""
+    async with SessionLocal() as session:
+        match = await session.scalar(
+            select(JobMatch).where(
+                JobMatch.id == match_id, JobMatch.user_id == user_id,
+            ).with_for_update()
+        )
+        if match is None or match.job_id != kwargs.get("job_id"):
+            raise ValueError("Match не найден для этого пользователя и вакансии")
+        item = Application(user_id=user_id, status="prepared", **kwargs)
+        session.add(item)
+        await session.flush()
+        session.add(ApplicationStatusEvent(
+            application_id=item.id, user_id=user_id, status="prepared",
+        ))
+        match.status = "prepared"
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
 
 
 async def reserve_hh_application(
