@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.database.db import SessionLocal
@@ -657,11 +657,25 @@ async def reserve_hh_application(
         )
         if not owner:
             raise RuntimeError("HH owner не найден или отключён")
+        # A user may have prepared and explicitly reviewed an unsent draft.
+        # Permit that workflow only when the history proves it began as a draft
+        # and contains no attempted/submitted outcome.
+        had_draft = select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == Application.id,
+            ApplicationStatusEvent.status == "prepared",
+        ).exists()
+        had_outbound_status = select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == Application.id,
+            ApplicationStatusEvent.status.notin_(("prepared", "reviewed")),
+        ).exists()
+        safe_reviewed_draft = and_(
+            Application.status == "reviewed", had_draft, ~had_outbound_status,
+        )
         duplicate = await session.scalar(
             select(Application).where(
                 Application.user_id == user_id,
                 Application.source_id == "hh",
-                Application.status != "prepared",
+                ~or_(Application.status == "prepared", safe_reviewed_draft),
                 or_(
                     Application.job_id == job_id,
                     Application.vacancy_snapshot["source_job_id"].astext == source_job_id,
