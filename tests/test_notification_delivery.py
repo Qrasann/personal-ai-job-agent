@@ -127,6 +127,9 @@ async def _postgres_retry_flow(monkeypatch):
             await conn.run_sync(Base.metadata.create_all)
         owner = await repo.create_user("notification-owner-002", "Owner")
         other = await repo.create_user("notification-owner-003", "Other")
+        # The shared runtime_state table contains arbitrary non-JSON settings.
+        # A retry query must not attempt to cast unrelated values to JSONB.
+        await repo.set_state(other.id, "unrelated_text_setting", "definitely not JSON")
         profile = await repo.ensure_default_profile(owner.id)
         searches = await repo.list_search_profiles(profile.id)
         job, _ = await repo.upsert_job(NormalizedJob(
