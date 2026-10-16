@@ -204,3 +204,40 @@ def test_get_vacancy_details_uses_cached_hh_details(monkeypatch):
     assert payload["details"]["description"] == "Требования:\nLinux\nDocker"
     assert payload["search_profile_name"] == "Career-first"
     assert payload["source"] == "hh"
+
+def test_versioned_hh_posting_rejects_legacy_cache_without_digest(monkeypatch):
+    """Old detail cache must not override a newer normalized source posting."""
+    current = {"schema": "normalized_posting_v1", "title": "Engineer", "description": "Updated source card"}
+    raw = {
+        "normalized_posting_v1": current,
+        "details_cache_v1": {"description": "Outdated legacy details"},
+    }
+    ref = SimpleNamespace(id=91, source_job_id="134520461", raw=raw)
+    job = SimpleNamespace(id=24, title="Engineer", company="Example", description="Canonical posting")
+
+    # Display and network cache paths must agree on the current source version.
+    assert source_posting_view(job, ref).description == "Updated source card"
+
+    fetched = []
+    stored = []
+
+    async def fake_web(source_job_id):
+        fetched.append(source_job_id)
+        return "<html>updated vacancy</html>"
+
+    async def fake_save(ref_id, details, *, expected_posting_digest=None):
+        stored.append((ref_id, dict(details), expected_posting_digest))
+
+    monkeypatch.setattr(services.repo, "source_ref", lambda *_args, **_kw: asyncio.sleep(0, result=ref))
+    monkeypatch.setattr(services.hh_client, "vacancy_web", fake_web)
+    monkeypatch.setattr(
+        services.HHSource, "parse_vacancy_web_html",
+        staticmethod(lambda _html: {"description": "Fresh verified details"}),
+    )
+    monkeypatch.setattr(services.repo, "save_source_ref_detail_cache", fake_save)
+
+    result = asyncio.run(services.get_cached_hh_details(24))
+    assert result == {"description": "Fresh verified details"}
+    assert fetched == ["134520461"]
+    assert stored == [(91, result, posting_snapshot_digest(current))]
+
