@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 v3.5.7 rejection diagnostics
+
+Work branch `work/v357-rejection-diagnostics` starts from feature commit `2652416`; Draft PR #31 remains separate and unmerged. Search filtering now records deterministic settings-exclusion reasons and aggregates them into the source dashboard used by `/scan` and `/scanstatus`. Covered domestic onsite Relocation-first exclusion, geography, required visa signal, strict salary floor, unknown-evidence preservation and cross-profile source aggregation. Targeted 96 passed; full isolated PostgreSQL **1058 passed**; compileall, diff and secret scan passed. No source query, threshold, production data or external request changed. Next: add evidence-backed below-threshold scoring reason counts, then tune source/query relevance from measured causes.
+
 ## Current entry point — 2026-10-17 `/prepare` integrity
 
 Feature branch remote and local synchronized at `f53256e` after owner-authorized push of exactly three consolidation commits. The two proposal files remain untracked. Fresh login Bash now resolves `main`, `fast`, `deep`, `agents` to `~/.local/bin` symlinks into `scripts/job-agent-codex`; a `.bashrc` backup exists at `/home/roma/.bashrc.bak-job-agent-20261017-002714`. No archive/delete done. Archive candidates remain navigation-only `01a1277e`, completed Watcher primary `01a1375a`, and child rows marked candidate in `CODEX_SESSION_INVENTORY.md`; keep Main, three inaccessible Untitled tasks and large primaries pending owner review.

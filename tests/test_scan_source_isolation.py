@@ -198,9 +198,11 @@ def test_source_summary_explains_zero_relocation_yield_without_losing_career_res
     relocation = summary["searches"]["12"]["sources"]["remoteok"]
     assert (career["discovered"], career["found"], career["preference_filtered"]) == (1, 1, 0)
     assert (relocation["discovered"], relocation["found"], relocation["preference_filtered"]) == (1, 0, 1)
+    assert relocation["preference_exclusion_reasons"] == {"domestic_onsite": 1}
     assert relocation["status"] == "success"
     assert summary["sources"]["remoteok"]["discovered"] == 2
     assert summary["sources"]["remoteok"]["preference_filtered"] == 1
+    assert summary["sources"]["remoteok"]["preference_exclusion_reasons"] == {"domestic_onsite": 1}
     ingest.assert_awaited_once()
     assert ingest.await_args.kwargs["only_search_profile_id"] == 11
 

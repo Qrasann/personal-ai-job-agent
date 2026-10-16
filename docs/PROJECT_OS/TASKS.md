@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — v3.5.7 rejection diagnostics
+
+- [x] Preserve a deterministic reason for every vacancy excluded by search settings without changing score thresholds or treating unknown evidence as refusal.
+- [x] Aggregate reason counts across source attempts and show the three largest causes in `/scan` and `/scanstatus` source diagnostics.
+- [x] Cover Career-first/Relocation-first separation, geography, required visa evidence, salary and source aggregation. Targeted 96 passed; full isolated PostgreSQL suite 1058 passed.
+- [ ] Next: distinguish below-threshold scoring causes in per-profile scan summaries, then use those measurements to improve source/query relevance without weakening the 65 threshold.
+
 ## 2026-10-17 — `/prepare` failure integrity
 
 - [x] Push only `f82c8d3`, `374b375`, `f53256e` to the feature branch after linear-history, secret and prior isolated-suite checks; remote SHA `f53256e` verified. Leave proposal files untracked.

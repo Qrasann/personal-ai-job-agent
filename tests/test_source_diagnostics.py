@@ -125,17 +125,27 @@ def test_dashboard_keeps_preference_exclusions_distinct_from_scoring_and_errors(
     sources = {}
     aggregate_source(sources, "eures", {
         "status": "success", "found": 0, "discovered": 3, "preference_filtered": 3,
+        "preference_exclusion_reasons": {
+            "required_visa_sponsorship_missing": 2,
+            "other_country_disabled": 1,
+        },
     })
     zero_yield = render_source_summary("eures", sources["eures"])
     assert "0 вакансий" in zero_yield
     assert "получено до настроек: 3" in zero_yield
     assert "исключено настройками: 3" in zero_yield
+    assert "нет обязательного сигнала visa sponsorship: 2" in zero_yield
+    assert "страна не входит в выбранную географию: 1" in zero_yield
     aggregate_source(sources, "eures", {
         "status": "success", "found": 2, "discovered": 2, "filtered": 1,
     })
     line = render_source_summary("eures", sources["eures"])
     assert "получено до настроек: 5" in line
     assert "исключено настройками: 3" in line
+    assert sources["eures"]["preference_exclusion_reasons"] == {
+        "required_visa_sponsorship_missing": 2,
+        "other_country_disabled": 1,
+    }
     assert "отфильтровано: 1" in line
     assert "ошибка" not in line
     assert "получено до настроек" not in render_source_summary("eures", {"found": 2})

@@ -11,6 +11,12 @@ SEARCH_STRATEGIES = ("career_first", "relocation_first", "balanced")
 DEFAULT_PRIORITY = 50
 REMOTE_WORK_PRIORITY_BONUS = 30
 
+EXCLUSION_DOMESTIC_ONSITE = "domestic_onsite"
+EXCLUSION_CURRENT_CITY_DISABLED = "current_city_disabled"
+EXCLUSION_OTHER_HOME_CITY_DISABLED = "other_home_city_disabled"
+EXCLUSION_OTHER_COUNTRY_DISABLED = "other_country_disabled"
+EXCLUSION_STRICT_SALARY_FLOOR = "strict_salary_floor"
+
 
 def _dict(value: Any) -> dict:
     return dict(value) if isinstance(value, dict) else {}
@@ -207,6 +213,13 @@ def strict_salary_floor_allows(job: NormalizedJob, settings: dict | None) -> boo
 
 
 def vacancy_allowed(job: NormalizedJob, settings: dict | None, *, current_country: str | None = None) -> bool:
+    return vacancy_exclusion_reason(job, settings, current_country=current_country) is None
+
+
+def vacancy_exclusion_reason(
+    job: NormalizedJob, settings: dict | None, *, current_country: str | None = None,
+) -> str | None:
+    """Return the first deterministic settings reason that excludes a vacancy."""
     cfg = search_config(settings)
     job_country = _norm_code(job.country)
     home_country = _norm_code(current_country)
@@ -214,7 +227,7 @@ def vacancy_allowed(job: NormalizedJob, settings: dict | None, *, current_countr
     # candidate's current country as a relocation lead. Explicit remote roles
     # remain discoverable, and users can opt into domestic moves separately.
     if not relocation_first_allows(job, cfg, current_country=current_country):
-        return False
+        return EXCLUSION_DOMESTIC_ONSITE
 
     geo = _dict(cfg.get("geography"))
     if geo.get("configured"):
@@ -231,24 +244,26 @@ def vacancy_allowed(job: NormalizedJob, settings: dict | None, *, current_countr
             if home_country and job_country == home_country:
                 if current_city and job_city == current_city:
                     if not current_city_enabled:
-                        return False
+                        return EXCLUSION_CURRENT_CITY_DISABLED
                 elif job_city and job_city in selected_cities:
                     pass
                 elif job_city and not other_cities:
-                    return False
+                    return EXCLUSION_OTHER_HOME_CITY_DISABLED
             elif job_country in selected_countries:
                 pass
             elif not other_countries:
-                return False
+                return EXCLUSION_OTHER_COUNTRY_DISABLED
 
     signals = _signals(job)
     for key in signals:
         policy = _policy(cfg, key)
         if policy == "require" and not signals[key]:
-            return False
+            return f"required_{key}_missing"
         if policy == "exclude" and signals[key]:
-            return False
-    return strict_salary_floor_allows(job, cfg)
+            return f"excluded_{key}_present"
+    if not strict_salary_floor_allows(job, cfg):
+        return EXCLUSION_STRICT_SALARY_FLOOR
+    return None
 
 
 def job_priority(job: NormalizedJob, settings: dict | None, *, current_country: str | None = None) -> int:

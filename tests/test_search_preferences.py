@@ -3,7 +3,7 @@ from dataclasses import replace
 import pytest
 
 from app.domain.jobs import NormalizedJob
-from app.search.preferences import discovery_queries, job_priority, search_strategy, source_enabled, vacancy_allowed
+from app.search.preferences import discovery_queries, job_priority, search_strategy, source_enabled, vacancy_allowed, vacancy_exclusion_reason
 
 
 def make_job(**kwargs):
@@ -77,6 +77,52 @@ def test_relocation_first_excludes_onsite_jobs_in_current_country():
     local_onsite = make_job(country="RU", city="Tyumen", work_mode="onsite")
 
     assert not vacancy_allowed(local_onsite, cfg, current_country="RU")
+    assert vacancy_exclusion_reason(local_onsite, cfg, current_country="RU") == "domestic_onsite"
+
+
+@pytest.mark.parametrize(("job", "settings", "reason"), [
+    (
+        make_job(country="RU", city="Kazan"),
+        {"local_city": "Tver", "geography": {
+            "configured": True, "include_current_city": True,
+            "include_other_cities": False, "include_other_countries": True,
+        }},
+        "other_home_city_disabled",
+    ),
+    (
+        make_job(country="ES", city="Madrid"),
+        {"target_countries": ["DE"], "geography": {
+            "configured": True, "include_current_city": True,
+            "include_other_cities": True, "include_other_countries": False,
+        }},
+        "other_country_disabled",
+    ),
+    (
+        make_job(visa_sponsorship=False),
+        {"relocation_preferences": {"visa_sponsorship": "require"}},
+        "required_visa_sponsorship_missing",
+    ),
+    (
+        make_job(salary_to=2500, salary_currency="USD", salary_period="monthly"),
+        {"strict_salary_floor": True, "minimum_salary": {"USD": 3000}},
+        "strict_salary_floor",
+    ),
+])
+def test_preference_exclusion_reason_matches_filter_decision(job, settings, reason):
+    assert vacancy_exclusion_reason(job, settings, current_country="RU") == reason
+    assert vacancy_allowed(job, settings, current_country="RU") is False
+
+
+def test_preference_exclusion_reason_is_none_for_reviewable_unknowns():
+    job = make_job(country=None, salary_currency=None, salary_to=None)
+    settings = {
+        "strict_salary_floor": True,
+        "minimum_salary": {"USD": 3000},
+        "search_strategy": "relocation_first",
+    }
+
+    assert vacancy_exclusion_reason(job, settings, current_country="RU") is None
+    assert vacancy_allowed(job, settings, current_country="RU") is True
 
 
 def test_relocation_first_keeps_remote_and_unknown_country_jobs():

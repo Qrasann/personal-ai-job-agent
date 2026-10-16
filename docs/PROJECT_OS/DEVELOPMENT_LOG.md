@@ -1,3 +1,7 @@
+## 2026-10-17 — explain search-settings exclusions
+
+Source summaries previously reported only the total excluded by settings, so a zero-yield Relocation-first result could not distinguish domestic onsite, geography, required support evidence or strict salary policy. Added deterministic exclusion codes that share the exact filter decision, per-attempt/source aggregation and bounded Russian dashboard labels. Unknown salary, country and relocation evidence remains eligible for review. No threshold, source access or production setting changed. Targeted search/source tests: 96 passed; full isolated PostgreSQL suite: 1058 passed.
+
 ## 2026-10-17 — source-scoped offline application flow
 
 Started only `job-agent-tests` tmpfs PostgreSQL on localhost port 55432. Full

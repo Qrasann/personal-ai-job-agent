@@ -40,7 +40,7 @@ from app.sources.base import SourceContext
 from app.sources.network_errors import TRANSPORT_ERROR_TYPES, transport_failure_category
 from app.search.source_summary import aggregate_source, normalize_attempt, scan_outcome
 from app.sources.diagnostics import classify_source_error, diagnostic, render_source_notice
-from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed
+from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed, vacancy_exclusion_reason
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
@@ -582,6 +582,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 # response must still be processed and retained.
                 info["discovered"] = len(jobs)
                 info["preference_filtered"] = 0
+                info["preference_exclusion_reasons"] = {}
                 eligible = []
                 processing_errors = 0
                 for job in jobs:
@@ -590,6 +591,11 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                             eligible.append((job_priority(job, settings_map, current_country=user.current_country), job))
                         else:
                             info["preference_filtered"] += 1
+                            reason = vacancy_exclusion_reason(
+                                job, settings_map, current_country=user.current_country,
+                            ) or "other_settings"
+                            reasons = info["preference_exclusion_reasons"]
+                            reasons[reason] = reasons.get(reason, 0) + 1
                     except Exception as exc:
                         processing_errors += 1
                         add_error(classify_source_error(exc, stage="processing", action="continue_partial"))

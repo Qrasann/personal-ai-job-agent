@@ -89,6 +89,14 @@ response isolation and staged/worktree secret guard are IMPLEMENTED locally.
 Final 844 unit/4 skipped; isolated DB and production acceptance remain BLOCKED.
 No score/visa policy change; useful Relocation-first coverage stays PARTIAL.
 
+Search-quality observability follow-up (2026-10-17): settings exclusions now
+retain deterministic reason counts per attempt and source. `/scan` and
+`/scanstatus` distinguish domestic onsite Relocation-first exclusions,
+disabled geography, missing required support signals and proven strict salary
+floor misses from later score filtering. Unknown evidence remains reviewable;
+the 65 threshold and source policies are unchanged. Below-threshold scoring
+causes and live source/query relevance measurement remain open.
+
 ## Historical v3.5.7 development notes
 
 The following entries preserve the dated development record. Where their

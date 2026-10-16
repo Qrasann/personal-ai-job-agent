@@ -5,6 +5,25 @@ from app.sources.diagnostics import SourceSummaryError, legacy_diagnostic
 
 COUNTERS = ("found", "discovered", "preference_filtered", "processed", "qualified", "stretch", "notified", "filtered", "duplicate", "retry", "fallback", "processing_errors", "publication_date_provided", "publication_date_missing")
 
+PREFERENCE_EXCLUSION_LABELS = {
+    "domestic_onsite": "локальная onsite-вакансия не является релокацией",
+    "current_city_disabled": "текущий город отключён",
+    "other_home_city_disabled": "другие города текущей страны отключены",
+    "other_country_disabled": "страна не входит в выбранную географию",
+    "strict_salary_floor": "подтверждённая зарплата ниже строгого порога",
+    "required_relocation_missing": "нет обязательного сигнала relocation package",
+    "required_visa_sponsorship_missing": "нет обязательного сигнала visa sponsorship",
+    "required_work_permit_missing": "нет обязательного сигнала помощи с work permit",
+    "required_relocation_package_missing": "нет обязательного сигнала relocation package",
+    "required_immigration_support_missing": "нет обязательного сигнала immigration support",
+    "excluded_relocation_present": "обнаружен исключённый сигнал relocation package",
+    "excluded_visa_sponsorship_present": "обнаружен исключённый сигнал visa sponsorship",
+    "excluded_work_permit_present": "обнаружен исключённый сигнал помощи с work permit",
+    "excluded_relocation_package_present": "обнаружен исключённый сигнал relocation package",
+    "excluded_immigration_support_present": "обнаружен исключённый сигнал immigration support",
+    "other_settings": "другая настройка поиска",
+}
+
 
 def normalize_attempt(info: dict) -> dict:
     status = info.get("status")
@@ -21,6 +40,11 @@ def normalize_attempt(info: dict) -> dict:
                   successful_attempts=int(status in {"success", "partial"}),
                   partial_attempts=int(status == "partial"), duration_ms=int(info.get("duration_ms", 0)))
     result["diagnostics"] = [dict(item) for item in info.get("diagnostics", [])]
+    reasons = info.get("preference_exclusion_reasons", {})
+    result["preference_exclusion_reasons"] = {
+        str(key): int(value) for key, value in reasons.items()
+        if isinstance(value, int) and value > 0
+    } if isinstance(reasons, dict) else {}
     if info.get("error") and not result["diagnostics"]:
         result["diagnostics"] = [legacy_diagnostic(info["error"])]
     # Never retain an arbitrary legacy exception message.
@@ -72,6 +96,11 @@ def aggregate_source(sources: dict, source_id: str, info: dict) -> None:
     result["name"] = info.get("name", previous.get("name", source_id) if previous else source_id)
     result["history"] = history
     result["diagnostics"] = merge_diagnostics([item for entry in history for item in entry["diagnostics"]])
+    reason_totals = {}
+    for entry in history:
+        for reason, count in entry.get("preference_exclusion_reasons", {}).items():
+            reason_totals[reason] = reason_totals.get(reason, 0) + int(count)
+    result["preference_exclusion_reasons"] = reason_totals
     if result["status"] == "failed":
         result["error"] = next((item["code"] for item in reversed(result["diagnostics"]) if item.get("action") != "fallback"), "SOURCE_PROCESSING_FAILED")
     sources[source_id] = result
@@ -98,6 +127,15 @@ def render_source_summary(source_id: str, info: dict) -> str:
     if info.get("discovered"):
         line += f" · получено до настроек: {int(info['discovered'])}"
         line += f" · исключено настройками: {int(info.get('preference_filtered', 0))}"
+        reasons = info.get("preference_exclusion_reasons", {})
+        if isinstance(reasons, dict):
+            ranked = sorted(reasons.items(), key=lambda item: (-int(item[1]), item[0]))[:3]
+            if ranked:
+                rendered = "; ".join(
+                    f"{PREFERENCE_EXCLUSION_LABELS.get(code, 'другая настройка поиска')}: {int(count)}"
+                    for code, count in ranked
+                )
+                line += f"\n  Причины исключения: {rendered}"
     date_total = int(info.get("publication_date_provided", 0)) + int(info.get("publication_date_missing", 0))
     if date_total:
         line += f" · поле даты публикации заполнено: {int(info.get('publication_date_provided', 0))}/{date_total}"
