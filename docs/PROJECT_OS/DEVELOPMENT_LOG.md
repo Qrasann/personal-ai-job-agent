@@ -1,3 +1,7 @@
+## 2026-10-17 — align fallback role matching with specific queries
+
+Eight red regressions reproduced a role bonus for unrelated QA/Go/C#/IT/UX/Java titles and a lost HR role. Fallback matching now compares whole tokens shared with RemoteOK and admits a small explicit short-role vocabulary; other short fragments retain the minimum length. Career/Relocation query separation and Unicode roles are covered. Structured Candidate Facts scoring, weights and score thresholds are unchanged. Targeted 83; full isolated PostgreSQL 1104 passed.
+
 ## 2026-10-17 — bound scan diagnostics in UTF-16
 
 Emoji-heavy diagnostics used 3480 UTF-16 units despite a 2600-character section budget; tiny custom budgets also overflowed their omission note. Source/profile renderers now count UTF-16, preserve HTML entities and bound the omission note. An offline scan/status handler scenario validates combined message size, parseable HTML and complete stored history. Targeted 56; full isolated PostgreSQL 1096 passed. No live Telegram send.

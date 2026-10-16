@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import re
-
 import httpx
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.remote_evidence import remote_location_restriction
+from app.domain.role_text import role_tokens
 from app.sources.base import JobSource, SourceContext
 from app.sources.diagnostics import SourceInvalidResponse
 
@@ -15,12 +14,6 @@ class RemoteOKSource(JobSource):
     name = "Remote OK"
     capabilities = SourceCapabilities(discovery=True, details=True, apply=False, messages=False)
     endpoint = "https://remoteok.com/api"
-
-    @staticmethod
-    def _role_tokens(text: str) -> set[str]:
-        # Keep short role/language names (QA, HR, Go, C#) and distinguish
-        # whole terms such as Java/JavaScript and C/C++/C#.
-        return set(re.findall(r"\.?[^\W_]+(?:\+\+|#)?", text.casefold()))
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
         headers = {"User-Agent": "JobAgentV3/0.1 (job discovery client)"}
@@ -39,7 +32,7 @@ class RemoteOKSource(JobSource):
         }
         meaningful_queries: list[set[str]] = []
         for query in queries:
-            tokens = self._role_tokens(query)
+            tokens = role_tokens(query)
             meaningful = tokens - generic_role_tokens
             meaningful_queries.append(meaningful or tokens)
         out: list[NormalizedJob] = []
@@ -52,9 +45,9 @@ class RemoteOKSource(JobSource):
             # "engineer" buried somewhere in a long description. This avoids
             # unrelated RemoteOK rows such as housekeeping/data/software roles
             # entering the DevOps feed.
-            role_tokens = self._role_tokens(" ".join([title, *tags]))
+            title_tokens = role_tokens(" ".join([title, *tags]))
             if meaningful_queries and not any(
-                tokens and tokens <= role_tokens
+                tokens and tokens <= title_tokens
                 for tokens in meaningful_queries
             ):
                 continue

@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
+from app.domain.role_text import role_tokens
 from app.matching.technical_score import score_technical_v2
 from app.matching.recommendation import build_recommendation_breakdown
 from app.search.preferences import discovery_queries
@@ -39,6 +40,8 @@ _RESUME_GENERIC_TOKENS = {
 # separation as the historical Latin/Cyrillic tokenizer. No translation or role
 # alias is inferred; the owner still supplies the actual query text.
 _ROLE_TOKEN_PATTERN = r"(?:[^\W_]|[+#.-])+"
+# Other short fragments retain the previous minimum-length policy.
+_SHORT_ROLE_TERMS = frozenset({"qa", "hr", "go", "c", "c#", "it", "ui", "ux"})
 
 
 def _resume_content_overlap(job: Job, resume: ResumeProfile) -> int:
@@ -403,7 +406,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     preferred_hits = [x for x in preferred if x in hay and x in fact_text]
     strong_hits = [x for x in strong if x in hay and x in fact_text]
 
-    title_hay = job.title.casefold()
+    title_tokens = role_tokens(job.title)
     query_hits: list[str] = []
     generic_role_tokens = {
         "engineer", "administrator", "admin", "specialist", "developer",
@@ -411,10 +414,10 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     }
     role_queries = [query.casefold() for query in discovery_queries(settings)]
     for query in role_queries:
-        all_tokens = [x for x in re.findall(_ROLE_TOKEN_PATTERN, query) if len(x) >= 3]
-        meaningful = [x for x in all_tokens if x not in generic_role_tokens]
+        all_tokens = {x for x in role_tokens(query) if len(x) >= 3 or x in _SHORT_ROLE_TERMS}
+        meaningful = all_tokens - generic_role_tokens
         tokens = meaningful or all_tokens
-        if tokens and all(token in title_hay for token in tokens):
+        if tokens and tokens <= title_tokens:
             query_hits.append(query)
 
     technical = min(100, 40 + min(25, len(query_hits) * 20) + len(preferred_hits) * 6 + len(strong_hits) * 7)

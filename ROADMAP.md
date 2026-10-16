@@ -108,6 +108,9 @@ Remote location follow-up: IMPLEMENTED preservation of explicit known-geography
 labels remain unknown; candidate-specific legal eligibility stays PARTIAL.
 Scan diagnostic Telegram budgets now include emoji UTF-16 units with complete
 history retained; verified in offline manual scan/status handler coverage.
+Fallback role matching also preserves recognized short roles and distinguishes
+whole title terms; Career-first/Relocation-first queries stay independent and
+structured skill scoring/weights/thresholds are unchanged.
 
 ## Historical v3.5.7 development notes
 

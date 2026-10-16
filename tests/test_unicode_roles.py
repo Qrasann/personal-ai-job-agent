@@ -67,10 +67,38 @@ def test_georgia_existing_tokens_and_technical_punctuation_remain_identical(text
     assert georgia._tokens(text) == historical
 
 
-def test_matching_retains_minimum_query_token_length():
+def test_matching_does_not_treat_arbitrary_short_fragments_as_roles():
     assert _score("აბ", "აბ").technical_score == 22
     assert _score("աբ", "աբ").technical_score == 22
-    assert _score("Go", "Go").technical_score == 22
+
+
+@pytest.mark.parametrize(("query", "matching", "unrelated"), [
+    ("QA Engineer", "QA Engineer", "Platform Engineer"),
+    ("Go Developer", "Go Developer", "Google Cloud Developer"),
+    ("HR", "HR Specialist", "Threat Analyst"),
+    ("C# Developer", "C# Developer", "C++ Developer"),
+    ("Java Developer", "Java Engineer", "JavaScript Developer"),
+    ("IT Support", "IT Support", "Customer Support"),
+    ("UX Designer", "UX Designer", "Graphic Designer"),
+])
+def test_fallback_role_bonus_requires_exact_specific_terms(query, matching, unrelated):
+    matched = _score(matching, query)
+    other = _score(unrelated, query)
+    assert matched.technical_score == 60
+    assert other.technical_score == 22
+    assert "роль:" in matched.reason
+    assert "роль:" not in other.reason
+    # Fix role identity, not the global scoring weights or notification bar.
+    assert matched.total_score < 65
+
+
+def test_short_role_bonus_uses_each_search_strategy_queries():
+    job = Job(title="HR Specialist", company="Example", description="", country="AM")
+    settings = {"queries": ["DevOps Engineer"], "relocation_queries": ["HR"]}
+    career = score_job(job, SearchProfile(settings={**settings, "search_strategy": "career_first"}), [], [])
+    relocation = score_job(job, SearchProfile(settings={**settings, "search_strategy": "relocation_first"}), [], [])
+    assert career.technical_score == 22
+    assert relocation.technical_score == 60
 
 
 def test_unicode_resume_role_and_content_overlap_reuse_existing_selection_weights():
