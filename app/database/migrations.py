@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 7
+CURRENT_SCHEMA_VERSION = 8
 
 
 @dataclass(frozen=True)
@@ -95,6 +95,18 @@ MIGRATIONS: tuple[Migration, ...] = (
         name="application_vacancy_snapshot",
         statements=(
             "ALTER TABLE applications ADD COLUMN IF NOT EXISTS vacancy_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb",
+        ),
+    ),
+    Migration(
+        version=8,
+        name="protect_application_history_on_job_delete",
+        statements=(
+            # Keep application.job_id non-null for review, export and tracking;
+            # a job with applications cannot be physically deleted. This is a
+            # metadata-only constraint replacement: no rows are deleted.
+            "ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_job_id_fkey",
+            "ALTER TABLE applications ADD CONSTRAINT applications_job_id_fkey "
+            "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE RESTRICT",
         ),
     ),
 )
