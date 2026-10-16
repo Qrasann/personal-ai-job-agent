@@ -407,20 +407,20 @@ async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
 
 async def save_source_ref_detail_cache(
     ref_id: int, details: dict, *, expected_posting_digest: str | None = None
-) -> None:
-    """Update only the verified details cache under a source-ref row lock."""
+) -> bool:
+    """Save verified details only for the expected posting; signal rejected writes."""
     async with SessionLocal() as session:
         item = await session.scalar(
             select(JobSourceRef).where(JobSourceRef.id == ref_id).with_for_update()
         )
         if not item:
-            return
+            return False
         raw = dict(item.raw or {})
         current_digest = posting_snapshot_digest(raw.get("normalized_posting_v1"))
         if expected_posting_digest is not None and expected_posting_digest != current_digest:
             # A card refresh raced the network fetch. Do not label fetched
             # details as verified against a snapshot we did not request.
-            return
+            return False
         raw["details_cache_v1"] = dict(details or {})
         if current_digest:
             raw["details_cache_posting_digest_v1"] = current_digest
@@ -428,6 +428,7 @@ async def save_source_ref_detail_cache(
             raw.pop("details_cache_posting_digest_v1", None)
         item.raw = raw
         await session.commit()
+        return True
 
 
 async def save_match(**kwargs) -> JobMatch:
