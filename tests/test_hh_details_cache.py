@@ -241,3 +241,32 @@ def test_versioned_hh_posting_rejects_legacy_cache_without_digest(monkeypatch):
     assert fetched == ["134520461"]
     assert stored == [(91, result, posting_snapshot_digest(current))]
 
+
+def test_raced_hh_detail_fetch_cannot_return_rejected_old_posting(monkeypatch):
+    """A rejected cache write must also suppress the stale in-memory result."""
+    current = {"schema": "normalized_posting_v1", "title": "Engineer", "description": "Original card"}
+    ref = SimpleNamespace(
+        id=91, source_job_id="134520461",
+        raw={"normalized_posting_v1": current},
+    )
+    attempted = []
+
+    async def fake_save(ref_id, details, *, expected_posting_digest=None):
+        attempted.append((ref_id, dict(details), expected_posting_digest))
+        # Simulates concurrent upsert: the row-lock detects newer posting.
+        return False
+
+    monkeypatch.setattr(services.repo, "source_ref", lambda *_args, **_kwargs: asyncio.sleep(0, result=ref))
+    monkeypatch.setattr(services.repo, "save_source_ref_detail_cache", fake_save)
+    monkeypatch.setattr(
+        services.hh_client, "vacancy_web",
+        lambda _id: asyncio.sleep(0, result="<html>original details</html>"),
+    )
+    monkeypatch.setattr(
+        services.HHSource, "parse_vacancy_web_html",
+        staticmethod(lambda _: {"description": "Outdated old posting detail"}),
+    )
+
+    assert asyncio.run(services.get_cached_hh_details(24)) == {}
+    assert attempted == [(91, {"description": "Outdated old posting detail"}, posting_snapshot_digest(current))]
+
