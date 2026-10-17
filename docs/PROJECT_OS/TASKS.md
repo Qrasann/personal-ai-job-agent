@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — native Armenian/Georgian language requirement cues
+
+- [x] Reproduce Armenian/Georgian required and preferred phrases being left unspecified; include explicit negations to guard against false required status.
+- [x] Add narrow required/preferred/negated lexical cues; regional language text without a recognized cue remains unspecified.
+- [x] Relocation evidence tests: 27 passed; full isolated PostgreSQL suite: 1182 passed.
+- [ ] Continue relocation quality from fixtures; lexical references are not legal eligibility guidance or live acceptance.
+
 ## 2026-10-17 — Armenian and Georgian language evidence
 
 - [x] Reproduce required/preferred language evidence silently missing Armenian and Georgian in English, Russian and native-script descriptions.

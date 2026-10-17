@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — Armenian/Georgian native language cues
+
+Relocation Evidence now classifies narrow native-script Armenian and Georgian words for required, preferred and explicit negative language conditions. Negative phrases remain unspecified rather than becoming false hard requirements. The lexical cues are recorded as descriptive evidence only. Relocation evidence tests: 27 passed; full isolated PostgreSQL suite: 1182 passed. No candidate proficiency, legal eligibility or work permission is inferred.
+
 ## 2026-10-17 — Armenian and Georgian language evidence
 
 Relocation evidence now recognizes Armenian and Georgian language mentions in English names, Russian adjectives and native scripts, normalizing them to canonical language names. Clear English/Russian required/preferred cues retain their status; native text without a supported cue stays unspecified. Relocation evidence tests: 21 passed; full isolated PostgreSQL suite: 1176 passed. No legal eligibility or language proficiency is inferred.

@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 native relocation language conditions
+
+Starting code checkpoint `3109046` added Armenian/Georgian language-name recognition. This follow-up reproduced missing required/preferred native-script condition cues and added narrow positive/negative wording. Explicit negation stays unspecified. The lexical basis and limitations are documented in DEVELOPMENT_LOG with Armenian National Library and Georgian dictionary references. Relocation evidence tests 27 passed; full isolated PostgreSQL suite 1182 passed. Current code/docs need final gates and local checkpoint; stop isolated DB before handoff. No legal eligibility/proficiency conclusions or live source checks. Next: another distinct offline Relocation-first/source evidence case.
+
 ## Current entry point — 2026-10-17 regional relocation language evidence
 
 Starting HEAD `f90e87d`. Armenia/Georgia review found relocation language evidence did not recognize Armenian or Georgian language mentions. Added canonical forms for English labels, Russian adjectives and native scripts; requirement status is inferred only from existing supported cues, otherwise stays unspecified. Targeted relocation evidence tests 21 passed; full isolated PostgreSQL suite 1176 passed. Current code/docs require final gates and local checkpoint; stop test DB before handoff. No law, eligibility, source or live claim changed. Next: continue a separate offline Relocation-first fit/evidence regression.

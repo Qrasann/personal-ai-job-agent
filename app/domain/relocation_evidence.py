@@ -69,9 +69,24 @@ _LANGUAGE_TERM = re.compile(
     r"հայերեն\w*|ქართული\w*|deutsch(?:kenntnisse|kenntnis)?(?!\w)",
     re.I,
 )
-_LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:obligatorisch|erforderlich|vorausgesetzt|notwendig)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
-_LANGUAGE_PREFERRED = re.compile(r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:bevorzugt|wünschenswert|von vorteil)\b|\b(?:желательно|приветствуется|будет плюсом)\b", re.I)
-_LANGUAGE_NEGATED = re.compile(r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b", re.I)
+_LANGUAGE_REQUIRED = re.compile(
+    r"\b(?:required|mandatory|must|essential)\b|\b(?:obligatorisch|erforderlich|vorausgesetzt|notwendig)\b|"
+    r"\b(?:обязательно|требуется|необходимо)\b|(?:պարտադիր|պահանջվում|պահանջվող|անհրաժեշտ)\w*|"
+    r"(?:სავალდებულო|აუცილებელ)\w*",
+    re.I,
+)
+_LANGUAGE_PREFERRED = re.compile(
+    r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:bevorzugt|wünschenswert|von vorteil)\b|"
+    r"\b(?:желательно|приветствуется|будет плюсом)\b|ցանկալի\w*|სასურველ\w*",
+    re.I,
+)
+_LANGUAGE_NEGATED = re.compile(
+    r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b|"
+    r"(?:պարտադիր|պահանջվում|պահանջվող|անհրաժեշտ)\w*\s+չէ|"
+    r"(?:სავალდებულო|აუცილებელ)\w*\s+არ\s+არის|"
+    r"არ\s+(?:არის\s+)?(?:სავალდებულო|აუცილებელი)",
+    re.I,
+)
 _START_IMMEDIATE = re.compile(r"\b(?:immediately|as soon as possible|right away|sofort)\b|\b(?:немедленно|как можно скорее|сразу)\b", re.I)
 _START_RELATIVE = re.compile(r"\b(?:within|in)\s+\d+\s+(?:business )?(?:days?|weeks?|months?)\b|\bчерез\s+\d+\s+(?:дн\w*|недел\w*|месяц\w*)", re.I)
 _START_NEGOTIABLE = re.compile(r"\b(?:negotiable|by agreement|to be agreed|nach vereinbarung)\b|\b(?:по договор[её]нност[ьи]|обсуждается)\b", re.I)

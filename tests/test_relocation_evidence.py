@@ -192,6 +192,12 @@ def test_multiple_language_conditions_keep_independent_evidence_and_conflict_unk
     ("Грузинский язык желательно.", "Georgian", "preferred"),
     ("ქართული ენა.", "Georgian", "unspecified"),
     ("հայերեն լեզու.", "Armenian", "unspecified"),
+    ("Հայերենի իմացությունը պարտադիր է.", "Armenian", "required"),
+    ("ქართული ენის ცოდნა სავალდებულოა.", "Georgian", "required"),
+    ("Հայերենը ցանկալի է.", "Armenian", "preferred"),
+    ("ქართული ენა სასურველია.", "Georgian", "preferred"),
+    ("Հայերենի իմացությունը պարտադիր չէ.", "Armenian", "unspecified"),
+    ("ქართული ენის ცოდნა სავალდებულო არ არის.", "Georgian", "unspecified"),
 ])
 def test_relocation_language_evidence_recognizes_armenia_and_georgia_languages(
     description, language, requirement,

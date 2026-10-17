@@ -1,6 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
+- Current uncommitted Relocation Evidence increment classifies narrow required/preferred/negated Armenian and Georgian native-script language wording; references and limits are documented. Targeted tests 27 passed; full isolated PostgreSQL 1182 passed. No proficiency/legal inference; stop test DB and checkpoint after gates.
 - Current uncommitted Relocation-first increment recognizes Armenian/Georgian language evidence in English, Russian and native scripts, preserving unspecified status absent clear requirement cues. Focused tests 21 passed; full isolated PostgreSQL 1176 passed. Stop test DB and checkpoint after final gates.
 - Current uncommitted EURES application-link validation preserves the portal fallback when untrusted/oversized targets are rejected. Targeted 69 passed; full isolated PostgreSQL 1170 passed. Stop test DB and commit only owned files after final gates.
 - Current uncommitted source-link hardening: unsafe HTTP link values are no longer rendered clickable in vacancy details/list or `/prepare`. Link suites 112 passed, full isolated suite 1164 passed, added link regressions 6 passed. Stop DB confirmed; checkpoint after final gates.

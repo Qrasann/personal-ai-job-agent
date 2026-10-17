@@ -142,8 +142,10 @@ and live yield remain PARTIAL pending permitted runtime evidence. A concurrent
 cross-source ingestion regression also confirms advisory locking creates one
 canonical Job while retaining each provider posting reference.
 Relocation evidence also canonicalizes Armenian and Georgian language mentions
-across English, Russian and native scripts; unsupported language requirements
-stay unspecified.
+across English, Russian and native scripts; narrow native-script required,
+preferred and negative cues are supported, while unsupported language
+requirements stay unspecified. This evidence is descriptive, not a proficiency
+or eligibility conclusion.
 Candidate Import & Profile Sync remains PARTIAL; in-memory review previews now
 expire and have per-owner/global caps. Durable import/candidate facts updates
 remain transactionally reviewed, never inferred commercial experience.
