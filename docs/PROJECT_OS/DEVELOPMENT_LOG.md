@@ -18,6 +18,10 @@ Red regression: Remotive `candidate_required_location` is the applicant's requir
 
 Red regression: `GE` and `GE Only` in Remotive's candidate-location field were not mapped to Georgia, so a GE-only posting could be skipped for the matching market. Parsing now recognizes known uppercase ISO alpha-2 tokens only when they are isolated/delimited or paired with explicit location qualifiers; ordinary lowercase words such as `in` and `am` remain unclassified. Fixtures cover GE/AM short codes, `Only`/`Remote -`/parenthesized forms, cross-market exclusion, and lowercase ambiguity. Geography/relocation suites: 139 passed; full isolated PostgreSQL suite: 1218 passed; offline unit suite: 1200 passed, 18 skipped; compileall, diff check and secret scan passed. No schema or policy change and no live source access.
 
+## 2026-10-17 — Candidate Fit explicit non-requirements
+
+Reproduced “Linux is not a requirement/essential/prerequisite” and “No Linux background needed” becoming required skill gaps. Added narrow direct-negation patterns; these mentions now remain unknown. A second regression confirmed that an explicit requirement after “and” was masked by the earlier negation; requirement clauses now split on common contrastive/conjunctive connectors. Fact-comparison/recommendation/technical-score suites: 101 passed. Full unit and static gates are pending. No schema, score weights, or live data changes.
+
 ## 2026-10-17 — disambiguate US state Georgia postal code
 
 Red regression: `Georgia, GA` produced country codes GE and GA (Gabon) while omitting US. The Remotive location parser now recognizes only the explicit Georgia+GA postal form as the US state, removes both conflicting country interpretations, and preserves the standalone code semantics. This is local classification only; US is not a configured Remotive target market. Geography/relocation suites: 134 passed; full isolated PostgreSQL suite: 1213 passed; compileall, diff check and secret scan passed. No schema or search-policy change, no live source access.

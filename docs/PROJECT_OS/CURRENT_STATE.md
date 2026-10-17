@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — Candidate Fit non-requirement wording
+
+Reproduced four false hard requirements: “Linux is not a requirement”, “not essential”, “not a prerequisite”, and “No Linux background needed”. Narrow negation patterns now leave these skill mentions unknown; positive clauses after “but” or “and” are evaluated independently and remain required. Fact-comparison suite: 60 passed; combined fact-comparison/recommendation/technical-score suites: 101 passed. Full unit/static gates are pending. No score-weight, schema, or live-data change. Current branch `work/source-ref-freshness-retry`, based on feature `9244aca`; local change uncommitted.
+
 ## 2026-10-17 — disambiguate Georgia (US state) in Greenhouse locations
 
 Greenhouse's location parser treated any `Georgia` substring as the country code GE. A US-state listing such as “Atlanta, Georgia, USA” therefore entered a Georgia-targeted search. Explicit US qualifiers (USA, U.S.A., U.S., US, United States, United States of America) now leave country unknown and exclude the listing from the GE market; unqualified “Tbilisi, Georgia” remains GE. Regression was red before the fix. Greenhouse/Remotive/relocation suites: 84 passed; full isolated PostgreSQL suite: 1246 passed; test DB stopped; compileall, diff check and secret scan passed. No live source or schema changes. Feature is synced at `1e66216`; follow-up is local on `work/greenhouse-georgia-state-disambiguation`.
