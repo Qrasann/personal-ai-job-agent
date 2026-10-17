@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 EURES timestamp validation
+
+Starting HEAD `c77c087`. EURES freshness review found booleans accepted as numeric epoch milliseconds, producing false 1970 publication dates. They now remain unknown; valid numeric timestamps retain UTC normalization. EURES tests 21 passed; full isolated PostgreSQL suite 1161 passed. Code/docs need final gates and local checkpoint; test DB must be stopped before handoff. No live calls or schema changes. Next: continue Relocation-first quality with an offline evidence/eligibility regression that does not infer legal eligibility.
+
 ## Current entry point — 2026-10-17 EURES partial parsing
 
 Branch `work/v357-rejection-diagnostics`; latest checkpoint `23b5418`. The follow-up reproduced integer `locationMap` raising `TypeError` and aborting the page. Malformed optional `locationMap`/`employer` values now become unknown/empty metadata; valid listing rows and siblings are preserved. EURES tests 19 passed; full isolated PostgreSQL 1159 passed. The isolated test DB is stopped. No live EURES/network, schema or production action. Next: continue a distinct offline Source Intelligence or Relocation-first regression check.

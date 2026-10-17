@@ -130,7 +130,7 @@ class EuresSource(JobSource):
 
     @staticmethod
     def _timestamp(value) -> str | None:
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             return None
         try:
             return datetime.fromtimestamp(value / 1000, tz=timezone.utc).isoformat()

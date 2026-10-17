@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — EURES boolean timestamp validation
+
+EURES `creationDate` values `true`/`false` previously passed Python's numeric type check and became publication timestamps in 1970. They now remain unknown; valid numeric epoch milliseconds continue to normalize to UTC. EURES tests: 21 passed; full isolated PostgreSQL suite: 1161 passed. Offline fixtures only.
+
 ## 2026-10-17 — EURES optional metadata isolation
 
 Malformed non-object `locationMap` or `employer` metadata no longer raises while parsing a valid EURES search listing. Country/employer remain unknown when their optional blocks are malformed, and sibling listings survive. EURES tests: 19 passed; full isolated PostgreSQL suite: 1159 passed. This is fixture-based parser verification, not a live EURES check.

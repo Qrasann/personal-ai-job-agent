@@ -1,3 +1,7 @@
+## 2026-10-17 — reject boolean EURES publication timestamps
+
+Red regression: Python booleans satisfy `isinstance(value, int)`, so malformed EURES `creationDate: true/false` became a 1970 timestamp. Explicitly exclude bool while preserving numeric epoch-millisecond values. EURES tests: 21 passed; full isolated PostgreSQL suite: 1161 passed. No live API call.
+
 ## 2026-10-17 — isolate malformed EURES search metadata
 
 Red regression: integer `locationMap` raised `TypeError` and discarded the complete EURES query result, including a valid sibling. Optional `locationMap` and `employer` blocks now require object shapes; malformed values leave metadata unknown/empty without dropping the posting. EURES tests: 19 passed; full isolated PostgreSQL suite: 1159 passed. Fixture-only; no live request.

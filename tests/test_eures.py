@@ -62,6 +62,11 @@ def test_search_query_token_does_not_match_a_longer_unrelated_title_word():
     assert [job.source_job_id for job in result] == ["java"]
 
 
+@pytest.mark.parametrize("value", [True, False])
+def test_boolean_creation_date_remains_unknown(value):
+    assert EuresSource._timestamp(value) is None
+
+
 def test_malformed_optional_search_metadata_does_not_drop_other_eures_results():
     malformed_optional = search_row(
         id="optional-metadata", locationMap=7, employer=["invalid shape"],

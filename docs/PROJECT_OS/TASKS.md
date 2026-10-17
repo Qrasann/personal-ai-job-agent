@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — reject boolean EURES publication timestamps
+
+- [x] Reproduce booleans being treated as integers and rendered as 1970 publication dates.
+- [x] Keep boolean creation dates unknown while preserving numeric epoch-millisecond handling.
+- [x] EURES tests: 21 passed; full isolated PostgreSQL suite: 1161 passed.
+- [ ] Continue Source Intelligence/Relocation-first offline checks; source freshness remains distinct from publication timestamp presence.
+
 ## 2026-10-17 — isolate malformed EURES search metadata
 
 - [x] Reproduce a non-object `locationMap` throwing `TypeError` and aborting the whole parsed page.
