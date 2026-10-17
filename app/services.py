@@ -847,16 +847,20 @@ async def get_vacancy_details(
     fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or "")
     searches = await repo.list_search_profiles(match.profile_id)
     search = next((item for item in searches if item.id == match.search_profile_id), None)
+    source_first_seen = getattr(ref, "first_seen_at", None) if ref else None
+    if isinstance(source_first_seen, datetime):
+        # Database timestamps use naive UTC for compatibility with the current
+        # schema; expose an explicit offset so Telegram never labels local time
+        # or confuses first discovery with the latest evidence refresh.
+        if source_first_seen.tzinfo is None:
+            source_first_seen = source_first_seen.replace(tzinfo=UTC)
 
     return {
         "job": job,
         "match": match,
         "source": ref.source_id if ref else "",
         "source_job_id": getattr(ref, "source_job_id", "") if ref else "",
-        "source_observed_at": (
-            relocation_evidence.get("captured_at", "")
-            if isinstance(relocation_evidence, dict) else ""
-        ),
+        "source_observed_at": source_first_seen.isoformat() if source_first_seen else "",
         "url": ref.url if ref else "",
         "details": details,
         "fallback_salary_text": fallback_salary_text,

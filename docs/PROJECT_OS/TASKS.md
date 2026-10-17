@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — correct source first-seen provenance in vacancy details
+
+- [x] Reproduce that “Источник обнаружен” was populated from refreshed relocation evidence `captured_at`, making old listings appear newly discovered.
+- [x] Use the existing stable `JobSourceRef.first_seen_at` and serialize legacy naive-UTC values explicitly as UTC; keep the evidence capture timestamp intact and separate.
+- [x] Targeted vacancy detail/service tests 49 passed; full isolated PostgreSQL suite 1154 passed; compileall and diff check passed.
+- [ ] Next: continue offline Source Intelligence/Candidate Fit gaps; live source freshness and yield remain unverified.
+
 ## 2026-10-17 — Himalayas application-link ingestion boundary
 
 - [x] Reject credential-bearing, nonstandard-port, malformed-port, HTTP and off-domain Himalayas application links before normalization/persistence; preserve valid official HTTPS links.

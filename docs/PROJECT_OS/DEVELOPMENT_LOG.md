@@ -1,3 +1,7 @@
+## 2026-10-17 — source first-seen provenance in vacancy details
+
+Fixed a misleading freshness cue: the vacancy card previously rendered the relocation evidence capture time as “Источник обнаружен”, even though evidence is regenerated on refresh. The service now uses the source reference's stable `first_seen_at`; naive stored UTC datetimes receive an explicit UTC offset. The evidence snapshot keeps its own `captured_at`. Targeted detail tests: 49 passed; full isolated PostgreSQL suite: 1154 passed; compileall and diff check passed. Offline-only; no schema changes or live source checks.
+
 ## 2026-10-17 — verify concurrent cross-source canonical dedupe
 
 Added an isolated PostgreSQL concurrency test that ingests two provider postings with identical canonical identity simultaneously. The advisory-lock path produces one canonical Job and retains both distinct source refs. Targeted integration test: 1 passed; full isolated PostgreSQL suite: 1154 passed. This verifies local DB behavior only; no live source calls.
