@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — Armenian and Georgian language evidence
+
+Relocation evidence now recognizes Armenian and Georgian language mentions in English names, Russian adjectives and native scripts, normalizing them to canonical language names. Clear English/Russian required/preferred cues retain their status; native text without a supported cue stays unspecified. Relocation evidence tests: 21 passed; full isolated PostgreSQL suite: 1176 passed. No legal eligibility or language proficiency is inferred.
+
 ## 2026-10-17 — EURES application-link validation
 
 EURES no longer persists untrusted application instructions containing unsafe schemes, credentials, malformed authorities/ports or URLs too long for the Telegram link renderer. A rejected link leaves the known official EURES portal destination intact, so the vacancy remains accessible. EURES/vacancy-link tests: 69 passed; full isolated PostgreSQL suite: 1170 passed. No link was fetched or opened.

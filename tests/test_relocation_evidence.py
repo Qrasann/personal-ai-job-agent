@@ -2,6 +2,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+
 from app.domain.jobs import NormalizedJob
 from app.domain.relocation_evidence import EVIDENCE_FIELDS, build_relocation_evidence
 from app.telegram.vacancy_view import relocation_followup_lines
@@ -181,6 +183,32 @@ def test_multiple_language_conditions_keep_independent_evidence_and_conflict_unk
     assert "English B2" in requirements[0]["excerpt"]
     assert "English B1" in requirements[0]["excerpt"]
     assert "German is required" in requirements[1]["excerpt"]
+
+
+@pytest.mark.parametrize(("description", "language", "requirement"), [
+    ("Armenian is required.", "Armenian", "required"),
+    ("Georgian is preferred.", "Georgian", "preferred"),
+    ("Требуется армянский язык.", "Armenian", "required"),
+    ("Грузинский язык желательно.", "Georgian", "preferred"),
+    ("ქართული ენა.", "Georgian", "unspecified"),
+    ("հայերեն լեզու.", "Armenian", "unspecified"),
+])
+def test_relocation_language_evidence_recognizes_armenia_and_georgia_languages(
+    description, language, requirement,
+):
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="regional-language",
+        title="Support role", description=description,
+    )
+
+    evidence = build_relocation_evidence(job)["fields"]["language_requirement"]
+
+    assert evidence["interpretation"]["requirements"] == [{
+        "language": language,
+        "requirement": requirement,
+        "cefr": None,
+        "excerpt": description.strip("."),
+    }]
 
 
 def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():

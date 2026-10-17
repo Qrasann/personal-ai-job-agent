@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 regional relocation language evidence
+
+Starting HEAD `f90e87d`. Armenia/Georgia review found relocation language evidence did not recognize Armenian or Georgian language mentions. Added canonical forms for English labels, Russian adjectives and native scripts; requirement status is inferred only from existing supported cues, otherwise stays unspecified. Targeted relocation evidence tests 21 passed; full isolated PostgreSQL suite 1176 passed. Current code/docs require final gates and local checkpoint; stop test DB before handoff. No law, eligibility, source or live claim changed. Next: continue a separate offline Relocation-first fit/evidence regression.
+
 ## Current entry point — 2026-10-17 EURES application links
 
 Starting checkpoint `5af3361` (shared Telegram link rendering validation). EURES could persist credential-bearing application links and malformed IPv6 values could raise during detail parsing. EURES now accepts bounded HTTPS links without userinfo and falls back to the official portal otherwise; the limit matches Telegram clickability. Targeted EURES/vacancy-link tests 69 passed; latest full isolated PostgreSQL suite 1170 passed. Current code/docs require final gates and a local checkpoint; stop test DB before handoff. No URL was fetched/opened and no employer action occurred. Next: continue a distinct offline Relocation-first evidence bug review.

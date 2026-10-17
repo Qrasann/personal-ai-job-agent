@@ -64,8 +64,9 @@ _HOUSING_NO = re.compile(
     re.I,
 )
 _LANGUAGE_TERM = re.compile(
-    r"\b(english|german|french|russian|spanish|dutch|italian|polish|portuguese|arabic)\b|"
-    r"английск\w*|немецк\w*|французск\w*|русск\w*|deutsch(?:kenntnisse|kenntnis)?(?!\w)",
+    r"\b(english|german|french|russian|spanish|dutch|italian|polish|portuguese|arabic|armenian|georgian)\b|"
+    r"английск\w*|немецк\w*|французск\w*|русск\w*|армянск\w*|грузинск\w*|"
+    r"հայերեն\w*|ქართული\w*|deutsch(?:kenntnisse|kenntnis)?(?!\w)",
     re.I,
 )
 _LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:obligatorisch|erforderlich|vorausgesetzt|notwendig)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
@@ -263,6 +264,8 @@ def build_relocation_evidence(
                         language = next((name for prefix, name in (
                             ("английск", "English"), ("немецк", "German"),
                             ("французск", "French"), ("русск", "Russian"),
+                            ("армянск", "Armenian"), ("грузинск", "Georgian"),
+                            ("հայերեն", "Armenian"), ("ქართული", "Georgian"),
                             ("deutsch", "German"),
                         ) if language_text.casefold().startswith(prefix)), language_text)
                     canonical = language.title() if language else "Unknown"

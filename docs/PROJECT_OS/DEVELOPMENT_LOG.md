@@ -1,3 +1,7 @@
+## 2026-10-17 — Armenian and Georgian language evidence
+
+Red regression: Relocation Evidence omitted Armenian/Georgian from its language vocabulary, including local script and Russian language descriptions. Added canonical aliases for English, Russian and Armenian/Georgian scripts. Existing requirement classification is retained; unsupported native-language requirement cues remain unspecified. Focused tests: 21 passed; full isolated PostgreSQL suite: 1176 passed. No hiring eligibility inference.
+
 ## 2026-10-17 — validate EURES application destinations
 
 Red regression: EURES accepted credential-bearing HTTPS application links and malformed IPv6 authority parsing could fail detail enrichment. A bounded HTTPS validator now requires a valid hostname, rejects userinfo/control characters/malformed authority and caps URL length to the Telegram link budget. Invalid targets fall back to the official EURES portal. EURES/vacancy-link tests: 69 passed; full isolated PostgreSQL suite: 1170 passed. No external navigation or request to an extracted URL.

@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — Armenian and Georgian language evidence
+
+- [x] Reproduce required/preferred language evidence silently missing Armenian and Georgian in English, Russian and native-script descriptions.
+- [x] Canonicalize the two regional languages while leaving unsupported proficiency/requirement wording unspecified rather than inferred.
+- [x] Relocation evidence tests: 21 passed; full isolated PostgreSQL suite: 1176 passed.
+- [ ] Continue Relocation-first evidence coverage; no country-specific hiring eligibility was inferred or live-verified.
+
 ## 2026-10-17 — validate EURES application destinations before persistence
 
 - [x] Reproduce EURES retaining credential-bearing HTTPS targets and failing detail enrichment on malformed IPv6 authorities.
