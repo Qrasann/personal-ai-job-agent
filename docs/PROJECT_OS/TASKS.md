@@ -57,6 +57,14 @@
 
 # Tasks
 
+## 2026-10-17 — keep local work-authorization gates visible in remote eligibility
+
+- [x] Reproduce worldwide boilerplate overriding an explicit existing Canadian work-authorization prerequisite and yielding a false `eligible=yes`.
+- [x] Let explicit work-authorization requirements keep remote eligibility `uncertain`; do not infer rejection from unknown candidate authorization.
+- [x] Relocation/source suites: 149 passed; full unit suite: 1214 passed, 20 PostgreSQL-dependent tests skipped because the isolated DB was stopped. Compileall, diff check and secret scan passed.
+- [ ] Commit this follow-up and confirm CI on PR #33.
+- [ ] Continue an independent Source Intelligence/Candidate Fit regression after feature integration.
+
 ## 2026-10-17 — serialize duplicate Candidate Facts resume imports
 
 - [x] Reproduce two simultaneous confirmations of one resume fingerprint creating duplicate `ResumeProfile` rows and imported facts.

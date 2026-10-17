@@ -57,9 +57,13 @@ def analyze_job_signals(job: Job) -> JobSignals:
         if any(re.search(pattern, text) for pattern in no_remote_patterns):
             remote_eligibility = "no"
             remote_reason = "remote ограничен страной/правом на работу"
-        elif remote_residence_requirement(job.description) or restricted_remote_scope(job.remote_scope):
+        elif (
+            remote_residence_requirement(job.description)
+            or restricted_remote_scope(job.remote_scope)
+            or existing_work_authorization_required(job.description or "")
+        ):
             remote_eligibility = "uncertain"
-            remote_reason = "remote с ограничениями источника — доступность из вашей страны нужно проверить"
+            remote_reason = "remote с ограничением страны/права на работу — доступность нужно проверить"
         elif any(x in text for x in yes_remote_terms):
             remote_eligibility = "yes"
             remote_reason = "remote worldwide"

@@ -85,3 +85,13 @@ def test_himalayas_empty_provider_scope_cannot_erase_explicit_residence_and_cach
 def test_existing_explicit_us_only_restriction_still_uses_existing_denial():
     result = analyze_job_signals(Job(title="Support", description="US-only remote.", work_mode="remote", remote_scope="worldwide"))
     assert result.remote_eligibility == "no"
+
+
+def test_worldwide_remote_does_not_override_explicit_local_work_authorization_requirement():
+    result = analyze_job_signals(Job(
+        title="Support", description="Applicants must already be authorized to work in Canada. Work from anywhere.",
+        work_mode="remote", remote_scope="worldwide",
+    ))
+
+    assert result.remote_eligibility == "uncertain"
+    assert "права на работу" in result.remote_reason

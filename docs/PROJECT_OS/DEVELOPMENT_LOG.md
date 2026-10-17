@@ -2803,3 +2803,7 @@ Red regression: under Requirements, “Linux experience would be an advantage”
 ## 2026-10-17 — serialize duplicate Candidate Facts resume imports
 
 Reproduced concurrent Telegram confirmations of the same resume fingerprint passing the UI precheck and inserting duplicate resume/fact records. `add_imported_resume_with_facts` now locks the candidate profile and rechecks the imported fingerprint in the same transaction. The loser receives a typed duplicate result; the handler reports the existing resume ID and clears its stale preview. Targeted tests: 28 passed; full isolated PostgreSQL suite: 1233 passed; compileall, diff check and secret scan passed. No schema/production changes. Next: checkpoint and PR/CI, then continue Source Intelligence or Relocation-first.
+
+## 2026-10-17 — preserve work-authorization limits in worldwide remote postings
+
+Reproduced “must already be authorized to work in Canada” plus “work from anywhere” being marked remote-eligible. Explicit existing work authorization is now treated as a remote scope constraint, so eligibility remains uncertain pending candidate-specific confirmation; no legal conclusion or denial is inferred. Relocation/source suites: 149 passed; full unit suite: 1214 passed, 20 PostgreSQL-dependent tests skipped with the isolated database stopped. Compileall, diff check and secret scan passed. No schema change. PR #33 is the active feature-bound branch; check CI before integration.

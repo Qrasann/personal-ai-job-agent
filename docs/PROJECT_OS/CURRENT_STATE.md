@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — preserve work-authorization restriction over worldwide boilerplate
+
+A posting saying “Applicants must already be authorized to work in Canada. Work from anywhere.” was classified remote-eligible because the worldwide phrase overrode a country-specific authorization prerequisite. `analyze_job_signals` now treats an explicit existing work-authorization requirement like other remote scope restrictions and leaves eligibility `uncertain`; this avoids both a false “yes” and an unsupported rejection. Regression was red before the fix. Relocation/source suites: 149 passed; full unit suite without PostgreSQL: 1214 passed, 20 skipped. No persistence/schema change. Follow-up is on `work/candidate-import-idempotency` after checkpoint `c523ebc`; PR #33 CI was still running at last check.
+
 ## 2026-10-17 — make concurrent resume import confirmation idempotent
 
 Two confirmations for the same uploaded resume could pass the Telegram precheck concurrently and persist duplicate resume/fact rows. The repository now locks the candidate profile and checks the imported source/fingerprint inside the same transaction before applying facts. The loser gets the existing resume ID; Telegram reports the already-imported item and clears its stale preview. Targeted Telegram/repository tests: 28 passed; full isolated PostgreSQL suite: 1233 passed; compileall, diff check and secret scan passed. No schema or production change. Current feature base: `0a35f9e`; current branch: `work/candidate-import-idempotency`. Next: checkpoint/PR and CI, then a distinct offline Source Intelligence or Relocation-first issue.
