@@ -88,9 +88,14 @@ class EuresSource(JobSource):
             if not isinstance(row, dict) or not row.get("id") or not row.get("title"):
                 continue
             # The endpoint can return broad/fuzzy matches. Require a meaningful
-            # query token in the title so unrelated vacancies do not leak in.
+            # whole query token in the title so fuzzy substring matches do
+            # not let e.g. Java return JavaScript roles.
             title = str(row["title"])
-            if tokens and not any(token in title.casefold() for token in tokens):
+            title_folded = title.casefold()
+            if tokens and not any(
+                re.search(rf"(?<!\w){re.escape(token)}(?!\w)", title_folded)
+                for token in tokens
+            ):
                 continue
             if row.get("euresFlag") is not True:
                 continue

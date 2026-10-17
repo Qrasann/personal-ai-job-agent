@@ -1,3 +1,7 @@
+## 2026-10-17 — EURES whole-token query relevance
+
+Red regression: EURES' substring check returned a JavaScript listing for a `Java` query. Title matching now uses word boundaries around each meaningful query token, retaining punctuation-bearing terms and the existing any-token semantics. EURES tests: 18 passed; full isolated PostgreSQL suite: 1158 passed. Offline fixtures only; no live EURES request.
+
 ## 2026-10-17 — precise GitLab CI Candidate Fit
 
 Red regression: `Requirements: experience managing GitLab projects and repositories` was extracted as a required GitLab CI skill because bare `gitlab` was an alias. Removed the broad alias and require CI/CD, pipeline or runner context, while retaining direct `GitLab CI` names and “CI/CD based on GitLab”. Focused Candidate Fit/scoring/resume/interview tests: 101 passed; full isolated PostgreSQL suite: 1157 passed. No threshold or score-weight change.

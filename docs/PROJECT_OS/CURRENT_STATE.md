@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — EURES query token boundaries
+
+EURES title relevance no longer lets a query token match the middle of a different word (`Java` versus `JavaScript`). It still accepts whole meaningful tokens and punctuation-bearing skill tokens, and retains the adapter's existing any-token behavior. Regression reproduced before the fix. EURES tests: 18 passed; full isolated PostgreSQL suite: 1158 passed. No network calls, scoring changes or schema changes.
+
 ## 2026-10-17 — precise GitLab CI Candidate Fit
 
 Candidate Fit no longer treats generic GitLab repository/project mentions as GitLab CI experience. Explicit CI/CD, pipeline or runner context still matches, including reversed “CI/CD based on GitLab” wording. This prevents irrelevant candidate facts from creating a required technical fit score. Focused Candidate Fit/scoring/resume/interview tests: 101 passed; full isolated PostgreSQL suite: 1157 passed. No scoring weights or thresholds changed.

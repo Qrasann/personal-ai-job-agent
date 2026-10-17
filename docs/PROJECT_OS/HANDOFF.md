@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 EURES query relevance
+
+Branch `work/v357-rejection-diagnostics`. Candidate Fit checkpoint `1cb278c` prevents generic GitLab repository/project mentions from becoming GitLab CI fit; explicit CI/CD/pipeline/runner terms remain recognized. Next increment reproduced and fixed EURES substring leakage (`Java` matched `JavaScript Developer`) using whole-token matching. EURES tests 18 passed; full isolated PostgreSQL suite 1158 passed. EURES change/docs are ready for local checkpoint after compileall, diff check and secret scan. Test DB must be stopped before handoff. No live source calls, schema changes or production actions. Next: continue Source Intelligence/Relocation-first offline investigation after checkpoint.
+
 ## Current entry point — 2026-10-17 GitLab CI Candidate Fit
 
 Starting HEAD `3614f2a`; worktree had only the two user-owned untracked proposal files. Candidate Fit previously treated any GitLab mention as GitLab CI. A red test reproduced the false requirement/score. Matching now requires explicit CI/CD, pipeline or runner context with GitLab; repository/project-only text is not scored as GitLab CI. Existing explicit formulations still pass. Focused suites: 101 passed; full isolated PostgreSQL suite: 1157 passed. No weights, thresholds, schema, live sources or production changed. The isolated test DB is stopped. Next: continue Source Intelligence with a concrete offline adapter/provenance defect; retain uncertainty for live source quality and relocation eligibility.

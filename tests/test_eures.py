@@ -51,6 +51,17 @@ def test_search_only_returns_employer_flagged_role_relevant_vacancies():
     assert result[0].relocation is None
 
 
+def test_search_query_token_does_not_match_a_longer_unrelated_title_word():
+    rows = [
+        search_row(id="javascript", title="JavaScript Developer"),
+        search_row(id="java", title="Java DevOps Engineer"),
+    ]
+
+    result = EuresSource.parse_search({"jvs": rows}, "Java")
+
+    assert [job.source_job_id for job in result] == ["java"]
+
+
 def test_eures_flag_is_not_visa_or_relocation_support():
     job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
     job = EuresSource.enrich(job, details())

@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — EURES whole-token query relevance
+
+- [x] Reproduce `Java` matching the unrelated `JavaScript Developer` title through substring filtering.
+- [x] Require query-token boundaries while preserving meaningful punctuation tokens and existing any-token query semantics.
+- [x] EURES tests: 18 passed; full isolated PostgreSQL suite: 1158 passed.
+- [ ] Continue offline Source Intelligence/Relocation-first review; fixture checks are not live source acceptance.
+
 ## 2026-10-17 — prevent GitLab repository work from inflating CI fit
 
 - [x] Reproduce GitLab-only repository/project wording being extracted as a GitLab CI requirement.
