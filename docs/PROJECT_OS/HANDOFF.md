@@ -1,8 +1,8 @@
 # Handoff
 
-## Current entry point — 2026-10-17 Candidate Fit compound skill dedupe
+## Current entry point — 2026-10-17 Candidate Fit networking context
 
-Starting HEAD `a658dc5`, branch `work/v357-rejection-diagnostics`, 38 commits ahead of feature origin. Candidate Fit previously counted `Docker Compose` as both Docker and Docker Compose, distorting coverage and OR alternatives. It now removes only the embedded Docker alias unless Docker is separately named. Fit tests 71 passed; full unit suite 1178 passed / 17 skipped; isolated PostgreSQL suite 1195 passed. Test DB stopped. Weights/thresholds unchanged; no live checks. Docs/roadmap updated. Current code/docs need compile/diff/secret gates and local checkpoint. Next: inspect a distinct Candidate Fit/Source Intelligence issue; preserve user proposal files.
+Starting HEAD `eee7b30`, branch `work/v357-rejection-diagnostics`, 39 commits ahead of feature origin. A red regression showed “network of industry contacts” becoming technical Networking. Explicit business/contact-network phrases are now excluded; technology/networking/firewall terms remain. Focused fit suites 72 passed; full unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed. Test DB stopped. Roadmap and Project OS updated; weights/thresholds unchanged, fixtures only. Current changes need compile/diff/secret gates and local checkpoint. Then inspect a distinct Source Intelligence or Candidate Fit issue. Preserve both untracked user proposal files.
 
 ## Current entry point — 2026-10-17 regional relocation language evidence
 

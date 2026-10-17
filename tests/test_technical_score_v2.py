@@ -50,6 +50,13 @@ def test_standalone_docker_remains_a_separate_requirement_from_docker_compose():
     assert {item.skill for item in comparison.requirements} == {"Docker", "Docker Compose"}
 
 
+def test_professional_contact_network_does_not_create_technical_networking_requirement():
+    vacancy = "Requirements: An established network of industry contacts is required."
+
+    assert compare_facts(vacancy, []).requirements == ()
+    assert score_technical_v2(vacancy, []) is None
+
+
 def test_explicit_required_alternative_counts_as_one_scoring_choice():
     linux = SimpleNamespace(
         id=1, value="Commercial Linux administration", experience_type="commercial",

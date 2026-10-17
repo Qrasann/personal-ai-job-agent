@@ -1,3 +1,7 @@
+## 2026-10-17 — exclude professional contact network from technical fit
+
+Red regression: “an established network of industry contacts” under Requirements created a missing Networking skill and reduced score. Narrow explicit professional/business/contact-network phrases are now removed before matching; actual network, networking, firewall and related technical signals remain. Fit suites 72 passed; full unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed. No score weights or thresholds changed.
+
 ## 2026-10-17 — count Docker Compose once in Candidate Fit
 
 Red regression showed `Docker Compose required` extracted both Docker and Docker Compose, lowering the score denominator; `Docker Compose or Kubernetes` also appeared to have three options. Candidate Fit now deduplicates the embedded Docker alias unless Docker is separately named, including alternative-group extraction. Explicit independent Docker remains distinct. Fit tests 71 passed; full unit suite 1178 passed / 17 skipped; isolated PostgreSQL 1195 passed. Weights and thresholds unchanged.

@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — distinguish contact networks from technical Networking
+
+`network of industry contacts` was parsed as the Networking skill and could lower fit. Explicit business/contact-network phrases are now excluded; technical networking and firewall terms still match. Focused fit suites 72 passed; full unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed. Scoring weights and thresholds unchanged.
+
 ## 2026-10-17 — avoid double-counting Docker Compose in Candidate Fit
 
 A `Docker Compose` mention matched both Docker and Docker Compose, inflating the required-skill denominator and breaking compound OR groups. The extractor suppresses the embedded Docker token unless Docker is separately mentioned; explicit standalone Docker remains. Fit tests 71 passed; full unit suite 1178 passed / 17 skipped; isolated PostgreSQL 1195 passed. No weights or thresholds changed.

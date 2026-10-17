@@ -172,6 +172,16 @@ def _contains_alias(text: str, alias: str) -> bool:
 
 
 def _matches_skill(text: str, spec: SkillSpec) -> bool:
+    if spec.name == "Networking":
+        # Recruitment copy can use "network" to mean professional contacts.
+        # Remove only those explicit business-network phrases; technical
+        # network/firewall terms in the same text remain detectable.
+        text = re.sub(
+            r"\b(?:professional|business|industry|sales|personal|client|customer) network\b|"
+            r"\bnetwork of (?:industry )?(?:contacts|partners|suppliers|clients|customers|professionals|recruiters)\b|"
+            r"\bnetworking with (?:contacts|partners|suppliers|clients|customers|professionals|recruiters)\b",
+            " ", text or "", flags=re.I,
+        )
     if any(_contains_alias(text, alias) for alias in spec.aliases):
         return True
     if spec.name == "GitLab CI":
