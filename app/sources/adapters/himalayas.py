@@ -134,8 +134,19 @@ class HimalayasSource(JobSource):
                 continue
 
             application_link = str(row.get("applicationLink") or "").strip()
-            parsed_url = urlparse(application_link)
-            if parsed_url.scheme != "https" or parsed_url.hostname not in {"himalayas.app", "www.himalayas.app"}:
+            try:
+                parsed_url = urlparse(application_link)
+                safe_application_link = (
+                    len(application_link) <= 2048
+                    and parsed_url.scheme.casefold() == "https"
+                    and parsed_url.hostname in {"himalayas.app", "www.himalayas.app"}
+                    and parsed_url.username is None
+                    and parsed_url.password is None
+                    and parsed_url.port in {None, 443}
+                )
+            except ValueError:
+                safe_application_link = False
+            if not safe_application_link:
                 continue
 
             description = clean_html_text(str(row.get("description") or row.get("excerpt") or ""))

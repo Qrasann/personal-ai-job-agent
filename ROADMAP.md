@@ -125,6 +125,9 @@ Source robustness: IMPLEMENTED safe handling of malformed optional RemoteOK/
 Arbeitnow tags and typed/invalid RemoteOK salary metadata, preserving valid jobs.
 RemoteOK also normalizes valid explicit publication instants and keeps invalid
 or timezone-less dates unknown.
+Himalayas accepts only bounded HTTPS application links for its official host,
+without embedded credentials or nonstandard ports; rejected feed links are not
+persisted. Live availability and source permissions still need runtime review.
 Source refresh identity now requires nonempty country and city before replacing
 an established canonical fingerprint; PostgreSQL regression confirms blank
 location updates preserve the known identity. Wider cross-source source quality

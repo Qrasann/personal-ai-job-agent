@@ -71,6 +71,30 @@ def test_himalayas_keeps_only_selected_location_restrictions_and_preserves_salar
     assert worldwide.url.startswith("https://himalayas.app/")
 
 
+@pytest.mark.parametrize("application_link", [
+    "https://user:secret@himalayas.app/companies/example/jobs/1",
+    "https://himalayas.app:8443/companies/example/jobs/1",
+    "https://himalayas.app:bad/companies/example/jobs/1",
+    "https://evil.example/companies/example/jobs/1",
+    "http://himalayas.app/companies/example/jobs/1",
+])
+def test_himalayas_rejects_unsafe_application_links(application_link):
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    job = listing("unsafe", "DevOps Engineer", [], applicationLink=application_link)
+
+    assert HimalayasSource.parse_payload({"jobs": [job]}, context) == []
+
+
+def test_himalayas_accepts_https_application_link_without_credentials_or_nonstandard_port():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    job = listing("safe", "DevOps Engineer", [])
+
+    parsed = HimalayasSource.parse_payload({"jobs": [job]}, context)
+
+    assert len(parsed) == 1
+    assert parsed[0].url == job["applicationLink"]
+
+
 def test_himalayas_accepts_documented_country_object_shape():
     jobs = HimalayasSource.parse_payload(
         {"jobs": [listing("am", "DevOps Engineer", [{"alpha2": "AM", "name": "Armenia", "slug": "armenia"}])]},
