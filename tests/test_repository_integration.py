@@ -4,12 +4,12 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy import text
+from sqlalchemy import event, text
 from sqlalchemy.exc import DBAPIError
 
 from app.database import repository as repo
 from app.database.migrations import apply_migrations
-from app.database.models import Application, Base, CandidateFact, SchemaMigration
+from app.database.models import Application, ApplicationStatusEvent, Base, CandidateFact, SchemaMigration
 from app.domain.jobs import NormalizedJob
 from app.domain.application_package import snapshot_vacancy
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
@@ -190,6 +190,50 @@ async def _concurrent_application_status_flow(monkeypatch):
             "prepared", "reviewed",
         ]
         assert (await repo.get_application(user.id, application.id)).status == "reviewed"
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_application_status_and_history_roll_back_together_on_event_failure(monkeypatch):
+    _require_test_database()
+    asyncio.run(_application_status_rollback_flow(monkeypatch))
+
+
+async def _application_status_rollback_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        user = await repo.create_user("status-rollback-user", "Status Rollback")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="status-rollback", source_job_id="1", title="Linux role",
+        ))
+        application = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="status-rollback", status="prepared",
+        )
+
+        def reject_interview_event(session, flush_context, instances):
+            if any(
+                isinstance(item, ApplicationStatusEvent) and item.status == "interview"
+                for item in session.new
+            ):
+                raise RuntimeError("injected status history failure")
+
+        event.listen(AsyncSession.sync_session_class, "before_flush", reject_interview_event)
+        try:
+            with pytest.raises(RuntimeError, match="injected status history failure"):
+                await repo.set_application_status(user.id, application.id, "interview")
+        finally:
+            event.remove(AsyncSession.sync_session_class, "before_flush", reject_interview_event)
+
+        saved = await repo.get_application(user.id, application.id)
+        history = await repo.application_status_history(user.id, application.id)
+        assert saved.status == "prepared"
+        assert [item.status for item in history] == ["prepared"]
     finally:
         await engine.dispose()
 

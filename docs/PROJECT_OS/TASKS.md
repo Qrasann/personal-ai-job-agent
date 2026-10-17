@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-17 — Application tracking rollback acceptance
+
+- [x] Inject status-history insert failure and verify the current status and append-only timeline roll back together in isolated PostgreSQL.
+- [x] Targeted fault-injection test 1 passed; full isolated PostgreSQL suite 1139 passed.
+- [ ] Continue Source Intelligence with a concrete, locally reproducible adapter/parsing gap; keep live source relevance and HH root cause gated on authorized runtime evidence.
+
 ## 2026-10-17 — Application Package delivery retry safety
 
 - [x] Distinguish `/prepare` failures before persistence from Telegram delivery failures after durable save; point to `/applications` and warn that repeating preparation creates a second draft. Test command and callback delivery failures.

@@ -1,3 +1,7 @@
+## 2026-10-17 — Application tracking status/history transaction acceptance
+
+Added isolated PostgreSQL fault injection at status-history event flush. A failed `interview` event leaves the Application status at `prepared` and preserves only its initial history event, confirming the repository's status and append-only history write roll back together. Existing owner scope, duplicate transition and concurrent identical-update coverage remains unchanged. Targeted fault test: 1 passed; full isolated PostgreSQL suite: 1139 passed. No application workflow/schema change.
+
 ## 2026-10-17 — bound unconfirmed resume-import previews
 
 The import handler expired a preview only when its token was used or a new upload arrived, but had no upper count for recent drafts containing up to 100k extracted characters each. Added 15-minute expiry cleanup, eight active previews per owner and 64 total; oldest unused preview is evicted first. Regression checks preserve another user's preview, remove expired data and enforce the global cap. No resume/fact persistence or database schema change. Targeted 17; full isolated PostgreSQL 1136 passed.
@@ -2664,3 +2668,6 @@ PostgreSQL: 988 passed.
 ## 2026-10-17 — distinguish saved `/prepare` drafts from Telegram delivery failures
 
 The package is committed before Telegram sends/edits its preview. A delivery exception was rendered like a pre-save failure, even though `/prepare` again would create another draft. Both command and callback now report that the draft is already saved, direct the owner to `/applications`, and disclose that repeating `/prepare` creates a new draft. No persistence semantics, schema or outbound application action changed. Regression tests cover both post-save delivery failures and verify no second preparation call. Targeted 47 passed; unit suite 1124 passed/14 skipped; isolated PostgreSQL suite 1138 passed. Compileall, diff check and secret scan passed; isolated test container stopped.
+## 2026-10-17 — Application tracking status/history transaction acceptance
+
+Added isolated PostgreSQL fault injection at status-history event flush. A failed `interview` event leaves the Application status at `prepared` and preserves only its initial history event, confirming the repository's status and append-only history write roll back together. Existing owner scope, duplicate transition and concurrent identical-update coverage remains unchanged. Targeted fault test: 1 passed; full isolated PostgreSQL suite: 1139 passed. No application workflow/schema change.
