@@ -133,6 +133,8 @@ availability and source permissions still need runtime review.
 Vacancy details, job-list attribution and application-package previews share a
 bounded HTTP(S) URL validator; unsafe schemes, credentials, malformed
 authorities and oversized links are not rendered as clickable links.
+EURES application instructions now use a matching bounded HTTPS validator at
+ingestion and fall back to the official portal when a link is invalid.
 Source refresh identity now requires nonempty country and city before replacing
 an established canonical fingerprint; PostgreSQL regression confirms blank
 location updates preserve the known identity. Wider cross-source source quality

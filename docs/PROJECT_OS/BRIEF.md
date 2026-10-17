@@ -1,6 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
+- Current uncommitted EURES application-link validation preserves the portal fallback when untrusted/oversized targets are rejected. Targeted 69 passed; full isolated PostgreSQL 1170 passed. Stop test DB and commit only owned files after final gates.
 - Current uncommitted source-link hardening: unsafe HTTP link values are no longer rendered clickable in vacancy details/list or `/prepare`. Link suites 112 passed, full isolated suite 1164 passed, added link regressions 6 passed. Stop DB confirmed; checkpoint after final gates.
 - Current uncommitted EURES freshness fix rejects boolean `creationDate`; normal numeric epoch milliseconds are unchanged. EURES tests 21 passed; full isolated PostgreSQL suite 1161 passed. Stop test DB and checkpoint after gates.
 - Latest local checkpoints: `1cb278c` tightens GitLab CI Candidate Fit context; `bc8a68c` prevents EURES Java/JavaScript substring leakage; `23b5418` isolates malformed optional EURES search metadata so valid siblings survive. Candidate Fit neighboring tests 101 passed; EURES tests 19 passed; latest full isolated PostgreSQL suite 1159 passed. Test DB stopped; none of these fixture checks are live acceptance.

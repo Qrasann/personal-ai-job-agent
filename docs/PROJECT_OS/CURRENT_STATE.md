@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — EURES application-link validation
+
+EURES no longer persists untrusted application instructions containing unsafe schemes, credentials, malformed authorities/ports or URLs too long for the Telegram link renderer. A rejected link leaves the known official EURES portal destination intact, so the vacancy remains accessible. EURES/vacancy-link tests: 69 passed; full isolated PostgreSQL suite: 1170 passed. No link was fetched or opened.
+
 ## 2026-10-17 — safe source URL rendering
 
 Telegram vacancy details previously emitted any stored URL as an HTML link. A shared bounded HTTP(S) validator now rejects unsafe schemes, protocol-relative URLs, userinfo, malformed authorities and oversized/control-character values in vacancy details, source attribution lists and `/prepare` preview. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link regressions: 6 passed. External links remain user-opened; no network navigation or employer action occurs.

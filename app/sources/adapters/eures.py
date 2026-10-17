@@ -137,6 +137,29 @@ class EuresSource(JobSource):
         except (OverflowError, OSError, ValueError):
             return None
 
+    @staticmethod
+    def _safe_application_url(value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        target = value.strip()
+        # Match Telegram's clickable-link budget so a stored application URL
+        # is not silently hidden later by the vacancy renderer.
+        if not target or len(target) > 600 or any(ord(char) < 33 or ord(char) == 127 for char in target):
+            return None
+        try:
+            parsed = urlparse(target)
+            parsed.port  # Validate malformed/out-of-range port syntax.
+        except ValueError:
+            return None
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            return None
+        return target
+
     @classmethod
     def enrich(cls, job: NormalizedJob, payload: dict) -> NormalizedJob:
         if not isinstance(payload, dict) or not isinstance(payload.get("jvProfiles"), dict):
@@ -173,8 +196,9 @@ class EuresSource(JobSource):
             soup = BeautifulSoup(str(instruction), "html.parser")
             for anchor in soup.select("a[href]"):
                 target = str(anchor.get("href") or "")
-                if urlparse(target).scheme == "https" and urlparse(target).netloc:
-                    job.url = target
+                safe_target = cls._safe_application_url(target)
+                if safe_target:
+                    job.url = safe_target
                     break
             if job.url != cls.portal_url:
                 break

@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 EURES application links
+
+Starting checkpoint `5af3361` (shared Telegram link rendering validation). EURES could persist credential-bearing application links and malformed IPv6 values could raise during detail parsing. EURES now accepts bounded HTTPS links without userinfo and falls back to the official portal otherwise; the limit matches Telegram clickability. Targeted EURES/vacancy-link tests 69 passed; latest full isolated PostgreSQL suite 1170 passed. Current code/docs require final gates and a local checkpoint; stop test DB before handoff. No URL was fetched/opened and no employer action occurred. Next: continue a distinct offline Relocation-first evidence bug review.
+
 ## Current entry point — 2026-10-17 safe Telegram source links
 
 Starting checkpoint `8fd949c`. Reproduced that vacancy details made `javascript:`, credential-bearing and protocol-relative source URLs clickable. A shared bounded HTTP(S) validator now checks vacancy details, job-list source attribution and `/prepare` preview, rejecting unsafe schemes, userinfo, malformed authorities and oversized/control-character URLs. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link cases: 6 passed. Full suite ran on isolated DB; it has been stopped. No outbound requests, source scraping, applications, schema or production changes. Final gates and local checkpoint remain. Next: continue a separate offline Relocation-first evidence case; no live eligibility claims.

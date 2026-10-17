@@ -1,3 +1,7 @@
+## 2026-10-17 — validate EURES application destinations
+
+Red regression: EURES accepted credential-bearing HTTPS application links and malformed IPv6 authority parsing could fail detail enrichment. A bounded HTTPS validator now requires a valid hostname, rejects userinfo/control characters/malformed authority and caps URL length to the Telegram link budget. Invalid targets fall back to the official EURES portal. EURES/vacancy-link tests: 69 passed; full isolated PostgreSQL suite: 1170 passed. No external navigation or request to an extracted URL.
+
 ## 2026-10-17 — safe Telegram source URL rendering
 
 Red regression: vacancy details rendered arbitrary stored URLs as clickable HTML, including javascript schemes, credential-bearing and protocol-relative values. A shared bounded HTTP(S) validator now covers details, source attribution and prepare preview. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link cases: 6 passed. No outbound requests.

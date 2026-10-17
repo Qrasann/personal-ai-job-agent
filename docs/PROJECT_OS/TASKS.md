@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — validate EURES application destinations before persistence
+
+- [x] Reproduce EURES retaining credential-bearing HTTPS targets and failing detail enrichment on malformed IPv6 authorities.
+- [x] Accept bounded HTTPS URLs with a hostname and no userinfo; otherwise retain the official EURES portal fallback, including for URLs exceeding Telegram's link limit.
+- [x] EURES/vacancy-link tests: 69 passed; full isolated PostgreSQL suite: 1170 passed.
+- [ ] Continue offline Relocation-first evidence review; external links and job eligibility still require human confirmation.
+
 ## 2026-10-17 — validate source links before Telegram rendering
 
 - [x] Reproduce vacancy details rendering `javascript:`, credential-bearing and protocol-relative source URLs as clickable HTML.

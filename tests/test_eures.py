@@ -95,6 +95,32 @@ def test_eures_flag_is_not_visa_or_relocation_support():
     assert job.raw["evidence_url"].endswith(job.source_job_id + "?requestLang=en")
 
 
+@pytest.mark.parametrize("target", [
+    "https://user:password@careers.example.org/123",
+    "javascript:alert(1)",
+    "https://[invalid/123",
+])
+def test_eures_ignores_unsafe_application_instruction_links(target):
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+
+    enriched = EuresSource.enrich(job, details(
+        applicationInstructions=[f'<a href="{target}">Apply</a>']
+    ))
+
+    assert enriched.url == EuresSource.portal_url
+
+
+def test_eures_long_application_url_uses_portal_fallback_to_preserve_clickability():
+    target = "https://careers.example.org/" + "x" * 600
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+
+    enriched = EuresSource.enrich(job, details(
+        applicationInstructions=[f'<a href="{target}">Apply</a>']
+    ))
+
+    assert enriched.url == EuresSource.portal_url
+
+
 def test_eures_city_collapses_source_padding_before_storage():
     padded = "CAHERCALLA COMMUNITY HOSPITAL" + (" " * 300) + "Cahercalla Comm Hosp, Co. Clare V95 NR59"
     job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
