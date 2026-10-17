@@ -62,7 +62,7 @@
 - [x] Reproduce visa, work authorization and citizenship questions accepted as non-sensitive when model returned `requires_human=false`.
 - [x] Add narrow English/Russian markers that force human review; no automatic replies enabled.
 - [x] Recruiter tests: 15 passed; full unit suite 1257 passed/21 skipped; compileall, diff check and secret scan passed.
-- [ ] Commit/publish PR to feature, wait for all CI, merge, then continue roadmap.
+- [x] Publish PR #44 to feature and merge after CI (GitHub verified 2026-10-17); next tasks follow the unified root ROADMAP priorities.
 
 ## 2026-10-17 — Application Package Telegram failure integration
 
