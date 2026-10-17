@@ -255,22 +255,23 @@ class EuresSource(JobSource):
                     found.setdefault(job.source_job_id, job)
             if successful_searches == 0 and source_errors:
                 raise source_errors[-1]
-            enriched = []
-            detail_errors: list[Exception] = []
-            for job in list(found.values())[: self.max_details]:
+            candidates = list(found.values())[: self.max_details]
+            enriched_by_id: dict[str, NormalizedJob] = {}
+            for job in candidates:
                 try:
                     response = await self._request_with_retry(client.get, job.raw["evidence_url"])
                     enriched_job = self.enrich(job, response.json())
                 except (httpx.HTTPError, ssl.SSLError, ValueError, TypeError, KeyError, AttributeError) as exc:
-                    detail_errors.append(exc)
                     self.discovery_diagnostics.append({**classify_source_error(exc, action="continue_partial"), "operation": "detail_request"})
                     self.partial_failures += 1
                     log.warning(
-                        "EURES detail request failed (%s); skipping vacancy",
+                        "EURES detail request failed (%s); retaining search summary",
                         f"HTTP {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__,
                     )
                     continue
-                enriched.append(enriched_job)
-            if not enriched and detail_errors:
-                raise detail_errors[-1]
-            return enriched
+                enriched_by_id[job.source_job_id] = enriched_job
+            # Search cards already contain the employer's cross-border marker,
+            # title, description and official portal fallback. A failed detail
+            # lookup must mark the collection partial, not erase that valid
+            # search evidence (including when every detail request fails).
+            return [enriched_by_id.get(job.source_job_id, job) for job in candidates]

@@ -57,6 +57,14 @@
 
 # Tasks
 
+## 2026-10-17 — retain EURES search cards when detail enrichment fails
+
+- [x] Reproduce valid EURES search cards being dropped after detail 404/503, including a total detail outage that failed the entire source.
+- [x] Return search-level cards with official EURES fallback links when detail enrichment fails; keep successfully enriched cards, partial counters and per-detail diagnostics.
+- [x] EURES tests: 26 passed; full isolated PostgreSQL suite: 1235 passed; test database stopped; compileall, diff check and secret scan passed.
+- [ ] Save local checkpoint and publish PR to feature; wait for CI.
+- [ ] Continue another independent Source Intelligence/Candidate Fit improvement.
+
 ## 2026-10-17 — keep local work-authorization gates visible in remote eligibility
 
 - [x] Reproduce worldwide boilerplate overriding an explicit existing Canadian work-authorization prerequisite and yielding a false `eligible=yes`.
