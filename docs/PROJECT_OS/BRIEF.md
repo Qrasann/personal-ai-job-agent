@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; checkpoint `4855f2b`, 63 commits ahead of `origin/feature/v3.5.7-international-market-coverage`; PR #32 is open and all three checks passed on that checkpoint. The current local follow-up Candidate Fit change has full isolated PostgreSQL suite 1230 passed and is not yet pushed. Proposal files remain untouched and untracked. No live acceptance.
+- Branch `work/v357-rejection-diagnostics`; HEAD `098497a`, 64 commits ahead of `origin/feature/v3.5.7-international-market-coverage`; PR #32 is open with a fresh CI run queued. Full isolated PostgreSQL suite: 1230 passed; focused fact-comparison/model tests: 63 passed; compileall, diff check and secret scan passed. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
