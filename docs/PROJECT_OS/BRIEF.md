@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; code checkpoint `90b3ed5`, 53 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work adds an uncommitted Remotive relocation-evidence fix and regression; the two user proposal files remain untouched and untracked. Latest full isolated PostgreSQL suite on this code: 1205 passed; focused relocation/source suites: 160 passed; compileall, diff check and secret scan passed. Test DB stopped. No live acceptance.
+- Branch `work/v357-rejection-diagnostics`; HEAD `69382f0`, 54 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work adds a PostgreSQL rediscovery/provider-ID regression for Remotive remote scope; the two user proposal files remain untouched and untracked. Latest full isolated PostgreSQL suite: 1206 passed; focused relocation/source suites: 160 passed; compileall, diff check and secret scan passed. Test DB stopped. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

@@ -805,6 +805,59 @@ def test_repeated_source_upsert_refreshes_job_without_losing_cache_or_applicatio
     asyncio.run(_repeated_source_upsert_flow(monkeypatch))
 
 
+@pytest.mark.integration
+def test_remotive_candidate_location_stays_remote_scope_after_provider_rediscovery(monkeypatch):
+    _require_test_database()
+    asyncio.run(_remotive_remote_scope_rediscovery_flow(monkeypatch))
+
+
+async def _remotive_remote_scope_rediscovery_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+
+        original = NormalizedJob(
+            source="remotive", source_job_id="remotive-posting-old",
+            title="DevOps Engineer", company="Example Corp",
+            description="Remote infrastructure role", country="GE",
+            work_mode="remote", remote_scope="Georgia",
+            raw={"candidate_required_location": "Georgia"},
+        )
+        job, created = await repo.upsert_job(original)
+        assert created
+        first_ref = await repo.source_ref(job.id, "remotive", source_job_id="remotive-posting-old")
+        first_evidence = first_ref.raw["relocation_evidence_v1"]["fields"]["work_country"]
+        assert first_ref.raw["normalized_posting_v1"]["remote_scope"] == "Georgia"
+        assert first_evidence["status"] == "unknown"
+        assert first_evidence["value"] is None
+
+        rediscovered = NormalizedJob(
+            source="remotive", source_job_id="remotive-posting-new",
+            title="DevOps Engineer", company="Example Corp",
+            description="Remote infrastructure role, refreshed", country="GE",
+            work_mode="remote", remote_scope="Georgia",
+            raw={"candidate_required_location": "Georgia", "revision": "new"},
+        )
+        same_job, created = await repo.upsert_job(rediscovered)
+        assert not created and same_job.id == job.id
+        new_ref = await repo.source_ref(job.id, "remotive", source_job_id="remotive-posting-new")
+        selected_ref = await repo.source_ref(job.id, "remotive")
+        assert new_ref.source_job_id == "remotive-posting-new"
+        assert new_ref.raw["revision"] == "new"
+        assert new_ref.raw["normalized_posting_v1"]["remote_scope"] == "Georgia"
+        assert new_ref.raw["relocation_evidence_v1"]["fields"]["work_country"]["status"] == "unknown"
+        assert selected_ref.source_job_id == "remotive-posting-new"
+        assert source_posting_view(same_job, selected_ref).remote_scope == "Georgia"
+    finally:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine.dispose()
+
+
 async def _repeated_source_upsert_flow(monkeypatch):
     engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
     test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
