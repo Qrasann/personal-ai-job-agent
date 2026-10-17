@@ -1,7 +1,13 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## Active checkpoint (2026-10-17)
+- Feature branch is synced at `0a35f9e` (PR #32 merged). Current work branch: `work/candidate-import-idempotency`, based on that feature commit. Full isolated PostgreSQL suite after this branch's current Candidate Facts change: 1233 passed; targeted race/Telegram tests passed (28); compileall, diff check and secret scan passed. The isolated test container is stopped.
+- Candidate resume import now rechecks `(profile, imported source, content fingerprint)` while holding the candidate profile row lock. Concurrent confirmations persist exactly one resume/fact set; the losing Telegram confirmation reports the existing resume ID and consumes its stale preview. No schema change.
+- PR #31 and #27 were closed as superseded by PR #32; PR #18 still targets `main` and must not be merged. Production, `main`, runtime, and user proposals were untouched.
+- Next: commit this focused increment, publish a PR to the feature branch under the standing owner authorization, wait for CI, then continue an independent Source Intelligence or Relocation-first defect.
+
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; HEAD `55a259b`, 67 commits ahead of `origin/feature/v3.5.7-international-market-coverage`; PR #32 is open and CI is running on this HEAD. Full isolated PostgreSQL suite: 1231 passed; targeted HH timeout/connection/TLS tests: 3 passed; compileall, diff check and secret scan passed. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `0a35f9e` (PR #32 merged). Current branch `work/candidate-import-idempotency` starts at `0a35f9e`; candidate-import changes are uncommitted pending local checkpoint/PR. Full isolated PostgreSQL suite on current code: 1233 passed. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

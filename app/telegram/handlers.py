@@ -938,6 +938,13 @@ async def confirm_resume_import(callback: CallbackQuery) -> None:
         _PENDING_RESUME_IMPORTS.setdefault(token, pending)
         await callback.answer(str(exc), show_alert=True)
         return
+    except repo.ResumeImportExists as exc:
+        _PENDING_RESUME_IMPORTS.pop(token, None)
+        await callback.message.edit_text(
+            f"ℹ️ Такое резюме уже импортировано (#{exc.resume_id}). Проверь /resumes."
+        )
+        await callback.answer("Импорт уже выполнен")
+        return
     except Exception:
         # The repository operation is transactional. Retain the one-time preview
         # so a transient DB failure can be retried without re-uploading the file.

@@ -2,6 +2,10 @@
 
 ## Current handoff — 2026-10-17
 
+Feature branch and origin are synced at `0a35f9e` after PR #32 merge; PR #31/#27 were superseded and closed. Current branch `work/candidate-import-idempotency` is based on that commit. Candidate Facts resume import race is fixed locally: repository transaction locks the candidate profile and rechecks imported source/fingerprint; a concurrent duplicate returns the saved resume ID and Telegram clears the stale confirmation preview. Targeted tests: 28 passed; full isolated PostgreSQL suite: 1233 passed; `compileall`, diff check and secret scan passed. Test container stopped. No schema changes, production changes, or external actions. Two user proposal files remain untracked and untouched. Next: inspect docs/code diff, commit only the four owned code/test files plus PROJECT_OS updates, push this branch and open a PR to feature; await CI. Then continue a concrete offline Source Intelligence/Relocation-first issue. PR #18 still targets `main`; do not merge it.
+
+## Current handoff — 2026-10-17
+
 Branch `work/v357-rejection-diagnostics`; HEAD `55a259b`, 67 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, none behind at last fetch. PR #32 targets feature and CI is running on this exact head (prior head `4a15adb` passed Python, Docker build and secret scan). The branch includes atomic/idempotent `/prepare`, v8 application-history protection, Russian Linux/Docker/Kubernetes Candidate Fit aliases, and HH ConnectTimeout cooldown. Full isolated PostgreSQL suite: 1231 passed; targeted package tests 58, Candidate Fit/model tests 63, HH timeout/ConnectError/TLS tests 3; compileall, diff check and secret scan passed. Isolated PostgreSQL container is stopped. PR #31 and #27 remain open; their equivalent behavior is in #32 and should be marked superseded only after #32 merges. PR #18 still targets `main`; do not merge it or alter `main`. Only untracked files are the untouched user proposals. Production runtime/DB/volumes unchanged. Next: await #32 CI; if green, merge to feature, then close #31/#27 as superseded and continue Source Intelligence/Relocation-first.
 
 ## Historical handoff entries

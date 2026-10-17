@@ -2800,3 +2800,6 @@ Red regression: under Requirements, “Linux experience would be an advantage”
 ## 2026-10-17 — classify explicit skill advantage wording as preferred
 
 Red regression: under Requirements, “Linux experience would be an advantage” was classified required. Added skill-local English advantage/beneficial forms and Russian “будет преимуществом” as preferred cues. Fact-comparison/interview/resume tests: 80 passed; full unit suite: 1186 passed, 17 skipped. Compileall, diff check and secret scan passed. Local code checkpoint `74015e4`; no scoring threshold or weight change.
+## 2026-10-17 — serialize duplicate Candidate Facts resume imports
+
+Reproduced concurrent Telegram confirmations of the same resume fingerprint passing the UI precheck and inserting duplicate resume/fact records. `add_imported_resume_with_facts` now locks the candidate profile and rechecks the imported fingerprint in the same transaction. The loser receives a typed duplicate result; the handler reports the existing resume ID and clears its stale preview. Targeted tests: 28 passed; full isolated PostgreSQL suite: 1233 passed; compileall, diff check and secret scan passed. No schema/production changes. Next: checkpoint and PR/CI, then continue Source Intelligence or Relocation-first.

@@ -57,6 +57,14 @@
 
 # Tasks
 
+## 2026-10-17 — serialize duplicate Candidate Facts resume imports
+
+- [x] Reproduce two simultaneous confirmations of one resume fingerprint creating duplicate `ResumeProfile` rows and imported facts.
+- [x] Recheck profile/source/fingerprint inside the repository transaction while locking the candidate profile; return the existing resume ID to the losing Telegram confirmation and consume its stale preview.
+- [x] Targeted Telegram/repository integration checks: 28 passed; full isolated PostgreSQL suite: 1233 passed; compileall, diff check and secret scan passed. No schema change; isolated test DB stopped.
+- [ ] Save the focused local checkpoint, publish PR against the feature branch, and wait for CI.
+- [ ] Continue the next distinct Source Intelligence or Relocation-first regression.
+
 ## 2026-10-17 — bound HH ConnectTimeout retries
 
 - [x] Reproduce the same HH ConnectTimeout being attempted once per search profile in one scan.

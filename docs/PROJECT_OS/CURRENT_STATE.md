@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — make concurrent resume import confirmation idempotent
+
+Two confirmations for the same uploaded resume could pass the Telegram precheck concurrently and persist duplicate resume/fact rows. The repository now locks the candidate profile and checks the imported source/fingerprint inside the same transaction before applying facts. The loser gets the existing resume ID; Telegram reports the already-imported item and clears its stale preview. Targeted Telegram/repository tests: 28 passed; full isolated PostgreSQL suite: 1233 passed; compileall, diff check and secret scan passed. No schema or production change. Current feature base: `0a35f9e`; current branch: `work/candidate-import-idempotency`. Next: checkpoint/PR and CI, then a distinct offline Source Intelligence or Relocation-first issue.
+
 ## 2026-10-17 — cool down HH after connection timeouts
 
 Regression reproduced HH `ConnectTimeout` being retried for every enabled search profile in one scan because `_discover_hh` only started its backoff for `ConnectError`. HH discovery now applies the existing bounded 15-minute cooldown to both connection error classes. The first timeout remains visible as `NETWORK_CONNECT_TIMEOUT`; a later profile is skipped without a duplicate connection, while unrelated sources continue. Existing ConnectError and TLS-diagnostic behavior remains covered. Targeted tests: 3 passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check and secret scan passed. No live HH request or production change.

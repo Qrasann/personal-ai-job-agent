@@ -36,6 +36,14 @@ class FactUpdateConflict(ValueError):
     """An import UPDATE no longer matches the reviewed active fact."""
 
 
+class ResumeImportExists(ValueError):
+    """The same resume fingerprint was already stored for this profile."""
+
+    def __init__(self, resume_id: int):
+        self.resume_id = resume_id
+        super().__init__("Такое резюме уже импортировано.")
+
+
 async def get_user_by_chat(chat_id: int | str) -> User | None:
     async with SessionLocal() as session:
         return await session.scalar(select(User).where(User.telegram_chat_id == str(chat_id), User.deleted_at.is_(None)))
@@ -162,6 +170,23 @@ async def add_imported_resume_with_facts(
     if len(replacement_ids) != len(set(replacement_ids)):
         raise FactUpdateConflict("Для одного факта выбери только один UPDATE.")
     async with SessionLocal() as session:
+        # Serialize imports for one candidate profile. The UI's duplicate
+        # precheck is not a concurrency boundary: two previews can confirm at
+        # once, so recheck the fingerprint under this transaction lock.
+        profile = await session.scalar(
+            select(CandidateProfile).where(CandidateProfile.id == profile_id).with_for_update()
+        )
+        if profile is None:
+            raise ValueError("Профиль кандидата не найден.")
+        duplicate = await session.scalar(
+            select(ResumeProfile).where(
+                ResumeProfile.profile_id == profile_id,
+                ResumeProfile.source == "imported",
+                ResumeProfile.external_id == external_id,
+            ).limit(1)
+        )
+        if duplicate is not None:
+            raise ResumeImportExists(duplicate.id)
         for replacement in sorted(replacements, key=lambda item: item["existing_id"]):
             existing = await session.scalar(
                 select(CandidateFact).where(
