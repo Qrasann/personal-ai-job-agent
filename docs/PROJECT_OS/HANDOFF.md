@@ -2,7 +2,7 @@
 
 ## Current entry point — 2026-10-17 source first-seen provenance
 
-Branch `work/v357-rejection-diagnostics`; checkpoint before this increment was `41a63a1`. Vacancy details now show stable `JobSourceRef.first_seen_at` for “Источник обнаружен”; they no longer reuse the refreshed `relocation_evidence_v1.captured_at`. Legacy naive UTC timestamps are serialized with `+00:00`. Evidence capture remains independently available. Targeted detail/service tests 49 passed, full isolated PostgreSQL suite 1154 passed, compileall and `git diff --check` passed. No schema, live source, production, Telegram send or external change. Isolated test DB was started solely for tests and must be stopped before handoff. Next: check source adapter freshness/provenance and Candidate Fit for a distinct local regression; keep live yield blocked pending authorized runtime evidence.
+Branch `work/v357-rejection-diagnostics`; latest local code checkpoint `b9e280f`. Vacancy details now show stable `JobSourceRef.first_seen_at` for “Источник обнаружен”; they no longer reuse the refreshed `relocation_evidence_v1.captured_at`. Legacy naive UTC timestamps are serialized with `+00:00`. Evidence capture remains independently available. Targeted detail/service tests 49 passed, full isolated PostgreSQL suite 1154 passed, compileall, diff check and secret scan passed. The isolated test DB is stopped. No schema, live source, production, Telegram send or external change. Next: identify a distinct offline Source Intelligence or Candidate Fit regression; preserve uncertain relocation eligibility and keep live yield blocked pending authorized runtime evidence.
 
 ## Current entry point — 2026-10-17 source relevance
 
