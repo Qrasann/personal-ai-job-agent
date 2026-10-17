@@ -57,6 +57,8 @@ def test_standalone_docker_remains_a_separate_requirement_from_docker_compose():
     "a network of professional contacts",
     "networking with key stakeholders",
     "a nationwide network of clinics and hospitals",
+    "a network of medical professionals",
+    "a network of physicians and nurses",
 ])
 def test_professional_contact_network_does_not_create_technical_networking_requirement(phrase):
     vacancy = f"Requirements: {phrase} is required."

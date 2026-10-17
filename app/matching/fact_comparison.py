@@ -189,7 +189,8 @@ def _matches_skill(text: str, spec: SkillSpec) -> bool:
             r"\b(?:professional|business|industry|sales|personal|client|customer) network\b|"
             r"\bnetwork of (?:(?:industry|professional|business|sales|local) )?"
             r"(?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders|"
-            r"clinics?|hospitals?|medical centers?|healthcare providers?|care providers?|schools?|universities|pharmacies)\b|"
+            r"clinics?|hospitals?|medical centers?|medical professionals?|physicians?|doctors?|nurses?|"
+            r"healthcare providers?|care providers?|schools?|universities|pharmacies)\b|"
             r"\bnetworking with (?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders)\b",
             " ", text or "", flags=re.I,
         )

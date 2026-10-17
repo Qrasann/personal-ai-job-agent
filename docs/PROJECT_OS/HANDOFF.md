@@ -2,7 +2,7 @@
 
 ## Current handoff — 2026-10-17
 
-Feature branch/origin is synced at `52aeb1c`. PR #35 merged after all checks passed; PR #34 is also integrated, and PR #31/#27 were superseded. PR #18 still targets `main`; do not merge it. Current branch `work/eures-search-card-coverage` starts at `52aeb1c`. EURES change is uncommitted: all validated cards from bounded search responses now survive the detail enrichment cap; at most eight detail requests still run. Red test covered five cards/two details. EURES tests 27 passed; full isolated PostgreSQL suite 1238 passed; test DB stopped; compileall, diff check and secret scan passed. Next: inspect and document diff, commit only owned code/test/PROJECT_OS files, push/open PR to feature, wait for CI, then continue another source-quality/Candidate Fit issue. Production/runtime and user proposal files untouched.
+Feature branch/origin is synced at `ab00d5d`. PR #36 merged after CI; its EURES fix returns all validated search cards from bounded pages while keeping detail HTTP requests capped at eight. PR #35 and PR #34 are integrated; PR #31/#27 were superseded. PR #18 still targets `main`; do not merge it. Current branch `work/candidate-fit-healthcare-networks`, HEAD `6159bc0`; PR #37 targets feature and CI is running. Candidate Fit excludes explicit medical-professional, physician, doctor and nurse networks from technical Networking while retaining routing/firewall requirements. Targeted tests 91 passed; full isolated PostgreSQL suite 1240 passed; DB stopped; compileall, diff check and secret scan passed. Next: wait for PR #37 CI and integrate if all checks pass, then continue another useful roadmap task. Production/runtime untouched.
 
 ## Current handoff — 2026-10-17
 
