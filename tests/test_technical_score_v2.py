@@ -56,12 +56,19 @@ def test_standalone_docker_remains_a_separate_requirement_from_docker_compose():
     "an established network of industry contacts",
     "a network of professional contacts",
     "networking with key stakeholders",
+    "a nationwide network of clinics and hospitals",
 ])
 def test_professional_contact_network_does_not_create_technical_networking_requirement(phrase):
     vacancy = f"Requirements: {phrase} is required."
 
     assert compare_facts(vacancy, []).requirements == ()
     assert score_technical_v2(vacancy, []) is None
+
+
+def test_technical_network_and_firewall_requirement_is_not_filtered_as_an_organization_network():
+    result = compare_facts("Requirements: Configure network routing and firewall rules.", [])
+
+    assert [(item.skill, item.importance) for item in result.requirements] == [("Networking", "required")]
 
 
 def test_explicit_required_alternative_counts_as_one_scoring_choice():
