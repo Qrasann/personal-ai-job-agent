@@ -2141,7 +2141,7 @@ async def channel_post(message: Message, bot: Bot) -> None:
     if not text.strip():
         return
     await consume_channel_post(bot, chat_id=message.chat.id, username=message.chat.username,
-                               message_id=message.message_id, text=text)
+                               message_id=message.message_id, text=text, published_at=message.date)
 
 
 @router.message(Command("channels"))

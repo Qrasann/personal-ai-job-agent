@@ -1,4 +1,43 @@
-# Telegram Channel Watch — Bot API stage
+# Telegram Channel Watch — Bot API and optional local folder intake
+
+## Optional Telegram folder user client (offline-tested; live acceptance pending)
+
+The private folder intake uses Telegram's official `chatlists.checkChatlistInvite`
+preview through optional Telethon 1.x. It does not import the folder, join chats,
+send user-account messages, or read private conversations. Install locally with
+`.venv/bin/python -m pip install -r requirements-telegram-user.txt`. Obtain an
+owner-controlled API ID/hash from my.telegram.org and set `TELEGRAM_API_ID` and
+`TELEGRAM_API_HASH` locally; never commit them or the session. From the repo root,
+run `.venv/bin/python scripts/telegram-folder-watch inspect`, approve the
+interactive account sign-in on the user's computer, and enter the folder link
+at the hidden prompt. The private inventory appears under
+`~/.local/share/personal-ai-job-agent/telegram-folder/folder.json` (0600). It
+contains Telegram-reported numeric IDs, usernames, types and preview status;
+all channels start disabled. A preview is not proof of joined/read access.
+
+Review the inventory locally, select only accessible broadcast channels by
+setting `enabled: true` and a `career`, `relocation` or `both` scope. Supergroups
+and peers no longer joined are excluded. Run `.venv/bin/python
+scripts/telegram-folder-watch watch` only after configuring the existing bot
+database and owner ID. The runner rechecks the folder preview and current IDs,
+uses a Telethon NewMessage filter for selected peers, and hands selected new
+posts to the existing `telegram_watch.consume_channel_post` pipeline. It has no
+history backfill or edit replay. Bot notifications still use the normal bot
+pipeline; the user client itself does not send. Only known public usernames
+produce public post links. No folder invite, API credentials or session belong
+in GitHub or logs. A single local runner is expected; do not launch duplicates.
+
+Source identity is `channel:<numeric ID>:<message ID>`, with Telegram's post
+date saved in UTC and retained in the bounded retry queue. Explicitly labeled
+candidate CV posts and ads are counted separately and skipped. Other posts are
+vacancy **candidates**, not verified job offers; Good/Stretch count profile
+assessments and can exceed unique posts. Live false-positive/yield measurement
+and safe restart catch-up are still required before broad rollout. Telegram
+API terms and rate limits apply; no account login or live channel read was done
+in the offline implementation checkpoint.
+
+Official method: https://core.telegram.org/method/chatlists.checkChatlistInvite
+and user authorization: https://core.telegram.org/api/auth .
 
 Commands (registered users only):
 
@@ -11,7 +50,8 @@ This consumes new Bot API channel_post updates, including photo captions. Bot
 must have access to that channel; saving a subscription does not join the bot,
 read arbitrary public channels or scan history. Forwarded vacancies remain a
 separate manual ingestion path. No Telegram user-account/session credentials,
-MTProto history, employer applications or recruiter messages are introduced.
+MTProto history, employer applications or recruiter messages are introduced by
+the Bot API path. The optional local client above is a separate process.
 Official Bot API visibility: https://core.telegram.org/bots/faq#what-messages-will-my-bot-get
 
 Subscriptions/counters live per user in existing RuntimeState JSON. Seen events

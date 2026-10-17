@@ -1,0 +1,59 @@
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from app.sources.telegram_folder_user import folder_inventory, folder_slug, load_local_config, selected_channels
+
+
+def test_folder_slug_accepts_only_exact_telegram_folder_link():
+    assert folder_slug("https://t.me/addlist/abcdefgh") == "abcdefgh"
+    for link in ("http://t.me/addlist/abcdefgh", "https://evil.test/addlist/abcdefgh",
+                 "https://t.me/addlist/abcdefgh?join=1", "https://t.me/+abcdefgh",
+                 "https://t.me/addlist/../../other"):
+        with pytest.raises(ValueError):
+            folder_slug(link)
+
+
+def test_inventory_uses_peer_id_and_never_label_as_identity():
+    result = SimpleNamespace(chats=[
+        SimpleNamespace(id=11, title="Same", username="devops_jobs", broadcast=True),
+        SimpleNamespace(id=12, title="Same", username=None, broadcast=True),
+        SimpleNamespace(id=13, title="Private discussion", username=None, megagroup=True),
+    ])
+    inventory = folder_inventory(result, peer_id=lambda chat: -100000 - chat.id)
+    assert [item["chat_id"] for item in inventory] == [-100011, -100012, -100013]
+    assert all(not item["enabled"] and item["access"] == "not_probed" for item in inventory)
+    assert inventory[2]["chat_type"] == "supergroup"
+
+
+def test_selection_requires_current_folder_broadcast_id_and_explicit_opt_in():
+    inventory = [
+        {"chat_id": -10011, "chat_type": "broadcast", "username": "current"},
+        {"chat_id": -10012, "chat_type": "supergroup", "username": None},
+    ]
+    selected = selected_channels({"chats": [
+        {"chat_id": -10011, "username": "stale", "scope": "relocation", "enabled": True},
+        {"chat_id": -10012, "scope": "career", "enabled": False},
+    ]}, inventory)
+    assert selected == {-10011: {**inventory[0], "scope": "relocation"}}
+    for invalid_id in (-10012, -10013, True):
+        with pytest.raises(ValueError):
+            selected_channels({"chats": [{"chat_id": invalid_id, "scope": "both", "enabled": True}]}, inventory)
+
+
+def test_left_channel_is_not_enabled_from_folder_preview():
+    result = SimpleNamespace(chats=[SimpleNamespace(id=42, title="Jobs", username="jobs", broadcast=True, left=True)])
+    inventory = folder_inventory(result, peer_id=lambda chat: -100000 - chat.id)
+    assert inventory[0]["access"] == "left"
+    with pytest.raises(ValueError):
+        selected_channels({"chats": [{"chat_id": -100042, "scope": "both", "enabled": True}]}, inventory)
+
+
+def test_private_local_config_only(tmp_path: Path):
+    path = tmp_path / "folder.json"
+    path.write_text('{"folder_link":"https://t.me/addlist/abcdefgh","chats":[]}', encoding="utf-8")
+    with pytest.raises(ValueError):
+        load_local_config(path)
+    path.chmod(0o600)
+    assert load_local_config(path)["chats"] == []

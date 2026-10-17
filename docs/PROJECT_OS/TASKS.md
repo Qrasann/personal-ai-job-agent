@@ -57,6 +57,15 @@
 
 # Tasks
 
+## 2026-10-17 — Telegram Career folder watcher
+
+- [x] Inspect local 21-item manifest; all ID/username/type/access fields are unverified.
+- [x] Add optional read-only folder preview and explicit broadcast ID selection in a private local User Client; reuse the existing watcher and preserve publication date/retry identity.
+- [x] Separate explicit CV/advertising posts from possible vacancy posts; keep unknown salary unknown; add offline regressions.
+- [ ] Owner performs interactive local MTProto login with private API credentials, reviews exact IDs/types/access and enables 2–3 broadcast channels.
+- [ ] Measure live posts, true vacancies, Good/Stretch, false positives, duplicates and errors; then incrementally enable remaining verified channels. No live acceptance claimed.
+- [ ] Implement bounded downtime catch-up and edit handling after access/data-quality evidence; avoid broad history reads.
+
 ## 2026-10-17 — Recruiter work-eligibility sensitive topics
 
 - [x] Reproduce visa, work authorization and citizenship questions accepted as non-sensitive when model returned `requires_human=false`.

@@ -1,0 +1,2 @@
+# Optional local MTProto client; not installed in the main bot container.
+telethon==1.45.0

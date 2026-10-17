@@ -1,5 +1,9 @@
 # Known Issues
 
+## 2026-10-17 — Telegram folder live access and yield unverified
+
+The supplied 21-chat manifest has no numeric IDs, usernames, types or access proof. The optional user client has no local API credentials or authorized session in this development environment, so no real channel was read or joined. Folder preview alone does not prove joined access. Current intake is new-post only; downtime may miss posts, and edited posts are not replayed. The explicit non-vacancy filter is conservative; possible-vacancy counts are parser candidates, not verified job offers. Good/Stretch are profile assessments. Live 2–3-channel acceptance, false-positive review and rate-limit observation remain open.
+
 ## 2026-10-14 — remaining language and eligibility limits
 
 Language fit recognizes only an explicit CEFR token near English/«английский».

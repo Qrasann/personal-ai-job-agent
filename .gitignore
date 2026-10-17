@@ -18,6 +18,8 @@ storage/
 backups/
 logs/
 .private/
+*.session
+*.session-journal
 *.dump
 *.backup
 *.log

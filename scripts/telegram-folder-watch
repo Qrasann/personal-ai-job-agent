@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Local, opt-in Telegram folder preview and selected-channel intake."""
+from __future__ import annotations
+
+import argparse
+import asyncio
+import getpass
+import json
+import logging
+import os
+import stat
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app.sources.telegram_folder_user import folder_inventory, folder_slug, load_local_config, selected_channels
+
+log = logging.getLogger("telegram_folder_watch")
+
+
+def _private_directory() -> Path:
+    path = Path.home() / ".local" / "share" / "personal-ai-job-agent" / "telegram-folder"
+    path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if path.is_symlink() or stat.S_IMODE(path.stat().st_mode) & 0o077:
+        raise RuntimeError("Telegram folder directory must be private (mode 0700)")
+    return path
+
+
+async def _run(command: str) -> None:
+    try:
+        from telethon import TelegramClient, events, types, utils
+        from telethon.tl.functions.chatlists import CheckChatlistInviteRequest
+    except ImportError as exc:
+        raise RuntimeError("Install optional requirements-telegram-user.txt first") from exc
+
+    api_id = os.getenv("TELEGRAM_API_ID", "")
+    api_hash = os.getenv("TELEGRAM_API_HASH", "")
+    if not api_id.isdecimal() or not api_hash:
+        raise RuntimeError("Set local TELEGRAM_API_ID and TELEGRAM_API_HASH")
+    directory = _private_directory()
+    config_path = directory / "folder.json"
+    session_path = directory / "user"
+    session_file = session_path.with_suffix(".session")
+    if session_file.exists() and (session_file.is_symlink() or stat.S_IMODE(session_file.stat().st_mode) & 0o077):
+        raise RuntimeError("Telegram session file must be private (mode 0600)")
+    # SQLite session files can authorize the account; every created file must
+    # be private. No string sessions, codes, hashes or invite slugs are logged.
+    prior_umask = os.umask(0o077)
+    try:
+        client = TelegramClient(str(session_path), int(api_id), api_hash,
+                                receive_updates=command == "watch", catch_up=False)
+        # Telethon otherwise persists metadata for unrelated dialogs seen in
+        # updates. Folder intake needs only the peers in the current preview.
+        client.session.save_entities = False
+        async with client:
+            if command == "inspect":
+                if config_path.exists():
+                    raise RuntimeError("Private inventory already exists; review it before replacing")
+                link = getpass.getpass("Telegram folder link (hidden): ")
+                slug = folder_slug(link)
+            else:
+                config = load_local_config(config_path)
+                slug = folder_slug(config["folder_link"])
+            result = await client(CheckChatlistInviteRequest(slug))
+            inventory = folder_inventory(result, peer_id=utils.get_peer_id)
+            if command == "inspect":
+                payload = {"folder_link": link, "chats": inventory}
+                with config_path.open("x", encoding="utf-8") as handle:
+                    os.chmod(config_path, 0o600)
+                    json.dump(payload, handle, ensure_ascii=False, indent=2)
+                    handle.write("\n")
+                print(f"Saved {len(inventory)} chat identities in private file {config_path}; all disabled")
+                print("Review chat types, choose broadcast channels and scopes, then set enabled=true explicitly.")
+                return
+
+            selected = selected_channels(config, inventory)
+            if not selected:
+                raise RuntimeError("No verified broadcast channels enabled in private folder configuration")
+            from aiogram import Bot
+            from app.config import settings
+            from app.database import repository as repo
+            from app.sources.telegram_watch import change_subscription, consume_channel_post
+
+            if not settings.telegram_bot_token or not settings.telegram_admin_chat_id:
+                raise RuntimeError("Bot token and owner chat ID are required for the existing review pipeline")
+            owner = await repo.get_user_by_chat(settings.telegram_admin_chat_id)
+            if owner is None:
+                raise RuntimeError("Owner is not registered in the bot database")
+            peers = []
+            for chat in result.chats:
+                chat_id = utils.get_peer_id(chat)
+                if chat_id not in selected:
+                    continue
+                if (not isinstance(chat, types.Channel) or not getattr(chat, "broadcast", False)
+                        or getattr(chat, "left", False) or not getattr(chat, "access_hash", None)):
+                    raise RuntimeError("Selected broadcast channel lacks an accessible peer reference")
+                peers.append(types.InputPeerChannel(chat.id, chat.access_hash))
+            if len(peers) != len(selected):
+                raise RuntimeError("Selected channel identities changed during folder validation")
+            bot = Bot(settings.telegram_bot_token)
+            try:
+                for chat_id, channel in selected.items():
+                    await change_subscription(owner.id, "add", str(chat_id), channel["scope"])
+
+                @client.on(events.NewMessage(chats=peers))
+                async def on_post(event):
+                    chat_id = event.chat_id
+                    if chat_id not in selected:
+                        return
+                    message = event.message
+                    text = message.raw_text or ""
+                    if not text.strip():
+                        return
+                    try:
+                        await consume_channel_post(
+                            bot, chat_id=chat_id, username=selected[chat_id]["username"],
+                            message_id=message.id, text=text, only_user_id=owner.id,
+                            published_at=message.date,
+                        )
+                    except Exception as exc:
+                        log.warning("Selected Telegram post failed (%s)", type(exc).__name__)
+
+                print(f"Watching {len(selected)} explicitly enabled broadcast channels; new posts only")
+                await client.run_until_disconnected()
+            finally:
+                await bot.session.close()
+    finally:
+        os.umask(prior_umask)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", choices=("inspect", "watch"))
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+    asyncio.run(_run(args.command))
+
+
+if __name__ == "__main__":
+    main()

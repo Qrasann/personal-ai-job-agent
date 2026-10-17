@@ -1,11 +1,16 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## Current Telegram folder increment (2026-10-17)
+- New `work/telegram-folder-watcher` branch adds optional local MTProto folder preview and read-only selected broadcast-channel intake through the existing Bot API watcher pipeline. No folder join, user-account send, production change or live login. Owner's 21-item manifest contains labels only: every numeric ID, username and access remains unverified.
+- Telegram post date now survives ingestion/retry; explicit CV/advertising headers are skipped, while unknown salary remains unknown. Per-channel counters distinguish candidate posts from Good/Stretch profile assessments. See `docs/developer/TELEGRAM_WATCH.md`.
+- Final isolated PostgreSQL suite: 1289 passed. Live acceptance needs owner-controlled Telegram API credentials and interactive local authorization, then 2–3 verified channels before wider rollout. Never publish folder invite/session.
+
 ## Active checkpoint (2026-10-17)
-- Feature includes PRs #38–#43 and is synced at `0a50a29`; all CI passed. Current branch: `work/recruiter-eligibility-human-review` based on `0a50a29`.
+- Feature includes PRs #38–#44 and is synced at `8b33ee5`; their CI passed. Current branch: `work/telegram-folder-watcher`, based on the PR #44 source commit `f1076b9`.
 - Greenhouse Georgia country/state distinctions, Candidate Fit explicit-negation handling, and source publication age telemetry are merged. Publication age is observational; it does not filter or infer job closure.
 - `/prepare` PostgreSQL handler+repository failure/retry integration test is merged in PR #43 after CI. It verifies durable save, safe retry, and unchanged source/provider identity without duplicate packages; isolated PostgreSQL: 2 passed.
-- Recruiter reply risk probe reproduced visa, work authorization and citizenship questions returning `requires_human=False`; explicit English/Russian markers now force human review. Recruiter tests 15 passed; full unit suite 1257 passed/21 skipped; static checks passed. Current fix is local/uncommitted.
-- PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: checkpoint/publish the recruiter safety fix, then continue the next independent roadmap task.
+- Recruiter visa/work-eligibility human-review fix is merged in PR #44. No real recruiter message was sent.
+- PR #18 still targets `main`; do not merge it. Production/runtime and proposal files untouched. Next: finish Telegram folder offline gates and PR, then private live acceptance.
 
 ## Verified Git state
 - Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `0a50a29`. Current branch `work/recruiter-eligibility-human-review` is based there; Recruiter safety fix is local/uncommitted. PRs #38–#43 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.

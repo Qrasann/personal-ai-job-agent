@@ -907,6 +907,10 @@ confirmation after the fix remains pending.
 
 # Development Log
 
+## 2026-10-17 — Telegram folder watcher, offline increment
+
+Inspected owner-provided 21-label folder manifest and handoff without copying the private invite. Verified Telegram's official `chatlists.checkChatlistInvite` preview and optional Telethon 1.45 API. Implemented disabled-by-default private inventory and explicitly selected broadcast-only User Client, reusing `consume_channel_post`; preserved post date through retry and added conservative self-promo/ad rejection plus channel counters. Final isolated PostgreSQL suite: 1289 passed. No Telegram account authorization or live post acceptance. Static gates and PR status recorded in HANDOFF.
+
 ## 2026-10-17 — feature sync, launcher repair, `/prepare` atomicity
 
 Pushed exactly `f82c8d3..f53256e` to the feature branch after checking linear history, changed files and secret scan; main/production untouched. Fresh Bash revealed older functions shadowing the one-word launchers; backed up `.bashrc` and removed those functions. All four commands now resolve to the tracked launcher and show distinct dry-runs. No session archived.
