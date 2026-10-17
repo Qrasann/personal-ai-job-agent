@@ -1,6 +1,6 @@
 ## 2026-10-17 — validate Himalayas application links at ingestion
 
-The adapter previously accepted official-host HTTPS URLs with embedded userinfo or arbitrary ports. It now rejects credentials, nonstandard/malformed ports, oversized URLs, non-HTTPS schemes and unapproved hosts before storing the listing. Regression coverage includes those rejected cases and retains a normal official link. Himalayas tests: 32 passed; full isolated PostgreSQL suite: 1150 passed. No live request or persisted-data rewrite.
+The adapter previously accepted official-host HTTPS URLs with embedded userinfo or arbitrary ports. It now rejects credentials, nonstandard/malformed ports, oversized URLs, non-HTTPS schemes and unapproved hosts before storing the listing. Regression coverage includes those rejected cases and retains a normal official link. Himalayas tests: 33 passed; full isolated PostgreSQL suite: 1151 passed. No live request or persisted-data rewrite.
 
 ## 2026-10-17 — Candidate Fit OpenTelemetry vocabulary
 

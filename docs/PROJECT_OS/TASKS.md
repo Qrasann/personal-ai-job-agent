@@ -3,7 +3,7 @@
 ## 2026-10-17 — Himalayas application-link ingestion boundary
 
 - [x] Reject credential-bearing, nonstandard-port, malformed-port, HTTP and off-domain Himalayas application links before normalization/persistence; preserve valid official HTTPS links.
-- [x] Himalayas source suite 32 passed; full isolated PostgreSQL suite 1150 passed.
+- [x] Himalayas source suite 33 passed; full isolated PostgreSQL suite 1151 passed.
 - [ ] Continue source adapter reliability and Candidate Fit work; live feed relevance remains unverified.
 
 ## 2026-10-17 — Application tracking rollback acceptance

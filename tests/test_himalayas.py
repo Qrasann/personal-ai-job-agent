@@ -95,6 +95,13 @@ def test_himalayas_accepts_https_application_link_without_credentials_or_nonstan
     assert parsed[0].url == job["applicationLink"]
 
 
+def test_himalayas_rejects_oversized_application_link():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    job = listing("oversized", "DevOps Engineer", [], applicationLink="https://himalayas.app/" + "x" * 2050)
+
+    assert HimalayasSource.parse_payload({"jobs": [job]}, context) == []
+
+
 def test_himalayas_accepts_documented_country_object_shape():
     jobs = HimalayasSource.parse_payload(
         {"jobs": [listing("am", "DevOps Engineer", [{"alpha2": "AM", "name": "Armenia", "slug": "armenia"}])]},
