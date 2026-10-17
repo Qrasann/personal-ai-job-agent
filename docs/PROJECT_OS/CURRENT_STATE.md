@@ -2,7 +2,7 @@
 
 ## 2026-10-17 — avoid classifying healthcare organizations as technical networks
 
-Candidate Fit's broad `network` alias classified “a nationwide network of clinics and hospitals” as a required Networking skill in a non-technical healthcare vacancy. Added a narrow exclusion for organizational networks (clinics, hospitals, care/healthcare providers, schools, universities, pharmacies); explicit network routing and firewall requirements still match. Regression was red before the fix. Fact-comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed. No scoring changes. Feature is synced at `fe05acf`; current change is local on `work/candidate-fit-organizational-networking`.
+Candidate Fit's broad `network` alias classified “a nationwide network of clinics and hospitals” as a required Networking skill in a non-technical healthcare vacancy. Added a narrow exclusion for organizational networks (clinics, hospitals, care/healthcare providers, schools, universities, pharmacies); explicit network routing and firewall requirements still match. Regression was red before the fix. Fact-comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed. No scoring changes. Checkpoint `be421c8` is published in PR #35 to feature; CI is running.
 
 ## 2026-10-17 — preserve valid EURES search cards after detail failures
 

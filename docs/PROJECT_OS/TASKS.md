@@ -62,7 +62,8 @@
 - [x] Reproduce a healthcare organization network being classified as a required technical Networking skill.
 - [x] Exclude narrow institutional network phrases while retaining network routing/firewall requirements.
 - [x] Fact comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed.
-- [ ] Save local checkpoint and publish PR to feature; wait for CI.
+- [x] Save checkpoint `be421c8` and publish PR #35 to feature.
+- [ ] Wait for CI, then integrate if all checks pass.
 - [ ] Continue a distinct Source Intelligence/Candidate Fit regression.
 
 ## 2026-10-17 — retain EURES search cards when detail enrichment fails
