@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — EURES optional metadata isolation
+
+Malformed non-object `locationMap` or `employer` metadata no longer raises while parsing a valid EURES search listing. Country/employer remain unknown when their optional blocks are malformed, and sibling listings survive. EURES tests: 19 passed; full isolated PostgreSQL suite: 1159 passed. This is fixture-based parser verification, not a live EURES check.
+
 ## 2026-10-17 — EURES query token boundaries
 
 EURES title relevance no longer lets a query token match the middle of a different word (`Java` versus `JavaScript`). It still accepts whole meaningful tokens and punctuation-bearing skill tokens, and retains the adapter's existing any-token behavior. Regression reproduced before the fix. EURES tests: 18 passed; full isolated PostgreSQL suite: 1158 passed. No network calls, scoring changes or schema changes.

@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — isolate malformed EURES search metadata
+
+- [x] Reproduce a non-object `locationMap` throwing `TypeError` and aborting the whole parsed page.
+- [x] Treat malformed optional location/employer blocks as unknown/empty metadata while retaining the listing and valid siblings.
+- [x] EURES tests: 19 passed; full isolated PostgreSQL suite: 1159 passed.
+- [ ] Continue offline Source Intelligence/Relocation-first review; live source acceptance remains separate.
+
 ## 2026-10-17 — EURES whole-token query relevance
 
 - [x] Reproduce `Java` matching the unrelated `JavaScript Developer` title through substring filtering.

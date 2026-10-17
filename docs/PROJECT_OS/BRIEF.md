@@ -1,6 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
+- Current uncommitted EURES parser increment isolates malformed optional `locationMap`/`employer` metadata and preserves valid results. EURES tests 19 passed; full isolated PostgreSQL suite 1159 passed. Stop test DB and checkpoint after final gates.
 - Current uncommitted Source Intelligence increment fixes EURES query substring leakage (`Java` no longer matches `JavaScript`). EURES tests 18 passed; full isolated PostgreSQL suite 1158 passed. Check current Git and checkpoint after final gates.
 - Latest uncommitted Candidate Fit increment: bare GitLab repository/project references no longer imply GitLab CI; CI/CD/pipeline/runner context still does. Focused tests 101 passed; full isolated PostgreSQL suite 1157 passed. Commit after final gates; test DB stopped afterward.
 - Latest local checkpoint `b9e280f`: vacancy details now use stable source-reference first-seen time for the discovery label; the refreshed relocation-evidence capture time remains separate. Targeted 49 passed; isolated PostgreSQL 1154 passed. Test container stopped.

@@ -1,3 +1,7 @@
+## 2026-10-17 — isolate malformed EURES search metadata
+
+Red regression: integer `locationMap` raised `TypeError` and discarded the complete EURES query result, including a valid sibling. Optional `locationMap` and `employer` blocks now require object shapes; malformed values leave metadata unknown/empty without dropping the posting. EURES tests: 19 passed; full isolated PostgreSQL suite: 1159 passed. Fixture-only; no live request.
+
 ## 2026-10-17 — EURES whole-token query relevance
 
 Red regression: EURES' substring check returned a JavaScript listing for a `Java` query. Title matching now uses word boundaries around each meaningful query token, retaining punctuation-bearing terms and the existing any-token semantics. EURES tests: 18 passed; full isolated PostgreSQL suite: 1158 passed. Offline fixtures only; no live EURES request.

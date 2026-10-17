@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 EURES partial parsing
+
+Branch `work/v357-rejection-diagnostics`; latest code checkpoint before this increment `bc8a68c` (whole-token EURES query matching). The follow-up reproduced integer `locationMap` raising `TypeError` and aborting the page. Malformed optional `locationMap`/`employer` values now become unknown/empty metadata; valid listing rows and siblings are preserved. EURES tests 19 passed; full isolated PostgreSQL 1159 passed. Current edits need final gates and a local checkpoint. Stop the isolated DB before handoff. No live EURES/network, schema or production action. Next: continue a distinct offline Source Intelligence or Relocation-first regression check.
+
 ## Current entry point — 2026-10-17 EURES query relevance
 
 Branch `work/v357-rejection-diagnostics`. Candidate Fit checkpoint `1cb278c` prevents generic GitLab repository/project mentions from becoming GitLab CI fit; explicit CI/CD/pipeline/runner terms remain recognized. Next increment reproduced and fixed EURES substring leakage (`Java` matched `JavaScript Developer`) using whole-token matching. EURES tests 18 passed; full isolated PostgreSQL suite 1158 passed. EURES change/docs are ready for local checkpoint after compileall, diff check and secret scan. Test DB must be stopped before handoff. No live source calls, schema changes or production actions. Next: continue Source Intelligence/Relocation-first offline investigation after checkpoint.

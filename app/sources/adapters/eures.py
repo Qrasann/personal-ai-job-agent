@@ -99,13 +99,20 @@ class EuresSource(JobSource):
                 continue
             if row.get("euresFlag") is not True:
                 continue
-            location_map = row.get("locationMap") or {}
+            location_map = row.get("locationMap")
+            if not isinstance(location_map, dict):
+                # Location and employer blocks are optional search metadata.
+                # A malformed block must not discard valid sibling listings.
+                location_map = {}
             country = next(iter(location_map), None)
+            employer = row.get("employer")
+            if not isinstance(employer, dict):
+                employer = {}
             jobs.append(NormalizedJob(
                 source=cls.source_id,
                 source_job_id=str(row["id"]),
                 title=title,
-                company=str((row.get("employer") or {}).get("name") or ""),
+                company=str(employer.get("name") or ""),
                 description=clean_html_text(str(row.get("description") or "")),
                 url=cls.portal_url,
                 country=str(country).upper() if country else None,

@@ -62,6 +62,20 @@ def test_search_query_token_does_not_match_a_longer_unrelated_title_word():
     assert [job.source_job_id for job in result] == ["java"]
 
 
+def test_malformed_optional_search_metadata_does_not_drop_other_eures_results():
+    malformed_optional = search_row(
+        id="optional-metadata", locationMap=7, employer=["invalid shape"],
+    )
+
+    result = EuresSource.parse_search(
+        {"jvs": [search_row(id="valid"), malformed_optional]}, "DevOps"
+    )
+
+    assert [job.source_job_id for job in result] == ["valid", "optional-metadata"]
+    assert result[1].country is None
+    assert result[1].company == ""
+
+
 def test_eures_flag_is_not_visa_or_relocation_support():
     job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
     job = EuresSource.enrich(job, details())
