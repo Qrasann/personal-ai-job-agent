@@ -111,21 +111,28 @@ def test_remotive_candidate_location_is_not_reported_as_physical_work_country(
     assert evidence["work_country"]["value"] is None
 
 
-@pytest.mark.parametrize("location", ["GE", "GE Only", "Remote - GE", "Georgia (GE)"])
-def test_remotive_recognizes_unambiguous_georgia_country_code_locations(location):
+@pytest.mark.parametrize(
+    ("location", "country"),
+    [
+        ("GE", "GE"), ("GE Only", "GE"), ("Remote - GE", "GE"), ("Georgia (GE)", "GE"),
+        ("AM", "AM"), ("AM Only", "AM"), ("Remote - AM", "AM"), ("Armenia (AM)", "AM"),
+    ],
+)
+def test_remotive_recognizes_unambiguous_market_country_code_locations(location, country):
     jobs = RemotiveSource.parse_payload(
         {"jobs": [posting(24, "DevOps Engineer", location)]},
-        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+        SourceContext(user_id=1, target_countries=[country], queries=["DevOps Engineer"]),
     )
 
     assert len(jobs) == 1
-    assert jobs[0].country == "GE"
+    assert jobs[0].country == country
 
 
-def test_remotive_country_code_only_location_excludes_other_markets():
+@pytest.mark.parametrize(("location", "other_market"), [("GE Only", "AM"), ("AM Only", "GE")])
+def test_remotive_country_code_only_location_excludes_other_markets(location, other_market):
     jobs = RemotiveSource.parse_payload(
-        {"jobs": [posting(25, "DevOps Engineer", "GE Only")]},
-        SourceContext(user_id=1, target_countries=["AM"], queries=["DevOps Engineer"]),
+        {"jobs": [posting(25, "DevOps Engineer", location)]},
+        SourceContext(user_id=1, target_countries=[other_market], queries=["DevOps Engineer"]),
     )
 
     assert jobs == []

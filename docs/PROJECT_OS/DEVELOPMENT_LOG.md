@@ -4,7 +4,7 @@ Red regression: Remotive `candidate_required_location` is the applicant's requir
 
 ## 2026-10-17 — recognize explicit Remotive country codes safely
 
-Red regression: `GE` and `GE Only` in Remotive's candidate-location field were not mapped to Georgia, so a GE-only posting could be skipped for the matching market. Parsing now recognizes known uppercase ISO alpha-2 tokens only when they are isolated/delimited or paired with explicit location qualifiers; ordinary lowercase words such as `in` and `am` remain unclassified. Fixtures cover `GE`, `GE Only`, `Remote - GE`, `Georgia (GE)`, cross-market exclusion, and lowercase ambiguity. Geography/relocation suites: 133 passed; full isolated PostgreSQL suite: 1212 passed; compileall, diff check and secret scan passed. No schema or policy change and no live source access.
+Red regression: `GE` and `GE Only` in Remotive's candidate-location field were not mapped to Georgia, so a GE-only posting could be skipped for the matching market. Parsing now recognizes known uppercase ISO alpha-2 tokens only when they are isolated/delimited or paired with explicit location qualifiers; ordinary lowercase words such as `in` and `am` remain unclassified. Fixtures cover GE/AM short codes, `Only`/`Remote -`/parenthesized forms, cross-market exclusion, and lowercase ambiguity. Geography/relocation suites: 139 passed; full isolated PostgreSQL suite: 1218 passed; offline unit suite: 1200 passed, 18 skipped; compileall, diff check and secret scan passed. No schema or policy change and no live source access.
 
 ## 2026-10-17 — disambiguate US state Georgia postal code
 

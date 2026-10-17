@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; code checkpoint `fc77dd9`, 56 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work adds uncommitted disambiguation for Remotive `Georgia, GA`; the two user proposal files remain untouched and untracked. Latest full isolated PostgreSQL suite: 1213 passed; focused geography/relocation suites: 134 passed; compileall, diff check and secret scan passed. Test DB stopped. No live acceptance.
+- Branch `work/v357-rejection-diagnostics`; code checkpoint `770fc69`, 57 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work extends Remotive ISO-code fixtures to AM; the two user proposal files remain untouched and untracked. Latest full isolated PostgreSQL suite: 1218 passed; focused geography/relocation suites: 139 passed; offline unit suite: 1200 passed, 18 skipped; compileall, diff check and secret scan passed. Test DB stopped. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

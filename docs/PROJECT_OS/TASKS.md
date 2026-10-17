@@ -3,7 +3,7 @@
 - [x] Reproduce candidate-required remote geography being exposed as physical work country; keep market identity and remote scope while leaving work country unknown.
 - [x] Georgia and Armenia/Georgia fixture cases pass; targeted suites 160 passed; isolated PostgreSQL full suite 1205 passed; compileall, diff check and secret scan passed; test DB stopped.
 - [x] PostgreSQL rediscovery regression: same canonical Remotive Job, new provider ID, preserved remote scope/evidence and latest provider identity; isolated full suite 1206 passed.
-- [x] Reproduce and fix code-only Remotive location parsing (`GE`, `GE Only`, `Remote - GE`, `Georgia (GE)`); country-code parsing is uppercase/context-delimited to avoid lowercase `in`/`am` false matches. Focused suites 133 passed; isolated full suite 1212 passed.
+- [x] Reproduce and fix code-only Remotive location parsing (`GE`, `GE Only`, `Remote - GE`, `Georgia (GE)`); country-code parsing is uppercase/context-delimited to avoid lowercase `in`/`am` false matches. Expanded to AM fixtures and cross-market exclusion; focused suites 139 passed; isolated full suite 1218 passed.
 - [x] Disambiguate `Georgia, GA` from country GE and ISO Gabon/GA; country-code helper resolves it to US. Focused suites 134 passed; isolated full suite 1213 passed. US is not an enabled Remotive target market.
 - [ ] Continue review of exact provider attribution in JobMatch only after confirming a compatible non-schema approach; meanwhile choose another independent source-quality/candidate-fit issue.
 
