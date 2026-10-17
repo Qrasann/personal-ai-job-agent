@@ -5,19 +5,14 @@
 - Telegram post date now survives ingestion/retry; explicit CV/advertising headers are skipped, while unknown salary remains unknown. Per-channel counters distinguish candidate posts from Good/Stretch profile assessments. See `docs/developer/TELEGRAM_WATCH.md`.
 - Final isolated PostgreSQL suite: 1289 passed. Live acceptance needs owner-controlled Telegram API credentials and interactive local authorization, then 2–3 verified channels before wider rollout. Never publish folder invite/session.
 
-## Active checkpoint (2026-10-17)
-- Feature includes PRs #38–#44 and is synced at `8b33ee5`; their CI passed. Current branch: `work/telegram-folder-watcher`, based on the PR #44 source commit `f1076b9`.
-- Greenhouse Georgia country/state distinctions, Candidate Fit explicit-negation handling, and source publication age telemetry are merged. Publication age is observational; it does not filter or infer job closure.
-- `/prepare` PostgreSQL handler+repository failure/retry integration test is merged in PR #43 after CI. It verifies durable save, safe retry, and unchanged source/provider identity without duplicate packages; isolated PostgreSQL: 2 passed.
-- Recruiter visa/work-eligibility human-review fix is merged in PR #44. No real recruiter message was sent.
-- PR #18 still targets `main`; do not merge it. Production/runtime and proposal files untouched. Next: finish Telegram folder offline gates and PR, then private live acceptance.
-
-## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `0a50a29`. Current branch `work/recruiter-eligibility-human-review` is based there; Recruiter safety fix is local/uncommitted. PRs #38–#43 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
-- Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
-- Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
-- Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
-- `ROADMAP.md` is the sole canonical roadmap; this brief and HANDOFF provide the current restart point. Do not claim offline checks as live acceptance.
+## Verified GitHub snapshot after PR #44
+- Stable main VERSION=3.5.6; development feature VERSION=3.5.7 at 8b33ee5 on 2026-10-17. PR #18 is Draft/open to main.
+- PRs #38–#44 merged after CI; the last user-reported offline suite is 1257 passed, 21 skipped. These tests are not proof of current production behavior.
+- 28 superseded remote branches were deleted; 9 retained; branches with unique histories require separate review before deletion.
+- Offline-implemented modules include job discovery, source snapshots/deduplication, independent Career-first and Relocation-first, Candidate Facts/CV comparison, review, idempotent preparation, application history, recruiter human-review gates and curated interview exercises.
+- Telegram Channel Watcher supports selected Bot API channel posts and manual forwarding, but user-selected channel IDs/permissions and live automatic ingestion are not yet verified.
+- Live source usefulness, HH network root cause, Telegram acceptance and release backup/migration/rollback/smoke gates remain unverified. Do not infer a production deployment.
+- Current priorities and acceptance criteria are the Unified execution priorities section of root ROADMAP.md. Protect local untracked files, CVs, secrets and other private context. Check live Git status/PR state before work.
 
 ## Product scope
 The personal flow is: discover → normalize/dedupe → fit/score → user review → grounded resume/cover letter package → explicit owner approval → application tracking → interview practice. Maintain independent **Career-first** (DevOps/Linux/Infrastructure/SRE) and **Relocation-first** (lawful international employment, including non-IT roles) search profiles. Never invent candidate experience, remote hiring eligibility, visa sponsorship, housing, salary period or employer promises. Unknown evidence remains unknown. Preserve selected provider/source-posting identity and snapshots in review and application packages.
