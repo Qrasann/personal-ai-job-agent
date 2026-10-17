@@ -1,3 +1,7 @@
+## 2026-10-17 — bound unconfirmed resume-import previews
+
+The import handler expired a preview only when its token was used or a new upload arrived, but had no upper count for recent drafts containing up to 100k extracted characters each. Added 15-minute expiry cleanup, eight active previews per owner and 64 total; oldest unused preview is evicted first. Regression checks preserve another user's preview, remove expired data and enforce the global cap. No resume/fact persistence or database schema change. Targeted 17; full isolated PostgreSQL 1136 passed.
+
 ## 2026-10-17 — preserve role variants and prefer specific CV match
 
 Offline matching showed the shared tokenizer needed one narrow system/systems form, and generic engineer/administrator words could tie an unrelated CV with a role-specific one. Source filtering and scoring now share the explicit system/systems variant. CV selection removes generic role terms before scoring the role portion. Targeted source/matching/CV tests 97; full isolated PostgreSQL 1134 passed. No experience/fact/score-policy change.

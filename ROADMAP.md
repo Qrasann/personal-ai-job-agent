@@ -121,6 +121,9 @@ Source robustness: IMPLEMENTED safe handling of malformed optional RemoteOK/
 Arbeitnow tags and typed/invalid RemoteOK salary metadata, preserving valid jobs.
 RemoteOK also normalizes valid explicit publication instants and keeps invalid
 or timezone-less dates unknown.
+Candidate Import & Profile Sync remains PARTIAL; in-memory review previews now
+expire and have per-owner/global caps. Durable import/candidate facts updates
+remain transactionally reviewed, never inferred commercial experience.
 
 ## Historical v3.5.7 development notes
 

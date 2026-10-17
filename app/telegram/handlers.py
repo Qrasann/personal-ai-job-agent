@@ -57,6 +57,31 @@ router.message.filter(F.chat.type == "private")
 router.callback_query.filter(F.message.chat.type == "private")
 _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
 _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
+_RESUME_IMPORT_TTL_SECONDS = 15 * 60
+_MAX_PENDING_RESUME_IMPORTS = 64
+_MAX_PENDING_RESUME_IMPORTS_PER_USER = 8
+
+
+def _store_pending_resume_import(token: str, pending: dict) -> None:
+    """Bound in-memory CV previews by age, per-owner count and total count."""
+    now = time.time()
+    for old_token, old in list(_PENDING_RESUME_IMPORTS.items()):
+        created = old.get("created_at", 0)
+        if not isinstance(created, (int, float)) or now - created > _RESUME_IMPORT_TTL_SECONDS:
+            _PENDING_RESUME_IMPORTS.pop(old_token, None)
+
+    owner = pending["user_id"]
+    while True:
+        owned = [
+            (key, value) for key, value in _PENDING_RESUME_IMPORTS.items()
+            if value.get("user_id") == owner
+        ]
+        if len(owned) < _MAX_PENDING_RESUME_IMPORTS_PER_USER and len(_PENDING_RESUME_IMPORTS) < _MAX_PENDING_RESUME_IMPORTS:
+            break
+        candidates = owned if len(owned) >= _MAX_PENDING_RESUME_IMPORTS_PER_USER else list(_PENDING_RESUME_IMPORTS.items())
+        oldest = min(candidates, key=lambda item: item[1].get("created_at", 0))[0]
+        _PENDING_RESUME_IMPORTS.pop(oldest, None)
+    _PENDING_RESUME_IMPORTS[token] = pending
 
 
 def _render_search_profiles(searches: dict, *, limit: int = 900) -> str:
@@ -793,19 +818,16 @@ async def import_resume_document(message: Message, bot: Bot) -> None:
     existing = await repo.list_facts(profile.id)
     review = review_proposals(proposals, existing)
     token = uuid.uuid4().hex[:12]
-    _PENDING_RESUME_IMPORTS[token] = {
+    pending = {
         "user_id": user.id, "profile_id": profile.id,
         "content": content, "fingerprint": fingerprint, "language": guess_language(content),
         "role": profile.target_role or "", "proposals": review.new,
         "overlaps": review.overlaps, "choices": {}, "duplicates_count": len(review.duplicates),
         "created_at": time.time(),
     }
-    now = time.time()
-    for old_token, pending in list(_PENDING_RESUME_IMPORTS.items()):
-        if now - pending["created_at"] > 15 * 60:
-            _PENDING_RESUME_IMPORTS.pop(old_token, None)
+    _store_pending_resume_import(token, pending)
 
-    text, keyboard = render_import_preview(_PENDING_RESUME_IMPORTS[token], token)
+    text, keyboard = render_import_preview(pending, token)
     await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
 
@@ -817,7 +839,7 @@ async def choose_resume_fact(callback: CallbackQuery) -> None:
         return
     _, token, index_text, action = parts
     pending = _PENDING_RESUME_IMPORTS.get(token)
-    if not pending or time.time() - pending["created_at"] > 15 * 60:
+    if not pending or time.time() - pending["created_at"] > _RESUME_IMPORT_TTL_SECONDS:
         await callback.answer("Предпросмотр истёк. Отправь документ заново.", show_alert=True)
         return
     user = await repo.get_user_by_chat(callback.message.chat.id) if callback.message else None
@@ -856,7 +878,7 @@ async def confirm_resume_import(callback: CallbackQuery) -> None:
         return
     action, token = parts[1], parts[2]
     pending = _PENDING_RESUME_IMPORTS.get(token)
-    if not pending or time.time() - pending["created_at"] > 15 * 60:
+    if not pending or time.time() - pending["created_at"] > _RESUME_IMPORT_TTL_SECONDS:
         _PENDING_RESUME_IMPORTS.pop(token, None)
         await callback.answer("Предпросмотр истёк. Отправь документ заново.", show_alert=True)
         return
