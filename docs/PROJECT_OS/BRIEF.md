@@ -1,13 +1,13 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Active checkpoint (2026-10-17)
-- Feature branch/origin is synced at `fe05acf` (PR #34 merged; PR #33 is its parent integration). Current work branch: `work/candidate-fit-organizational-networking`, HEAD `be421c8`; PR #35 targets feature and CI is running.
-- A Candidate Fit false positive was reproduced: “network of clinics and hospitals” became a required technical Networking skill. Explicit institutional organization networks are now excluded; technical `network routing` and `firewall` remain recognized. Fact comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; DB stopped; compileall, diff check and secret scan passed. This follow-up is checkpointed in PR #35.
-- EURES detail failures retain validated search cards with their official fallback link and partial diagnostics; PR #34 merged at `fe05acf`. Candidate import race protection and conservative remote authorization eligibility are integrated. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched.
-- Next: after CI passes on PR #35, integrate into feature and continue another source-quality/fit improvement.
+- Feature branch/origin is synced at `52aeb1c` (PR #35 merged; PR #34 is its parent integration). Current work branch: `work/eures-search-card-coverage`, based at `52aeb1c`.
+- EURES had a coupling bug: `max_details=8` also capped returned vacancies, dropping all other already-fetched search cards. Detail requests remain bounded at 8 while all valid cards from at most six bounded 50-result searches are returned; search summaries remain available when detail is not fetched. New red regression covers five cards with a two-detail cap. EURES tests: 27 passed; full isolated PostgreSQL suite: 1238 passed; DB stopped; compileall, diff check and secret scan passed. Change is local/uncommitted.
+- Candidate Fit organizational-network false positive and EURES detail-failure fallback are integrated. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched.
+- Next: update Project OS, checkpoint and publish the EURES coverage improvement, wait for CI, then continue Source Intelligence/Candidate Fit.
 
 ## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `fe05acf`. Current branch `work/candidate-fit-organizational-networking` starts at `fe05acf`; checkpoint `be421c8` is published in PR #35. Full isolated PostgreSQL suite on that code: 1237 passed. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `52aeb1c`. Current branch `work/eures-search-card-coverage` starts at `52aeb1c`; current EURES change is uncommitted. Full isolated PostgreSQL suite: 1238 passed. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

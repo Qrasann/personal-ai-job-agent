@@ -60,7 +60,7 @@ One failed vacancy now preserves later results from the same source.
 Georgia source detail requests now require their own HTTPS host.
 Job Bank now has bounded one-hour detail reuse for repeated scheduled scans;
 post-deployment latency and relevance measurement remains pending.
-EURES now preserves partial results across individual search HTTP/parse failures and also retains validated search cards with official portal fallbacks when individual or all detail requests fail; successful detail payloads still enrich cards and failures remain visible as partial diagnostics.
+EURES now preserves partial results across individual search HTTP/parse failures and also retains validated search cards with official portal fallbacks when individual or all detail requests fail; successful detail payloads still enrich cards, failures remain visible as partial diagnostics, and the detail-request budget no longer truncates validated search-card coverage.
 Query/detail failure counts travel with cached source results and appear in
 scan summaries and `/scanstatus` without changing match scores. Discovery
 observations distinguish reused caches from independent failures; earlier

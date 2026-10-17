@@ -57,6 +57,14 @@
 
 # Tasks
 
+## 2026-10-17 — do not let EURES detail budget truncate search cards
+
+- [x] Reproduce five validated search cards collapsing to two results when `max_details=2`.
+- [x] Keep details HTTP calls bounded separately from the already-collected results; un-enriched cards preserve safe search fields and portal link.
+- [x] EURES tests: 27 passed; full isolated PostgreSQL suite: 1238 passed; test DB stopped; compileall, diff check and secret scan passed.
+- [ ] Update handoff, save checkpoint, publish PR to feature and wait for CI.
+- [ ] Continue the next independent roadmap issue.
+
 ## 2026-10-17 — prevent organizational networks from inflating Candidate Fit
 
 - [x] Reproduce a healthcare organization network being classified as a required technical Networking skill.
