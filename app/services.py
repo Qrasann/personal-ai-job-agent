@@ -74,7 +74,7 @@ async def _discover_hh(adapter: HHSource, context: SourceContext) -> list[Normal
             return None
         try:
             jobs = await adapter.discover(context)
-        except httpx.ConnectError as exc:
+        except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
             _HH_CONNECT_RETRY_AFTER = time.monotonic() + HH_CONNECT_RECHECK_SECONDS
             for key in list(_DISCOVERY_CACHE):
                 if key[0] == "hh":

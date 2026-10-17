@@ -404,6 +404,42 @@ def test_hh_connect_error_is_silent_and_rechecked_after_cooldown(monkeypatch):
     assert calls.count("hh") == 1
 
 
+def test_hh_connect_timeout_is_rechecked_after_cooldown_and_keeps_safe_notice(monkeypatch):
+    calls = []
+    alerts = AsyncMock()
+
+    class Source:
+        source_id = name = "hh"
+
+        async def discover(self, context):
+            calls.append(context.user_id)
+            raise httpx.ConnectTimeout("https://private.test/?token=secret")
+
+    configure_scan(monkeypatch, {"hh": lambda *args: Source()})
+    monkeypatch.setattr(services, "_HH_CONNECT_RETRY_AFTER", 0.0)
+    monkeypatch.setattr(services, "HH_CONNECT_RECHECK_SECONDS", 900)
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={"queries": ["DevOps"]}))
+        return user, profile, searches
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+    monkeypatch.setattr(services, "notify_chat", alerts)
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert calls == [7]
+    assert summary["sources"]["hh"]["failed"] == 1
+    assert summary["sources"]["hh"]["skipped"] == 1
+    assert alerts.await_count == 1
+    notice = alerts.await_args.args[2]
+    assert "NETWORK_CONNECT_TIMEOUT" in notice
+    assert "Причина устанавливается" in notice
+    assert "secret" not in notice
+    assert services._HH_CONNECT_RETRY_AFTER > 0
+
+
 def test_hh_failure_invalidates_old_cache_so_next_scheduled_scan_probes(monkeypatch):
     calls = []
 

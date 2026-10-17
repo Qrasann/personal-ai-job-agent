@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — cool down HH after connection timeouts
+
+Regression reproduced HH `ConnectTimeout` being retried for every enabled search profile in one scan because `_discover_hh` only started its backoff for `ConnectError`. HH discovery now applies the existing bounded 15-minute cooldown to both connection error classes. The first timeout remains visible as `NETWORK_CONNECT_TIMEOUT`; a later profile is skipped without a duplicate connection, while unrelated sources continue. Existing ConnectError and TLS-diagnostic behavior remains covered. Targeted tests: 3 passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check and secret scan passed. No live HH request or production change.
+
 ## 2026-10-17 — compare common Russian technical transliterations in Candidate Fit
 
 Red regressions reproduced three common Russian vacancy spellings (`Линукса`, `Докера`, `Кубернетесом`) disappearing from canonical requirement extraction, so matching Candidate Facts could not be credited. Linux, Docker and Kubernetes now include only those tested Russian forms/inflections as aliases; canonical skill names and scoring weights remain unchanged. A model-level regression asserts only Application history uses `RESTRICT`, while JobSourceRef retains `CASCADE`. Focused fact-comparison/model-foundation tests: 63 passed; full isolated PostgreSQL suite: 1230 passed. Compileall, diff check and secret scan passed. No schema change in this follow-on.

@@ -37,6 +37,7 @@ The personal flow is: discover → normalize/dedupe → fit/score → user revie
 - Auto-apply has **no implementation** despite legacy `AUTO_APPLY` config: /status now explicitly discloses that it never submits automatically. Do not enable it.
 - Telegram job alerts now use a durable per-match retry journal in the feature branch. Lost Telegram confirmation can yield duplicate alerts; this is the approved policy, not a zero-duplicate promise. /delivery shows delivery metadata, not vacancy text.
 - Candidate Fit recognizes tested Russian inflections/transliterations for Linux, Docker and Kubernetes, mapping them to canonical skills without changing scoring weights. Focused fact-comparison/model-foundation tests: 63 passed; full isolated PostgreSQL suite: 1230 passed.
+- HH connection timeout shares the existing bounded per-scan cooldown with ConnectError, preventing repeated timeout attempts across enabled profiles while retaining the first safe diagnostic. Full isolated suite after this local follow-up: 1231 passed; publication/CI rerun pending.
 - Initial deterministic interview exercises, conservative relocation evidence classification, Candidate Facts/CV comparisons and LLM drafting with safe factual fallback exist, but broader fit, eligibility, workflow and runtime quality remain partial.
 
 ## Next practical work (ordered)

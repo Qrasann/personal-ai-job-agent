@@ -1,3 +1,7 @@
+## 2026-10-17 — avoid repeated HH connection-timeout attempts within a scan
+
+HH's existing per-source backoff handled `httpx.ConnectError` but not `httpx.ConnectTimeout`; two enabled profiles could therefore each issue a long failing connection attempt. Added `ConnectTimeout` to the same bounded cooldown path. The first failure is still reported with its precise safe diagnostic; later profiles skip HH and other sources continue. Three targeted HH timeout/connection/TLS tests passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check and secret scan passed. No live HH probe.
+
 ## 2026-10-17 — recognize tested Russian technical skill spellings
 
 The deterministic Candidate Fit vocabulary missed “Линукса”, “Докера” and “Кубернетесом” in Russian vacancy text; `compare_facts` therefore produced no row for the skill even when an English Candidate Fact existed. Added narrow Linux, Docker and Kubernetes transliteration/declension aliases, keeping canonical output names and score weights unchanged. Fact-comparison/model contract tests: 63 passed; full isolated PostgreSQL suite: 1230 passed; compileall, diff check and secret scan passed. No persistence changes.
