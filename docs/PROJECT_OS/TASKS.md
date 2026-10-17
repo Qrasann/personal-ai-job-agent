@@ -62,7 +62,8 @@
 - [x] Reproduce medical professionals and physician/nurse networks becoming required technical Networking skills.
 - [x] Extend the narrow organizational-network exclusion while retaining explicit infrastructure network/firewall requirements.
 - [x] Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed.
-- [ ] Save local checkpoint and publish PR to feature; wait for CI.
+- [x] Save checkpoint `6159bc0` and publish PR #37 to feature.
+- [ ] Wait for PR #37 CI, then integrate if all checks pass.
 - [ ] Continue a separate roadmap task.
 
 ## 2026-10-17 — do not let EURES detail budget truncate search cards
@@ -70,7 +71,7 @@
 - [x] Reproduce five validated search cards collapsing to two results when `max_details=2`.
 - [x] Keep details HTTP calls bounded separately from the already-collected results; un-enriched cards preserve safe search fields and portal link.
 - [x] EURES tests: 27 passed; full isolated PostgreSQL suite: 1238 passed; test DB stopped; compileall, diff check and secret scan passed.
-- [ ] Update handoff, save checkpoint, publish PR to feature and wait for CI.
+- [x] Save checkpoint `771abc8` and merge PR #36 to feature after CI passed.
 - [ ] Continue the next independent roadmap issue.
 
 ## 2026-10-17 — prevent organizational networks from inflating Candidate Fit
@@ -79,7 +80,7 @@
 - [x] Exclude narrow institutional network phrases while retaining network routing/firewall requirements.
 - [x] Fact comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed.
 - [x] Save checkpoint `be421c8` and publish PR #35 to feature.
-- [ ] Wait for CI, then integrate if all checks pass.
+- [x] Integrate PR #35 at feature commit `52aeb1c` after all CI checks passed.
 - [ ] Continue a distinct Source Intelligence/Candidate Fit regression.
 
 ## 2026-10-17 — retain EURES search cards when detail enrichment fails

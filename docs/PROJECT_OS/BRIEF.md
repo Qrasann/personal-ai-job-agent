@@ -1,13 +1,13 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Active checkpoint (2026-10-17)
-- Feature branch/origin is synced at `ab00d5d` (PR #36 merged; PR #35 is its parent integration). Current work branch: `work/candidate-fit-healthcare-networks`, based at `ab00d5d`.
-- Candidate Fit still treated “network of medical professionals” and “network of physicians and nurses” as required technical Networking. Those explicitly human/healthcare network phrases are now excluded while technical network-routing/firewall matches remain. Red regressions reproduced both forms. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. This follow-up is local/uncommitted.
+- Feature branch/origin is synced at `ab00d5d` (PR #36 merged; PR #35 is its parent integration). Current work branch: `work/candidate-fit-healthcare-networks`, HEAD `6159bc0`; PR #37 targets feature and CI is running.
+- Candidate Fit still treated “network of medical professionals” and “network of physicians and nurses” as required technical Networking. Those explicitly human/healthcare network phrases are now excluded while technical network-routing/firewall matches remain. Red regressions reproduced both forms. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. Checkpoint is published in PR #37.
 - EURES detail-failure preservation and search-card coverage beyond the detail cap are integrated. Candidate import race protection, conservative remote work-authorization eligibility, and organizational network handling are also integrated. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched.
-- Next: update Project OS, checkpoint/publish the healthcare Fit follow-up, wait for CI, then continue another useful Source Intelligence/Candidate Fit task.
+- Next: wait for PR #37 CI, integrate if all checks pass, then continue another useful Source Intelligence/Candidate Fit task.
 
 ## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `ab00d5d`. Current branch `work/candidate-fit-healthcare-networks` starts at `ab00d5d`; Candidate Fit follow-up is uncommitted. Full isolated PostgreSQL suite: 1240 passed. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `ab00d5d`. Current branch `work/candidate-fit-healthcare-networks` starts at `ab00d5d`; checkpoint `6159bc0` is published in PR #37. Full isolated PostgreSQL suite on that code: 1240 passed. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

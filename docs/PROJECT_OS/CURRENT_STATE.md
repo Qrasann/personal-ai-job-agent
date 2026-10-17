@@ -2,7 +2,7 @@
 
 ## 2026-10-17 — exclude medical-professional networks from technical Candidate Fit
 
-Follow-up fixtures reproduced `network of medical professionals` and `network of physicians and nurses` being treated as required technical Networking skills. The narrow organizational-network exclusion now covers medical professionals, physicians, doctors and nurses, alongside the previously tested institutional types. Network routing and firewall requirements remain recognized. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. No score changes. Feature is synced at `ab00d5d`; follow-up is local on `work/candidate-fit-healthcare-networks`.
+Follow-up fixtures reproduced `network of medical professionals` and `network of physicians and nurses` being treated as required technical Networking skills. The narrow organizational-network exclusion now covers medical professionals, physicians, doctors and nurses, alongside the previously tested institutional types. Network routing and firewall requirements remain recognized. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. No score changes. Checkpoint `6159bc0` is published in PR #37; CI is running.
 
 ## 2026-10-17 — separate EURES detail request budget from search result coverage
 
@@ -10,7 +10,7 @@ Follow-up fixtures reproduced `network of medical professionals` and `network of
 
 ## 2026-10-17 — avoid classifying healthcare organizations as technical networks
 
-Candidate Fit's broad `network` alias classified “a nationwide network of clinics and hospitals” as a required Networking skill in a non-technical healthcare vacancy. Added a narrow exclusion for organizational networks (clinics, hospitals, care/healthcare providers, schools, universities, pharmacies); explicit network routing and firewall requirements still match. Regression was red before the fix. Fact-comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed. No scoring changes. Integrated by PR #35 at feature commit `52aeb1c` after all CI checks passed. Follow-up added medical-professional, physician, doctor and nurse network variants.
+Candidate Fit's broad `network` alias classified “a nationwide network of clinics and hospitals” as a required Networking skill in a non-technical healthcare vacancy. Added a narrow exclusion for organizational networks (clinics, hospitals, care/healthcare providers, schools, universities, pharmacies); explicit network routing and firewall requirements still match. Regression was red before the fix. Fact-comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed. No scoring changes. Integrated by PR #35 at feature commit `52aeb1c` after all CI checks passed. Follow-up adds medical-professional, physician, doctor and nurse network variants.
 
 ## 2026-10-17 — preserve valid EURES search cards after detail failures
 
