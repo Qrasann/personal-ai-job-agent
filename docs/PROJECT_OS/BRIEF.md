@@ -1,13 +1,14 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Active checkpoint (2026-10-17)
-- Feature includes PRs #38–#41 and is synced at `543057f`; all checks passed. Current branch: `work/source-freshness-age-breakdown` based on `543057f`.
+- Feature includes PRs #38–#42 and is synced at `f6e354b`; all checks passed. Current branch: `work/prepare-telegram-retry-postgres` based on `f6e354b`.
 - Greenhouse excludes explicit US-qualified Georgia and Georgia+GA postal-code forms from GE searches; PR #40 full unit suite 1234 passed/20 skipped and CI green. Candidate Fit negation variants merged in #41; full unit suite 1241 passed/20 skipped, CI green.
-- Current Source Intelligence change adds age bands only for explicit timezone-aware publication dates (≤7, 8–30, >30 days, unknown/future). It does not filter postings or claim that old/expired listings are closed. Targeted source/availability/scan suites: 104 passed; full suite pending.
-- Current telemetry change is local and uncommitted. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: complete full unit/static gates, checkpoint/publish to feature, then continue another independent roadmap issue.
+- Source publication age bands (≤7, 8–30, >30 days, unknown/future) merged in PR #42; full suite 1252 passed/20 skipped, CI green. Dates are observational only, not availability decisions.
+- Application Package test now joins real PostgreSQL persistence with Telegram delivery failure and retry; package ID/content/status remain unchanged and no duplicate is created. Targeted isolated PostgreSQL flow: 2 passed; full unit suite: 1252 passed/21 skipped; static gates passed. Current test/docs change is local and uncommitted. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched.
+- Next: checkpoint/publish the Application Package integration test, then continue the next independent roadmap task.
 
 ## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `543057f`. Current branch `work/source-freshness-age-breakdown` is based there; telemetry change is local/uncommitted. PRs #38–#41 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `f6e354b`. Current branch `work/prepare-telegram-retry-postgres` is based there; Application Package integration test/docs are local/uncommitted. PRs #38–#42 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
