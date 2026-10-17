@@ -29,6 +29,27 @@ def test_generic_gitlab_repository_work_does_not_create_ci_fit_score():
     assert score_technical_v2(vacancy, [fact]) is None
 
 
+def test_docker_compose_is_not_double_counted_as_a_separate_docker_requirement():
+    vacancy = "Requirements: Linux and Docker Compose experience required."
+    linux = SimpleNamespace(
+        id=14, value="Commercial Linux administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+
+    comparison = compare_facts(vacancy, [linux])
+
+    assert [item.skill for item in comparison.requirements] == ["Linux", "Docker Compose"]
+    assert score_technical_v2(vacancy, [linux]) == 50
+
+
+def test_standalone_docker_remains_a_separate_requirement_from_docker_compose():
+    comparison = compare_facts(
+        "Requirements: Docker and Docker Compose administration required.", [],
+    )
+
+    assert {item.skill for item in comparison.requirements} == {"Docker", "Docker Compose"}
+
+
 def test_explicit_required_alternative_counts_as_one_scoring_choice():
     linux = SimpleNamespace(
         id=1, value="Commercial Linux administration", experience_type="commercial",

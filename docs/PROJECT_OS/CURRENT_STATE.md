@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — avoid double-counting Docker Compose in Candidate Fit
+
+A `Docker Compose` mention matched both Docker and Docker Compose, inflating the required-skill denominator and breaking compound OR groups. The extractor suppresses the embedded Docker token unless Docker is separately mentioned; explicit standalone Docker remains. Fit tests 71 passed; full unit suite 1178 passed / 17 skipped; isolated PostgreSQL 1195 passed. No weights or thresholds changed.
+
 ## 2026-10-17 — Remotive Georgia country disambiguation
 
 Remotive location parsing previously read `Georgia, USA` as both GE and US, allowing a US-state-only listing to pass a GE target filter. Explicit US qualifiers (USA, U.S.A., U.S., United States) now suppress the ambiguous GE alias; unqualified `Georgia` remains GE. Remotive tests 13 passed; full unit suite 1175 passed / 17 skipped; isolated PostgreSQL suite 1192 passed. The source parser is offline-tested; US is not a selectable target in the current country catalog, so no US-market search support is claimed.

@@ -191,6 +191,20 @@ def _matches_skill(text: str, spec: SkillSpec) -> bool:
     return False
 
 
+def _has_standalone_docker(text: str) -> bool:
+    # Docker Compose is represented as the more specific skill; don't count
+    # its embedded Docker token twice unless the vacancy names Docker alone.
+    without_compose = re.sub(r"\bdocker[\s-]+compose\b", " ", text or "", flags=re.I)
+    return _matches_skill(without_compose, next(spec for spec in SKILLS if spec.name == "Docker"))
+
+
+def _matched_skill_names(text: str) -> list[str]:
+    matched = [spec.name for spec in SKILLS if _matches_skill(text, spec)]
+    if "Docker Compose" in matched and "Docker" in matched and not _has_standalone_docker(text):
+        matched.remove("Docker")
+    return matched
+
+
 def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
     """Recognize narrow, direct negations of a skill requirement."""
     normalized = _normalize_text(text)
@@ -431,6 +445,16 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
         elif _matches_skill(text, spec):
             result[spec.name] = "unknown"
 
+    docker_importance = result.get("Docker")
+    if docker_importance and result.get("Docker Compose") == docker_importance:
+        scoped_text = {
+            "required": required_text,
+            "preferred": sections["preferred"],
+            "unknown": text,
+        }[docker_importance]
+        if not _has_standalone_docker(scoped_text):
+            del result["Docker"]
+
     return result
 
 
@@ -467,7 +491,7 @@ def extract_skill_alternatives(
         if clause.strip()
     ]
     mentions = [
-        tuple(spec.name for spec in SKILLS if _matches_skill(line, spec))
+        tuple(_matched_skill_names(line))
         for line in section_lines
     ]
     counts = {
@@ -540,11 +564,7 @@ def extract_technical_requirements(text: str) -> list[str]:
     This is intentionally deterministic. It does not infer technologies that
     are not present in the vacancy text.
     """
-    return [
-        spec.name
-        for spec in SKILLS
-        if _matches_skill(text, spec)
-    ]
+    return _matched_skill_names(text)
 
 
 def compare_facts(

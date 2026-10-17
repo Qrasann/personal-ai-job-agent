@@ -1,3 +1,7 @@
+## 2026-10-17 — count Docker Compose once in Candidate Fit
+
+Red regression showed `Docker Compose required` extracted both Docker and Docker Compose, lowering the score denominator; `Docker Compose or Kubernetes` also appeared to have three options. Candidate Fit now deduplicates the embedded Docker alias unless Docker is separately named, including alternative-group extraction. Explicit independent Docker remains distinct. Fit tests 71 passed; full unit suite 1178 passed / 17 skipped; isolated PostgreSQL 1195 passed. Weights and thresholds unchanged.
+
 ## 2026-10-17 — disambiguate Remotive Georgia location
 
 Red regression: `Georgia, USA` matched both the supported Georgia country alias and US, so a GE-targeted search accepted an explicitly US-scoped listing. Explicit USA/U.S.A./U.S./United States qualifiers now remove the ambiguous GE code; unqualified `Georgia` remains GE. Remotive tests 13 passed; full unit suite 1175 passed / 17 skipped; isolated PostgreSQL 1192 passed. Offline fixture only. The current selectable country catalog does not support US targeting; this change does not add it.

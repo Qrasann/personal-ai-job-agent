@@ -554,6 +554,13 @@ def test_common_separators_match_canonical_skills():
     assert "Active Directory" in skills
 
 
+def test_docker_compose_alternative_is_one_choice_without_embedded_docker_duplicate():
+    comparison = compare_facts("Requirements: Docker Compose or Kubernetes.", [])
+
+    assert {item.skill for item in comparison.requirements} == {"Docker Compose", "Kubernetes"}
+    assert comparison.alternative_groups == (("Docker Compose", "Kubernetes"),)
+
+
 def test_comparison_keeps_only_strongest_matching_fact_ids():
     facts = [
         fact(30, "Linux administration.", "commercial"),

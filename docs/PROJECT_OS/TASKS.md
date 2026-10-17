@@ -1,3 +1,9 @@
+## 2026-10-17 — Candidate Fit compound Docker requirement
+
+- [x] Prevent `Docker Compose` from counting as a second Docker requirement unless Docker appears independently; preserve compound OR alternatives.
+- [x] Fit tests 71; unit suite 1178 passed / 17 skipped; isolated PostgreSQL 1195 passed; test DB stopped.
+- [ ] Continue Candidate Fit/source quality review with a concrete fixture-backed issue.
+
 ## 2026-10-17 — Remotive ambiguous Georgia location
 
 - [x] Reproduce a `Georgia, USA` Remotive posting passing the GE target filter; disambiguate USA/U.S.A./U.S./United States qualifiers while retaining unqualified Georgia as GE.
