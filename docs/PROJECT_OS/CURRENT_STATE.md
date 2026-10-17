@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — make Application Package retries idempotent and preserve audit history
+
+Reproduced two integration gaps identified while reviewing PR #31 and PR #27. New `/prepare` packages now persist an internal match marker in their frozen vacancy snapshot. Repository lookup reuses the same package across Telegram delivery retries and after manual status progression; the existing `JobMatch` row lock serializes concurrent retries, so only one draft and one initial status event are created. Legacy snapshots without the marker cannot be mapped safely to a match. Schema v8 changes `applications.job_id` to `ON DELETE RESTRICT`; a v7-to-v8 isolated PostgreSQL test proves attempted job deletion leaves the application, snapshot and status history intact. Targeted tests: 58 passed. Full isolated PostgreSQL suite: 1226 passed. Compileall, diff check and secret scan passed. No production DB, deployment, GitHub or employer actions. Next: integrate and publish only after branch/PR compatibility review; then continue Source Intelligence/Candidate Fit.
+
 ## 2026-10-17 — avoid wildlife false positive for ELK
 
 The bare lowercase word `elk` previously matched the ELK logging stack, potentially adding a false technical requirement to non-IT relocation vacancies. Matching now retains explicit ELK Stack/component forms and uppercase `ELK`, but not lowercase wildlife usage. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL suite 1197 passed. No score weights changed.

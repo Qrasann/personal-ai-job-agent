@@ -1551,9 +1551,15 @@ async def resume_diff_command(message: Message) -> None:
 
 
 async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
+    existing = await repo.prepared_application_for_match(match_id, user_id)
+    if existing is not None:
+        return (
+            f"ℹ Черновик отклика #{existing.id} уже сохранён; новый дубликат не создан. "
+            f"Проверь /applications или экспортируй: /application {existing.id} export"
+        )
     result = await prepare_match(match_id, user_id)
     preview = render_application_package(result)
-    application = await repo.save_prepared_application(
+    application, created = await repo.save_prepared_application(
         match_id=match_id, user_id=user_id,
         job_id=result["job"].id,
         source_id=str(result.get("source") or "manual")[:64],
@@ -1573,6 +1579,11 @@ async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
         ),
         message=str(result.get("cover_letter") or ""),
     )
+    if not created:
+        return (
+            f"ℹ Черновик отклика #{application.id} уже сохранён; новый дубликат не создан. "
+            f"Проверь /applications или экспортируй: /application {application.id} export"
+        )
     return preview + f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
 
 
@@ -1580,9 +1591,7 @@ def _prepare_error_text(exc: Exception, *, package_saved: bool) -> str:
     issue = classify_source_error(exc, stage="processing")
     text = f"⚠ {html.escape(issue['message'])} Код: {issue['code']}."
     if package_saved:
-        # Retrying /prepare creates another draft. Point to the durable record
-        # so a transient Telegram delivery failure cannot prompt duplication.
-        return text + " Пакет уже сохранён; открой /applications. Повторный /prepare создаст новый черновик."
+        return text + " Пакет сохранён; открой /applications. Повторная подготовка нового пакета не создаст дубликат."
     return text + " Проверь /applications перед повтором."
 
 
@@ -1608,19 +1617,24 @@ async def prepare_command(message: Message) -> None:
             return
         search_filter = {"search_profile_id": search.id}
     progress = await message.answer("⏳ Готовлю пакет для твоей проверки…")
-    package_saved = False
     try:
         match = await repo.get_match_for_user_job(user.id, int(parts[1]), **search_filter)
         if not match:
             await progress.edit_text("❌ Вакансия не найдена среди твоих совпадений в выбранном поиске.")
             return
         preview = await _prepare_saved_preview(match.id, user.id)
-        package_saved = True
-        await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
     except Exception as exc:
         await progress.edit_text(
-            _prepare_error_text(exc, package_saved=package_saved),
+            _prepare_error_text(exc, package_saved=False),
             parse_mode="HTML",
+        )
+        return
+    try:
+        await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
+    except Exception:
+        await message.answer(
+            "⚠ Пакет уже сохранён, но Telegram не показал подтверждение. "
+            "Проверь /applications; повторная подготовка нового пакета не создаст дубликат."
         )
 
 
@@ -1990,19 +2004,25 @@ async def prepare_callback(callback: CallbackQuery) -> None:
         return
     match_id = int(raw_id)
     await callback.answer("Готовлю…")
-    package_saved = False
     try:
         preview = await _prepare_saved_preview(match_id, user.id)
-        package_saved = True
+    except Exception as exc:
+        issue = classify_source_error(exc, stage="processing")
+        await callback.message.answer(
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
+            parse_mode="HTML",
+        )
+        return
+    try:
         await callback.message.answer(
             preview,
             parse_mode="HTML",
             disable_web_page_preview=True,
         )
-    except Exception as exc:
+    except Exception:
         await callback.message.answer(
-            _prepare_error_text(exc, package_saved=package_saved),
-            parse_mode="HTML",
+            "⚠ Пакет уже сохранён, но Telegram не показал подтверждение. "
+            "Проверь /applications; повторная подготовка нового пакета не создаст дубликат."
         )
 
 

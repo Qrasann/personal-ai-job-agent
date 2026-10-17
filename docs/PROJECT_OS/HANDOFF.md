@@ -1,8 +1,16 @@
 # Handoff
 
-## Current entry point — 2026-10-17 Remotive remote-location evidence
+## Current handoff — 2026-10-17 (checkpoint pending)
 
-Branch `work/v357-rejection-diagnostics`; HEAD `d6917d3`, 61 commits ahead of feature origin, no behind commits. Relocation fixes: Remotive remote eligibility/work-country distinction, GE/AM code parsing, Georgia-US-state disambiguation; Himalayas restrictions stay remote eligibility, not physical work country. PostgreSQL rediscovery test preserves source-scoped evidence and latest provider ref after provider-ID change. Relocation/source full isolated PostgreSQL suite: 1219 passed; test DB stopped. Candidate Fit now classifies tested Russian desired wording (`Linux желательно`, `Знание Linux желательно`, `Желательно знание Linux`, `Владение Linux желательно`, `Опыт работы с Linux будет преимуществом`) as preferred. Fit/interview/resume tests: 105 passed; full offline unit suite: 1206 passed, 18 skipped; compileall, diff check, secret scan passed. No live source acceptance or external actions. User proposal files remain untouched/untracked. `JobMatch` still lacks exact provider ID; source refs support source-scoped review/prepare, and any match-identity change requires compatibility review. Next: continue an independent Source Intelligence or Candidate Fit fixture-backed gap; no deployment/publication actions performed.
+Starting HEAD `64c61a9` on `work/v357-rejection-diagnostics`; 62 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, none behind. Worktree initially contained only the two untracked user proposal files; both remain untouched. Production-style runtime was not modified. PR #31 and #27 were OPEN with passing published CI when inspected. PR #31's retry-idempotency feature and PR #27's v8 history-protection migration are now implemented in this worktree, not yet checkpointed/published. `/prepare` uses a match marker in new package snapshots and a `JobMatch` row lock; retries reuse the saved record even after status progression. v8 changes the application/job FK to RESTRICT; isolated v7→v8 verification passed. Targeted suite 58 passed; full isolated PostgreSQL suite 1226 passed; compileall, diff check, secret scan passed. Next: create a local checkpoint, record the exact resulting HEAD, compare with current PR/origin refs, then decide safe feature integration/publication after confirming status is unchanged. Do not update `main` or production. Continue after integration with fixture-backed Source Intelligence/Candidate Fit. No user proposal files staged.
+
+## Historical handoff entries
+
+Older entries below are dated checkpoints and must not be treated as current Git/runtime facts.
+
+## 2026-10-17 — Remotive remote-location evidence (historical)
+
+The preceding handoff checkpoint was `d6917d3`, 61 commits ahead of feature origin. Subsequent entries below are historical evidence only.
 
 ## Current entry point — 2026-10-17 Candidate Fit contrastive negation
 

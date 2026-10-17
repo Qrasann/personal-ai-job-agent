@@ -26,6 +26,7 @@ from app.domain.source_posting import posting_snapshot_digest, snapshot_source_p
 from app.candidates.fact_types import normalize_experience_type
 
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
+PREPARED_MATCH_SNAPSHOT_KEY = "_prepared_match_id"
 MANUAL_APPLICATION_STATUSES = frozenset({
     "reviewed", "submitted", "interview", "offer", "rejected", "withdrawn",
 })
@@ -661,8 +662,26 @@ async def save_application(**kwargs) -> Application:
         return item
 
 
-async def save_prepared_application(match_id: int, user_id: int, **kwargs) -> Application:
-    """Save a reviewable draft and its match state in one transaction."""
+async def prepared_application_for_match(match_id: int, user_id: int) -> Application | None:
+    """Find a package previously created for this exact owner-scoped match."""
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.vacancy_snapshot[PREPARED_MATCH_SNAPSHOT_KEY].astext == str(match_id),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+
+
+async def save_prepared_application(
+    match_id: int, user_id: int, **kwargs,
+) -> tuple[Application, bool]:
+    """Atomically save one package per owner-scoped match; return (item, created).
+
+    Locking the match row serializes duplicate attempts without adding a schema
+    constraint. The immutable marker remains on the Application snapshot as the
+    package advances through reviewed/submitted tracking statuses.
+    """
     async with SessionLocal() as session:
         match = await session.scalar(
             select(JobMatch).where(
@@ -671,6 +690,17 @@ async def save_prepared_application(match_id: int, user_id: int, **kwargs) -> Ap
         )
         if match is None or match.job_id != kwargs.get("job_id"):
             raise ValueError("Match не найден для этого пользователя и вакансии")
+        existing = await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.vacancy_snapshot[PREPARED_MATCH_SNAPSHOT_KEY].astext == str(match_id),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+        if existing is not None:
+            return existing, False
+        snapshot = dict(kwargs.pop("vacancy_snapshot", {}) or {})
+        snapshot[PREPARED_MATCH_SNAPSHOT_KEY] = match_id
+        kwargs["vacancy_snapshot"] = snapshot
         item = Application(user_id=user_id, status="prepared", **kwargs)
         session.add(item)
         await session.flush()
@@ -680,7 +710,7 @@ async def save_prepared_application(match_id: int, user_id: int, **kwargs) -> Ap
         match.status = "prepared"
         await session.commit()
         await session.refresh(item)
-        return item
+        return item, True
 
 
 

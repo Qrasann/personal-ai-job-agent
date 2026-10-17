@@ -57,6 +57,16 @@
 
 # Tasks
 
+## 2026-10-17 — Application Package retry safety and audit retention
+
+- [x] Review PR #31 and confirm local delivery-failure handling still allowed duplicate `/prepare` drafts.
+- [x] Persist an immutable match marker, reuse existing packages regardless of later status, and serialize simultaneous retries with the existing match-row lock.
+- [x] Exercise retry-after-status-change and concurrent-request behavior in isolated PostgreSQL; offline `/prepare` UX regressions covered.
+- [x] Review PR #27's v7→v8 FK change; implement `ON DELETE RESTRICT` and prove the stored package/status history remains after a blocked job-delete attempt.
+- [x] Targeted suite: 58 passed; full isolated PostgreSQL suite: 1226 passed; compileall, diff check, secret scan passed.
+- [ ] Review exact work-branch vs feature/origin integration and resolve stale PR #31/#27 state without replaying duplicate code; do not touch `main` or production.
+- [ ] Continue fixture-backed Source Intelligence/Candidate Fit improvements.
+
 ## 2026-10-17 — classify explicit skill advantage wording as preferred
 
 - [x] Red regression reproduced “Linux experience would be an advantage” being treated as required under a Requirements heading.

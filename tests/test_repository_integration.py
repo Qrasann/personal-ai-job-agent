@@ -80,7 +80,7 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6, 7]
+        assert applied == [5, 6, 7, 8]
         async with engine.begin() as conn:
             assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
@@ -92,6 +92,75 @@ async def _application_migration_flow(monkeypatch):
         assert loaded.resume_snapshot == ""
         assert loaded.resume_external_id is None
         assert loaded.vacancy_snapshot == {}
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_v7_to_v8_job_delete_protects_application_history(monkeypatch):
+    _require_test_database()
+    asyncio.run(_application_history_restrict_migration_flow(monkeypatch))
+
+
+async def _application_history_restrict_migration_flow(monkeypatch):
+    from sqlalchemy.exc import IntegrityError
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+            # Recreate the actual v7 cascade constraint for upgrade coverage.
+            await conn.execute(text("ALTER TABLE applications DROP CONSTRAINT applications_job_id_fkey"))
+            await conn.execute(text(
+                "ALTER TABLE applications ADD CONSTRAINT applications_job_id_fkey "
+                "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE"
+            ))
+        owner = await repo.create_user("app-history-owner", "Owner")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="history-preserve-1", title="SRE",
+            company="Example", description="Original description",
+        ))
+        application = await repo.save_application(
+            user_id=owner.id, job_id=job.id, source_id="hh", status="submitted",
+            message="Approved application text",
+            vacancy_snapshot={"title": "SRE", "source_job_id": "history-preserve-1"},
+        )
+        async with engine.begin() as conn:
+            for version in range(1, 8):
+                await conn.execute(
+                    text("INSERT INTO schema_migrations(version,name,applied_at) "
+                         "VALUES (:version,:name,CURRENT_TIMESTAMP)"),
+                    {"version": version, "name": f"v{version}"},
+                )
+            before = await conn.scalar(text(
+                "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                "WHERE conname = 'applications_job_id_fkey' "
+                "AND conrelid = 'applications'::regclass"
+            ))
+            assert "ON DELETE CASCADE" in before
+            assert await apply_migrations(conn) == [8]
+            after = await conn.scalar(text(
+                "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                "WHERE conname = 'applications_job_id_fkey' "
+                "AND conrelid = 'applications'::regclass"
+            ))
+            assert "ON DELETE RESTRICT" in after
+            assert await apply_migrations(conn) == []
+
+        with pytest.raises(IntegrityError):
+            async with engine.begin() as conn:
+                await conn.execute(text("DELETE FROM jobs WHERE id = :job_id"), {"job_id": job.id})
+        saved = await repo.get_application(owner.id, application.id)
+        assert saved is not None
+        assert saved.message == "Approved application text"
+        assert saved.vacancy_snapshot["title"] == "SRE"
+        assert [item.status for item in await repo.application_status_history(owner.id, application.id)] == [
+            "submitted",
+        ]
+        assert await repo.get_job(job.id) is not None
     finally:
         await engine.dispose()
 
