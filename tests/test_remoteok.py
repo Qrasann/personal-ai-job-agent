@@ -10,6 +10,38 @@ from app.sources.adapters.remoteok import RemoteOKSource
 from app.sources.base import SourceContext
 
 
+@pytest.mark.parametrize("tags", [42, True, "DevOps", {"DevOps": True}, [None, 1, {"name": "DevOps"}]])
+def test_remoteok_malformed_optional_tags_do_not_abort_valid_roles(monkeypatch, tags):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[
+            {"id": 1, "position": "DevOps Engineer", "tags": tags},
+            {"id": 2, "position": "DevOps Engineer", "tags": ["Linux", None]},
+        ], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    jobs = asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1, queries=["DevOps"])))
+    assert [job.source_job_id for job in jobs] == ["1", "2"]
+    assert jobs[0].skills == []
+    assert jobs[1].skills == ["Linux"]
+
+
+@pytest.mark.parametrize("amount", ["not-a-number", {}, True, -1, 0, 2**31, 2000.5])
+def test_remoteok_invalid_salary_stays_unknown_without_losing_role(monkeypatch, amount):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[
+            {"id": 1, "position": "DevOps", "salary_min": amount, "salary_max": amount},
+            {"id": 2, "position": "DevOps", "salary_min": 60000, "salary_max": 90000},
+        ], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    jobs = asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1)))
+    assert [job.source_job_id for job in jobs] == ["1", "2"]
+    assert jobs[0].salary_from is None and jobs[0].salary_to is None
+    assert jobs[0].salary_currency is None
+    assert (jobs[1].salary_from, jobs[1].salary_to, jobs[1].salary_currency) == (60000, 90000, "USD")
+    assert jobs[1].salary_period is None  # The feed has not confirmed a pay period.
+
+
 def test_remoteok_preserves_explicit_location_limit_over_worldwide_boilerplate(monkeypatch):
     async def get(self, url, **kwargs):
         return httpx.Response(200, json=[{

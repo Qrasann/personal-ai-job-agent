@@ -32,6 +32,12 @@ def _query_phrases(query: str) -> tuple[str, ...]:
     return (normalized, *_ROLE_ALIASES.get(normalized, ()))
 
 
+def _tags(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item.strip() for item in value if isinstance(item, str) and item.strip()]
+
+
 class ArbeitnowSource(JobSource):
     source_id = "arbeitnow"
     name = "Arbeitnow"
@@ -54,7 +60,7 @@ class ArbeitnowSource(JobSource):
             if not isinstance(row, dict) or not row.get("slug") or not row.get("title"):
                 continue
             title = str(row["title"])
-            tags = [str(value) for value in (row.get("tags") or [])]
+            tags = _tags(row.get("tags"))
             role_hay = " ".join([title, *tags]).casefold()
             if query_groups and not any(
                 any(phrase and phrase in role_hay for phrase in phrases)

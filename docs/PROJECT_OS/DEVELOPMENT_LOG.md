@@ -1,3 +1,7 @@
+## 2026-10-17 — isolate malformed RemoteOK/Arbeitnow metadata
+
+Reproduced whole-adapter exceptions from non-list `tags` values and a RemoteOK row carrying a malformed salary. Optional tag containers/items now keep only nonempty strings. RemoteOK salary normalization accepts only finite positive integral numbers in the PostgreSQL signed-Integer range; invalid salary stays unknown and valid sibling vacancies remain parseable. Currency is attached only when a normalized salary exists; no salary period is inferred. Targeted 71; full isolated PostgreSQL 1125 passed.
+
 ## 2026-10-17 — select CV by exact role/content terms
 
 Six regressions reproduced a less suitable CV winning an ID tie after QA/Go/HR/C# terms were discarded or Java matched JavaScript. Resume role/content matching now reuses whole terms and the explicit short vocabulary. Original selection weights/language preference and active/deleted filtering remain; no CV or Candidate Fact is rewritten, and resume selection does not increase vacancy scores. Targeted 69; full isolated PostgreSQL 1110 passed. Wider v3.6 tailored RU/EN CV work remains partial/planned.

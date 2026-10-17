@@ -9,6 +9,17 @@ from app.search.preferences import vacancy_allowed
 from app.domain.relocation_evidence import build_relocation_evidence
 
 
+@pytest.mark.parametrize("tags", [42, True, {"DevOps": True}])
+def test_arbeitnow_malformed_optional_tags_do_not_abort_neighboring_roles(tags):
+    jobs = ArbeitnowSource.parse_payload({"data": [
+        {"slug": "bad-tags", "title": "DevOps Engineer", "tags": tags},
+        {"slug": "valid", "title": "DevOps Engineer", "tags": ["Linux", None]},
+    ]}, SourceContext(user_id=1, queries=["DevOps"]))
+    assert [job.source_job_id for job in jobs] == ["bad-tags", "valid"]
+    assert jobs[0].skills == []
+    assert jobs[1].skills == ["Linux"]
+
+
 def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
     payload = {
         "data": [

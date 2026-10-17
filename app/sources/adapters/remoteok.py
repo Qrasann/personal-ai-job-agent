@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import httpx
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
@@ -14,6 +16,23 @@ class RemoteOKSource(JobSource):
     name = "Remote OK"
     capabilities = SourceCapabilities(discovery=True, details=True, apply=False, messages=False)
     endpoint = "https://remoteok.com/api"
+
+    @staticmethod
+    def _amount(value: object) -> int | None:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        if not 0 < value <= 2**31 - 1:
+            return None
+        amount = int(value)
+        return amount if amount == value else None
+
+    @staticmethod
+    def _tags(value: object) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        return [item.strip() for item in value if isinstance(item, str) and item.strip()]
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
         headers = {"User-Agent": "JobAgentV3/0.1 (job discovery client)"}
@@ -40,7 +59,7 @@ class RemoteOKSource(JobSource):
             if not isinstance(row, dict) or not row.get("id"):
                 continue
             title = str(row.get("position") or "")
-            tags = [str(x) for x in (row.get("tags") or [])]
+            tags = self._tags(row.get("tags"))
             # Discovery should match the role, not a generic word such as
             # "engineer" buried somewhere in a long description. This avoids
             # unrelated RemoteOK rows such as housekeeping/data/software roles
@@ -67,9 +86,9 @@ class RemoteOKSource(JobSource):
                     # Retain an explicit limit; bare office/global labels do
                     # not establish which countries the employer can hire from.
                     remote_scope=remote_location_restriction(row.get("location")) or "unspecified",
-                    salary_from=row.get("salary_min"),
-                    salary_to=row.get("salary_max"),
-                    salary_currency="USD" if row.get("salary_min") or row.get("salary_max") else None,
+                    salary_from=self._amount(row.get("salary_min")),
+                    salary_to=self._amount(row.get("salary_max")),
+                    salary_currency="USD" if self._amount(row.get("salary_min")) or self._amount(row.get("salary_max")) else None,
                     skills=tags,
                     published_at=str(row.get("date") or "") or None,
                     raw={**row, "source_location": row.get("location")},
