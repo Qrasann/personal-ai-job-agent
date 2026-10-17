@@ -13,7 +13,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.types import BufferedInputFile
 
-from app.search.source_summary import render_source_dashboard, scan_outcome, select_scan_dashboard
+from app.search.source_summary import render_filter_reason_counts, render_source_dashboard, scan_outcome, select_scan_dashboard
 from app.sources.diagnostics import classify_source_error, legacy_diagnostic
 
 from app.candidates.bootstrap import bootstrap_user
@@ -26,6 +26,7 @@ from app.config import settings
 from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
+from app.domain.text_limits import utf16_length
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
@@ -56,6 +57,62 @@ router.message.filter(F.chat.type == "private")
 router.callback_query.filter(F.message.chat.type == "private")
 _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
 _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
+_RESUME_IMPORT_TTL_SECONDS = 15 * 60
+_MAX_PENDING_RESUME_IMPORTS = 64
+_MAX_PENDING_RESUME_IMPORTS_PER_USER = 8
+
+
+def _store_pending_resume_import(token: str, pending: dict) -> None:
+    """Bound in-memory CV previews by age, per-owner count and total count."""
+    now = time.time()
+    for old_token, old in list(_PENDING_RESUME_IMPORTS.items()):
+        created = old.get("created_at", 0)
+        if not isinstance(created, (int, float)) or now - created > _RESUME_IMPORT_TTL_SECONDS:
+            _PENDING_RESUME_IMPORTS.pop(old_token, None)
+
+    owner = pending["user_id"]
+    while True:
+        owned = [
+            (key, value) for key, value in _PENDING_RESUME_IMPORTS.items()
+            if value.get("user_id") == owner
+        ]
+        if len(owned) < _MAX_PENDING_RESUME_IMPORTS_PER_USER and len(_PENDING_RESUME_IMPORTS) < _MAX_PENDING_RESUME_IMPORTS:
+            break
+        candidates = owned if len(owned) >= _MAX_PENDING_RESUME_IMPORTS_PER_USER else list(_PENDING_RESUME_IMPORTS.items())
+        oldest = min(candidates, key=lambda item: item[1].get("created_at", 0))[0]
+        _PENDING_RESUME_IMPORTS.pop(oldest, None)
+    _PENDING_RESUME_IMPORTS[token] = pending
+
+
+def _render_search_profiles(searches: dict, *, limit: int = 900) -> str:
+    if limit <= 0:
+        return ""
+    lines = []
+    for info in searches.values():
+        line = (
+            f"• {html.escape(str(info.get('name') or 'Search')[:80])}: "
+            f"{int(info.get('processed', 0))} обработано, "
+            f"{int(info.get('qualified', 0))} Good, "
+            f"{int(info.get('stretch', 0))} Stretch, "
+            f"{int(info.get('filtered', 0))} ниже scoring, "
+            f"{int(info.get('preference_filtered', 0))} исключено настройками"
+        )
+        reasons = render_filter_reason_counts(
+            info.get("preference_exclusion_reasons"),
+            info.get("scoring_exclusion_reasons"),
+        )
+        if reasons:
+            line += "\n  Основные причины: " + html.escape(reasons)
+        if utf16_length("\n".join(lines + [line])) > limit:
+            suffix = "… Остальные профили сохранены в диагностике."
+            if utf16_length(suffix) > limit:
+                return "…"
+            while lines and utf16_length("\n".join(lines + [suffix])) > limit:
+                lines.pop()
+            lines.append(suffix)
+            break
+        lines.append(line)
+    return "\n".join(lines)
 
 
 async def _save_scan_dashboard(user_id: int, *, reset: bool = False, **values) -> None:
@@ -761,19 +818,16 @@ async def import_resume_document(message: Message, bot: Bot) -> None:
     existing = await repo.list_facts(profile.id)
     review = review_proposals(proposals, existing)
     token = uuid.uuid4().hex[:12]
-    _PENDING_RESUME_IMPORTS[token] = {
+    pending = {
         "user_id": user.id, "profile_id": profile.id,
         "content": content, "fingerprint": fingerprint, "language": guess_language(content),
         "role": profile.target_role or "", "proposals": review.new,
         "overlaps": review.overlaps, "choices": {}, "duplicates_count": len(review.duplicates),
         "created_at": time.time(),
     }
-    now = time.time()
-    for old_token, pending in list(_PENDING_RESUME_IMPORTS.items()):
-        if now - pending["created_at"] > 15 * 60:
-            _PENDING_RESUME_IMPORTS.pop(old_token, None)
+    _store_pending_resume_import(token, pending)
 
-    text, keyboard = render_import_preview(_PENDING_RESUME_IMPORTS[token], token)
+    text, keyboard = render_import_preview(pending, token)
     await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
 
@@ -785,7 +839,7 @@ async def choose_resume_fact(callback: CallbackQuery) -> None:
         return
     _, token, index_text, action = parts
     pending = _PENDING_RESUME_IMPORTS.get(token)
-    if not pending or time.time() - pending["created_at"] > 15 * 60:
+    if not pending or time.time() - pending["created_at"] > _RESUME_IMPORT_TTL_SECONDS:
         await callback.answer("Предпросмотр истёк. Отправь документ заново.", show_alert=True)
         return
     user = await repo.get_user_by_chat(callback.message.chat.id) if callback.message else None
@@ -824,7 +878,7 @@ async def confirm_resume_import(callback: CallbackQuery) -> None:
         return
     action, token = parts[1], parts[2]
     pending = _PENDING_RESUME_IMPORTS.get(token)
-    if not pending or time.time() - pending["created_at"] > 15 * 60:
+    if not pending or time.time() - pending["created_at"] > _RESUME_IMPORT_TTL_SECONDS:
         _PENDING_RESUME_IMPORTS.pop(token, None)
         await callback.answer("Предпросмотр истёк. Отправь документ заново.", show_alert=True)
         return
@@ -1062,15 +1116,8 @@ async def scan(message: Message, bot: Bot) -> None:
         outcome = scan_outcome(summary)
         await _save_scan_dashboard(user.id, status=outcome, stage="Готово" if outcome == "completed" else "Завершено с неполными результатами", finished_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()), summary=summary)
         details = render_source_dashboard(summary.get("sources") or {}) or "• активных источников нет"
-        profile_bits = []
-        for info in (summary.get("searches") or {}).values():
-            profile_bits.append(
-                f"• {html.escape(str(info.get('name') or 'Search'))}: "
-                f"{int(info.get('processed', 0))} обработано, "
-                f"{int(info.get('qualified', 0))} Good, "
-                f"{int(info.get('stretch', 0))} Stretch"
-            )
-        profile_details = "\n\n<b>Профили поиска</b>\n" + "\n".join(profile_bits) if profile_bits else ""
+        profile_bits = _render_search_profiles(summary.get("searches") or {})
+        profile_details = "\n\n<b>Профили поиска</b>\n" + profile_bits if profile_bits else ""
 
         await progress.edit_text(
             ("✅ <b>Проход поиска завершён</b>\n\n" if outcome == "completed" else "⚠️ <b>Поиск завершён с неполными результатами</b>\n\n")
@@ -1135,13 +1182,15 @@ async def scan_status(message: Message) -> None:
     if state.get("status") == "completed" and summary:
         state["status"] = scan_outcome(summary)
     sources = render_source_dashboard(summary.get("sources") or {})
+    profiles = _render_search_profiles(summary.get("searches") or {})
     await message.answer(
         ("📊 Плановое сканирование: <b>" if state.get("kind") == "scheduled" else "📊 Сканирование: <b>")
         + f"{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
         f"Начато: {html.escape(str(state.get('started_at', '—')))}\n"
         f"Завершено: {html.escape(str(state.get('finished_at', '—')))}\n"
         f"Этап: {html.escape(str(state.get('stage', '—')))}\n"
-        + (sources if sources else "Источники ещё не завершили поиск."),
+        + (sources if sources else "Источники ещё не завершили поиск.")
+        + ("\n\n<b>Профили поиска</b>\n" + profiles if profiles else ""),
         parse_mode="HTML",
     )
 
@@ -1502,9 +1551,15 @@ async def resume_diff_command(message: Message) -> None:
 
 
 async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
+    existing = await repo.prepared_application_for_match(match_id, user_id)
+    if existing is not None:
+        return (
+            f"ℹ Черновик отклика #{existing.id} уже сохранён; новый дубликат не создан. "
+            f"Проверь /applications или экспортируй: /application {existing.id} export"
+        )
     result = await prepare_match(match_id, user_id)
     preview = render_application_package(result)
-    application = await repo.save_prepared_application(
+    application, created = await repo.save_prepared_application(
         match_id=match_id, user_id=user_id,
         job_id=result["job"].id,
         source_id=str(result.get("source") or "manual")[:64],
@@ -1524,7 +1579,20 @@ async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
         ),
         message=str(result.get("cover_letter") or ""),
     )
+    if not created:
+        return (
+            f"ℹ Черновик отклика #{application.id} уже сохранён; новый дубликат не создан. "
+            f"Проверь /applications или экспортируй: /application {application.id} export"
+        )
     return preview + f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
+
+
+def _prepare_error_text(exc: Exception, *, package_saved: bool) -> str:
+    issue = classify_source_error(exc, stage="processing")
+    text = f"⚠ {html.escape(issue['message'])} Код: {issue['code']}."
+    if package_saved:
+        return text + " Пакет сохранён; открой /applications. Повторная подготовка нового пакета не создаст дубликат."
+    return text + " Проверь /applications перед повтором."
 
 
 @router.message(Command("prepare"))
@@ -1555,12 +1623,18 @@ async def prepare_command(message: Message) -> None:
             await progress.edit_text("❌ Вакансия не найдена среди твоих совпадений в выбранном поиске.")
             return
         preview = await _prepare_saved_preview(match.id, user.id)
-        await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
     except Exception as exc:
-        issue = classify_source_error(exc, stage="processing")
         await progress.edit_text(
-            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
+            _prepare_error_text(exc, package_saved=False),
             parse_mode="HTML",
+        )
+        return
+    try:
+        await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
+    except Exception:
+        await message.answer(
+            "⚠ Пакет уже сохранён, но Telegram не показал подтверждение. "
+            "Проверь /applications; повторная подготовка нового пакета не создаст дубликат."
         )
 
 
@@ -1932,16 +2006,23 @@ async def prepare_callback(callback: CallbackQuery) -> None:
     await callback.answer("Готовлю…")
     try:
         preview = await _prepare_saved_preview(match_id, user.id)
-        await callback.message.answer(
-            preview,
-            parse_mode="HTML",
-            disable_web_page_preview=True,
-        )
     except Exception as exc:
         issue = classify_source_error(exc, stage="processing")
         await callback.message.answer(
             f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
             parse_mode="HTML",
+        )
+        return
+    try:
+        await callback.message.answer(
+            preview,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    except Exception:
+        await callback.message.answer(
+            "⚠ Пакет уже сохранён, но Telegram не показал подтверждение. "
+            "Проверь /applications; повторная подготовка нового пакета не создаст дубликат."
         )
 
 

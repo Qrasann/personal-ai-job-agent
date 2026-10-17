@@ -88,19 +88,31 @@ class EuresSource(JobSource):
             if not isinstance(row, dict) or not row.get("id") or not row.get("title"):
                 continue
             # The endpoint can return broad/fuzzy matches. Require a meaningful
-            # query token in the title so unrelated vacancies do not leak in.
+            # whole query token in the title so fuzzy substring matches do
+            # not let e.g. Java return JavaScript roles.
             title = str(row["title"])
-            if tokens and not any(token in title.casefold() for token in tokens):
+            title_folded = title.casefold()
+            if tokens and not any(
+                re.search(rf"(?<!\w){re.escape(token)}(?!\w)", title_folded)
+                for token in tokens
+            ):
                 continue
             if row.get("euresFlag") is not True:
                 continue
-            location_map = row.get("locationMap") or {}
+            location_map = row.get("locationMap")
+            if not isinstance(location_map, dict):
+                # Location and employer blocks are optional search metadata.
+                # A malformed block must not discard valid sibling listings.
+                location_map = {}
             country = next(iter(location_map), None)
+            employer = row.get("employer")
+            if not isinstance(employer, dict):
+                employer = {}
             jobs.append(NormalizedJob(
                 source=cls.source_id,
                 source_job_id=str(row["id"]),
                 title=title,
-                company=str((row.get("employer") or {}).get("name") or ""),
+                company=str(employer.get("name") or ""),
                 description=clean_html_text(str(row.get("description") or "")),
                 url=cls.portal_url,
                 country=str(country).upper() if country else None,
@@ -118,12 +130,35 @@ class EuresSource(JobSource):
 
     @staticmethod
     def _timestamp(value) -> str | None:
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             return None
         try:
             return datetime.fromtimestamp(value / 1000, tz=timezone.utc).isoformat()
         except (OverflowError, OSError, ValueError):
             return None
+
+    @staticmethod
+    def _safe_application_url(value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        target = value.strip()
+        # Match Telegram's clickable-link budget so a stored application URL
+        # is not silently hidden later by the vacancy renderer.
+        if not target or len(target) > 600 or any(ord(char) < 33 or ord(char) == 127 for char in target):
+            return None
+        try:
+            parsed = urlparse(target)
+            parsed.port  # Validate malformed/out-of-range port syntax.
+        except ValueError:
+            return None
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            return None
+        return target
 
     @classmethod
     def enrich(cls, job: NormalizedJob, payload: dict) -> NormalizedJob:
@@ -161,8 +196,9 @@ class EuresSource(JobSource):
             soup = BeautifulSoup(str(instruction), "html.parser")
             for anchor in soup.select("a[href]"):
                 target = str(anchor.get("href") or "")
-                if urlparse(target).scheme == "https" and urlparse(target).netloc:
-                    job.url = target
+                safe_target = cls._safe_application_url(target)
+                if safe_target:
+                    job.url = safe_target
                     break
             if job.url != cls.portal_url:
                 break

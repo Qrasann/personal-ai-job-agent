@@ -350,9 +350,10 @@ def test_resume_diff_command_accepts_explicit_resume_and_renders_result(monkeypa
 
 def test_prepare_callback_sends_reviewable_preview_without_sending_application(monkeypatch):
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "prepared_application_for_match", AsyncMock(return_value=None))
     prepare = AsyncMock(return_value={"job": _job(25, "DevOps"), "resume_diff": {}})
     monkeypatch.setattr(handlers, "prepare_match", prepare)
-    save_application = AsyncMock(return_value=SimpleNamespace(id=3))
+    save_application = AsyncMock(return_value=(SimpleNamespace(id=3), True))
     monkeypatch.setattr(handlers.repo, "save_prepared_application", save_application)
     monkeypatch.setattr(handlers, "render_application_package", lambda payload: "REVIEW PREVIEW")
     answer = AsyncMock()
@@ -377,6 +378,7 @@ def test_prepare_callback_sends_reviewable_preview_without_sending_application(m
 
 
 def test_prepare_preview_render_failure_does_not_save_draft(monkeypatch):
+    monkeypatch.setattr(handlers.repo, "prepared_application_for_match", AsyncMock(return_value=None))
     monkeypatch.setattr(handlers, "prepare_match", AsyncMock(return_value={"job": _job(25, "DevOps")}))
     monkeypatch.setattr(handlers, "render_application_package", lambda payload: (_ for _ in ()).throw(ValueError("bad preview")))
     save = AsyncMock()
@@ -386,6 +388,22 @@ def test_prepare_preview_render_failure_does_not_save_draft(monkeypatch):
         asyncio.run(handlers._prepare_saved_preview(51, 7))
 
     save.assert_not_awaited()
+
+
+def test_prepare_preview_reuses_existing_application_without_regenerating(monkeypatch):
+    monkeypatch.setattr(
+        handlers.repo, "prepared_application_for_match",
+        AsyncMock(return_value=SimpleNamespace(id=17)),
+    )
+    prepare = AsyncMock()
+    monkeypatch.setattr(handlers, "prepare_match", prepare)
+
+    preview = asyncio.run(handlers._prepare_saved_preview(51, 7))
+
+    assert "#17" in preview
+    assert "дубликат не создан" in preview
+    assert "/application 17 export" in preview
+    prepare.assert_not_awaited()
 
 
 @pytest.mark.parametrize(("text", "search_id"), [
@@ -457,6 +475,45 @@ def test_prepare_command_hides_internal_error_and_points_to_saved_applications(m
     assert "private internal detail" not in rendered
     assert "SOURCE_PROCESSING_FAILED" in rendered
     assert "/applications" in rendered
+
+
+def test_prepare_command_delivery_failure_discloses_saved_draft_without_retrying(monkeypatch):
+    _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers.repo, "get_match_for_user_job", AsyncMock(return_value=SimpleNamespace(id=51)))
+    prepare = AsyncMock(return_value="SAVED PACKAGE")
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    progress = SimpleNamespace(edit_text=AsyncMock(side_effect=[RuntimeError("Telegram timeout"), None]))
+    answer = AsyncMock(side_effect=[progress, None])
+    message = SimpleNamespace(text="/prepare 25", answer=answer)
+
+    asyncio.run(handlers.prepare_command(message))
+
+    prepare.assert_awaited_once_with(51, 7)
+    notice = answer.await_args_list[1].args[0]
+    assert "Пакет уже сохранён" in notice
+    assert "/applications" in notice
+    assert "не создаст дубликат" in notice
+    assert "Telegram timeout" not in notice
+
+
+def test_prepare_callback_delivery_failure_discloses_saved_draft_without_retrying(monkeypatch):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    prepare = AsyncMock(return_value="SAVED PACKAGE")
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    answer = AsyncMock(side_effect=[RuntimeError("Telegram timeout"), None])
+    callback = SimpleNamespace(
+        data="prepare:51", answer=AsyncMock(),
+        message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=answer),
+    )
+
+    asyncio.run(handlers.prepare_callback(callback))
+
+    prepare.assert_awaited_once_with(51, 7)
+    notice = answer.await_args_list[1].args[0]
+    assert "Пакет уже сохранён" in notice
+    assert "/applications" in notice
+    assert "не создаст дубликат" in notice
+    assert "Telegram timeout" not in notice
 
 
 def test_application_status_command_uses_explicit_manual_status(monkeypatch):

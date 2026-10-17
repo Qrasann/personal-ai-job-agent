@@ -4,12 +4,12 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy import text
+from sqlalchemy import event, func, select, text
 from sqlalchemy.exc import DBAPIError
 
 from app.database import repository as repo
 from app.database.migrations import apply_migrations
-from app.database.models import Application, Base, CandidateFact, SchemaMigration
+from app.database.models import Application, ApplicationStatusEvent, Base, CandidateFact, Job, JobSourceRef, SchemaMigration
 from app.domain.jobs import NormalizedJob
 from app.domain.application_package import snapshot_vacancy
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
@@ -80,7 +80,7 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6, 7]
+        assert applied == [5, 6, 7, 8]
         async with engine.begin() as conn:
             assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
@@ -92,6 +92,75 @@ async def _application_migration_flow(monkeypatch):
         assert loaded.resume_snapshot == ""
         assert loaded.resume_external_id is None
         assert loaded.vacancy_snapshot == {}
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_v7_to_v8_job_delete_protects_application_history(monkeypatch):
+    _require_test_database()
+    asyncio.run(_application_history_restrict_migration_flow(monkeypatch))
+
+
+async def _application_history_restrict_migration_flow(monkeypatch):
+    from sqlalchemy.exc import IntegrityError
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+            # Recreate the actual v7 cascade constraint for upgrade coverage.
+            await conn.execute(text("ALTER TABLE applications DROP CONSTRAINT applications_job_id_fkey"))
+            await conn.execute(text(
+                "ALTER TABLE applications ADD CONSTRAINT applications_job_id_fkey "
+                "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE"
+            ))
+        owner = await repo.create_user("app-history-owner", "Owner")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="history-preserve-1", title="SRE",
+            company="Example", description="Original description",
+        ))
+        application = await repo.save_application(
+            user_id=owner.id, job_id=job.id, source_id="hh", status="submitted",
+            message="Approved application text",
+            vacancy_snapshot={"title": "SRE", "source_job_id": "history-preserve-1"},
+        )
+        async with engine.begin() as conn:
+            for version in range(1, 8):
+                await conn.execute(
+                    text("INSERT INTO schema_migrations(version,name,applied_at) "
+                         "VALUES (:version,:name,CURRENT_TIMESTAMP)"),
+                    {"version": version, "name": f"v{version}"},
+                )
+            before = await conn.scalar(text(
+                "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                "WHERE conname = 'applications_job_id_fkey' "
+                "AND conrelid = 'applications'::regclass"
+            ))
+            assert "ON DELETE CASCADE" in before
+            assert await apply_migrations(conn) == [8]
+            after = await conn.scalar(text(
+                "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                "WHERE conname = 'applications_job_id_fkey' "
+                "AND conrelid = 'applications'::regclass"
+            ))
+            assert "ON DELETE RESTRICT" in after
+            assert await apply_migrations(conn) == []
+
+        with pytest.raises(IntegrityError):
+            async with engine.begin() as conn:
+                await conn.execute(text("DELETE FROM jobs WHERE id = :job_id"), {"job_id": job.id})
+        saved = await repo.get_application(owner.id, application.id)
+        assert saved is not None
+        assert saved.message == "Approved application text"
+        assert saved.vacancy_snapshot["title"] == "SRE"
+        assert [item.status for item in await repo.application_status_history(owner.id, application.id)] == [
+            "submitted",
+        ]
+        assert await repo.get_job(job.id) is not None
     finally:
         await engine.dispose()
 
@@ -190,6 +259,126 @@ async def _concurrent_application_status_flow(monkeypatch):
             "prepared", "reviewed",
         ]
         assert (await repo.get_application(user.id, application.id)).status == "reviewed"
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_application_status_and_history_roll_back_together_on_event_failure(monkeypatch):
+    _require_test_database()
+    asyncio.run(_application_status_rollback_flow(monkeypatch))
+
+
+async def _application_status_rollback_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        user = await repo.create_user("status-rollback-user", "Status Rollback")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="status-rollback", source_job_id="1", title="Linux role",
+        ))
+        application = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="status-rollback", status="prepared",
+        )
+
+        def reject_interview_event(session, flush_context, instances):
+            if any(
+                isinstance(item, ApplicationStatusEvent) and item.status == "interview"
+                for item in session.new
+            ):
+                raise RuntimeError("injected status history failure")
+
+        event.listen(AsyncSession.sync_session_class, "before_flush", reject_interview_event)
+        try:
+            with pytest.raises(RuntimeError, match="injected status history failure"):
+                await repo.set_application_status(user.id, application.id, "interview")
+        finally:
+            event.remove(AsyncSession.sync_session_class, "before_flush", reject_interview_event)
+
+        saved = await repo.get_application(user.id, application.id)
+        history = await repo.application_status_history(user.id, application.id)
+        assert saved.status == "prepared"
+        assert [item.status for item in history] == ["prepared"]
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_incomplete_source_location_does_not_replace_canonical_fingerprint(monkeypatch):
+    _require_test_database()
+    asyncio.run(_incomplete_source_identity_flow(monkeypatch))
+
+
+async def _incomplete_source_identity_flow(monkeypatch):
+    from app.database.models import Job
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        job, created = await repo.upsert_job(NormalizedJob(
+            source="identity-test", source_job_id="posting-1",
+            title="Platform Engineer", company="Example",
+            country="GE", city="Tbilisi",
+        ))
+        assert created
+        canonical_fingerprint = job.fingerprint
+
+        refreshed, created = await repo.upsert_job(NormalizedJob(
+            source="identity-test", source_job_id="posting-1",
+            title="Platform Engineer", company="Example",
+            country="  ", city="",
+        ))
+
+        assert not created
+        assert refreshed.id == job.id
+        assert refreshed.fingerprint == canonical_fingerprint
+        assert await repo.get_job(job.id) is not None
+        async with test_session() as session:
+            saved = await session.get(Job, job.id)
+            assert saved.country == "GE"
+            assert saved.city == "Tbilisi"
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_concurrent_cross_source_ingestion_creates_one_canonical_job(monkeypatch):
+    _require_test_database()
+    asyncio.run(_concurrent_source_identity_flow(monkeypatch))
+
+
+async def _concurrent_source_identity_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+
+        jobs = [NormalizedJob(
+            source=source, source_job_id=f"posting-{source}",
+            title="Platform Engineer", company="Example Corp",
+            country="GE", city="Tbilisi",
+        ) for source in ("board_a", "board_b")]
+        results = await asyncio.gather(*(repo.upsert_job(job) for job in jobs))
+
+        assert len({job.id for job, _ in results}) == 1
+        assert sum(int(created) for _, created in results) == 1
+        async with test_session() as session:
+            assert await session.scalar(select(func.count()).select_from(Job)) == 1
+            refs = list(await session.scalars(select(JobSourceRef).order_by(JobSourceRef.source_id)))
+        assert [(ref.source_id, ref.source_job_id) for ref in refs] == [
+            ("board_a", "posting-board_a"), ("board_b", "posting-board_b"),
+        ]
     finally:
         await engine.dispose()
 
@@ -685,6 +874,59 @@ def test_repeated_source_upsert_refreshes_job_without_losing_cache_or_applicatio
     asyncio.run(_repeated_source_upsert_flow(monkeypatch))
 
 
+@pytest.mark.integration
+def test_remotive_candidate_location_stays_remote_scope_after_provider_rediscovery(monkeypatch):
+    _require_test_database()
+    asyncio.run(_remotive_remote_scope_rediscovery_flow(monkeypatch))
+
+
+async def _remotive_remote_scope_rediscovery_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+
+        original = NormalizedJob(
+            source="remotive", source_job_id="remotive-posting-old",
+            title="DevOps Engineer", company="Example Corp",
+            description="Remote infrastructure role", country="GE",
+            work_mode="remote", remote_scope="Georgia",
+            raw={"candidate_required_location": "Georgia"},
+        )
+        job, created = await repo.upsert_job(original)
+        assert created
+        first_ref = await repo.source_ref(job.id, "remotive", source_job_id="remotive-posting-old")
+        first_evidence = first_ref.raw["relocation_evidence_v1"]["fields"]["work_country"]
+        assert first_ref.raw["normalized_posting_v1"]["remote_scope"] == "Georgia"
+        assert first_evidence["status"] == "unknown"
+        assert first_evidence["value"] is None
+
+        rediscovered = NormalizedJob(
+            source="remotive", source_job_id="remotive-posting-new",
+            title="DevOps Engineer", company="Example Corp",
+            description="Remote infrastructure role, refreshed", country="GE",
+            work_mode="remote", remote_scope="Georgia",
+            raw={"candidate_required_location": "Georgia", "revision": "new"},
+        )
+        same_job, created = await repo.upsert_job(rediscovered)
+        assert not created and same_job.id == job.id
+        new_ref = await repo.source_ref(job.id, "remotive", source_job_id="remotive-posting-new")
+        selected_ref = await repo.source_ref(job.id, "remotive")
+        assert new_ref.source_job_id == "remotive-posting-new"
+        assert new_ref.raw["revision"] == "new"
+        assert new_ref.raw["normalized_posting_v1"]["remote_scope"] == "Georgia"
+        assert new_ref.raw["relocation_evidence_v1"]["fields"]["work_country"]["status"] == "unknown"
+        assert selected_ref.source_job_id == "remotive-posting-new"
+        assert source_posting_view(same_job, selected_ref).remote_scope == "Georgia"
+    finally:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine.dispose()
+
+
 async def _repeated_source_upsert_flow(monkeypatch):
     engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
     test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -812,6 +1054,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         second_ref = await repo.source_ref(job.id, "second-board")
         assert second_ref.raw["normalized_posting_v1"]["description"] == "Cross-post"
         assert (await repo.source_ref(job.id, "refresh-source")).raw["normalized_posting_v1"]["description"] == "Another refreshed summary"
+        await asyncio.sleep(0.01)
         second_listing, second_created = await repo.upsert_job(NormalizedJob(
             source="second-board", source_job_id="same-role-2",
             title="Senior Linux Engineer", company="Refresh Co", description="A different listing",
@@ -822,6 +1065,9 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert exact_ref.source_job_id == "same-role-2"
         assert exact_ref.raw["normalized_posting_v1"]["description"] == "A different listing"
         assert (await repo.source_ref(job.id, "second-board", source_job_id="same-role")).id == second_ref.id
+        selected_ref = await repo.source_ref(job.id, "second-board")
+        assert selected_ref.source_job_id == "same-role-2"
+        assert source_posting_view(second_listing, selected_ref).description == "A different listing"
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)

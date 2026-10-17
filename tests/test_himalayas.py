@@ -7,6 +7,7 @@ from app.domain.job_text import format_salary
 from app.domain.vacancy_availability import vacancy_availability
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
+from app.domain.relocation_evidence import build_relocation_evidence
 from app.sources.adapters.himalayas import HimalayasSource
 from app.sources.base import SourceContext
 from app.sources.registry import build_source_plan, source_capabilities
@@ -69,6 +70,79 @@ def test_himalayas_keeps_only_selected_location_restrictions_and_preserves_salar
         period=worldwide.salary_period,
     ) == "72 000–96 000 $ в год"
     assert worldwide.url.startswith("https://himalayas.app/")
+
+
+def test_himalayas_remote_eligibility_countries_are_not_work_country_evidence():
+    jobs = HimalayasSource.parse_payload(
+        {"jobs": [listing("scope-only", "Infrastructure Engineer", ["Georgia"])]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )
+
+    assert len(jobs) == 1
+    assert jobs[0].country == "GE"  # Search-market identity still selects this target.
+    assert jobs[0].remote_scope == "Georgia"
+    fields = build_relocation_evidence(jobs[0])["fields"]
+    assert fields["work_country"]["status"] == "unknown"
+    assert fields["work_country"]["value"] is None
+    for field in ("visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"):
+        assert fields[field]["status"] == "unknown"
+        assert fields[field]["value"] is None
+
+
+@pytest.mark.parametrize("application_link", [
+    "https://user:secret@himalayas.app/companies/example/jobs/1",
+    "https://himalayas.app:8443/companies/example/jobs/1",
+    "https://himalayas.app:bad/companies/example/jobs/1",
+    "https://evil.example/companies/example/jobs/1",
+    "http://himalayas.app/companies/example/jobs/1",
+])
+def test_himalayas_rejects_unsafe_application_links(application_link):
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    job = listing("unsafe", "DevOps Engineer", [], applicationLink=application_link)
+
+    assert HimalayasSource.parse_payload({"jobs": [job]}, context) == []
+
+
+def test_himalayas_accepts_https_application_link_without_credentials_or_nonstandard_port():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    job = listing("safe", "DevOps Engineer", [])
+
+    parsed = HimalayasSource.parse_payload({"jobs": [job]}, context)
+
+    assert len(parsed) == 1
+    assert parsed[0].url == job["applicationLink"]
+
+
+def test_himalayas_rejects_oversized_application_link():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    job = listing("oversized", "DevOps Engineer", [], applicationLink="https://himalayas.app/" + "x" * 2050)
+
+    assert HimalayasSource.parse_payload({"jobs": [job]}, context) == []
+
+
+def test_himalayas_bounds_long_provider_ids_with_stable_distinct_hashes():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    first = listing("a" * 300, "DevOps Engineer", [])
+    second = listing("b" * 300, "DevOps Engineer", [])
+
+    parsed = HimalayasSource.parse_payload({"jobs": [first, second, first]}, context)
+
+    assert len(parsed) == 3
+    assert len(parsed[0].source_job_id) <= 256
+    assert parsed[0].source_job_id == parsed[2].source_job_id
+    assert parsed[0].source_job_id != parsed[1].source_job_id
+
+
+def test_himalayas_bounds_long_url_fallback_provider_id():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    long_url = "https://himalayas.app/" + "x" * 280
+    job = listing(None, "DevOps Engineer", [], applicationLink=long_url)
+
+    parsed = HimalayasSource.parse_payload({"jobs": [job]}, context)
+
+    assert len(parsed) == 1
+    assert len(parsed[0].source_job_id) <= 256
+    assert parsed[0].url == long_url
 
 
 def test_himalayas_accepts_documented_country_object_shape():

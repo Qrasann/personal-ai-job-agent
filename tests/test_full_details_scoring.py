@@ -60,9 +60,10 @@ def test_ingest_scores_the_exact_source_posting_not_cross_source_canonical(monke
 
     monkeypatch.setattr(services, "score_job", score)
 
-    asyncio.run(services.ingest_and_match(object(), normalized, only_user_id=7))
+    counters = asyncio.run(services.ingest_and_match(object(), normalized, only_user_id=7))
 
     assert score_inputs == [("Jobs.ge role", "Jobs.ge Docker requirement", "GE")]
+    assert counters["scoring_exclusion_reasons"] == {"technical_gap": 1}
 
 
 def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
@@ -288,3 +289,18 @@ def test_match_lane_routes_good_stretch_and_skip():
     assert services._match_lane(_result(80, 65, "stretch"), 65) == "stretch"
     assert services._match_lane(_result(80, 64, "stretch"), 65) == "filtered"
     assert services._match_lane(_result(100, 100, "skip"), 65) == "filtered"
+
+
+def test_scoring_exclusion_reason_uses_structured_scores_and_caps():
+    assert services._scoring_exclusion_reason(_result(100, 100, "skip"), 65) == "fit_skip"
+    assert services._scoring_exclusion_reason(_result(80, 65), 65) is None
+    capped = SimpleNamespace(
+        technical_score=100, geography_score=100, salary_score=100,
+        relocation_score=100, total_score=54, fit="good",
+    )
+    assert services._scoring_exclusion_reason(capped, 65) == "score_cap_or_risk"
+    geography_gap = SimpleNamespace(
+        technical_score=100, geography_score=0, salary_score=100,
+        relocation_score=100, total_score=73, fit="good",
+    )
+    assert services._scoring_exclusion_reason(geography_gap, 80) == "geography_gap"

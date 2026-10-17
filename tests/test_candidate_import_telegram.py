@@ -22,6 +22,47 @@ def conflict_pending():
     }
 
 
+def test_pending_resume_previews_are_bounded_per_user(monkeypatch):
+    now = 20_000.0
+    monkeypatch.setattr(handlers.time, "time", lambda: now)
+    pending = {
+        f"owner-{index}": {"user_id": 7, "created_at": now - 100 + index, "content": "x" * 100_000}
+        for index in range(8)
+    }
+    pending.update({
+        "other-owner": {"user_id": 8, "created_at": now - 50, "content": "y" * 100_000},
+        "expired": {"user_id": 9, "created_at": now - handlers._RESUME_IMPORT_TTL_SECONDS - 1, "content": "z" * 100_000},
+    })
+    monkeypatch.setattr(handlers, "_PENDING_RESUME_IMPORTS", pending)
+
+    handlers._store_pending_resume_import("new-owner", {
+        "user_id": 7, "created_at": now, "content": "new preview",
+    })
+
+    assert len([item for item in pending.values() if item["user_id"] == 7]) == 8
+    assert "owner-0" not in pending
+    assert pending["other-owner"]["user_id"] == 8
+    assert "expired" not in pending
+
+
+def test_pending_resume_previews_have_a_global_cap(monkeypatch):
+    now = 30_000.0
+    monkeypatch.setattr(handlers.time, "time", lambda: now)
+    pending = {
+        f"owner-{index}": {"user_id": index, "created_at": now - 100 + index}
+        for index in range(handlers._MAX_PENDING_RESUME_IMPORTS)
+    }
+    monkeypatch.setattr(handlers, "_PENDING_RESUME_IMPORTS", pending)
+
+    handlers._store_pending_resume_import("new-owner", {
+        "user_id": handlers._MAX_PENDING_RESUME_IMPORTS, "created_at": now,
+    })
+
+    assert len(pending) == handlers._MAX_PENDING_RESUME_IMPORTS
+    assert "owner-0" not in pending
+    assert "new-owner" in pending
+
+
 @pytest.mark.parametrize("choice", [None, "add", "update", "keep"])
 def test_conflict_choice_waits_for_save_and_applies_only_selected_effect(monkeypatch, choice):
     token = "choice-test"

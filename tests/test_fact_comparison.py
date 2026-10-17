@@ -49,6 +49,18 @@ def test_extracts_canonical_devops_requirements_without_duplicates():
     assert len(skills) == len(set(skills))
 
 
+def test_gitlab_repository_requirement_does_not_imply_gitlab_ci():
+    assert "GitLab CI" not in extract_technical_requirements(
+        "Requirements: experience managing GitLab projects and repositories."
+    )
+
+
+def test_gitlab_pipeline_requirement_recognizes_explicit_ci_context():
+    assert "GitLab CI" in extract_technical_requirements(
+        "Requirements: maintain GitLab pipelines and runners."
+    )
+
+
 @pytest.mark.parametrize("mention", ["OpenShift", "Red Hat OpenShift"])
 def test_candidate_fit_recognizes_openshift_as_its_own_supported_skill(mention):
     comparison = compare_facts(
@@ -59,6 +71,22 @@ def test_candidate_fit_recognizes_openshift_as_its_own_supported_skill(mention):
     assert [(item.skill, item.status, item.importance) for item in comparison.requirements] == [
         ("OpenShift", "commercial", "required"),
     ]
+
+
+@pytest.mark.parametrize("mention", ["OpenTelemetry", "Open Telemetry"])
+def test_candidate_fit_recognizes_explicit_opentelemetry_variants(mention):
+    comparison = compare_facts(
+        f"Requirements: Production experience with {mention} is required.",
+        [fact(8, "Commercial OpenTelemetry collector operations", "commercial")],
+    )
+
+    assert [(item.skill, item.status, item.importance) for item in comparison.requirements] == [
+        ("OpenTelemetry", "commercial", "required"),
+    ]
+
+
+def test_candidate_fit_does_not_treat_ambiguous_otel_acronym_as_confirmed_skill():
+    assert "OpenTelemetry" not in extract_technical_requirements("Requirements: OTel required.")
 
 
 def test_recognizes_common_remote_job_board_requirement_headings():
@@ -206,6 +234,65 @@ def test_missing_does_not_invent_candidate_experience():
         "Helm",
         "ArgoCD",
     }
+
+
+def test_later_explicit_requirement_is_not_masked_by_earlier_negation_in_clause():
+    comparison = compare_facts(
+        "Requirements: Linux is not required, but Linux knowledge is mandatory.",
+        [],
+    )
+
+    assert [(item.skill, item.status, item.importance) for item in comparison.requirements] == [
+        ("Linux", "missing", "required"),
+    ]
+
+
+@pytest.mark.parametrize("phrase", [
+    "Linux experience would be an advantage.",
+    "Linux experience is beneficial.",
+    "Linux будет преимуществом.",
+])
+def test_skill_experience_that_would_be_an_advantage_is_preferred(phrase):
+    comparison = compare_facts(
+        f"Requirements: {phrase}",
+        [],
+    )
+
+    assert [(item.skill, item.importance) for item in comparison.requirements] == [
+        ("Linux", "preferred"),
+    ]
+
+
+@pytest.mark.parametrize("phrase", [
+    "Linux желательно.",
+    "Знание Linux желательно.",
+    "Желательно знание Linux.",
+    "Владение Linux желательно.",
+    "Опыт работы с Linux будет преимуществом.",
+])
+def test_russian_desirable_skill_wording_is_preferred(phrase):
+    comparison = compare_facts(f"Requirements: {phrase}", [])
+
+    assert [(item.skill, item.importance) for item in comparison.requirements] == [
+        ("Linux", "preferred"),
+    ]
+
+
+@pytest.mark.parametrize(("phrase", "skill"), [
+    ("Опыт администрирования Линукса обязателен.", "Linux"),
+    ("Знание Докера обязательно.", "Docker"),
+    ("Опыт работы с Кубернетесом обязателен.", "Kubernetes"),
+])
+def test_russian_transliterated_skill_names_match_candidate_facts(phrase, skill):
+    comparison = compare_facts(
+        f"Требования: {phrase}",
+        [fact(42, "Коммерческий опыт администрирования Linux Docker Kubernetes", "commercial")],
+    )
+
+    matched = next(item for item in comparison.requirements if item.skill == skill)
+    assert matched.status == "commercial"
+    assert matched.importance == "required"
+    assert matched.fact_ids == (42,)
 
 
 def test_render_fact_comparison_separates_truth_levels():
@@ -524,6 +611,25 @@ def test_common_separators_match_canonical_skills():
     assert "GitLab CI" in skills
     assert "Docker Compose" in skills
     assert "Active Directory" in skills
+
+
+def test_docker_compose_alternative_is_one_choice_without_embedded_docker_duplicate():
+    comparison = compare_facts("Requirements: Docker Compose or Kubernetes.", [])
+
+    assert {item.skill for item in comparison.requirements} == {"Docker Compose", "Kubernetes"}
+    assert comparison.alternative_groups == (("Docker Compose", "Kubernetes"),)
+
+
+def test_wildlife_elk_mention_does_not_match_elk_stack_but_explicit_stack_does():
+    wildlife = extract_technical_requirements("Requirements: knowledge of elk migration patterns.")
+    technical = extract_technical_requirements(
+        "Requirements: ELK Stack or Elasticsearch, Logstash and Kibana."
+    )
+    explicit_acronym = extract_technical_requirements("Requirements: ELK is used for log aggregation.")
+
+    assert "ELK" not in wildlife
+    assert "ELK" in technical
+    assert "ELK" in explicit_acronym
 
 
 def test_comparison_keeps_only_strongest_matching_fact_ids():

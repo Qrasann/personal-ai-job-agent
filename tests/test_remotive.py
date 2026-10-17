@@ -2,9 +2,11 @@ import asyncio
 from types import SimpleNamespace
 
 import httpx
+import pytest
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
+from app.domain.relocation_evidence import build_relocation_evidence
 from app.sources.adapters.remotive import RemotiveSource
 from app.sources.base import SourceContext
 from app.sources.registry import build_source_plan, source_capabilities
@@ -53,6 +55,93 @@ def test_remotive_keeps_worldwide_and_selected_markets_but_rejects_country_only_
     assert regional.country is None
     assert all(job.work_mode == "remote" for job in jobs)
     assert all(job.visa_sponsorship is None and job.relocation is None for job in jobs)
+
+
+@pytest.mark.parametrize("qualifier", ["USA", "U.S.A.", "U.S.", "United States", "United States of America"])
+def test_remotive_disambiguates_georgia_us_state_from_georgia_country(qualifier):
+    location = f"Georgia, {qualifier}"
+    row = posting(21, "DevOps Engineer", location)
+
+    georgia_jobs = RemotiveSource.parse_payload(
+        {"jobs": [row]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+    )
+    country_jobs = RemotiveSource.parse_payload(
+        {"jobs": [posting(22, "DevOps Engineer", "Georgia")]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+    )
+
+    assert georgia_jobs == []
+    assert RemotiveSource._country_codes_in_location(location) == {"US"}
+    assert len(country_jobs) == 1 and country_jobs[0].country == "GE"
+
+
+def test_remotive_disambiguates_georgia_with_us_state_postal_code():
+    row = posting(26, "DevOps Engineer", "Georgia, GA")
+    country_jobs = RemotiveSource.parse_payload(
+        {"jobs": [row]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+    )
+    gabon_jobs = RemotiveSource.parse_payload(
+        {"jobs": [row]},
+        SourceContext(user_id=1, target_countries=["GA"], queries=["DevOps Engineer"]),
+    )
+
+    assert RemotiveSource._country_codes_in_location("Georgia, GA") == {"US"}
+    assert country_jobs == []
+    assert gabon_jobs == []
+
+
+@pytest.mark.parametrize(
+    ("location", "target_countries", "market_country"),
+    [("Georgia", ["GE"], "GE"), ("Armenia, Georgia", ["AM"], "AM")],
+)
+def test_remotive_candidate_location_is_not_reported_as_physical_work_country(
+    location, target_countries, market_country,
+):
+    job = RemotiveSource.parse_payload(
+        {"jobs": [posting(23, "DevOps Engineer", location)]},
+        SourceContext(user_id=1, target_countries=target_countries, queries=["DevOps Engineer"]),
+    )[0]
+
+    assert job.country == market_country  # Retained as market identity for filtering/dedupe.
+    assert job.remote_scope == location
+    evidence = build_relocation_evidence(job)["fields"]
+    assert evidence["work_country"]["status"] == "unknown"
+    assert evidence["work_country"]["value"] is None
+
+
+@pytest.mark.parametrize(
+    ("location", "country"),
+    [
+        ("GE", "GE"), ("GE Only", "GE"), ("Remote - GE", "GE"), ("Georgia (GE)", "GE"),
+        ("AM", "AM"), ("AM Only", "AM"), ("Remote - AM", "AM"), ("Armenia (AM)", "AM"),
+    ],
+)
+def test_remotive_recognizes_unambiguous_market_country_code_locations(location, country):
+    jobs = RemotiveSource.parse_payload(
+        {"jobs": [posting(24, "DevOps Engineer", location)]},
+        SourceContext(user_id=1, target_countries=[country], queries=["DevOps Engineer"]),
+    )
+
+    assert len(jobs) == 1
+    assert jobs[0].country == country
+
+
+@pytest.mark.parametrize(("location", "other_market"), [("GE Only", "AM"), ("AM Only", "GE")])
+def test_remotive_country_code_only_location_excludes_other_markets(location, other_market):
+    jobs = RemotiveSource.parse_payload(
+        {"jobs": [posting(25, "DevOps Engineer", location)]},
+        SourceContext(user_id=1, target_countries=[other_market], queries=["DevOps Engineer"]),
+    )
+
+    assert jobs == []
+
+
+def test_remotive_country_code_detection_does_not_match_lowercase_common_words():
+    assert RemotiveSource._country_codes_in_location("in") == set()
+    assert RemotiveSource._country_codes_in_location("am") == set()
+    assert RemotiveSource._country_codes_in_location("GE Only") == {"GE"}
 
 
 def test_remotive_missing_candidate_location_stays_unknown_and_free_text_salary_is_not_structured():

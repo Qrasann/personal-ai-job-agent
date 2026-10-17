@@ -1,10 +1,13 @@
 from app.database.migrations import CURRENT_SCHEMA_VERSION, MIGRATIONS
-from app.database.models import Application, ApplicationStatusEvent, CandidateFact, CandidateProfile, ResumeProfile, SchemaMigration, SearchProfile, User
+from app.database.models import (
+    Application, ApplicationStatusEvent, CandidateFact, CandidateProfile,
+    JobSourceRef, ResumeProfile, SchemaMigration, SearchProfile, User,
+)
 
 
 def test_schema_versions_and_migrations_are_declared():
-    assert CURRENT_SCHEMA_VERSION == 7
-    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5, 6, 7]
+    assert CURRENT_SCHEMA_VERSION == 8
+    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5, 6, 7, 8]
     assert MIGRATIONS[0].name == "profile_storage_foundation"
     assert MIGRATIONS[1].name == "candidate_fact_experience_type"
     assert MIGRATIONS[2].name == "candidate_fact_confidence_provenance"
@@ -12,6 +15,8 @@ def test_schema_versions_and_migrations_are_declared():
     assert MIGRATIONS[4].name == "application_status_history"
     assert MIGRATIONS[5].name == "application_resume_snapshot"
     assert MIGRATIONS[6].name == "application_vacancy_snapshot"
+    assert MIGRATIONS[7].name == "protect_application_history_on_job_delete"
+    assert "ON DELETE RESTRICT" in MIGRATIONS[7].statements[1]
 
 
 def test_foundation_models_have_soft_delete_metadata():
@@ -42,6 +47,14 @@ def test_application_status_event_model_is_append_only_record_shape():
     assert hasattr(ApplicationStatusEvent, "user_id")
     assert hasattr(ApplicationStatusEvent, "status")
     assert hasattr(ApplicationStatusEvent, "created_at")
+
+
+def test_job_source_refs_cascade_but_application_history_restricts_job_delete():
+    application_fk = next(iter(Application.__table__.c.job_id.foreign_keys))
+    source_ref_fk = next(iter(JobSourceRef.__table__.c.job_id.foreign_keys))
+
+    assert application_fk.ondelete == "RESTRICT"
+    assert source_ref_fk.ondelete == "CASCADE"
 
 
 def test_application_model_stores_resume_snapshot_and_external_reference():

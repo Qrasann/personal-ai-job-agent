@@ -1,3 +1,5 @@
+import pytest
+
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
 from app.matching.engine import choose_resume, score_job
 
@@ -37,6 +39,38 @@ def test_resume_selector_ignores_inactive_resume():
     active = _resume(1, "Linux")
 
     assert choose_resume(job, [inactive, active]) == 1
+
+
+@pytest.mark.parametrize(("role", "unrelated_role"), [
+    ("QA Engineer", "Platform Engineer"),
+    ("Go Developer", "Python Developer"),
+    ("HR Specialist", "Recruitment Specialist"),
+    ("C# Developer", "C++ Developer"),
+    ("JavaScript Developer", "Java Developer"),
+    ("System Administrator", "Network Administrator"),
+])
+def test_resume_selector_prefers_exact_short_role_over_generic_tie(role, unrelated_role):
+    job = Job(title=role, description="", country="AM")
+    selected, unrelated = _resume(1, ""), _resume(2, "")
+    selected.role, unrelated.role = role, unrelated_role
+    assert choose_resume(job, [selected, unrelated]) == 1
+    assert choose_resume(job, [unrelated, selected]) == 1
+
+
+def test_resume_content_overlap_retains_short_technical_names_without_new_claims():
+    job = Job(title="Developer", description="C# .NET", country="AM")
+    selected, unrelated = _resume(1, "C#"), _resume(2, "Python")
+    selected.role = unrelated.role = "Developer"
+    assert choose_resume(job, [selected, unrelated]) == 1
+    assert selected.content == "C#"
+
+
+def test_resume_role_specific_terms_outweigh_shared_generic_title():
+    job = Job(title="QA Engineer", description="", country="AM")
+    qa, platform = _resume(1, ""), _resume(2, "")
+    qa.role = "QA Analyst"
+    platform.role = "Platform Engineer"
+    assert choose_resume(job, [platform, qa]) == 1
 
 
 def test_resume_selection_does_not_inflate_match_score():

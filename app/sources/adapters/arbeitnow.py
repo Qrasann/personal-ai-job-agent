@@ -7,6 +7,7 @@ import httpx
 
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.remote_evidence import remote_location_restriction
 from app.domain.support_evidence import support_evidence
 from app.domain.vacancy_availability import source_datetime
 from app.sources.diagnostics import SourceInvalidResponse
@@ -31,6 +32,12 @@ def _query_phrases(query: str) -> tuple[str, ...]:
     return (normalized, *_ROLE_ALIASES.get(normalized, ()))
 
 
+def _tags(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item.strip() for item in value if isinstance(item, str) and item.strip()]
+
+
 class ArbeitnowSource(JobSource):
     source_id = "arbeitnow"
     name = "Arbeitnow"
@@ -53,7 +60,7 @@ class ArbeitnowSource(JobSource):
             if not isinstance(row, dict) or not row.get("slug") or not row.get("title"):
                 continue
             title = str(row["title"])
-            tags = [str(value) for value in (row.get("tags") or [])]
+            tags = _tags(row.get("tags"))
             role_hay = " ".join([title, *tags]).casefold()
             if query_groups and not any(
                 any(phrase and phrase in role_hay for phrase in phrases)
@@ -78,6 +85,7 @@ class ArbeitnowSource(JobSource):
                     country=None if remote else "DE",
                     city=None if remote else str(row.get("location") or "") or None,
                     work_mode="remote" if remote else "onsite",
+                    remote_scope=remote_location_restriction(row.get("location")) if remote else None,
                     relocation=support["relocation"],
                     visa_sponsorship=support["visa_sponsorship"],
                     skills=tags,

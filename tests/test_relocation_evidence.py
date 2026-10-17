@@ -2,6 +2,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+
 from app.domain.jobs import NormalizedJob
 from app.domain.relocation_evidence import EVIDENCE_FIELDS, build_relocation_evidence
 from app.telegram.vacancy_view import relocation_followup_lines
@@ -183,6 +185,38 @@ def test_multiple_language_conditions_keep_independent_evidence_and_conflict_unk
     assert "German is required" in requirements[1]["excerpt"]
 
 
+@pytest.mark.parametrize(("description", "language", "requirement"), [
+    ("Armenian is required.", "Armenian", "required"),
+    ("Georgian is preferred.", "Georgian", "preferred"),
+    ("Требуется армянский язык.", "Armenian", "required"),
+    ("Грузинский язык желательно.", "Georgian", "preferred"),
+    ("ქართული ენა.", "Georgian", "unspecified"),
+    ("հայերեն լեզու.", "Armenian", "unspecified"),
+    ("Հայերենի իմացությունը պարտադիր է.", "Armenian", "required"),
+    ("ქართული ენის ცოდნა სავალდებულოა.", "Georgian", "required"),
+    ("Հայերենը ցանկալի է.", "Armenian", "preferred"),
+    ("ქართული ენა სასურველია.", "Georgian", "preferred"),
+    ("Հայերենի իմացությունը պարտադիր չէ.", "Armenian", "unspecified"),
+    ("ქართული ენის ცოდნა სავალდებულო არ არის.", "Georgian", "unspecified"),
+])
+def test_relocation_language_evidence_recognizes_armenia_and_georgia_languages(
+    description, language, requirement,
+):
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="regional-language",
+        title="Support role", description=description,
+    )
+
+    evidence = build_relocation_evidence(job)["fields"]["language_requirement"]
+
+    assert evidence["interpretation"]["requirements"] == [{
+        "language": language,
+        "requirement": requirement,
+        "cefr": None,
+        "excerpt": description.strip("."),
+    }]
+
+
 def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():
     citizenship = NormalizedJob(
         source="synthetic_fixture", source_job_id="citizens-only", title="Engineer",
@@ -197,6 +231,40 @@ def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():
     assert fields_a["citizenship_or_residence_restriction"]["interpretation"]["scope"] == "citizenship"
     assert fields_b["citizenship_or_residence_restriction"]["interpretation"]["scope"] == "residence"
     assert "Germany" in fields_b["citizenship_or_residence_restriction"]["excerpt"]
+
+
+@pytest.mark.parametrize("description", [
+    "We build digital services for citizens and public institutions.",
+    "The role supports programs for Staatsangehörige and local communities.",
+    "Сервис помогает гражданам находить государственные услуги.",
+])
+def test_neutral_citizenship_mentions_are_not_work_eligibility_restrictions(description):
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="neutral-citizens", title="Engineer",
+        description=description,
+    )
+
+    field = build_relocation_evidence(job)["fields"]["citizenship_or_residence_restriction"]
+
+    assert field["status"] == "unknown"
+    assert "interpretation" not in field
+
+
+@pytest.mark.parametrize("description", [
+    "Միայն Հայաստանի քաղաքացիների համար։",
+    "ვაკანსია მხოლოდ საქართველოს მოქალაქეებისთვის.",
+])
+def test_native_armenian_and_georgian_citizenship_word_is_preserved_as_evidence(description):
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="native-citizenship",
+        title="Support role", description=description,
+    )
+
+    field = build_relocation_evidence(job)["fields"]["citizenship_or_residence_restriction"]
+
+    assert field["status"] == "confirmed"
+    assert field["interpretation"]["scope"] == "citizenship"
+    assert field["excerpt"] == description.rstrip(".")
 
 
 def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_unknown():

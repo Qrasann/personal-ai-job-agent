@@ -1,9 +1,67 @@
 from types import SimpleNamespace
 
+import pytest
+
 from app.database.models import CandidateFact, Job, SearchProfile
 from app.matching.engine import score_job
 from app.matching.fact_comparison import compare_facts, extract_requirement_importance
 from app.matching.technical_score import score_technical_v2
+
+
+def test_opentelemetry_is_compared_only_when_explicitly_present():
+    fact = SimpleNamespace(
+        id=12, value="Commercial Open Telemetry deployment", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    vacancy = "Requirements: OpenTelemetry is required."
+
+    assert score_technical_v2(vacancy, [fact]) == 100
+    assert score_technical_v2(vacancy, []) == 0
+    assert score_technical_v2("Requirements: OTel is required.", [fact]) is None
+
+
+def test_generic_gitlab_repository_work_does_not_create_ci_fit_score():
+    fact = SimpleNamespace(
+        id=13, value="Commercial GitLab repository administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    vacancy = "Requirements: maintain GitLab projects and repositories."
+
+    assert compare_facts(vacancy, [fact]).requirements == ()
+    assert score_technical_v2(vacancy, [fact]) is None
+
+
+def test_docker_compose_is_not_double_counted_as_a_separate_docker_requirement():
+    vacancy = "Requirements: Linux and Docker Compose experience required."
+    linux = SimpleNamespace(
+        id=14, value="Commercial Linux administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+
+    comparison = compare_facts(vacancy, [linux])
+
+    assert [item.skill for item in comparison.requirements] == ["Linux", "Docker Compose"]
+    assert score_technical_v2(vacancy, [linux]) == 50
+
+
+def test_standalone_docker_remains_a_separate_requirement_from_docker_compose():
+    comparison = compare_facts(
+        "Requirements: Docker and Docker Compose administration required.", [],
+    )
+
+    assert {item.skill for item in comparison.requirements} == {"Docker", "Docker Compose"}
+
+
+@pytest.mark.parametrize("phrase", [
+    "an established network of industry contacts",
+    "a network of professional contacts",
+    "networking with key stakeholders",
+])
+def test_professional_contact_network_does_not_create_technical_networking_requirement(phrase):
+    vacancy = f"Requirements: {phrase} is required."
+
+    assert compare_facts(vacancy, []).requirements == ()
+    assert score_technical_v2(vacancy, []) is None
 
 
 def test_explicit_required_alternative_counts_as_one_scoring_choice():

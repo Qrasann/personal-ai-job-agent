@@ -20,12 +20,18 @@ class SkillSpec:
 # search terms decide which vacancies are interesting, while this vocabulary
 # describes technologies/signals that can be compared with Candidate Facts.
 SKILLS: tuple[SkillSpec, ...] = (
-    SkillSpec("Linux", ("linux", "debian", "ubuntu", "centos", "rhel")),
+    SkillSpec(
+        "Linux",
+        ("linux", "линукс", "линукса", "линуксе", "линуксом", "debian", "ubuntu", "centos", "rhel"),
+    ),
     SkillSpec("Windows", ("windows",)),
     SkillSpec("systemd", ("systemd",)),
-    SkillSpec("Docker", ("docker",)),
+    SkillSpec("Docker", ("docker", "докер", "докера", "докеру", "докером")),
     SkillSpec("Docker Compose", ("docker compose", "docker-compose")),
-    SkillSpec("Kubernetes", ("kubernetes", "k8s")),
+    SkillSpec(
+        "Kubernetes",
+        ("kubernetes", "k8s", "кубернетес", "кубернетеса", "кубернетесу", "кубернетесом"),
+    ),
     SkillSpec("OpenShift", ("openshift", "red hat openshift")),
     SkillSpec("Databricks", ("databricks",)),
     SkillSpec("Nginx", ("nginx",)),
@@ -38,7 +44,10 @@ SKILLS: tuple[SkillSpec, ...] = (
             "gitlab-ci",
             "gitlab ci/cd",
             "gitlab cicd",
-            "gitlab",
+            "gitlab pipeline",
+            "gitlab pipelines",
+            "gitlab runner",
+            "gitlab runners",
         ),
     ),
     SkillSpec("CI/CD", ("ci/cd", "cicd", "continuous integration", "continuous delivery")),
@@ -52,8 +61,9 @@ SKILLS: tuple[SkillSpec, ...] = (
     SkillSpec("GitOps", ("gitops", "git ops")),
     SkillSpec("Prometheus", ("prometheus",)),
     SkillSpec("Grafana", ("grafana",)),
+    SkillSpec("OpenTelemetry", ("opentelemetry", "open telemetry")),
     SkillSpec("Zabbix", ("zabbix",)),
-    SkillSpec("ELK", ("elk", "elk stack", "elk-stack", "elasticsearch logstash kibana")),
+    SkillSpec("ELK", ("elk stack", "elk-stack", "elasticsearch logstash kibana")),
     SkillSpec("Graylog", ("graylog",)),
     SkillSpec("MySQL", ("mysql",)),
     SkillSpec("PostgreSQL", ("postgresql", "postgres")),
@@ -168,7 +178,51 @@ def _contains_alias(text: str, alias: str) -> bool:
 
 
 def _matches_skill(text: str, spec: SkillSpec) -> bool:
-    return any(_contains_alias(text, alias) for alias in spec.aliases)
+    if spec.name == "ELK" and re.search(r"\bELK\b", text or ""):
+        # Keep the conventional uppercase acronym without matching the animal.
+        return True
+    if spec.name == "Networking":
+        # Recruitment copy can use "network" to mean professional contacts.
+        # Remove only those explicit business-network phrases; technical
+        # network/firewall terms in the same text remain detectable.
+        text = re.sub(
+            r"\b(?:professional|business|industry|sales|personal|client|customer) network\b|"
+            r"\bnetwork of (?:(?:industry|professional|business|sales|local) )?"
+            r"(?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders)\b|"
+            r"\bnetworking with (?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders)\b",
+            " ", text or "", flags=re.I,
+        )
+    if any(_contains_alias(text, alias) for alias in spec.aliases):
+        return True
+    if spec.name == "GitLab CI":
+        # GitLab alone may mean repositories/issues rather than CI. Accept the
+        # reversed phrasing only when CI/CD or pipeline context is explicit in
+        # the same clause, e.g. "CI/CD based on GitLab".
+        signals = (
+            "ci/cd", "cicd", "continuous integration", "continuous delivery",
+            "pipeline", "pipelines", "runner", "runners",
+        )
+        clauses = re.split(r"[\n.!?;]+", text or "")
+        return any(
+            _contains_alias(clause, "gitlab")
+            and any(_contains_alias(clause, signal) for signal in signals)
+            for clause in clauses
+        )
+    return False
+
+
+def _has_standalone_docker(text: str) -> bool:
+    # Docker Compose is represented as the more specific skill; don't count
+    # its embedded Docker token twice unless the vacancy names Docker alone.
+    without_compose = re.sub(r"\bdocker[\s-]+compose\b", " ", text or "", flags=re.I)
+    return _matches_skill(without_compose, next(spec for spec in SKILLS if spec.name == "Docker"))
+
+
+def _matched_skill_names(text: str) -> list[str]:
+    matched = [spec.name for spec in SKILLS if _matches_skill(text, spec)]
+    if "Docker Compose" in matched and "Docker" in matched and not _has_standalone_docker(text):
+        matched.remove("Docker")
+    return matched
 
 
 def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
@@ -197,9 +251,13 @@ def _explicitly_preferred(text: str, spec: SkillSpec) -> bool:
         target = re.escape(_normalize_text(alias)).replace(r"\ ", r"\s+")
         patterns = (
             rf"\b{target}(?: (?:experience|knowledge))? (?:is )?(?:a )?(?:plus|bonus|preferred|desirable|optional|nice to have)\b",
+            rf"\b{target}(?: (?:опыт|знание))? (?:желательно|желателен|желательна|желательны)\b",
             rf"\b{target}(?: (?:experience|knowledge))? (?:would be )?(?:a )?plus\b",
-            rf"\b{target} (?:будет плюсом|приветствуется|желательно|является преимуществом)\b",
+            rf"\b{target}(?: (?:experience|knowledge))? (?:is|would be|will be) an? (?:advantage|benefit)\b",
+            rf"\b{target}(?: (?:experience|knowledge))? (?:is|would be|will be) (?:advantageous|beneficial)\b",
+            rf"\b{target} (?:будет плюсом|будет преимуществом|приветствуется|желательно|является преимуществом)\b",
             rf"\b(?:preferred|desirable|optional|nice to have|bonus|будет плюсом|желательно|приветствуется) (?:experience|knowledge)? (?:with |in )?{target}\b",
+            rf"\b(?:желательно|приветствуется) (?:знание|опыт(?: работы)?) (?:с |по |в )?{target}\b",
         )
         if any(re.search(pattern, normalized) for pattern in patterns):
             return True
@@ -207,9 +265,12 @@ def _explicitly_preferred(text: str, spec: SkillSpec) -> bool:
 
 
 def _required_skill_in_section(text: str, spec: SkillSpec) -> bool:
-    # Clause boundaries prevent a negated skill from masking another explicit
-    # requirement elsewhere in the same heading.
-    for clause in re.split(r"[\n.!?;]+", text or ""):
+    # Split contrastive clauses as well as sentence punctuation so a negated
+    # mention cannot mask a separate positive requirement in the same sentence.
+    for clause in re.split(
+        r"[\n.!?;]+|\b(?:but|however|although|nevertheless|но|однако|aber|jedoch)\b",
+        text or "", flags=re.I,
+    ):
         if (
             _matches_skill(clause, spec)
             and not _explicitly_not_required(clause, spec)
@@ -411,6 +472,16 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
         elif _matches_skill(text, spec):
             result[spec.name] = "unknown"
 
+    docker_importance = result.get("Docker")
+    if docker_importance and result.get("Docker Compose") == docker_importance:
+        scoped_text = {
+            "required": required_text,
+            "preferred": sections["preferred"],
+            "unknown": text,
+        }[docker_importance]
+        if not _has_standalone_docker(scoped_text):
+            del result["Docker"]
+
     return result
 
 
@@ -447,7 +518,7 @@ def extract_skill_alternatives(
         if clause.strip()
     ]
     mentions = [
-        tuple(spec.name for spec in SKILLS if _matches_skill(line, spec))
+        tuple(_matched_skill_names(line))
         for line in section_lines
     ]
     counts = {
@@ -520,11 +591,7 @@ def extract_technical_requirements(text: str) -> list[str]:
     This is intentionally deterministic. It does not infer technologies that
     are not present in the vacancy text.
     """
-    return [
-        spec.name
-        for spec in SKILLS
-        if _matches_skill(text, spec)
-    ]
+    return _matched_skill_names(text)
 
 
 def compare_facts(

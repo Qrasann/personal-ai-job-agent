@@ -40,7 +40,7 @@ from app.sources.base import SourceContext
 from app.sources.network_errors import TRANSPORT_ERROR_TYPES, transport_failure_category
 from app.search.source_summary import aggregate_source, normalize_attempt, scan_outcome
 from app.sources.diagnostics import classify_source_error, diagnostic, render_source_notice
-from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed
+from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed, vacancy_exclusion_reason
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ async def _discover_hh(adapter: HHSource, context: SourceContext) -> list[Normal
             return None
         try:
             jobs = await adapter.discover(context)
-        except httpx.ConnectError as exc:
+        except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
             _HH_CONNECT_RETRY_AFTER = time.monotonic() + HH_CONNECT_RECHECK_SECONDS
             for key in list(_DISCOVERY_CACHE):
                 if key[0] == "hh":
@@ -267,6 +267,29 @@ def _match_lane(result, threshold: int) -> str:
         return "stretch"
     return "qualified"
 
+
+def _scoring_exclusion_reason(result, threshold: int) -> str | None:
+    """Explain a filtered result from structured scores without parsing prose."""
+    if getattr(result, "fit", "good") == "skip":
+        return "fit_skip"
+    if result.total_score >= threshold:
+        return None
+    weights = {
+        "technical_gap": (100 - result.technical_score) * 48,
+        "geography_gap": (100 - result.geography_score) * 27,
+        "salary_gap": (100 - result.salary_score) * 12,
+        "relocation_gap": (100 - result.relocation_score) * 13,
+    }
+    weighted_total = round(
+        result.technical_score * 0.48
+        + result.geography_score * 0.27
+        + result.salary_score * 0.12
+        + result.relocation_score * 0.13
+    )
+    if weighted_total >= threshold:
+        return "score_cap_or_risk"
+    return max(weights, key=weights.get)
+
 async def ingest_and_match(
     bot: Bot,
     normalized: NormalizedJob,
@@ -274,7 +297,8 @@ async def ingest_and_match(
     only_user_id: int | None = None,
     only_search_profile_id: int | None = None,
 ) -> dict:
-    counters = {"processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+    counters = {"processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0,
+                "scoring_exclusion_reasons": {}}
     job, _ = await repo.upsert_job(normalized)
     src = await repo.source_ref(
         job.id, normalized.source, source_job_id=normalized.source_job_id
@@ -335,6 +359,9 @@ async def ingest_and_match(
             lane = _match_lane(result, threshold)
             if lane == "filtered":
                 counters["filtered"] += 1
+                reason = _scoring_exclusion_reason(result, threshold) or "score_cap_or_risk"
+                reasons = counters["scoring_exclusion_reasons"]
+                reasons[reason] = reasons.get(reason, 0) + 1
                 if match.status not in {"applied", "prepared", "skipped", "saved"}:
                     await repo.set_match_status(match.id, "filtered")
                 continue
@@ -439,7 +466,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             source_ids.discard("eures")
         context = SourceContext(user_id=user.id, current_country=user.current_country,
                                 target_countries=targets, queries=queries, force_refresh=force_refresh)
-        search_summary = {"name": search.name, "sources": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
+        search_summary = {"name": search.name, "sources": {}, "discovered": 0,
+                          "preference_filtered": 0, "processed": 0, "qualified": 0,
+                          "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0,
+                          "preference_exclusion_reasons": {}, "scoring_exclusion_reasons": {}}
         summary["searches"][str(search.id)] = search_summary
 
         adapters = []
@@ -582,6 +612,7 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 # response must still be processed and retained.
                 info["discovered"] = len(jobs)
                 info["preference_filtered"] = 0
+                info["preference_exclusion_reasons"] = {}
                 eligible = []
                 processing_errors = 0
                 for job in jobs:
@@ -590,6 +621,11 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                             eligible.append((job_priority(job, settings_map, current_country=user.current_country), job))
                         else:
                             info["preference_filtered"] += 1
+                            reason = vacancy_exclusion_reason(
+                                job, settings_map, current_country=user.current_country,
+                            ) or "other_settings"
+                            reasons = info["preference_exclusion_reasons"]
+                            reasons[reason] = reasons.get(reason, 0) + 1
                     except Exception as exc:
                         processing_errors += 1
                         add_error(classify_source_error(exc, stage="processing", action="continue_partial"))
@@ -615,11 +651,20 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                         summary[key] += value
                         search_summary[key] += value
                         info[key] = info.get(key, 0) + value
+                    for reason, count in counters.get("scoring_exclusion_reasons", {}).items():
+                        scoring_reasons = info.setdefault("scoring_exclusion_reasons", {})
+                        scoring_reasons[reason] = scoring_reasons.get(reason, 0) + int(count)
                     if index % 5 == 0 or index == len(jobs):
                         await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · анализ {index}/{len(jobs)}")
                 if processing_errors:
                     info.update(status="partial", processing_errors=processing_errors)
             info = normalize_attempt(info)
+            search_summary["discovered"] += info.get("discovered", 0)
+            search_summary["preference_filtered"] += info.get("preference_filtered", 0)
+            for key in ("preference_exclusion_reasons", "scoring_exclusion_reasons"):
+                totals = search_summary[key]
+                for reason, count in info.get(key, {}).items():
+                    totals[reason] = totals.get(reason, 0) + int(count)
             search_summary["sources"][adapter.source_id] = info
             # Summary errors belong to application telemetry, not the provider.
             try:
@@ -802,16 +847,20 @@ async def get_vacancy_details(
     fallback_salary_text = str(raw.get("salary_text") or raw.get("card_text") or "")
     searches = await repo.list_search_profiles(match.profile_id)
     search = next((item for item in searches if item.id == match.search_profile_id), None)
+    source_first_seen = getattr(ref, "first_seen_at", None) if ref else None
+    if isinstance(source_first_seen, datetime):
+        # Database timestamps use naive UTC for compatibility with the current
+        # schema; expose an explicit offset so Telegram never labels local time
+        # or confuses first discovery with the latest evidence refresh.
+        if source_first_seen.tzinfo is None:
+            source_first_seen = source_first_seen.replace(tzinfo=UTC)
 
     return {
         "job": job,
         "match": match,
         "source": ref.source_id if ref else "",
         "source_job_id": getattr(ref, "source_job_id", "") if ref else "",
-        "source_observed_at": (
-            relocation_evidence.get("captured_at", "")
-            if isinstance(relocation_evidence, dict) else ""
-        ),
+        "source_observed_at": source_first_seen.isoformat() if source_first_seen else "",
         "url": ref.url if ref else "",
         "details": details,
         "fallback_salary_text": fallback_salary_text,

@@ -1,3 +1,167 @@
+## 2026-10-17 — avoid repeated HH connection-timeout attempts within a scan
+
+HH's existing per-source backoff handled `httpx.ConnectError` but not `httpx.ConnectTimeout`; two enabled profiles could therefore each issue a long failing connection attempt. Added `ConnectTimeout` to the same bounded cooldown path. The first failure is still reported with its precise safe diagnostic; later profiles skip HH and other sources continue. Three targeted HH timeout/connection/TLS tests passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check and secret scan passed. No live HH probe.
+
+## 2026-10-17 — recognize tested Russian technical skill spellings
+
+The deterministic Candidate Fit vocabulary missed “Линукса”, “Докера” and “Кубернетесом” in Russian vacancy text; `compare_facts` therefore produced no row for the skill even when an English Candidate Fact existed. Added narrow Linux, Docker and Kubernetes transliteration/declension aliases, keeping canonical output names and score weights unchanged. Fact-comparison/model contract tests: 63 passed; full isolated PostgreSQL suite: 1230 passed; compileall, diff check and secret scan passed. No persistence changes.
+
+## 2026-10-17 — idempotent `/prepare` retries and application-history protection
+
+Code review of PR #31 confirmed its duplicate-package concern was not yet fixed in the local worktree: Telegram delivery could fail after commit, and another `/prepare` created a second application. New drafts now freeze a private match ID marker, are found by owner+match, and repository writes reuse the existing package under a `JobMatch FOR UPDATE` lock. This remains idempotent after `reviewed` status and under concurrent retry; old snapshots without the marker are explicitly not claimed to be correlated. PR #27's proposed history protection is implemented locally as schema v8 (`ON DELETE RESTRICT`) after confirming the application has a frozen export snapshot and no application-level job deletion path. Isolated v7→v8 tests prove the migration is idempotent and preserves the application and status event when deletion is rejected. Targeted tests 58 passed; full isolated PostgreSQL suite 1226 passed; compileall, diff check and secret scan passed. No production database or deployment action.
+
+## 2026-10-17 — separate Remotive remote eligibility from work country
+
+Red regression: Remotive `candidate_required_location` is the applicant's required location for remote eligibility, while the adapter's `job.country` is a selected search market retained for filtering/dedupe. The evidence builder had treated the latter as a confirmed physical work country when no independent source country was present. For remote Remotive postings with this field, physical work country now remains unknown; source-scoped remote scope and normalized market identity are unchanged. Georgia and Armenia/Georgia fixture cases pass. A PostgreSQL regression also verifies rediscovery under a new provider ID preserves the latest source identity, remote scope, and unknown work-country evidence. Targeted suites: 160 passed; full isolated PostgreSQL suite after the integration regression: 1206 passed; compileall, diff check and secret scan passed. No schema/scoring/eligibility policy changes or live acceptance. JobMatch still lacks exact provider posting attribution; current source refs/snapshots keep review and `/prepare` source-scoped, but changing match identity needs separate compatibility analysis.
+
+## 2026-10-17 — recognize explicit Remotive country codes safely
+
+Red regression: `GE` and `GE Only` in Remotive's candidate-location field were not mapped to Georgia, so a GE-only posting could be skipped for the matching market. Parsing now recognizes known uppercase ISO alpha-2 tokens only when they are isolated/delimited or paired with explicit location qualifiers; ordinary lowercase words such as `in` and `am` remain unclassified. Fixtures cover GE/AM short codes, `Only`/`Remote -`/parenthesized forms, cross-market exclusion, and lowercase ambiguity. Geography/relocation suites: 139 passed; full isolated PostgreSQL suite: 1218 passed; offline unit suite: 1200 passed, 18 skipped; compileall, diff check and secret scan passed. No schema or policy change and no live source access.
+
+## 2026-10-17 — disambiguate US state Georgia postal code
+
+Red regression: `Georgia, GA` produced country codes GE and GA (Gabon) while omitting US. The Remotive location parser now recognizes only the explicit Georgia+GA postal form as the US state, removes both conflicting country interpretations, and preserves the standalone code semantics. This is local classification only; US is not a configured Remotive target market. Geography/relocation suites: 134 passed; full isolated PostgreSQL suite: 1213 passed; compileall, diff check and secret scan passed. No schema or search-policy change, no live source access.
+
+## 2026-10-17 — preserve Himalayas remote eligibility semantics
+
+Red regression: Himalayas `locationRestrictions=["Georgia"]` became a confirmed physical `work_country`, because the adapter stores the matched target market in `job.country`. Relocation evidence now recognizes nonempty Himalayas location restrictions on remote listings as candidate eligibility scope and leaves physical work country unknown unless a separate `source_country` is present. The fixture also confirms sponsorship, relocation assistance, and prior work authorization stay unknown. Targeted relocation/source suites: 169 passed; full isolated PostgreSQL suite: 1219 passed; compileall, diff check, secret scan passed. No schema, search-policy, or live-source change.
+
+## 2026-10-17 — classify Russian desirable skill wording as preferred
+
+Red regression: `Желательно знание Linux` under Requirements was incorrectly marked required. Narrow skill-local forms now recognize `Linux желательно`, `Знание Linux желательно`, `Желательно знание Linux`, `Владение Linux желательно`, and `Опыт работы с Linux будет преимуществом` as preferred without changing separate requirements. Candidate Fit/interview/resume suites: 105 passed; full offline unit suite: 1206 passed, 18 skipped; compileall, diff check, secret scan passed. No persistence behavior changed; PostgreSQL tests were not rerun for this unit-only increment.
+
+## 2026-10-17 — disambiguate ELK Stack from wildlife text
+
+Red regression: lowercase `elk migration` was emitted as an ELK Stack requirement, which can distort non-IT Relocation-first fit. The generic lowercase alias was removed; explicit ELK Stack/components and conventional uppercase `ELK` remain recognized. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL 1197 passed. No weight/threshold change.
+
+## 2026-10-17 — exclude professional contact network from technical fit
+
+Red regression: “an established network of industry contacts” under Requirements created a missing Networking skill and reduced score. Narrow explicit professional/business/contact-network phrases (industry/professional contacts and stakeholder networking) are now removed before matching; actual technical network, networking, firewall and related signals remain. Fit suites 74 passed; full unit suite 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed. No score weights or thresholds changed.
+
+## 2026-10-17 — count Docker Compose once in Candidate Fit
+
+Red regression showed `Docker Compose required` extracted both Docker and Docker Compose, lowering the score denominator; `Docker Compose or Kubernetes` also appeared to have three options. Candidate Fit now deduplicates the embedded Docker alias unless Docker is separately named, including alternative-group extraction. Explicit independent Docker remains distinct. Fit tests 71 passed; full unit suite 1178 passed / 17 skipped; isolated PostgreSQL 1195 passed. Weights and thresholds unchanged.
+
+## 2026-10-17 — disambiguate Remotive Georgia location
+
+Red regression: `Georgia, USA` matched both the supported Georgia country alias and US, so a GE-targeted search accepted an explicitly US-scoped listing. Explicit USA/U.S.A./U.S./United States qualifiers now remove the ambiguous GE code; unqualified `Georgia` remains GE. Remotive tests 13 passed; full unit suite 1175 passed / 17 skipped; isolated PostgreSQL 1192 passed. Offline fixture only. The current selectable country catalog does not support US targeting; this change does not add it.
+
+## 2026-10-17 — require explicit citizenship restriction wording
+
+Red regressions showed that a neutral mention such as “services for citizens” was being recorded as a work restriction. Citizenship vocabulary now requires explicit limiting wording, while direct residence phrases retain their existing behavior. Explicit `US citizens only`, Armenian-only and Georgian-only fixtures remain recognized. Unit tests: 1170 passed, 17 skipped; isolated PostgreSQL: 1187 passed. Offline fixtures only; no legal eligibility inference.
+
+## 2026-10-17 — native regional citizenship evidence
+
+Red regressions showed that explicit Armenian `քաղաքացիների` and Georgian `მოქალაქეებისთვის` posting text stayed unknown. The narrow vocabulary now captures these source phrases and labels the observed scope as citizenship. This is evidence extraction only: no legal eligibility or foreign-hire conclusion. References checked: [Armenian IOM migration glossary](https://publications.iom.int/system/files/pdf/iml30_migration_law_glossary_armenian.pdf), [Georgian-English Dictionary.ge](https://dictionary.ge/ka/word/citizen/). Targeted relocation evidence: 29 passed; full unit suite: 1167 passed, 17 skipped; isolated PostgreSQL suite: 1184 passed. Synthetic fixtures only; test container stopped.
+
+## 2026-10-17 — Armenian/Georgian native language condition cues
+
+Red regressions showed regional language requirement/desirability phrases and explicit negations were not classified. Added narrow Armenian `պարտադիր` / `պահանջվող` / `ցանկալի` and Georgian `სავალდებულო` / `აუცილებელი` / `სასურველი` cues, including tested negative forms. General language names were added in checkpoint `3109046`. Dictionary references checked 2026-10-17: [Armenian-English glossary, Armenian National Library](https://haygirk.nla.am/upload/1941-/tntesbacat_bararan_2008.pdf), [Armenian glossary (desirable), Armenian National Library](https://haygirk.nla.am/upload/1941-/arevelahayeren_2007.pdf), [English-Georgian legal dictionary, National Parliamentary Library of Georgia](https://dspace.nplg.gov.ge/bitstream/1234/359046/1/English-Georgian_Law_Dictionary.pdf), and [Georgian-English dictionary, Dictionary.ge](https://dictionary.ge/en/word/desirable/). These support lexical mapping only, not law, candidate proficiency or hiring eligibility. Targeted relocation evidence tests: 27 passed; full isolated PostgreSQL suite: 1182 passed.
+
+## 2026-10-17 — Armenian and Georgian language evidence
+
+Red regression: Relocation Evidence omitted Armenian/Georgian from its language vocabulary, including local script and Russian language descriptions. Added canonical aliases for English, Russian and Armenian/Georgian scripts. Existing requirement classification is retained; unsupported native-language requirement cues remain unspecified. Focused tests: 21 passed; full isolated PostgreSQL suite: 1176 passed. No hiring eligibility inference.
+
+## 2026-10-17 — validate EURES application destinations
+
+Red regression: EURES accepted credential-bearing HTTPS application links and malformed IPv6 authority parsing could fail detail enrichment. A bounded HTTPS validator now requires a valid hostname, rejects userinfo/control characters/malformed authority and caps URL length to the Telegram link budget. Invalid targets fall back to the official EURES portal. EURES/vacancy-link tests: 69 passed; full isolated PostgreSQL suite: 1170 passed. No external navigation or request to an extracted URL.
+
+## 2026-10-17 — safe Telegram source URL rendering
+
+Red regression: vacancy details rendered arbitrary stored URLs as clickable HTML, including javascript schemes, credential-bearing and protocol-relative values. A shared bounded HTTP(S) validator now covers details, source attribution and prepare preview. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link cases: 6 passed. No outbound requests.
+
+## 2026-10-17 — reject boolean EURES publication timestamps
+
+Red regression: Python booleans satisfy `isinstance(value, int)`, so malformed EURES `creationDate: true/false` became a 1970 timestamp. Explicitly exclude bool while preserving numeric epoch-millisecond values. EURES tests: 21 passed; full isolated PostgreSQL suite: 1161 passed. No live API call.
+
+## 2026-10-17 — isolate malformed EURES search metadata
+
+Red regression: integer `locationMap` raised `TypeError` and discarded the complete EURES query result, including a valid sibling. Optional `locationMap` and `employer` blocks now require object shapes; malformed values leave metadata unknown/empty without dropping the posting. EURES tests: 19 passed; full isolated PostgreSQL suite: 1159 passed. Fixture-only; no live request.
+
+## 2026-10-17 — EURES whole-token query relevance
+
+Red regression: EURES' substring check returned a JavaScript listing for a `Java` query. Title matching now uses word boundaries around each meaningful query token, retaining punctuation-bearing terms and the existing any-token semantics. EURES tests: 18 passed; full isolated PostgreSQL suite: 1158 passed. Offline fixtures only; no live EURES request.
+
+## 2026-10-17 — precise GitLab CI Candidate Fit
+
+Red regression: `Requirements: experience managing GitLab projects and repositories` was extracted as a required GitLab CI skill because bare `gitlab` was an alias. Removed the broad alias and require CI/CD, pipeline or runner context, while retaining direct `GitLab CI` names and “CI/CD based on GitLab”. Focused Candidate Fit/scoring/resume/interview tests: 101 passed; full isolated PostgreSQL suite: 1157 passed. No threshold or score-weight change.
+
+## 2026-10-17 — source first-seen provenance in vacancy details
+
+Fixed a misleading freshness cue: the vacancy card previously rendered the relocation evidence capture time as “Источник обнаружен”, even though evidence is regenerated on refresh. The service now uses the source reference's stable `first_seen_at`; naive stored UTC datetimes receive an explicit UTC offset. The evidence snapshot keeps its own `captured_at`. Targeted detail tests: 49 passed; full isolated PostgreSQL suite: 1154 passed; compileall and diff check passed. Offline-only; no schema changes or live source checks.
+
+## 2026-10-17 — verify concurrent cross-source canonical dedupe
+
+Added an isolated PostgreSQL concurrency test that ingests two provider postings with identical canonical identity simultaneously. The advisory-lock path produces one canonical Job and retains both distinct source refs. Targeted integration test: 1 passed; full isolated PostgreSQL suite: 1154 passed. This verifies local DB behavior only; no live source calls.
+
+## 2026-10-17 — bound Himalayas provider identity
+
+Himalayas `guid` or URL fallback could exceed the PostgreSQL `source_job_id` limit even when the listing link itself was valid. Existing short IDs are unchanged; overlong GUIDs/URL fallbacks now map to stable SHA-256 IDs while the original application URL remains stored separately. Tests verify determinism, distinction and bounds. Himalayas tests: 35 passed; full isolated PostgreSQL suite: 1153 passed.
+
+## 2026-10-17 — validate Himalayas application links at ingestion
+
+The adapter previously accepted official-host HTTPS URLs with embedded userinfo or arbitrary ports. It now rejects credentials, nonstandard/malformed ports, oversized URLs, non-HTTPS schemes and unapproved hosts before storing the listing. Regression coverage includes those rejected cases and retains a normal official link. Himalayas tests: 33 passed; full isolated PostgreSQL suite: 1151 passed. No live request or persisted-data rewrite.
+
+## 2026-10-17 — Candidate Fit OpenTelemetry vocabulary
+
+Added exact `OpenTelemetry` and `Open Telemetry` aliases to the deterministic Candidate Fit vocabulary. Tests prove required-role fact matching and score behavior for both spellings, while acronym-only `OTel` remains unknown to avoid an unsafe inference. Focused fit/score tests: 65 passed; full isolated PostgreSQL suite: 1144 passed. No score weights or thresholds changed.
+
+## 2026-10-17 — preserve canonical fingerprint on blank-location refresh
+
+Source refresh treated empty country/city strings as a complete identity and could replace a previously valid canonical fingerprint. `_has_complete_identity` now requires nonempty trimmed values. The isolated PostgreSQL regression checks both the fingerprint and stored known location survive a same-provider refresh with blank location. Targeted integration: 1 passed; full isolated PostgreSQL suite: 1140 passed. No schema or matching policy change.
+
+## 2026-10-17 — Application tracking status/history transaction acceptance
+
+Added isolated PostgreSQL fault injection at status-history event flush. A failed `interview` event leaves the Application status at `prepared` and preserves only its initial history event, confirming the repository's status and append-only history write roll back together. Existing owner scope, duplicate transition and concurrent identical-update coverage remains unchanged. Targeted fault test: 1 passed; full isolated PostgreSQL suite: 1139 passed. No application workflow/schema change.
+
+## 2026-10-17 — distinguish saved `/prepare` drafts from Telegram delivery failures
+
+The package is committed before Telegram sends/edits its preview. A delivery exception was rendered like a pre-save failure, even though `/prepare` again would create another draft. Both command and callback now report that the draft is already saved, direct the owner to `/applications`, and disclose that repeating `/prepare` creates a new draft. No persistence semantics, schema or outbound application action changed. Regression tests cover both post-save delivery failures and verify no second preparation call. Targeted 47 passed; unit suite 1124 passed/14 skipped; isolated PostgreSQL suite 1138 passed. Compileall, diff check and secret scan passed; isolated test container stopped.
+
+## 2026-10-17 — bound unconfirmed resume-import previews
+
+The import handler expired a preview only when its token was used or a new upload arrived, but had no upper count for recent drafts containing up to 100k extracted characters each. Added 15-minute expiry cleanup, eight active previews per owner and 64 total; oldest unused preview is evicted first. Regression checks preserve another user's preview, remove expired data and enforce the global cap. No resume/fact persistence or database schema change. Targeted 17; full isolated PostgreSQL 1136 passed.
+
+## 2026-10-17 — preserve role variants and prefer specific CV match
+
+Offline matching showed the shared tokenizer needed one narrow system/systems form, and generic engineer/administrator words could tie an unrelated CV with a role-specific one. Source filtering and scoring now share the explicit system/systems variant. CV selection removes generic role terms before scoring the role portion. Targeted source/matching/CV tests 97; full isolated PostgreSQL 1134 passed. No experience/fact/score-policy change.
+
+## 2026-10-17 — normalize RemoteOK publication dates
+
+RemoteOK previously copied arbitrary `date` values to publication metadata. It now stores only `source_datetime()`'s valid UTC-normalized output and leaves malformed/timezone-less dates unknown. Synthetic malformed values do not discard a valid sibling listing. RemoteOK tests 30; full isolated PostgreSQL 1130 passed.
+
+## 2026-10-17 — isolate malformed RemoteOK/Arbeitnow metadata
+
+Reproduced whole-adapter exceptions from non-list `tags` values and a RemoteOK row carrying a malformed salary. Optional tag containers/items now keep only nonempty strings. RemoteOK salary normalization accepts only finite positive integral numbers in the PostgreSQL signed-Integer range; invalid salary stays unknown and valid sibling vacancies remain parseable. Currency is attached only when a normalized salary exists; no salary period is inferred. Targeted 71; full isolated PostgreSQL 1125 passed.
+
+## 2026-10-17 — select CV by exact role/content terms
+
+Six regressions reproduced a less suitable CV winning an ID tie after QA/Go/HR/C# terms were discarded or Java matched JavaScript. Resume role/content matching now reuses whole terms and the explicit short vocabulary. Original selection weights/language preference and active/deleted filtering remain; no CV or Candidate Fact is rewritten, and resume selection does not increase vacancy scores. Targeted 69; full isolated PostgreSQL 1110 passed. Wider v3.6 tailored RU/EN CV work remains partial/planned.
+
+## 2026-10-17 — align fallback role matching with specific queries
+
+Eight red regressions reproduced a role bonus for unrelated QA/Go/C#/IT/UX/Java titles and a lost HR role. Fallback matching now compares whole tokens shared with RemoteOK and admits a small explicit short-role vocabulary; other short fragments retain the minimum length. Career/Relocation query separation and Unicode roles are covered. Structured Candidate Facts scoring, weights and score thresholds are unchanged. Targeted 83; full isolated PostgreSQL 1104 passed.
+
+## 2026-10-17 — bound scan diagnostics in UTF-16
+
+Emoji-heavy diagnostics used 3480 UTF-16 units despite a 2600-character section budget; tiny custom budgets also overflowed their omission note. Source/profile renderers now count UTF-16, preserve HTML entities and bound the omission note. An offline scan/status handler scenario validates combined message size, parseable HTML and complete stored history. Targeted 56; full isolated PostgreSQL 1096 passed. No live Telegram send.
+
+## 2026-10-17 — preserve explicit remote location limits
+
+Two adapter regressions reproduced RemoteOK/Arbeitnow dropping `Germany only` and leaving worldwide boilerplate unqualified. A shared bounded recognizer retains known-geography `only` labels in remote scope and source evidence; existing signal/card handling now displays the restriction. Bare office/global labels, questions, negation and unfamiliar wording remain unknown. This is source scope, not residence/citizenship, visa or legal eligibility proof. Targeted 79 and full isolated PostgreSQL 1091 passed. Existing stored rows acquire the scope on rediscovery; no backfill or live scan performed.
+
+## 2026-10-17 — preserve specific RemoteOK roles
+
+Six new regression scenarios failed before the fix: short QA/Go/C# queries reduced to a generic role, HR yielded no matches, and Java also matched JavaScript. Token matching now retains short names and uses whole title/tag terms, with all specific query tokens required. No description keyword leakage, HTTP budget, score threshold or source access change. Targeted 71 passed; full isolated PostgreSQL 1070 passed. Main implemented; one read-only Scout researched the next location-evidence gap. No publication or production action.
+
+## 2026-10-17 — explain below-threshold scoring
+
+Extended the settings-exclusion ledger with scoring-filter factors. Filtered matches now report a hard fit rule, a score cap/risk, or the largest weighted technical/geography/salary/relocation deficit calculated from structured MatchResult fields. No human reason text is parsed. Counts aggregate per source and per Career-first/Relocation-first profile; `/scan` and `/scanstatus` render a bounded list of leading causes. The score and 65 threshold are unchanged. Final targeted 66 passed; full isolated PostgreSQL suite: 1061 passed.
+
+## 2026-10-17 — explain search-settings exclusions
+
+Source summaries previously reported only the total excluded by settings, so a zero-yield Relocation-first result could not distinguish domestic onsite, geography, required support evidence or strict salary policy. Added deterministic exclusion codes that share the exact filter decision, per-attempt/source aggregation and bounded Russian dashboard labels. Unknown salary, country and relocation evidence remains eligible for review. No threshold, source access or production setting changed. Targeted search/source tests: 96 passed; full isolated PostgreSQL suite: 1058 passed.
+
 ## 2026-10-17 — source-scoped offline application flow
 
 Started only `job-agent-tests` tmpfs PostgreSQL on localhost port 55432. Full
@@ -2616,3 +2780,23 @@ PostgreSQL: 988 passed.
 Explicit Russian statements that accommodation is or is not provided now
 produce attributed evidence; bare mentions stay unknown. Full isolated
 PostgreSQL: 988 passed.
+
+## 2026-10-17 — validate rediscovery and cross-source evidence invariants
+
+Reviewed repeat source upsert, partial discovery cache and cross-source canonical dedupe together. Existing source-scoped snapshots/evidence refresh correctly, first-seen provenance remains stable, independent provider refs survive dedupe, and cached partial diagnostics are not double-counted. No reproducible defect was found; no code change. Focused offline tests: 95 passed, 1 skipped; isolated PostgreSQL rediscovery/dedupe/application-flow tests: 3 passed. Test container stopped. Exact provider-posting attribution is still absent from canonical `JobMatch` and remains a known product limitation, not a live-acceptance claim.
+
+## 2026-10-17 — choose freshest posting for source-scoped review
+
+Red PostgreSQL regression: two provider IDs from the same source deduped to one canonical Job, but non-exact source-ref selection kept returning the older posting for detail/preparation. Source-ref lookup now prefers the newest valid source evidence capture; exact provider IDs remain exact and legacy refs without timestamps retain first-ref ordering. Focused tests: 38 passed; full isolated PostgreSQL suite: 1199 passed. `compileall`, `git diff --check` and secret scan passed; test DB stopped. Local code checkpoint: `577859a`. No schema or live behavior change.
+
+## 2026-10-17 — keep positive Candidate Fit requirement after negation
+
+Red regression: `Linux is not required, but Linux knowledge is mandatory` became unknown because a negative match suppressed the entire sentence. Required-skill matching now splits supported English, Russian and German contrastive connectors; a positive clause only counts when it independently names the skill. Fact-comparison tests: 44 passed; full unit suite: 1183 passed, 17 skipped. `compileall`, diff check and secret scan passed. Local checkpoint: `82d6ebf`; no threshold or schema change.
+
+## 2026-10-17 — classify explicit skill advantage wording as preferred
+
+Red regression: under Requirements, “Linux experience would be an advantage” was classified required. Added skill-local English advantage/beneficial forms and Russian “будет преимуществом” as preferred cues. Fact-comparison/interview/resume tests: 80 passed; full unit suite: 1186 passed, 17 skipped. Compileall, diff check and secret scan passed. Local code checkpoint `74015e4`; no scoring threshold or weight change.
+
+## 2026-10-17 — classify explicit skill advantage wording as preferred
+
+Red regression: under Requirements, “Linux experience would be an advantage” was classified required. Added skill-local English advantage/beneficial forms and Russian “будет преимуществом” as preferred cues. Fact-comparison/interview/resume tests: 80 passed; full unit suite: 1186 passed, 17 skipped. Compileall, diff check and secret scan passed. Local code checkpoint `74015e4`; no scoring threshold or weight change.

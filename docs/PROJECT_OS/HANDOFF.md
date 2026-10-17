@@ -1,5 +1,69 @@
 # Handoff
 
+## Current handoff — 2026-10-17
+
+Branch `work/v357-rejection-diagnostics`; HEAD `55a259b`, 67 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, none behind at last fetch. PR #32 targets feature and CI is running on this exact head (prior head `4a15adb` passed Python, Docker build and secret scan). The branch includes atomic/idempotent `/prepare`, v8 application-history protection, Russian Linux/Docker/Kubernetes Candidate Fit aliases, and HH ConnectTimeout cooldown. Full isolated PostgreSQL suite: 1231 passed; targeted package tests 58, Candidate Fit/model tests 63, HH timeout/ConnectError/TLS tests 3; compileall, diff check and secret scan passed. Isolated PostgreSQL container is stopped. PR #31 and #27 remain open; their equivalent behavior is in #32 and should be marked superseded only after #32 merges. PR #18 still targets `main`; do not merge it or alter `main`. Only untracked files are the untouched user proposals. Production runtime/DB/volumes unchanged. Next: await #32 CI; if green, merge to feature, then close #31/#27 as superseded and continue Source Intelligence/Relocation-first.
+
+## Historical handoff entries
+
+Older entries below are dated checkpoints and must not be treated as current Git/runtime facts.
+
+## 2026-10-17 — Remotive remote-location evidence (historical)
+
+The preceding handoff checkpoint was `d6917d3`, 61 commits ahead of feature origin. Subsequent entries below are historical evidence only.
+
+## Current entry point — 2026-10-17 Candidate Fit contrastive negation
+
+Branch `work/v357-rejection-diagnostics`; HEAD `74015e4`, 49 commits ahead of `origin/feature/v3.5.7-international-market-coverage`; no behind commits. Worktree is clean except the two untouched user proposal files. Reproduced `Requirements: Linux experience would be an advantage` being classified as required. Narrow English advantage/beneficial and Russian “будет преимуществом” skill-local phrasings now classify as preferred; no thresholds or weights changed. Fact-comparison/interview/resume suites: 80 passed; full unit suite: 1186 passed, 17 skipped; compileall, diff check and secret scan passed. No persistence changes. Source-ref latest-observation fix at `577859a` passed the full isolated PostgreSQL suite (1199); test DB stopped. No live acceptance or external action. Next: continue with another independent offline Relocation-first or Source Intelligence regression, preferably one affecting actual country eligibility evidence without inferring law.
+
+## Current entry point — 2026-10-17 Candidate Fit contrastive negation
+
+Branch `work/v357-rejection-diagnostics`; HEAD `82d6ebf`, 47 commits ahead of `origin/feature/v3.5.7-international-market-coverage`; no behind commits. Worktree is clean except the two untouched user proposal files. Candidate Fit regression: `Linux is not required, but Linux knowledge is mandatory` was classified as unknown because a negative occurrence masked the separate positive requirement in the same sentence. `_required_skill_in_section` now evaluates contrastive clauses separately; the positive clause must explicitly mention the skill. Fact-comparison tests: 44 passed; full unit suite: 1183 passed, 17 skipped. `compileall`, `git diff --check` and secret scan passed. No threshold, schema or database change. The preceding Source Intelligence fix at `577859a` selects the latest same-source posting after canonical dedupe; its full isolated PostgreSQL suite passed (1199). No live source/Telegram acceptance or external action. Next: continue a distinct offline Candidate Fit or Relocation-first quality issue; use isolated PostgreSQL only for persistence changes.
+
+## Current entry point — 2026-10-17 latest source posting after dedupe
+
+Branch `work/v357-rejection-diagnostics`; HEAD `577859a`, 45 commits ahead of `origin/feature/v3.5.7-international-market-coverage`; no behind commits. Worktree is clean except the two untracked user proposal files, untouched. Offline Source Intelligence regression reproduced that multiple provider IDs from one source can dedupe to one canonical Job while `source_ref(job, source)` always selected the oldest posting. Review/`/prepare` could therefore show stale URL, description and source evidence after a newer same-source observation. Non-exact source-ref lookup now selects the newest valid relocation evidence capture timestamp; exact provider-ID lookup is unchanged, and legacy refs without timestamps retain deterministic first-ref behavior. Focused tests: 38 passed; full isolated PostgreSQL suite: 1199 passed; compileall, diff check and secret scan passed; test DB stopped. Local code checkpoint `577859a`. `JobMatch` still does not store the exact provider posting ID, so source preference can differ from the provider that first produced a canonical match; this distinct limitation remains. No live source, Telegram, employer, production, push or merge actions. Next: investigate a reproducible Candidate Fit requirement-classification edge case; keep schema changes and live acceptance separate.
+
+## Current entry point — 2026-10-17 regional relocation language evidence
+
+Starting HEAD `f90e87d`. Armenia/Georgia review found relocation language evidence did not recognize Armenian or Georgian language mentions. Added canonical forms for English labels, Russian adjectives and native scripts; requirement status is inferred only from existing supported cues, otherwise stays unspecified. Targeted relocation evidence tests 21 passed; full isolated PostgreSQL suite 1176 passed. Current code/docs require final gates and local checkpoint; stop test DB before handoff. No law, eligibility, source or live claim changed. Next: continue a separate offline Relocation-first fit/evidence regression.
+
+## Current entry point — 2026-10-17 EURES application links
+
+Starting checkpoint `5af3361` (shared Telegram link rendering validation). EURES could persist credential-bearing application links and malformed IPv6 values could raise during detail parsing. EURES now accepts bounded HTTPS links without userinfo and falls back to the official portal otherwise; the limit matches Telegram clickability. Targeted EURES/vacancy-link tests 69 passed; latest full isolated PostgreSQL suite 1170 passed. Current code/docs require final gates and a local checkpoint; stop test DB before handoff. No URL was fetched/opened and no employer action occurred. Next: continue a distinct offline Relocation-first evidence bug review.
+
+## Current entry point — 2026-10-17 safe Telegram source links
+
+Starting checkpoint `8fd949c`. Reproduced that vacancy details made `javascript:`, credential-bearing and protocol-relative source URLs clickable. A shared bounded HTTP(S) validator now checks vacancy details, job-list source attribution and `/prepare` preview, rejecting unsafe schemes, userinfo, malformed authorities and oversized/control-character URLs. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link cases: 6 passed. Full suite ran on isolated DB; it has been stopped. No outbound requests, source scraping, applications, schema or production changes. Final gates and local checkpoint remain. Next: continue a separate offline Relocation-first evidence case; no live eligibility claims.
+
+## Current entry point — 2026-10-17 EURES timestamp validation
+
+Starting HEAD `c77c087`. EURES freshness review found booleans accepted as numeric epoch milliseconds, producing false 1970 publication dates. They now remain unknown; valid numeric timestamps retain UTC normalization. EURES tests 21 passed; full isolated PostgreSQL suite 1161 passed. Code/docs need final gates and local checkpoint; test DB must be stopped before handoff. No live calls or schema changes. Next: continue Relocation-first quality with an offline evidence/eligibility regression that does not infer legal eligibility.
+
+## Current entry point — 2026-10-17 EURES partial parsing
+
+Branch `work/v357-rejection-diagnostics`; latest checkpoint `23b5418`. The follow-up reproduced integer `locationMap` raising `TypeError` and aborting the page. Malformed optional `locationMap`/`employer` values now become unknown/empty metadata; valid listing rows and siblings are preserved. EURES tests 19 passed; full isolated PostgreSQL 1159 passed. The isolated test DB is stopped. No live EURES/network, schema or production action. Next: continue a distinct offline Source Intelligence or Relocation-first regression check.
+
+## Current entry point — 2026-10-17 EURES query relevance
+
+Branch `work/v357-rejection-diagnostics`. Candidate Fit checkpoint `1cb278c` prevents generic GitLab repository/project mentions from becoming GitLab CI fit; explicit CI/CD/pipeline/runner terms remain recognized. Next increment reproduced and fixed EURES substring leakage (`Java` matched `JavaScript Developer`) using whole-token matching. EURES tests 18 passed; full isolated PostgreSQL suite 1158 passed. EURES change/docs are ready for local checkpoint after compileall, diff check and secret scan. Test DB must be stopped before handoff. No live source calls, schema changes or production actions. Next: continue Source Intelligence/Relocation-first offline investigation after checkpoint.
+
+## Current entry point — 2026-10-17 GitLab CI Candidate Fit
+
+Starting HEAD `3614f2a`; worktree had only the two user-owned untracked proposal files. Candidate Fit previously treated any GitLab mention as GitLab CI. A red test reproduced the false requirement/score. Matching now requires explicit CI/CD, pipeline or runner context with GitLab; repository/project-only text is not scored as GitLab CI. Existing explicit formulations still pass. Focused suites: 101 passed; full isolated PostgreSQL suite: 1157 passed. No weights, thresholds, schema, live sources or production changed. The isolated test DB is stopped. Next: continue Source Intelligence with a concrete offline adapter/provenance defect; retain uncertainty for live source quality and relocation eligibility.
+
+## Current entry point — 2026-10-17 source first-seen provenance
+
+Branch `work/v357-rejection-diagnostics`; latest local code checkpoint `b9e280f`. Vacancy details now show stable `JobSourceRef.first_seen_at` for “Источник обнаружен”; they no longer reuse the refreshed `relocation_evidence_v1.captured_at`. Legacy naive UTC timestamps are serialized with `+00:00`. Evidence capture remains independently available. Targeted detail/service tests 49 passed, full isolated PostgreSQL suite 1154 passed, compileall, diff check and secret scan passed. The isolated test DB is stopped. No schema, live source, production, Telegram send or external change. Next: identify a distinct offline Source Intelligence or Candidate Fit regression; preserve uncertain relocation eligibility and keep live yield blocked pending authorized runtime evidence.
+
+## Current entry point — 2026-10-17 source relevance
+
+Branch `work/v357-rejection-diagnostics`; read exact HEAD from Git. Latest offline increments: Application tracking rollback acceptance; preservation of canonical identity on blank-location refresh; OpenTelemetry Candidate Fit support; safe/bounded Himalayas application links and provider IDs; and concurrent cross-source canonical dedupe. The concurrency test yields one canonical Job and two provider refs. Full isolated PostgreSQL suite: **1154 passed**. No schema, scoring threshold, live source, or production changes. `/prepare` distinguishes post-save Telegram delivery failure and warns retry creates another draft. Test container stopped; no volumes removed. Two user proposal files remain untracked/untouched. No push, merge, deployment, live network, Telegram sends, production changes or schema changes. Candidate Facts ADD/UPDATE/KEEP was checked against implementation/tests; no duplicate work added. Next: inspect remaining Source Intelligence and Candidate Fit gaps; live relevance/HH root cause require authorized runtime evidence. Run compileall, `git diff --check`, and secret scan before committing the new concurrency acceptance. PRs #31/#27/#18 remain unmerged as last checked 2026-10-17. Exact remaining model quota percentage cannot be inspected here.
+
+## Current entry point — 2026-10-17 v3.5.7 rejection diagnostics
+
+Work branch `work/v357-rejection-diagnostics` starts from feature commit `2652416`; Draft PR #31 remains separate and unmerged. Search filtering now records deterministic settings-exclusion reasons and structured scoring-filter factors, aggregates them per source and per Career-first/Relocation-first profile, and renders a bounded list of leading causes in `/scan` and `/scanstatus`. Settings coverage includes domestic onsite, geography, required visa signal, strict salary floor and unknown-evidence preservation. Scoring coverage distinguishes hard fit, cap/risk and the largest weighted component deficit without parsing prose. Final targeted 66 passed; full isolated PostgreSQL **1061 passed**. No source query, threshold, production data or external request changed. Compileall, diff and secret gates passed before checkpoint. Next: use these measurements for source/query relevance; live measurement needs explicit authorization.
+
 ## Current entry point — 2026-10-17 `/prepare` integrity
 
 Feature branch remote and local synchronized at `f53256e` after owner-authorized push of exactly three consolidation commits. The two proposal files remain untracked. Fresh login Bash now resolves `main`, `fast`, `deep`, `agents` to `~/.local/bin` symlinks into `scripts/job-agent-codex`; a `.bashrc` backup exists at `/home/roma/.bashrc.bak-job-agent-20261017-002714`. No archive/delete done. Archive candidates remain navigation-only `01a1277e`, completed Watcher primary `01a1375a`, and child rows marked candidate in `CODEX_SESSION_INVENTORY.md`; keep Main, three inaccessible Untitled tasks and large primaries pending owner review.

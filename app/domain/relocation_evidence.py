@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.domain.jobs import NormalizedJob
+from app.domain.remote_evidence import remote_location_restriction
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 from app.matching.language_fit import compare_english_level
 
@@ -25,11 +26,18 @@ EVIDENCE_FIELDS = (
 
 _RULES: dict[str, re.Pattern[str]] = {
     "citizenship_or_residence_restriction": re.compile(
-        r"[^.!?;\n]{0,100}(?:citizens|citizenship|nationals only|residents only|"
+        r"[^.!?;\n]{0,100}(?:only (?:[a-z]+ ){0,4}(?:citizens|nationals)|"
+        r"(?:citizens|nationals)(?: of [^.!?;\n]{1,50})? only|"
+        r"citizenship (?:is )?(?:required|mandatory)|must be (?:a )?(?:citizen|national)|"
+        r"nationals only|residents only|"
         r"must be located in|only candidates (?:currently )?(?:living|residing|located) in|"
         r"candidates must (?:currently )?(?:live|reside|be located) in|applicants must be based in|"
-        r"staatsangehörig\w*|staatsbürger\w*|nur bewerber mit wohnsitz|wohnhaft in|wohnsitz in .{1,60} erforderlich|"
-        r"(?:граждан|резидент)\w* только|только для граждан|проживать в)"
+        r"(?:nur [^.!?;\n]{0,60}(?:staatsangehörig\w*|staatsbürger\w*)|"
+        r"(?:staatsangehörig\w*|staatsbürger\w*)[^.!?;\n]{0,60}(?:nur|erforderlich))|"
+        r"nur bewerber mit wohnsitz|wohnhaft in|wohnsitz in .{1,60} erforderlich|"
+        r"(?:граждан|резидент)\w* только|только для граждан|проживать в|"
+        r"միայն[^.!?;\n]{0,60}քաղաքացի\w*|քաղաքացի\w*[^.!?;\n]{0,60}միայն|"
+        r"მხოლოდ[^.!?;\n]{0,60}მოქალაქე\w*|მოქალაქე\w*[^.!?;\n]{0,60}მხოლოდ)"
         r"[^.!?;\n]{0,100}", re.I
     ),
     "language_requirement": re.compile(
@@ -63,13 +71,29 @@ _HOUSING_NO = re.compile(
     re.I,
 )
 _LANGUAGE_TERM = re.compile(
-    r"\b(english|german|french|russian|spanish|dutch|italian|polish|portuguese|arabic)\b|"
-    r"английск\w*|немецк\w*|французск\w*|русск\w*|deutsch(?:kenntnisse|kenntnis)?(?!\w)",
+    r"\b(english|german|french|russian|spanish|dutch|italian|polish|portuguese|arabic|armenian|georgian)\b|"
+    r"английск\w*|немецк\w*|французск\w*|русск\w*|армянск\w*|грузинск\w*|"
+    r"հայերեն\w*|ქართული\w*|deutsch(?:kenntnisse|kenntnis)?(?!\w)",
     re.I,
 )
-_LANGUAGE_REQUIRED = re.compile(r"\b(?:required|mandatory|must|essential)\b|\b(?:obligatorisch|erforderlich|vorausgesetzt|notwendig)\b|\b(?:обязательно|требуется|необходимо)\b", re.I)
-_LANGUAGE_PREFERRED = re.compile(r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:bevorzugt|wünschenswert|von vorteil)\b|\b(?:желательно|приветствуется|будет плюсом)\b", re.I)
-_LANGUAGE_NEGATED = re.compile(r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b", re.I)
+_LANGUAGE_REQUIRED = re.compile(
+    r"\b(?:required|mandatory|must|essential)\b|\b(?:obligatorisch|erforderlich|vorausgesetzt|notwendig)\b|"
+    r"\b(?:обязательно|требуется|необходимо)\b|(?:պարտադիր|պահանջվում|պահանջվող|անհրաժեշտ)\w*|"
+    r"(?:სავალდებულო|აუცილებელ)\w*",
+    re.I,
+)
+_LANGUAGE_PREFERRED = re.compile(
+    r"\b(?:preferred|desirable|nice to have|advantageous)\b|\b(?:bevorzugt|wünschenswert|von vorteil)\b|"
+    r"\b(?:желательно|приветствуется|будет плюсом)\b|ցանկալի\w*|სასურველ\w*",
+    re.I,
+)
+_LANGUAGE_NEGATED = re.compile(
+    r"\b(?:not required|not mandatory|not essential)\b|\b(?:не требуется|не обязательно|не необходимо)\b|"
+    r"(?:պարտադիր|պահանջվում|պահանջվող|անհրաժեշտ)\w*\s+չէ|"
+    r"(?:სავალდებულო|აუცილებელ)\w*\s+არ\s+არის|"
+    r"არ\s+(?:არის\s+)?(?:სავალდებულო|აუცილებელი)",
+    re.I,
+)
 _START_IMMEDIATE = re.compile(r"\b(?:immediately|as soon as possible|right away|sofort)\b|\b(?:немедленно|как можно скорее|сразу)\b", re.I)
 _START_RELATIVE = re.compile(r"\b(?:within|in)\s+\d+\s+(?:business )?(?:days?|weeks?|months?)\b|\bчерез\s+\d+\s+(?:дн\w*|недел\w*|месяц\w*)", re.I)
 _START_NEGOTIABLE = re.compile(r"\b(?:negotiable|by agreement|to be agreed|nach vereinbarung)\b|\b(?:по договор[её]нност[ьи]|обсуждается)\b", re.I)
@@ -159,7 +183,31 @@ def build_relocation_evidence(
             "confidence": confidence,
         }
 
-    country = str(job.country or "").strip()
+    raw = job.raw if isinstance(job.raw, dict) else {}
+    # Remotive's `candidate_required_location` and Himalayas'
+    # `location_restrictions` describe where the applicant must be located for
+    # remote work. Adapters also keep a matched search market in `job.country`
+    # for filtering/dedupe; do not relabel that market as physical work country.
+    source_id = str(job.source or "").casefold()
+    is_remote = str(job.work_mode or "").casefold() == "remote"
+    has_source_country = isinstance(raw.get("source_country"), str) and bool(
+        raw["source_country"].strip()
+    )
+    remotive_candidate_scope = (
+        source_id == "remotive"
+        and isinstance(raw.get("candidate_required_location"), str)
+        and bool(raw["candidate_required_location"].strip())
+    )
+    himalayas_candidate_scope = (
+        source_id == "himalayas"
+        and isinstance(raw.get("location_restrictions"), list)
+        and bool(raw["location_restrictions"])
+    )
+    candidate_location_scope = (
+        is_remote and (remotive_candidate_scope or himalayas_candidate_scope)
+        and not has_source_country
+    )
+    country = "" if candidate_location_scope else str(job.country or "").strip()
     findings: dict[str, Any] = {
         "schema": "relocation_evidence_v1",
         "captured_at": captured,
@@ -168,7 +216,7 @@ def build_relocation_evidence(
     fields = findings["fields"]
     location_excerpt = None
     for raw_key in ("source_location", "source_country"):
-        raw_value = (job.raw or {}).get(raw_key)
+        raw_value = raw.get(raw_key)
         if isinstance(raw_value, str) and raw_value.strip():
             location_excerpt = " ".join(raw_value.split())[:240]
             break
@@ -179,12 +227,17 @@ def build_relocation_evidence(
     )
 
     restriction = _excerpt(job.description or "", _RULES["citizenship_or_residence_restriction"])
+    if not restriction and job.work_mode == "remote":
+        restriction = remote_location_restriction((job.raw or {}).get("source_location"))
     restriction_field = record(
         restriction, restriction, "explicit_text" if restriction else "unknown"
     )
     if restriction:
         normalized_restriction = restriction.casefold()
-        citizenship = bool(re.search(r"citizens|citizenship|nationals|граждан", normalized_restriction))
+        citizenship = bool(re.search(
+            r"citizens|citizenship|nationals|граждан|քաղաքացի|მოქალაქე",
+            normalized_restriction,
+        ))
         residence = bool(re.search(
             r"residents|located|living|residing|live|reside|based in|wohn|wohnsitz|проживать|резидент",
             normalized_restriction,
@@ -260,6 +313,8 @@ def build_relocation_evidence(
                         language = next((name for prefix, name in (
                             ("английск", "English"), ("немецк", "German"),
                             ("французск", "French"), ("русск", "Russian"),
+                            ("армянск", "Armenian"), ("грузинск", "Georgian"),
+                            ("հայերեն", "Armenian"), ("ქართული", "Georgian"),
                             ("deutsch", "German"),
                         ) if language_text.casefold().startswith(prefix)), language_text)
                     canonical = language.title() if language else "Unknown"

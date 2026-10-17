@@ -93,7 +93,7 @@ async def _offline_flow(database_url, monkeypatch):
         assert (await repo.get_match(match.id)).status == "saved"
         assert await repo.list_applications(owner.id) == []
 
-        package = await repo.save_prepared_application(
+        package, created = await repo.save_prepared_application(
             match.id, owner.id, job_id=second.id, source_id="board_b",
             message="Reviewable draft",
             vacancy_snapshot=snapshot_vacancy(
@@ -101,7 +101,51 @@ async def _offline_flow(database_url, monkeypatch):
                 source_url=ref_b.url,
             ),
         )
+        assert created
+        assert package.vacancy_snapshot[repo.PREPARED_MATCH_SNAPSHOT_KEY] == match.id
+        assert (await repo.prepared_application_for_match(match.id, owner.id)).id == package.id
         assert (await repo.get_match(match.id)).status == "prepared"
+
+        # A Telegram delivery failure followed by a retry must reuse this exact
+        # durable package, even if its status changed after the first save.
+        assert await repo.set_application_status(owner.id, package.id, "reviewed")
+        duplicate, created = await repo.save_prepared_application(
+            match.id, owner.id, job_id=second.id, source_id="board_a",
+            message="Must not replace the reviewed package",
+            vacancy_snapshot=snapshot_vacancy(
+                second, source_id="board_a", source_job_id="posting-a",
+            ),
+        )
+        assert not created
+        assert duplicate.id == package.id
+        assert duplicate.source_id == "board_b"
+        assert duplicate.message == "Reviewable draft"
+        assert duplicate.status == "reviewed"
+        assert len(await repo.list_applications(owner.id)) == 1
+        assert [event.status for event in await repo.application_status_history(owner.id, package.id)] == [
+            "prepared", "reviewed",
+        ]
+
+        # The match-row lock serializes simultaneous retries too.
+        concurrent_job, _ = await repo.upsert_job(NormalizedJob(
+            source="board_b", source_job_id="concurrent-posting",
+            title="SRE", company="Another Example", description="Linux",
+        ))
+        concurrent_match = await repo.save_match(
+            job_id=concurrent_job.id, user_id=owner.id, profile_id=profile.id,
+            search_profile_id=search.id, status="saved",
+        )
+        concurrent = await asyncio.gather(*[
+            repo.save_prepared_application(
+                concurrent_match.id, owner.id, job_id=concurrent_job.id, source_id="board_b",
+                message="Concurrent retry",
+                vacancy_snapshot=snapshot_vacancy(concurrent_job, source_id="board_b"),
+            )
+            for _ in range(2)
+        ])
+        assert sorted(created for _, created in concurrent) == [False, True]
+        assert concurrent[0][0].id == concurrent[1][0].id
+        assert len(await repo.list_applications(owner.id)) == 2
         await repo.upsert_job(NormalizedJob(
             source="board_a", source_job_id="posting-a",
             title="Platform Engineer", company="Example", country="GE",
@@ -118,6 +162,8 @@ async def _offline_flow(database_url, monkeypatch):
         assert "Terraform" not in exported
         assert await repo.get_application(stranger.id, package.id) is None
         assert await repo.application_status_history(stranger.id, package.id) is None
-        assert [event.status for event in await repo.application_status_history(owner.id, package.id)] == ["prepared"]
+        assert [event.status for event in await repo.application_status_history(owner.id, package.id)] == [
+            "prepared", "reviewed",
+        ]
     finally:
         await engine.dispose()

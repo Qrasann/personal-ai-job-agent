@@ -4,10 +4,24 @@ import pytest
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
-from app.domain.remote_evidence import remote_residence_requirement
+from app.domain.remote_evidence import remote_location_restriction, remote_residence_requirement
 from app.sources.adapters.himalayas import HimalayasSource
 from app.sources.base import SourceContext
 from app.telegram.vacancy_view import render_job_details
+
+
+@pytest.mark.parametrize("label", ["Germany only", "Canada only", "US-only", "EU only", "Georgia only"])
+def test_explicit_location_labels_are_preserved_without_mapping_to_work_country(label):
+    assert remote_location_restriction(label) == label
+
+
+@pytest.mark.parametrize("label", [
+    None, {}, "Worldwide", "Germany", "Berlin, Germany", "Germany only preferred",
+    "Not Germany only", "Germany only?", "Our office in Germany only", "remote only",
+    "Worldwide only", "Office only", "Germany only. Work from anywhere.", "x" * 513,
+])
+def test_office_global_negated_and_unrecognized_labels_are_not_limits(label):
+    assert remote_location_restriction(label) is None
 
 
 @pytest.mark.parametrize("text", [

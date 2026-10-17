@@ -26,6 +26,7 @@ from app.domain.source_posting import posting_snapshot_digest, snapshot_source_p
 from app.candidates.fact_types import normalize_experience_type
 
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
+PREPARED_MATCH_SNAPSHOT_KEY = "_prepared_match_id"
 MANUAL_APPLICATION_STATUSES = frozenset({
     "reviewed", "submitted", "interview", "offer", "rejected", "withdrawn",
 })
@@ -379,8 +380,8 @@ def _has_complete_identity(job: NormalizedJob) -> bool:
     return bool(
         job.title.strip()
         and (job.company.strip() or job.description.strip())
-        and job.country is not None
-        and job.city is not None
+        and bool((job.country or "").strip())
+        and bool((job.city or "").strip())
     )
 
 
@@ -393,7 +394,30 @@ async def source_ref(
             stmt = stmt.where(JobSourceRef.source_id == source_id)
         if source_job_id is not None:
             stmt = stmt.where(JobSourceRef.source_job_id == source_job_id)
-        return await session.scalar(stmt.order_by(JobSourceRef.id))
+        refs = list((await session.scalars(stmt.order_by(JobSourceRef.id))).all())
+        if not refs:
+            return None
+        if source_job_id is not None or len(refs) == 1:
+            return refs[0]
+        return max(refs, key=_source_ref_observation_order)
+
+
+def _source_ref_observation_order(ref: JobSourceRef) -> tuple[int, float, int]:
+    """Prefer the freshest source snapshot, while keeping legacy refs stable."""
+    raw = ref.raw if isinstance(ref.raw, dict) else {}
+    evidence = raw.get("relocation_evidence_v1")
+    captured_at = evidence.get("captured_at") if isinstance(evidence, dict) else None
+    if isinstance(captured_at, str):
+        try:
+            observed = datetime.fromisoformat(captured_at)
+            if observed.tzinfo is None:
+                observed = observed.replace(tzinfo=timezone.utc)
+            return (1, observed.astimezone(timezone.utc).timestamp(), ref.id)
+        except (ValueError, OverflowError, OSError):
+            pass
+    # Old refs have no observation timestamp. Preserve the previous first-ref
+    # behavior for them instead of inventing a recency from the row ID.
+    return (0, 0.0, -ref.id)
 
 
 async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
@@ -638,8 +662,26 @@ async def save_application(**kwargs) -> Application:
         return item
 
 
-async def save_prepared_application(match_id: int, user_id: int, **kwargs) -> Application:
-    """Save a reviewable draft and its match state in one transaction."""
+async def prepared_application_for_match(match_id: int, user_id: int) -> Application | None:
+    """Find a package previously created for this exact owner-scoped match."""
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.vacancy_snapshot[PREPARED_MATCH_SNAPSHOT_KEY].astext == str(match_id),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+
+
+async def save_prepared_application(
+    match_id: int, user_id: int, **kwargs,
+) -> tuple[Application, bool]:
+    """Atomically save one package per owner-scoped match; return (item, created).
+
+    Locking the match row serializes duplicate attempts without adding a schema
+    constraint. The immutable marker remains on the Application snapshot as the
+    package advances through reviewed/submitted tracking statuses.
+    """
     async with SessionLocal() as session:
         match = await session.scalar(
             select(JobMatch).where(
@@ -648,6 +690,17 @@ async def save_prepared_application(match_id: int, user_id: int, **kwargs) -> Ap
         )
         if match is None or match.job_id != kwargs.get("job_id"):
             raise ValueError("Match не найден для этого пользователя и вакансии")
+        existing = await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.vacancy_snapshot[PREPARED_MATCH_SNAPSHOT_KEY].astext == str(match_id),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+        if existing is not None:
+            return existing, False
+        snapshot = dict(kwargs.pop("vacancy_snapshot", {}) or {})
+        snapshot[PREPARED_MATCH_SNAPSHOT_KEY] = match_id
+        kwargs["vacancy_snapshot"] = snapshot
         item = Application(user_id=user_id, status="prepared", **kwargs)
         session.add(item)
         await session.flush()
@@ -657,7 +710,7 @@ async def save_prepared_application(match_id: int, user_id: int, **kwargs) -> Ap
         match.status = "prepared"
         await session.commit()
         await session.refresh(item)
-        return item
+        return item, True
 
 
 

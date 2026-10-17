@@ -168,6 +168,30 @@ def test_scan_summary_counts_nonempty_source_publication_date_fields(monkeypatch
     assert info["publication_date_missing"] == 2
 
 
+def test_scan_summary_keeps_scoring_filter_reasons_from_ingestion(monkeypatch):
+    class Source:
+        source_id = name = "remoteok"
+
+        async def discover(self, _context):
+            return [NormalizedJob(source="remoteok", source_job_id="hard", title="DevOps")]
+
+    configure_scan(monkeypatch, {"remoteok": Source})
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={
+        "processed": 1, "filtered": 1,
+        "scoring_exclusion_reasons": {"technical_gap": 1},
+    }))
+    monkeypatch.setattr(services, "notify_chat", AsyncMock())
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert summary["sources"]["remoteok"]["scoring_exclusion_reasons"] == {
+        "technical_gap": 1,
+    }
+    assert summary["searches"]["11"]["scoring_exclusion_reasons"] == {
+        "technical_gap": 1,
+    }
+
+
 def test_source_summary_explains_zero_relocation_yield_without_losing_career_results(monkeypatch):
     class Source:
         source_id = name = "remoteok"
@@ -198,9 +222,14 @@ def test_source_summary_explains_zero_relocation_yield_without_losing_career_res
     relocation = summary["searches"]["12"]["sources"]["remoteok"]
     assert (career["discovered"], career["found"], career["preference_filtered"]) == (1, 1, 0)
     assert (relocation["discovered"], relocation["found"], relocation["preference_filtered"]) == (1, 0, 1)
+    assert relocation["preference_exclusion_reasons"] == {"domestic_onsite": 1}
+    assert summary["searches"]["12"]["preference_exclusion_reasons"] == {
+        "domestic_onsite": 1,
+    }
     assert relocation["status"] == "success"
     assert summary["sources"]["remoteok"]["discovered"] == 2
     assert summary["sources"]["remoteok"]["preference_filtered"] == 1
+    assert summary["sources"]["remoteok"]["preference_exclusion_reasons"] == {"domestic_onsite": 1}
     ingest.assert_awaited_once()
     assert ingest.await_args.kwargs["only_search_profile_id"] == 11
 
@@ -373,6 +402,42 @@ def test_hh_connect_error_is_silent_and_rechecked_after_cooldown(monkeypatch):
     asyncio.run(asyncio.sleep(0.06))
     asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
     assert calls.count("hh") == 1
+
+
+def test_hh_connect_timeout_is_rechecked_after_cooldown_and_keeps_safe_notice(monkeypatch):
+    calls = []
+    alerts = AsyncMock()
+
+    class Source:
+        source_id = name = "hh"
+
+        async def discover(self, context):
+            calls.append(context.user_id)
+            raise httpx.ConnectTimeout("https://private.test/?token=secret")
+
+    configure_scan(monkeypatch, {"hh": lambda *args: Source()})
+    monkeypatch.setattr(services, "_HH_CONNECT_RETRY_AFTER", 0.0)
+    monkeypatch.setattr(services, "HH_CONNECT_RECHECK_SECONDS", 900)
+    original_context = services._user_context
+
+    async def two_profiles(user_id):
+        user, profile, searches = await original_context(user_id)
+        searches.append(SimpleNamespace(id=12, name="Relocation-first", settings={"queries": ["DevOps"]}))
+        return user, profile, searches
+
+    monkeypatch.setattr(services, "_user_context", two_profiles)
+    monkeypatch.setattr(services, "notify_chat", alerts)
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert calls == [7]
+    assert summary["sources"]["hh"]["failed"] == 1
+    assert summary["sources"]["hh"]["skipped"] == 1
+    assert alerts.await_count == 1
+    notice = alerts.await_args.args[2]
+    assert "NETWORK_CONNECT_TIMEOUT" in notice
+    assert "Причина устанавливается" in notice
+    assert "secret" not in notice
+    assert services._HH_CONNECT_RETRY_AFTER > 0
 
 
 def test_hh_failure_invalidates_old_cache_so_next_scheduled_scan_probes(monkeypatch):

@@ -38,6 +38,29 @@ def test_card_displays_selected_source_observation_separately_from_publication()
     assert "Источник обнаружен: 15.10.2026 12:30 UTC" in rendered
 
 
+@pytest.mark.parametrize("url", [
+    "javascript:alert(1)",
+    "https://user:password@jobs.example.invalid/posting",
+    "//jobs.example.invalid/posting",
+    "https://jobs.example.invalid:99999/posting",
+])
+def test_vacancy_details_never_turn_unsafe_source_urls_into_links(url):
+    job = SimpleNamespace(
+        id=25, title="Engineer", company="Example", description="Role",
+        salary_from=None, salary_to=None, salary_currency=None,
+        city=None, country=None, work_mode=None, remote_scope=None,
+        published_at=None,
+    )
+    match = SimpleNamespace(
+        total_score=82, technical_score=86, geography_score=100,
+        salary_score=58, relocation_score=50, reason="",
+    )
+
+    rendered = render_job_details({"job": job, "match": match, "url": url})
+
+    assert "<a href=" not in rendered
+
+
 def test_card_shows_employer_questions_for_unknown_relocation_evidence():
     job = SimpleNamespace(
         id=25, title="Engineer", company="Example", description="Role",
@@ -279,6 +302,21 @@ def test_himalayas_job_list_item_includes_visible_source_attribution_link():
     )
 
     assert 'Источник: <a href="https://himalayas.app/companies/example/jobs/devops">Himalayas</a>' in text
+
+
+def test_job_list_does_not_link_unsafe_source_attribution():
+    job = SimpleNamespace(
+        id=26, title="DevOps Engineer", company="Example Corp",
+        salary_from=None, salary_to=None, salary_currency=None,
+        salary_period=None, description="Remote Linux role", city=None,
+        country=None, work_mode="remote",
+    )
+    text = render_jobs_list(
+        [(SimpleNamespace(total_score=70), job)],
+        source_links={26: "https://user:password@himalayas.app/job"},
+    )
+
+    assert "Источник:" not in text
 
 
 def test_jobs_list_marks_below_threshold_for_manual_review():

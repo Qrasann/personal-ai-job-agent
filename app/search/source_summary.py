@@ -1,9 +1,56 @@
 from __future__ import annotations
 
+from app.domain.text_limits import utf16_length
 from app.sources.diagnostics import SourceSummaryError, legacy_diagnostic
 
 
 COUNTERS = ("found", "discovered", "preference_filtered", "processed", "qualified", "stretch", "notified", "filtered", "duplicate", "retry", "fallback", "processing_errors", "publication_date_provided", "publication_date_missing")
+
+PREFERENCE_EXCLUSION_LABELS = {
+    "domestic_onsite": "локальная onsite-вакансия не является релокацией",
+    "current_city_disabled": "текущий город отключён",
+    "other_home_city_disabled": "другие города текущей страны отключены",
+    "other_country_disabled": "страна не входит в выбранную географию",
+    "strict_salary_floor": "подтверждённая зарплата ниже строгого порога",
+    "required_relocation_missing": "нет обязательного сигнала relocation package",
+    "required_visa_sponsorship_missing": "нет обязательного сигнала visa sponsorship",
+    "required_work_permit_missing": "нет обязательного сигнала помощи с work permit",
+    "required_relocation_package_missing": "нет обязательного сигнала relocation package",
+    "required_immigration_support_missing": "нет обязательного сигнала immigration support",
+    "excluded_relocation_present": "обнаружен исключённый сигнал relocation package",
+    "excluded_visa_sponsorship_present": "обнаружен исключённый сигнал visa sponsorship",
+    "excluded_work_permit_present": "обнаружен исключённый сигнал помощи с work permit",
+    "excluded_relocation_package_present": "обнаружен исключённый сигнал relocation package",
+    "excluded_immigration_support_present": "обнаружен исключённый сигнал immigration support",
+    "other_settings": "другая настройка поиска",
+}
+
+SCORING_EXCLUSION_LABELS = {
+    "fit_skip": "блокирующее fit-правило",
+    "score_cap_or_risk": "ограничение или риск снизили итог",
+    "technical_gap": "главный дефицит — техническое соответствие",
+    "geography_gap": "главный дефицит — география",
+    "salary_gap": "главный дефицит — зарплатный сигнал",
+    "relocation_gap": "главный дефицит — relocation-сигнал",
+}
+
+
+def render_filter_reason_counts(
+    preference_reasons: dict | None, scoring_reasons: dict | None, *, limit: int = 2,
+) -> str:
+    """Render the largest deterministic exclusion factors as plain text."""
+    items = []
+    for reasons, labels in (
+        (preference_reasons, PREFERENCE_EXCLUSION_LABELS),
+        (scoring_reasons, SCORING_EXCLUSION_LABELS),
+    ):
+        if not isinstance(reasons, dict):
+            continue
+        for code, count in reasons.items():
+            if isinstance(count, int) and count > 0:
+                items.append((count, code, labels.get(code, "другая причина фильтрации")))
+    items.sort(key=lambda item: (-item[0], item[1]))
+    return "; ".join(f"{label}: {count}" for count, _, label in items[:max(1, limit)])
 
 
 def normalize_attempt(info: dict) -> dict:
@@ -21,6 +68,16 @@ def normalize_attempt(info: dict) -> dict:
                   successful_attempts=int(status in {"success", "partial"}),
                   partial_attempts=int(status == "partial"), duration_ms=int(info.get("duration_ms", 0)))
     result["diagnostics"] = [dict(item) for item in info.get("diagnostics", [])]
+    reasons = info.get("preference_exclusion_reasons", {})
+    result["preference_exclusion_reasons"] = {
+        str(key): int(value) for key, value in reasons.items()
+        if isinstance(value, int) and value > 0
+    } if isinstance(reasons, dict) else {}
+    scoring_reasons = info.get("scoring_exclusion_reasons", {})
+    result["scoring_exclusion_reasons"] = {
+        str(key): int(value) for key, value in scoring_reasons.items()
+        if isinstance(value, int) and value > 0
+    } if isinstance(scoring_reasons, dict) else {}
     if info.get("error") and not result["diagnostics"]:
         result["diagnostics"] = [legacy_diagnostic(info["error"])]
     # Never retain an arbitrary legacy exception message.
@@ -72,6 +129,16 @@ def aggregate_source(sources: dict, source_id: str, info: dict) -> None:
     result["name"] = info.get("name", previous.get("name", source_id) if previous else source_id)
     result["history"] = history
     result["diagnostics"] = merge_diagnostics([item for entry in history for item in entry["diagnostics"]])
+    reason_totals = {}
+    for entry in history:
+        for reason, count in entry.get("preference_exclusion_reasons", {}).items():
+            reason_totals[reason] = reason_totals.get(reason, 0) + int(count)
+    result["preference_exclusion_reasons"] = reason_totals
+    scoring_totals = {}
+    for entry in history:
+        for reason, count in entry.get("scoring_exclusion_reasons", {}).items():
+            scoring_totals[reason] = scoring_totals.get(reason, 0) + int(count)
+    result["scoring_exclusion_reasons"] = scoring_totals
     if result["status"] == "failed":
         result["error"] = next((item["code"] for item in reversed(result["diagnostics"]) if item.get("action") != "fallback"), "SOURCE_PROCESSING_FAILED")
     sources[source_id] = result
@@ -98,12 +165,23 @@ def render_source_summary(source_id: str, info: dict) -> str:
     if info.get("discovered"):
         line += f" · получено до настроек: {int(info['discovered'])}"
         line += f" · исключено настройками: {int(info.get('preference_filtered', 0))}"
+        reasons = info.get("preference_exclusion_reasons", {})
+        if isinstance(reasons, dict):
+            ranked = sorted(reasons.items(), key=lambda item: (-int(item[1]), item[0]))[:3]
+            if ranked:
+                rendered = render_filter_reason_counts(dict(ranked), None, limit=3)
+                line += f"\n  Причины исключения: {rendered}"
     date_total = int(info.get("publication_date_provided", 0)) + int(info.get("publication_date_missing", 0))
     if date_total:
         line += f" · поле даты публикации заполнено: {int(info.get('publication_date_provided', 0))}/{date_total}"
     for key, title in (("processed", "обработано"), ("qualified", "Good"), ("stretch", "Stretch"), ("filtered", "отфильтровано"), ("duplicate", "дубликатов"), ("failed", "ошибок попыток"), ("skipped", "пропусков"), ("processing_errors", "ошибок обработки"), ("partial_attempts", "частичных попыток"), ("retry", "повторов"), ("fallback", "fallback")):
         if isinstance(info.get(key), int) and info[key]:
             line += f" · {title}: {info[key]}"
+    scoring_reasons = info.get("scoring_exclusion_reasons", {})
+    if isinstance(scoring_reasons, dict) and scoring_reasons:
+        ranked = sorted(scoring_reasons.items(), key=lambda item: (-int(item[1]), item[0]))[:3]
+        rendered = render_filter_reason_counts(None, dict(ranked), limit=3)
+        line += f"\n  Причины scoring-фильтра: {rendered}"
     items = info.get("diagnostics", []) or ([legacy_diagnostic(info["error"])] if info.get("error") else [])
     issues = {}
     for item in items:
@@ -128,19 +206,23 @@ def select_scan_dashboard(manual: dict, scheduled: dict) -> dict:
 
 
 def render_source_dashboard(sources: dict, *, limit: int = 2600) -> str:
-    """Bound the HTML source section before Telegram's 4096-character limit."""
+    """Bound escaped HTML conservatively in Telegram UTF-16 units."""
     import html
+    if limit <= 0:
+        return ""
     text = "\n".join(render_source_summary(name, info) for name, info in sources.items())
     encoded = html.escape(text)
-    if len(encoded) <= limit:
+    if utf16_length(encoded) <= limit:
         return encoded
     suffix = "\n… Остальные сведения сохранены в диагностике; новые ошибки сообщаются отдельно."
+    if utf16_length(suffix) > limit:
+        return "…"
     # Cut plain text before escaping; splitting an encoded entity is invalid.
-    budget = limit - len(html.escape(suffix))
+    budget = limit - utf16_length(html.escape(suffix))
     low, high = 0, len(text)
     while low < high:
         middle = (low + high + 1) // 2
-        if len(html.escape(text[:middle])) <= budget:
+        if utf16_length(html.escape(text[:middle])) <= budget:
             low = middle
         else:
             high = middle - 1

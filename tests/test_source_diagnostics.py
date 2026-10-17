@@ -7,6 +7,7 @@ import pytest
 
 from app.sources.diagnostics import classify_source_error, render_source_notice, SourceInvalidResponse
 from app.search.source_summary import aggregate_source, scan_outcome, SourceSummaryError, render_source_summary
+from app.telegram.handlers import _render_search_profiles
 
 
 @pytest.mark.parametrize('error,code,stage', [
@@ -101,12 +102,37 @@ def test_source_dashboard_shows_stretch_yield_per_source():
     line = render_source_summary("eures", {
         "name": "EURES", "found": 4, "processed": 4,
         "qualified": 1, "stretch": 2, "filtered": 3, "duplicate": 1,
+        "scoring_exclusion_reasons": {"technical_gap": 2, "fit_skip": 1},
     })
 
     assert "Good: 1" in line
     assert "Stretch: 2" in line
     assert "отфильтровано: 3" in line
     assert "дубликатов: 1" in line
+    assert "главный дефицит — техническое соответствие: 2" in line
+    assert "блокирующее fit-правило: 1" in line
+
+
+def test_search_profile_summary_separates_settings_and_scoring_causes():
+    text = _render_search_profiles({"12": {
+        "name": "Relocation-first <DE>", "processed": 4, "qualified": 1,
+        "stretch": 1, "filtered": 2, "preference_filtered": 3,
+        "preference_exclusion_reasons": {"domestic_onsite": 3},
+        "scoring_exclusion_reasons": {"technical_gap": 2},
+    }})
+
+    assert "Relocation-first &lt;DE&gt;" in text
+    assert "2 ниже scoring" in text
+    assert "3 исключено настройками" in text
+    assert "локальная onsite-вакансия не является релокацией: 3" in text
+    assert "главный дефицит — техническое соответствие: 2" in text
+
+    bounded = _render_search_profiles({str(index): {
+        "name": "Relocation <&> " * 10,
+        "preference_exclusion_reasons": {"domestic_onsite": 10},
+    } for index in range(20)}, limit=300)
+    assert len(bounded) <= 300
+    assert "&amp;" in bounded or "Остальные профили" in bounded
 
 
 def test_source_dashboard_reports_publication_date_field_coverage_without_staleness_claim():
@@ -125,17 +151,27 @@ def test_dashboard_keeps_preference_exclusions_distinct_from_scoring_and_errors(
     sources = {}
     aggregate_source(sources, "eures", {
         "status": "success", "found": 0, "discovered": 3, "preference_filtered": 3,
+        "preference_exclusion_reasons": {
+            "required_visa_sponsorship_missing": 2,
+            "other_country_disabled": 1,
+        },
     })
     zero_yield = render_source_summary("eures", sources["eures"])
     assert "0 вакансий" in zero_yield
     assert "получено до настроек: 3" in zero_yield
     assert "исключено настройками: 3" in zero_yield
+    assert "нет обязательного сигнала visa sponsorship: 2" in zero_yield
+    assert "страна не входит в выбранную географию: 1" in zero_yield
     aggregate_source(sources, "eures", {
         "status": "success", "found": 2, "discovered": 2, "filtered": 1,
     })
     line = render_source_summary("eures", sources["eures"])
     assert "получено до настроек: 5" in line
     assert "исключено настройками: 3" in line
+    assert sources["eures"]["preference_exclusion_reasons"] == {
+        "required_visa_sponsorship_missing": 2,
+        "other_country_disabled": 1,
+    }
     assert "отфильтровано: 1" in line
     assert "ошибка" not in line
     assert "получено до настроек" not in render_source_summary("eures", {"found": 2})
@@ -155,6 +191,34 @@ def test_dense_dashboard_is_bounded_without_breaking_html_entities():
     decoded=html.unescape(view)
     assert '<API> & feed' in decoded
     assert html.escape(decoded)==view
+
+
+def test_dashboard_budgets_include_emoji_utf16_units_and_preserve_html():
+    import html
+    from app.search.source_summary import render_source_dashboard
+
+    profiles = {str(n): {"name": "🚀" * 80 + "<&>", "processed": 3} for n in range(10)}
+    sources = {str(n): {
+        "name": "Remote API", "found": 3, "partial": True,
+        "diagnostics": [{"code": "NETWORK_CONNECT_TIMEOUT", "profiles": ["🚀" * 80 + "<&>"]}],
+    } for n in range(20)}
+    source_view = render_source_dashboard(sources)
+    profile_view = _render_search_profiles(profiles)
+    assert len(source_view.encode("utf-16-le")) // 2 <= 2600
+    assert len(profile_view.encode("utf-16-le")) // 2 <= 900
+    assert "🚀" in source_view and "🚀" in profile_view
+    assert html.escape(html.unescape(source_view)) == source_view
+    assert html.escape(html.unescape(profile_view)) == profile_view
+
+
+@pytest.mark.parametrize("limit", [0, 1, 20])
+def test_diagnostic_overflow_note_respects_small_budget(limit):
+    from app.search.source_summary import render_source_dashboard
+
+    sources = {"remoteok": {"name": "Remote OK", "found": 5}}
+    profiles = {"12": {"name": "Relocation-first", "processed": 5}}
+    for view in (render_source_dashboard(sources, limit=limit), _render_search_profiles(profiles, limit=limit)):
+        assert len(view.encode("utf-16-le")) // 2 <= limit
 
 
 @pytest.mark.parametrize('source', ['eures','jobbank','himalayas','remotive','greenhouse','lever','smartrecruiters','arbeitnow'])

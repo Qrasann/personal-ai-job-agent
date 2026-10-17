@@ -51,6 +51,36 @@ def test_search_only_returns_employer_flagged_role_relevant_vacancies():
     assert result[0].relocation is None
 
 
+def test_search_query_token_does_not_match_a_longer_unrelated_title_word():
+    rows = [
+        search_row(id="javascript", title="JavaScript Developer"),
+        search_row(id="java", title="Java DevOps Engineer"),
+    ]
+
+    result = EuresSource.parse_search({"jvs": rows}, "Java")
+
+    assert [job.source_job_id for job in result] == ["java"]
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_boolean_creation_date_remains_unknown(value):
+    assert EuresSource._timestamp(value) is None
+
+
+def test_malformed_optional_search_metadata_does_not_drop_other_eures_results():
+    malformed_optional = search_row(
+        id="optional-metadata", locationMap=7, employer=["invalid shape"],
+    )
+
+    result = EuresSource.parse_search(
+        {"jvs": [search_row(id="valid"), malformed_optional]}, "DevOps"
+    )
+
+    assert [job.source_job_id for job in result] == ["valid", "optional-metadata"]
+    assert result[1].country is None
+    assert result[1].company == ""
+
+
 def test_eures_flag_is_not_visa_or_relocation_support():
     job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
     job = EuresSource.enrich(job, details())
@@ -63,6 +93,32 @@ def test_eures_flag_is_not_visa_or_relocation_support():
     assert job.relocation is None
     assert job.raw["international_candidates"] is True
     assert job.raw["evidence_url"].endswith(job.source_job_id + "?requestLang=en")
+
+
+@pytest.mark.parametrize("target", [
+    "https://user:password@careers.example.org/123",
+    "javascript:alert(1)",
+    "https://[invalid/123",
+])
+def test_eures_ignores_unsafe_application_instruction_links(target):
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+
+    enriched = EuresSource.enrich(job, details(
+        applicationInstructions=[f'<a href="{target}">Apply</a>']
+    ))
+
+    assert enriched.url == EuresSource.portal_url
+
+
+def test_eures_long_application_url_uses_portal_fallback_to_preserve_clickability():
+    target = "https://careers.example.org/" + "x" * 600
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+
+    enriched = EuresSource.enrich(job, details(
+        applicationInstructions=[f'<a href="{target}">Apply</a>']
+    ))
+
+    assert enriched.url == EuresSource.portal_url
 
 
 def test_eures_city_collapses_source_padding_before_storage():
