@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — explicit candidate posts excluded from folder yield
+
+Offline regressions reproduced four false vacancy candidates with first-line `#OpenToWork`, `#ищуработу`, `Резюме:` and `Resume:`. The narrow header filter now counts them as non-vacancy posts without ingestion; a job post that asks applicants to send a résumé later remains eligible. Full isolated PostgreSQL suite: 1298 passed. PR #46's folder intake is merged at feature `486819d`; this follow-up is local on `work/telegram-folder-post-quality`. No live posts were inspected.
+
 ## 2026-10-17 — optional Telegram folder preview and selected-channel intake
 
 Owner-provided local 21-chat manifest and handoff were inspected: they contain display labels but no verified chat IDs, usernames, types or access. The optional local Telethon client previews the folder through the official read-only method, writes a private disabled-by-default inventory and polls only explicitly enabled broadcast IDs with account-wide updates disabled, after rechecking current folder identity; a private cursor supports bounded catch-up after restart. It does not join, send from the user account, read private chats or scan posts preceding its first-run cursor. The existing watcher now preserves Telegram publication dates through retry, skips explicit candidate/ad headers, validates public usernames and reports per-channel possible-vacancy and rejection counters. Live access and false-positive yield are unverified. Isolated PostgreSQL full suite: 1294 passed after scoped polling; the added publication-date persistence regression passed separately (1). No production or user login.

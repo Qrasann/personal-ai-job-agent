@@ -121,6 +121,25 @@ def test_explicit_candidate_and_ad_posts_are_counted_without_ingestion(memory):
     memory[2].assert_not_awaited()
 
 
+@pytest.mark.parametrize("text", [
+    "#OpenToWork\nDevOps Engineer with Linux experience",
+    "#ищуработу\nАдминистратор Linux",
+    "Резюме: DevOps инженер, открыт к предложениям",
+    "Resume: SRE engineer available for work",
+])
+def test_explicit_candidate_headers_never_become_vacancies(text, memory):
+    async def run():
+        await watch.change_subscription(1, "add", "@devopsjobs", "career")
+        await watch.consume_channel_post(None, chat_id=-100123, username="devopsjobs",
+                                         message_id=97, text=text)
+        stats = (await watch.watch_state(1))["channels"]["@devopsjobs"]["stats"]
+        assert stats["non_vacancy"] == stats["received"] == 1
+        assert stats["vacancy_candidates"] == 0
+
+    asyncio.run(run())
+    memory[2].assert_not_awaited()
+
+
 def test_rejected_post_marker_failure_does_not_block_another_subscriber(memory, monkeypatch):
     monkeypatch.setattr(watch.repo, "list_active_users", AsyncMock(return_value=[SimpleNamespace(id=1), SimpleNamespace(id=2)]))
     original_mark = watch.repo.mark_message_seen
