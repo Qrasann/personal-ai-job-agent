@@ -1,6 +1,6 @@
 ## 2026-10-17 — disambiguate Remotive Georgia location
 
-Red regression: `Georgia, USA` matched both the supported Georgia country alias and US, so a GE-targeted search accepted an explicitly US-scoped listing. An explicit US qualifier now removes the ambiguous GE code; unqualified `Georgia` remains GE. Remotive tests 9 passed; full unit suite 1171 passed / 17 skipped; isolated PostgreSQL 1188 passed. Offline fixture only. The current selectable country catalog does not support US targeting; this change does not add it.
+Red regression: `Georgia, USA` matched both the supported Georgia country alias and US, so a GE-targeted search accepted an explicitly US-scoped listing. Explicit USA/U.S.A./U.S./United States qualifiers now remove the ambiguous GE code; unqualified `Georgia` remains GE. Remotive tests 13 passed; full unit suite 1175 passed / 17 skipped; isolated PostgreSQL 1192 passed. Offline fixture only. The current selectable country catalog does not support US targeting; this change does not add it.
 
 ## 2026-10-17 — require explicit citizenship restriction wording
 

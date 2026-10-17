@@ -1,8 +1,8 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; HEAD `4d7a9b8` before the current increment. It is 36 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, with no behind commits. Current work fixes Remotive country ambiguity; only the two untracked user proposal files are unrelated and must remain untouched.
-- Recent verified increments: Relocation Evidence requires explicit citizenship restriction wording; Armenian/Georgian native-script forms remain supported. Remotive now distinguishes `Georgia, USA` from the country Georgia. Unit suite 1171 passed / 17 skipped; isolated PostgreSQL suite 1188 passed. Test container stopped.
+- Branch `work/v357-rejection-diagnostics`; HEAD `e6ec6d6` before the current alias-test increment. It is 37 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, with no behind commits. Current work fixes Remotive country ambiguity; only the two untracked user proposal files are unrelated and must remain untouched.
+- Recent verified increments: Relocation Evidence requires explicit citizenship restriction wording; Armenian/Georgian native-script forms remain supported. Remotive now distinguishes Georgia, USA/U.S.A./U.S./United States qualifiers from the country Georgia. Unit suite 1175 passed / 17 skipped; isolated PostgreSQL suite 1192 passed. Test container stopped.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
 - `ROADMAP.md` is the sole canonical roadmap; this brief and HANDOFF provide the current restart point. Do not claim offline checks as live acceptance.

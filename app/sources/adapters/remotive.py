@@ -32,7 +32,7 @@ class RemotiveSource(JobSource):
     user_agent = "PersonalAIJobAgent/3.5.7 (public job discovery; https://github.com/Qrasann/personal-ai-job-agent)"
     # Common location labels not present in this app's selectable-country catalog.
     _external_country_aliases = {
-        "US": ("United States", "United States of America", "USA", "U.S.A.", "US"),
+        "US": ("United States", "United States of America", "USA", "U.S.A.", "U.S.", "US"),
         "GB": ("United Kingdom", "UK", "Great Britain", "Britain"),
         "CA": ("Canada",),
         "AU": ("Australia",),

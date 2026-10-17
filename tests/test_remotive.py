@@ -2,6 +2,7 @@ import asyncio
 from types import SimpleNamespace
 
 import httpx
+import pytest
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
@@ -55,8 +56,10 @@ def test_remotive_keeps_worldwide_and_selected_markets_but_rejects_country_only_
     assert all(job.visa_sponsorship is None and job.relocation is None for job in jobs)
 
 
-def test_remotive_disambiguates_georgia_us_state_from_georgia_country():
-    row = posting(21, "DevOps Engineer", "Georgia, USA")
+@pytest.mark.parametrize("qualifier", ["USA", "U.S.A.", "U.S.", "United States", "United States of America"])
+def test_remotive_disambiguates_georgia_us_state_from_georgia_country(qualifier):
+    location = f"Georgia, {qualifier}"
+    row = posting(21, "DevOps Engineer", location)
 
     georgia_jobs = RemotiveSource.parse_payload(
         {"jobs": [row]},
@@ -68,7 +71,7 @@ def test_remotive_disambiguates_georgia_us_state_from_georgia_country():
     )
 
     assert georgia_jobs == []
-    assert RemotiveSource._country_codes_in_location("Georgia, USA") == {"US"}
+    assert RemotiveSource._country_codes_in_location(location) == {"US"}
     assert len(country_jobs) == 1 and country_jobs[0].country == "GE"
 
 

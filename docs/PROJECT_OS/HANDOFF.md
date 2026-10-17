@@ -2,7 +2,7 @@
 
 ## Current entry point — 2026-10-17 Remotive country disambiguation
 
-Starting HEAD `4d7a9b8`, branch `work/v357-rejection-diagnostics`, 36 commits ahead of feature origin. A red fixture showed `Georgia, USA` was parsed as GE and passed a Georgia-targeted search. Remotive now resolves explicit US qualifiers as US, while unqualified `Georgia` remains GE. Remotive tests 9 passed; full unit suite 1171 passed / 17 skipped; isolated PostgreSQL suite 1188 passed. Test DB stopped. `ROADMAP.md` and Project OS updated. No live API request; current selectable-country catalog does not support US targeting. Next: run final compile/diff/secret gates, review the source parser diff, checkpoint locally, then inspect the next distinct Candidate Fit or Source Intelligence issue. Preserve user proposal files.
+Starting HEAD `e6ec6d6`, branch `work/v357-rejection-diagnostics`, 37 commits ahead of feature origin. Red fixture showed `Georgia, USA` was parsed as GE and passed a Georgia-targeted search. Remotive now resolves USA/U.S.A./U.S./United States qualifiers as US, while unqualified `Georgia` remains GE. Remotive tests 13 passed; full unit suite 1175 passed / 17 skipped; isolated PostgreSQL suite 1192 passed. Test DB stopped. Roadmap and Project OS updated. No live API request; US is not a selectable target in the current catalog. Current code/docs need compile/diff/secret gates and a local checkpoint. Afterwards inspect a distinct Candidate Fit or Source Intelligence case. Preserve both untracked user proposal files.
 
 ## Current entry point — 2026-10-17 regional relocation language evidence
 

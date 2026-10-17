@@ -1,7 +1,7 @@
 ## 2026-10-17 — Remotive ambiguous Georgia location
 
-- [x] Reproduce a `Georgia, USA` Remotive posting passing the GE target filter; disambiguate explicit US qualifiers while retaining unqualified Georgia as GE.
-- [x] Remotive tests 9; unit suite 1171 passed / 17 skipped; isolated PostgreSQL 1188 passed; test DB stopped.
+- [x] Reproduce a `Georgia, USA` Remotive posting passing the GE target filter; disambiguate USA/U.S.A./U.S./United States qualifiers while retaining unqualified Georgia as GE.
+- [x] Remotive tests 13; unit suite 1175 passed / 17 skipped; isolated PostgreSQL 1192 passed; test DB stopped.
 - [ ] Continue independent Candidate Fit / source-quality work; real source yield and US market coverage are not inferred.
 
 ## 2026-10-17 — avoid false relocation restrictions from neutral wording
