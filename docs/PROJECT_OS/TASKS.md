@@ -7,6 +7,12 @@
 - [x] Himalayas source suite 35 passed; full isolated PostgreSQL suite 1153 passed.
 - [ ] Continue source adapter reliability and Candidate Fit work; live feed relevance remains unverified.
 
+## 2026-10-17 — concurrent cross-source canonical dedupe acceptance
+
+- [x] In isolated PostgreSQL, concurrently ingest two provider postings with one canonical fingerprint; verify one Job row and both provider references persist.
+- [x] Targeted race test 1 passed; full isolated PostgreSQL suite 1154 passed.
+- [ ] Continue review of source identity/provenance and practical relocation fit; no live source scan was performed.
+
 ## 2026-10-17 — Application tracking rollback acceptance
 
 - [x] Inject status-history insert failure and verify the current status and append-only timeline roll back together in isolated PostgreSQL.

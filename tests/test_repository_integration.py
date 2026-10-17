@@ -4,12 +4,12 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy import event, text
+from sqlalchemy import event, func, select, text
 from sqlalchemy.exc import DBAPIError
 
 from app.database import repository as repo
 from app.database.migrations import apply_migrations
-from app.database.models import Application, ApplicationStatusEvent, Base, CandidateFact, SchemaMigration
+from app.database.models import Application, ApplicationStatusEvent, Base, CandidateFact, Job, JobSourceRef, SchemaMigration
 from app.domain.jobs import NormalizedJob
 from app.domain.application_package import snapshot_vacancy
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
@@ -276,6 +276,40 @@ async def _incomplete_source_identity_flow(monkeypatch):
             saved = await session.get(Job, job.id)
             assert saved.country == "GE"
             assert saved.city == "Tbilisi"
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_concurrent_cross_source_ingestion_creates_one_canonical_job(monkeypatch):
+    _require_test_database()
+    asyncio.run(_concurrent_source_identity_flow(monkeypatch))
+
+
+async def _concurrent_source_identity_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+
+        jobs = [NormalizedJob(
+            source=source, source_job_id=f"posting-{source}",
+            title="Platform Engineer", company="Example Corp",
+            country="GE", city="Tbilisi",
+        ) for source in ("board_a", "board_b")]
+        results = await asyncio.gather(*(repo.upsert_job(job) for job in jobs))
+
+        assert len({job.id for job, _ in results}) == 1
+        assert sum(int(created) for _, created in results) == 1
+        async with test_session() as session:
+            assert await session.scalar(select(func.count()).select_from(Job)) == 1
+            refs = list(await session.scalars(select(JobSourceRef).order_by(JobSourceRef.source_id)))
+        assert [(ref.source_id, ref.source_job_id) for ref in refs] == [
+            ("board_a", "posting-board_a"), ("board_b", "posting-board_b"),
+        ]
     finally:
         await engine.dispose()
 

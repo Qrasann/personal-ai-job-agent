@@ -1,3 +1,7 @@
+## 2026-10-17 — verify concurrent cross-source canonical dedupe
+
+Added an isolated PostgreSQL concurrency test that ingests two provider postings with identical canonical identity simultaneously. The advisory-lock path produces one canonical Job and retains both distinct source refs. Targeted integration test: 1 passed; full isolated PostgreSQL suite: 1154 passed. This verifies local DB behavior only; no live source calls.
+
 ## 2026-10-17 — bound Himalayas provider identity
 
 Himalayas `guid` or URL fallback could exceed the PostgreSQL `source_job_id` limit even when the listing link itself was valid. Existing short IDs are unchanged; overlong GUIDs/URL fallbacks now map to stable SHA-256 IDs while the original application URL remains stored separately. Tests verify determinism, distinction and bounds. Himalayas tests: 35 passed; full isolated PostgreSQL suite: 1153 passed.
