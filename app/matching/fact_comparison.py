@@ -20,12 +20,18 @@ class SkillSpec:
 # search terms decide which vacancies are interesting, while this vocabulary
 # describes technologies/signals that can be compared with Candidate Facts.
 SKILLS: tuple[SkillSpec, ...] = (
-    SkillSpec("Linux", ("linux", "debian", "ubuntu", "centos", "rhel")),
+    SkillSpec(
+        "Linux",
+        ("linux", "линукс", "линукса", "линуксе", "линуксом", "debian", "ubuntu", "centos", "rhel"),
+    ),
     SkillSpec("Windows", ("windows",)),
     SkillSpec("systemd", ("systemd",)),
-    SkillSpec("Docker", ("docker",)),
+    SkillSpec("Docker", ("docker", "докер", "докера", "докеру", "докером")),
     SkillSpec("Docker Compose", ("docker compose", "docker-compose")),
-    SkillSpec("Kubernetes", ("kubernetes", "k8s")),
+    SkillSpec(
+        "Kubernetes",
+        ("kubernetes", "k8s", "кубернетес", "кубернетеса", "кубернетесу", "кубернетесом"),
+    ),
     SkillSpec("OpenShift", ("openshift", "red hat openshift")),
     SkillSpec("Databricks", ("databricks",)),
     SkillSpec("Nginx", ("nginx",)),

@@ -278,6 +278,23 @@ def test_russian_desirable_skill_wording_is_preferred(phrase):
     ]
 
 
+@pytest.mark.parametrize(("phrase", "skill"), [
+    ("Опыт администрирования Линукса обязателен.", "Linux"),
+    ("Знание Докера обязательно.", "Docker"),
+    ("Опыт работы с Кубернетесом обязателен.", "Kubernetes"),
+])
+def test_russian_transliterated_skill_names_match_candidate_facts(phrase, skill):
+    comparison = compare_facts(
+        f"Требования: {phrase}",
+        [fact(42, "Коммерческий опыт администрирования Linux Docker Kubernetes", "commercial")],
+    )
+
+    matched = next(item for item in comparison.requirements if item.skill == skill)
+    assert matched.status == "commercial"
+    assert matched.importance == "required"
+    assert matched.fact_ids == (42,)
+
+
 def test_render_fact_comparison_separates_truth_levels():
     from app.telegram.vacancy_view import render_fact_comparison
 

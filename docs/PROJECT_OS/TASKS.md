@@ -57,6 +57,13 @@
 
 # Tasks
 
+## 2026-10-17 — Russian Candidate Fit aliases
+
+- [x] Reproduce missed `Линукса`, `Докера`, `Кубернетесом` requirements against canonical English Candidate Facts.
+- [x] Add narrow Russian transliteration/inflection aliases; retain canonical output and thresholds.
+- [x] Full isolated PostgreSQL suite: 1230 passed; targeted fact-comparison/model tests: 63 passed; compileall, diff check, secret scan passed.
+- [ ] Create local checkpoint, publish to PR #32, wait for updated CI, then continue an independent Source Intelligence gap.
+
 ## 2026-10-17 — Application Package retry safety and audit retention
 
 - [x] Review PR #31 and confirm local delivery-failure handling still allowed duplicate `/prepare` drafts.

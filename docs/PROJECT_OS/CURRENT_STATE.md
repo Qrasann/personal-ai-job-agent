@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — compare common Russian technical transliterations in Candidate Fit
+
+Red regressions reproduced three common Russian vacancy spellings (`Линукса`, `Докера`, `Кубернетесом`) disappearing from canonical requirement extraction, so matching Candidate Facts could not be credited. Linux, Docker and Kubernetes now include only those tested Russian forms/inflections as aliases; canonical skill names and scoring weights remain unchanged. A model-level regression asserts only Application history uses `RESTRICT`, while JobSourceRef retains `CASCADE`. Focused fact-comparison/model-foundation tests: 63 passed; full isolated PostgreSQL suite: 1230 passed. Compileall, diff check and secret scan passed. No schema change in this follow-on.
+
 ## 2026-10-17 — make Application Package retries idempotent and preserve audit history
 
 Reproduced two integration gaps identified while reviewing PR #31 and PR #27. New `/prepare` packages now persist an internal match marker in their frozen vacancy snapshot. Repository lookup reuses the same package across Telegram delivery retries and after manual status progression; the existing `JobMatch` row lock serializes concurrent retries, so only one draft and one initial status event are created. Legacy snapshots without the marker cannot be mapped safely to a match. Schema v8 changes `applications.job_id` to `ON DELETE RESTRICT`; a v7-to-v8 isolated PostgreSQL test proves attempted job deletion leaves the application, snapshot and status history intact. Targeted tests: 58 passed. Full isolated PostgreSQL suite: 1226 passed. Compileall, diff check and secret scan passed. No production DB, deployment, GitHub or employer actions. Next: integrate and publish only after branch/PR compatibility review; then continue Source Intelligence/Candidate Fit.

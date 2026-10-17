@@ -1,5 +1,8 @@
 from app.database.migrations import CURRENT_SCHEMA_VERSION, MIGRATIONS
-from app.database.models import Application, ApplicationStatusEvent, CandidateFact, CandidateProfile, ResumeProfile, SchemaMigration, SearchProfile, User
+from app.database.models import (
+    Application, ApplicationStatusEvent, CandidateFact, CandidateProfile,
+    JobSourceRef, ResumeProfile, SchemaMigration, SearchProfile, User,
+)
 
 
 def test_schema_versions_and_migrations_are_declared():
@@ -44,6 +47,14 @@ def test_application_status_event_model_is_append_only_record_shape():
     assert hasattr(ApplicationStatusEvent, "user_id")
     assert hasattr(ApplicationStatusEvent, "status")
     assert hasattr(ApplicationStatusEvent, "created_at")
+
+
+def test_job_source_refs_cascade_but_application_history_restricts_job_delete():
+    application_fk = next(iter(Application.__table__.c.job_id.foreign_keys))
+    source_ref_fk = next(iter(JobSourceRef.__table__.c.job_id.foreign_keys))
+
+    assert application_fk.ondelete == "RESTRICT"
+    assert source_ref_fk.ondelete == "CASCADE"
 
 
 def test_application_model_stores_resume_snapshot_and_external_reference():

@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; HEAD `d6917d3`, 61 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. User proposal files remain untouched and untracked. Latest tests: Candidate Fit/interview/resume 105 passed; full offline unit suite 1206 passed, 18 skipped; compileall, diff check and secret scan passed. Last full isolated PostgreSQL suite on relocation/source work passed 1219; test DB stopped. No live acceptance.
+- Branch `work/v357-rejection-diagnostics`; checkpoint `4855f2b`, 63 commits ahead of `origin/feature/v3.5.7-international-market-coverage`; PR #32 is open and all three checks passed on that checkpoint. The current local follow-up Candidate Fit change has full isolated PostgreSQL suite 1230 passed and is not yet pushed. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
@@ -36,6 +36,7 @@ The personal flow is: discover → normalize/dedupe → fit/score → user revie
 - Recruiter auto-reply defaults OFF; invalid/nonfinite confidence requires human review. HH callback errors redact unexpected provider/DB payloads and validate IDs.
 - Auto-apply has **no implementation** despite legacy `AUTO_APPLY` config: /status now explicitly discloses that it never submits automatically. Do not enable it.
 - Telegram job alerts now use a durable per-match retry journal in the feature branch. Lost Telegram confirmation can yield duplicate alerts; this is the approved policy, not a zero-duplicate promise. /delivery shows delivery metadata, not vacancy text.
+- Candidate Fit recognizes tested Russian inflections/transliterations for Linux, Docker and Kubernetes, mapping them to canonical skills without changing scoring weights. Focused fact-comparison/model-foundation tests: 63 passed; full isolated PostgreSQL suite: 1230 passed.
 - Initial deterministic interview exercises, conservative relocation evidence classification, Candidate Facts/CV comparisons and LLM drafting with safe factual fallback exist, but broader fit, eligibility, workflow and runtime quality remain partial.
 
 ## Next practical work (ordered)
