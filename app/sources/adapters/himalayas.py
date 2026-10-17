@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from hashlib import sha256
 import logging
 import math
 import re
@@ -97,6 +98,13 @@ class HimalayasSource(JobSource):
         parsed = source_datetime(value)
         return parsed.isoformat() if parsed else None
 
+    @staticmethod
+    def _posting_id(guid: object, application_link: str) -> str:
+        identifier = str(guid or "").strip() or application_link
+        if len(identifier) <= 256:
+            return identifier
+        return "sha256:" + sha256(identifier.encode("utf-8")).hexdigest()
+
     @classmethod
     def parse_payload(cls, payload: dict, context: SourceContext) -> list[NormalizedJob]:
         rows = payload.get("jobs") if isinstance(payload, dict) else None
@@ -174,7 +182,7 @@ class HimalayasSource(JobSource):
             jobs.append(
                 NormalizedJob(
                     source=cls.source_id,
-                    source_job_id=str(row.get("guid") or application_link),
+                    source_job_id=cls._posting_id(row.get("guid"), application_link),
                     title=str(row["title"]).strip(),
                     company=str(row.get("companyName") or "").strip(),
                     description=description,

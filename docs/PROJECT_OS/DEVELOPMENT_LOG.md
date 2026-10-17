@@ -1,3 +1,7 @@
+## 2026-10-17 — bound Himalayas provider identity
+
+Himalayas `guid` or URL fallback could exceed the PostgreSQL `source_job_id` limit even when the listing link itself was valid. Existing short IDs are unchanged; overlong GUIDs/URL fallbacks now map to stable SHA-256 IDs while the original application URL remains stored separately. Tests verify determinism, distinction and bounds. Himalayas tests: 35 passed; full isolated PostgreSQL suite: 1153 passed.
+
 ## 2026-10-17 — validate Himalayas application links at ingestion
 
 The adapter previously accepted official-host HTTPS URLs with embedded userinfo or arbitrary ports. It now rejects credentials, nonstandard/malformed ports, oversized URLs, non-HTTPS schemes and unapproved hosts before storing the listing. Regression coverage includes those rejected cases and retains a normal official link. Himalayas tests: 33 passed; full isolated PostgreSQL suite: 1151 passed. No live request or persisted-data rewrite.

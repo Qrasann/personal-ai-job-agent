@@ -102,6 +102,31 @@ def test_himalayas_rejects_oversized_application_link():
     assert HimalayasSource.parse_payload({"jobs": [job]}, context) == []
 
 
+def test_himalayas_bounds_long_provider_ids_with_stable_distinct_hashes():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    first = listing("a" * 300, "DevOps Engineer", [])
+    second = listing("b" * 300, "DevOps Engineer", [])
+
+    parsed = HimalayasSource.parse_payload({"jobs": [first, second, first]}, context)
+
+    assert len(parsed) == 3
+    assert len(parsed[0].source_job_id) <= 256
+    assert parsed[0].source_job_id == parsed[2].source_job_id
+    assert parsed[0].source_job_id != parsed[1].source_job_id
+
+
+def test_himalayas_bounds_long_url_fallback_provider_id():
+    context = SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"])
+    long_url = "https://himalayas.app/" + "x" * 280
+    job = listing(None, "DevOps Engineer", [], applicationLink=long_url)
+
+    parsed = HimalayasSource.parse_payload({"jobs": [job]}, context)
+
+    assert len(parsed) == 1
+    assert len(parsed[0].source_job_id) <= 256
+    assert parsed[0].url == long_url
+
+
 def test_himalayas_accepts_documented_country_object_shape():
     jobs = HimalayasSource.parse_payload(
         {"jobs": [listing("am", "DevOps Engineer", [{"alpha2": "AM", "name": "Armenia", "slug": "armenia"}])]},
