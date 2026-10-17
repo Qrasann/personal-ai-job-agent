@@ -57,12 +57,12 @@
 
 # Tasks
 
-## 2026-10-17 — bound HH ConnectTimeout retries (in progress)
+## 2026-10-17 — bound HH ConnectTimeout retries
 
 - [x] Reproduce the same HH ConnectTimeout being attempted once per search profile in one scan.
 - [x] Apply the existing bounded HH cooldown to ConnectTimeout while preserving its notification and isolating other sources.
 - [x] Targeted HH timeout/connection/TLS tests: 3 passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check, secret scan passed.
-- [ ] Commit/push to PR #32 and wait for updated CI.
+- [x] Checkpoint `4be92a6` committed; push to PR #32 and wait for updated CI.
 
 ## 2026-10-17 — Russian Candidate Fit aliases
 
