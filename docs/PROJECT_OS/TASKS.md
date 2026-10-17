@@ -57,12 +57,21 @@
 
 # Tasks
 
+## 2026-10-17 — Candidate Fit negated requirement variants
+
+- [x] Reproduce contractions, “not a hard requirement/must-have”, and “no previous experience is necessary” becoming required.
+- [x] Add direct negation normalization/patterns; keep these signals unknown without inferring refusal.
+- [x] All 11 explicit non-requirement fixtures pass; prior positive clauses after “but”/“and” remain required.
+- [ ] Run full unit/static gates, checkpoint and publish PR to feature; wait for green CI.
+- [ ] Continue an independent Source Intelligence or Relocation-first gap.
+
 ## 2026-10-17 — Greenhouse US Georgia postal-code variant
 
 - [x] Reproduce `Atlanta, Georgia, GA`, `Georgia (GA)` and `GA, Georgia` entering GE-targeted results.
 - [x] Exclude explicit Georgia+GA state markers while preserving `Tbilisi, Georgia (GE)`.
 - [x] Greenhouse + Remotive tests: 52 passed; red reproduction confirmed all three failures before fix.
-- [ ] Run full unit/static gates, checkpoint and publish PR to feature; wait for all CI checks.
+- [x] Full unit suite: 1234 passed, 20 skipped; compileall, diff check and secret scan passed.
+- [x] Commit `f13acf8`, publish PR #40, merge after all three CI checks passed; feature now `d618dc8`.
 - [ ] Continue the next independent Source Intelligence or Relocation-first gap.
 
 ## 2026-10-17 — Candidate Fit: explicit non-requirements

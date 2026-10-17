@@ -1,12 +1,16 @@
 # Current State
 
+## 2026-10-17 — Candidate Fit negated requirement variants
+
+Probes showed contractions (`isn't required`), “not a hard requirement/must-have”, and “no previous Linux experience is necessary” still became required. Added narrow normalization for `isn't` and direct variants; all 11 explicit non-requirement fixtures now classify unknown. Prior positive-after-`but`/`and` regression remains required. Full unit/static gates pending. Feature is synced at `d618dc8`; branch `work/candidate-fit-negated-requirements` contains local code/test/docs work.
+
 ## 2026-10-17 — Greenhouse Georgia postal-code state marker
 
-After PR #38 handled explicit US country qualifiers, fixtures reproduced `Atlanta, Georgia, GA`, `Georgia (GA)`, and `GA, Georgia` still entering GE searches. Greenhouse now treats explicit Georgia+GA as US-state ambiguity and leaves country unknown; `Tbilisi, Georgia (GE)` remains GE. Greenhouse + Remotive tests: 52 passed. Full unit/static gates pending; no database or live-source change. Feature is synced at `c73a38f`; current branch `work/greenhouse-georgia-postal-code` has local code/test/docs work.
+After PR #38 handled explicit US country qualifiers, fixtures reproduced `Atlanta, Georgia, GA`, `Georgia (GA)`, and `GA, Georgia` still entering GE searches. Greenhouse now treats explicit Georgia+GA as US-state ambiguity and leaves country unknown; `Tbilisi, Georgia (GE)` remains GE. Greenhouse + Remotive tests: 52 passed; full unit 1234 passed/20 skipped; CI passed. No database or live-source change. Merged in PR #40 at feature `d618dc8`.
 
 ## 2026-10-17 — Candidate Fit non-requirement wording
 
-Reproduced four false hard requirements: “Linux is not a requirement”, “not essential”, “not a prerequisite”, and “No Linux background needed”. Narrow negation patterns now leave these skill mentions unknown; positive clauses after “but” or “and” are evaluated independently and remain required. Fact-comparison suite: 60 passed; combined fact-comparison/recommendation/technical-score suites: 101 passed. Full unit/static gates are pending. No score-weight, schema, or live-data change. Current branch `work/source-ref-freshness-retry`, based on feature `9244aca`; local change uncommitted.
+Reproduced four false hard requirements: “Linux is not a requirement”, “not essential”, “not a prerequisite”, and “No Linux background needed”. Direct negations now remain unknown; positive clauses after “but” or “and” remain required. Fact-comparison suite: 60 passed; combined suites 101 passed; full unit suite 1231 passed/20 skipped; CI green. Merged in PR #39 at feature `c73a38f`. No score-weight, schema, or live-data change.
 
 ## 2026-10-17 — disambiguate Georgia (US state) in Greenhouse locations
 

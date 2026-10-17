@@ -230,6 +230,7 @@ def _matched_skill_names(text: str) -> list[str]:
 def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
     """Recognize narrow, direct negations of a skill requirement."""
     normalized = _normalize_text(text)
+    normalized = re.sub(r"\bisn t\b", "is not", normalized)
     for alias in spec.aliases:
         target = re.escape(_normalize_text(alias)).replace(r"\ ", r"\s+")
         patterns = (
@@ -238,10 +239,11 @@ def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
             rf"\bno {target} (?:is )?(?:required|mandatory|necessary|needed)\b",
             rf"\bno need for {target}\b",
             rf"\b{target}(?: (?:experience|knowledge|proficiency))? (?:is )?(?:not required|not mandatory|not necessary|not needed|optional)\b",
-            rf"\b{target} (?:is )?not (?:a )?(?:requirement|prerequisite|essential|mandatory|necessary|needed)\b",
-            rf"\b(?:experience|knowledge|proficiency|background) (?:with |in |of )?{target} (?:is )?not (?:a )?(?:requirement|prerequisite|essential|mandatory|necessary|needed)\b",
+            rf"\b{target}(?: (?:experience|knowledge|proficiency))? (?:is )?not (?:a )?(?:hard )?(?:requirement|prerequisite|essential|mandatory|necessary|needed|must(?: have)?)\b",
+            rf"\b(?:experience|knowledge|proficiency|background) (?:with |in |of )?{target} (?:is )?not (?:a )?(?:hard )?(?:requirement|prerequisite|essential|mandatory|necessary|needed|must(?: have)?)\b",
             rf"\b(?:not required|not mandatory|not necessary|not needed) (?:for )?(?:experience|knowledge|proficiency)(?: (?:with|in|of))? {target}\b",
             rf"\bno {target} (?:background|experience|knowledge|proficiency) (?:is )?(?:needed|required|necessary|mandatory)\b",
+            rf"\bno (?:prior |previous )?{target} (?:background|experience|knowledge|proficiency) (?:is )?(?:needed|required|necessary|mandatory)\b",
             rf"\bno experience (?:with|in|of) {target} required\b",
         )
         if any(re.search(pattern, normalized) for pattern in patterns):
