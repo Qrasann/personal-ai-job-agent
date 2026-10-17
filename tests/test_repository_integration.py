@@ -932,6 +932,7 @@ async def _repeated_source_upsert_flow(monkeypatch):
         second_ref = await repo.source_ref(job.id, "second-board")
         assert second_ref.raw["normalized_posting_v1"]["description"] == "Cross-post"
         assert (await repo.source_ref(job.id, "refresh-source")).raw["normalized_posting_v1"]["description"] == "Another refreshed summary"
+        await asyncio.sleep(0.01)
         second_listing, second_created = await repo.upsert_job(NormalizedJob(
             source="second-board", source_job_id="same-role-2",
             title="Senior Linux Engineer", company="Refresh Co", description="A different listing",
@@ -942,6 +943,9 @@ async def _repeated_source_upsert_flow(monkeypatch):
         assert exact_ref.source_job_id == "same-role-2"
         assert exact_ref.raw["normalized_posting_v1"]["description"] == "A different listing"
         assert (await repo.source_ref(job.id, "second-board", source_job_id="same-role")).id == second_ref.id
+        selected_ref = await repo.source_ref(job.id, "second-board")
+        assert selected_ref.source_job_id == "same-role-2"
+        assert source_posting_view(second_listing, selected_ref).description == "A different listing"
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)

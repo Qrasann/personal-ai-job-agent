@@ -393,7 +393,30 @@ async def source_ref(
             stmt = stmt.where(JobSourceRef.source_id == source_id)
         if source_job_id is not None:
             stmt = stmt.where(JobSourceRef.source_job_id == source_job_id)
-        return await session.scalar(stmt.order_by(JobSourceRef.id))
+        refs = list((await session.scalars(stmt.order_by(JobSourceRef.id))).all())
+        if not refs:
+            return None
+        if source_job_id is not None or len(refs) == 1:
+            return refs[0]
+        return max(refs, key=_source_ref_observation_order)
+
+
+def _source_ref_observation_order(ref: JobSourceRef) -> tuple[int, float, int]:
+    """Prefer the freshest source snapshot, while keeping legacy refs stable."""
+    raw = ref.raw if isinstance(ref.raw, dict) else {}
+    evidence = raw.get("relocation_evidence_v1")
+    captured_at = evidence.get("captured_at") if isinstance(evidence, dict) else None
+    if isinstance(captured_at, str):
+        try:
+            observed = datetime.fromisoformat(captured_at)
+            if observed.tzinfo is None:
+                observed = observed.replace(tzinfo=timezone.utc)
+            return (1, observed.astimezone(timezone.utc).timestamp(), ref.id)
+        except (ValueError, OverflowError, OSError):
+            pass
+    # Old refs have no observation timestamp. Preserve the previous first-ref
+    # behavior for them instead of inventing a recency from the row ID.
+    return (0, 0.0, -ref.id)
 
 
 async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
