@@ -263,6 +263,19 @@ def test_skill_experience_that_would_be_an_advantage_is_preferred(phrase):
     ]
 
 
+@pytest.mark.parametrize("phrase", [
+    "Linux желательно.",
+    "Знание Linux желательно.",
+    "Желательно знание Linux.",
+])
+def test_russian_desirable_skill_wording_is_preferred(phrase):
+    comparison = compare_facts(f"Requirements: {phrase}", [])
+
+    assert [(item.skill, item.importance) for item in comparison.requirements] == [
+        ("Linux", "preferred"),
+    ]
+
+
 def test_render_fact_comparison_separates_truth_levels():
     from app.telegram.vacancy_view import render_fact_comparison
 

@@ -14,6 +14,10 @@ Red regression: `Georgia, GA` produced country codes GE and GA (Gabon) while omi
 
 Red regression: Himalayas `locationRestrictions=["Georgia"]` became a confirmed physical `work_country`, because the adapter stores the matched target market in `job.country`. Relocation evidence now recognizes nonempty Himalayas location restrictions on remote listings as candidate eligibility scope and leaves physical work country unknown unless a separate `source_country` is present. The fixture also confirms sponsorship, relocation assistance, and prior work authorization stay unknown. Targeted relocation/source suites: 169 passed; full isolated PostgreSQL suite: 1219 passed; compileall, diff check, secret scan passed. No schema, search-policy, or live-source change.
 
+## 2026-10-17 — classify Russian desirable skill wording as preferred
+
+Red regression: `Желательно знание Linux` under Requirements was incorrectly marked required. Narrow skill-local forms now recognize `Linux желательно`, `Знание Linux желательно`, and `Желательно знание Linux` as preferred without changing separate requirements. Candidate Fit/interview/resume suites: 103 passed; full offline unit suite: 1204 passed, 18 skipped; compileall, diff check, secret scan passed. No persistence behavior changed; PostgreSQL tests were not rerun for this unit-only increment.
+
 ## 2026-10-17 — disambiguate ELK Stack from wildlife text
 
 Red regression: lowercase `elk migration` was emitted as an ELK Stack requirement, which can distort non-IT Relocation-first fit. The generic lowercase alias was removed; explicit ELK Stack/components and conventional uppercase `ELK` remain recognized. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL 1197 passed. No weight/threshold change.

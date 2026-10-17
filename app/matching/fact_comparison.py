@@ -245,11 +245,13 @@ def _explicitly_preferred(text: str, spec: SkillSpec) -> bool:
         target = re.escape(_normalize_text(alias)).replace(r"\ ", r"\s+")
         patterns = (
             rf"\b{target}(?: (?:experience|knowledge))? (?:is )?(?:a )?(?:plus|bonus|preferred|desirable|optional|nice to have)\b",
+            rf"\b{target}(?: (?:опыт|знание))? (?:желательно|желателен|желательна|желательны)\b",
             rf"\b{target}(?: (?:experience|knowledge))? (?:would be )?(?:a )?plus\b",
             rf"\b{target}(?: (?:experience|knowledge))? (?:is|would be|will be) an? (?:advantage|benefit)\b",
             rf"\b{target}(?: (?:experience|knowledge))? (?:is|would be|will be) (?:advantageous|beneficial)\b",
             rf"\b{target} (?:будет плюсом|будет преимуществом|приветствуется|желательно|является преимуществом)\b",
             rf"\b(?:preferred|desirable|optional|nice to have|bonus|будет плюсом|желательно|приветствуется) (?:experience|knowledge)? (?:with |in )?{target}\b",
+            rf"\b(?:желательно|приветствуется) (?:знание|опыт(?: работы)?) (?:с |по |в )?{target}\b",
         )
         if any(re.search(pattern, normalized) for pattern in patterns):
             return True

@@ -115,6 +115,11 @@ regressions pass; live source eligibility and usefulness remain unverified.
 Himalayas `locationRestrictions` are also treated as remote candidate
 eligibility, not physical work-country evidence; visa/relocation/authorization
 fields remain unknown without posting evidence.
+
+Candidate Fit follow-up (2026-10-17): explicit Russian skill-local
+`желательно` phrasing in either skill-first or marker-first order is now
+classified as preferred in offline fixtures. Broader language and semantic
+coverage remains PARTIAL; no score threshold or weight changed.
 Remote location follow-up: IMPLEMENTED preservation of explicit known-geography
 `only` labels for RemoteOK/Arbeitnow in scope and source evidence. Office/global
 labels remain unknown; candidate-specific legal eligibility stays PARTIAL.

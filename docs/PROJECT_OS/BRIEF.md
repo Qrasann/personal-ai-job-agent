@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; code checkpoint `c908343`, 58 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work fixes Himalayas remote restriction evidence; the two user proposal files remain untouched and untracked. Latest full isolated PostgreSQL suite: 1219 passed; focused relocation/source suites: 169 passed; compileall, diff check and secret scan passed. Test DB stopped. No live acceptance.
+- Branch `work/v357-rejection-diagnostics`; code checkpoint `2f56a1d`, 59 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work adds Russian Candidate Fit preferred-wording support; the two user proposal files remain untouched and untracked. Latest tests on current code: Candidate Fit/interview/resume 103 passed; full offline unit suite 1204 passed, 18 skipped; compileall, diff check and secret scan passed. The last full isolated PostgreSQL suite before this pure unit change passed 1219; test DB stopped. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
@@ -31,6 +31,7 @@ The personal flow is: discover → normalize/dedupe → fit/score → user revie
 - Remotive recognizes clearly delimited uppercase ISO country codes as candidate location scope (including GE); lowercase common words are not treated as codes.
 - `Georgia, GA` is treated as the US state (not GE or Gabon/GA); US is not currently an enabled Remotive search market, so only the misclassification/exclusion is verified locally.
 - Himalayas `locationRestrictions` are candidate remote eligibility, not work-country evidence; absent a separate source country they remain unknown.
+- Candidate Fit classifies direct Russian `желательно` skill wording as preferred in tested noun/skill orders; broader language phrasing remains partial.
 - HH owner-only submission now persists a `sending` reservation **before** the external API call. A concurrent, previously attempted or ambiguous submission blocks automatic repeat. Confirmed `sent`, external handoff and unknown states are distinguished in database/history/UI. A prepared or reviewed-but-never-sent draft is not considered a submission. No live HH sending was done.
 - Recruiter auto-reply defaults OFF; invalid/nonfinite confidence requires human review. HH callback errors redact unexpected provider/DB payloads and validate IDs.
 - Auto-apply has **no implementation** despite legacy `AUTO_APPLY` config: /status now explicitly discloses that it never submits automatically. Do not enable it.

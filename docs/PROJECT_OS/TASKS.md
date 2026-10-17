@@ -1,3 +1,9 @@
+## 2026-10-17 — Russian preferred Candidate Fit wording
+
+- [x] Reproduce `Желательно знание Linux` being classified as required; add narrow skill-local preferred patterns before/after the skill name.
+- [x] Candidate Fit/interview/resume suites 103 passed; full offline unit suite 1204 passed, 18 skipped; compileall, diff check, secret scan passed. No persistence changes, so no PostgreSQL run for this increment.
+- [ ] Continue independent Source Intelligence or Candidate Fit work.
+
 ## 2026-10-17 — Remotive relocation evidence semantics
 
 - [x] Reproduce candidate-required remote geography being exposed as physical work country; keep market identity and remote scope while leaving work country unknown.
