@@ -255,9 +255,12 @@ def _explicitly_preferred(text: str, spec: SkillSpec) -> bool:
 
 
 def _required_skill_in_section(text: str, spec: SkillSpec) -> bool:
-    # Clause boundaries prevent a negated skill from masking another explicit
-    # requirement elsewhere in the same heading.
-    for clause in re.split(r"[\n.!?;]+", text or ""):
+    # Split contrastive clauses as well as sentence punctuation so a negated
+    # mention cannot mask a separate positive requirement in the same sentence.
+    for clause in re.split(
+        r"[\n.!?;]+|\b(?:but|however|although|nevertheless|но|однако|aber|jedoch)\b",
+        text or "", flags=re.I,
+    ):
         if (
             _matches_skill(clause, spec)
             and not _explicitly_not_required(clause, spec)

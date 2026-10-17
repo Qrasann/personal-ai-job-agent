@@ -236,6 +236,17 @@ def test_missing_does_not_invent_candidate_experience():
     }
 
 
+def test_later_explicit_requirement_is_not_masked_by_earlier_negation_in_clause():
+    comparison = compare_facts(
+        "Requirements: Linux is not required, but Linux knowledge is mandatory.",
+        [],
+    )
+
+    assert [(item.skill, item.status, item.importance) for item in comparison.requirements] == [
+        ("Linux", "missing", "required"),
+    ]
+
+
 def test_render_fact_comparison_separates_truth_levels():
     from app.telegram.vacancy_view import render_fact_comparison
 
