@@ -219,7 +219,7 @@ def _main_menu_text() -> str:
         "/prepare 25 [career|relocation] — подготовить и сохранить пакет\n"
         "/interview 25 [career|relocation] — практические задания по вакансии\n"
         "/applications — сохранённые пакеты и отклики\n"
-        "/application <id> <status|history|export> — статус, история или экспорт\n"
+        "/application &lt;id&gt; &lt;status|history|export&gt; — статус, история или экспорт\n"
         "/english [A1–C2|unknown] — уровень английского\n"
         "/facts — факты кандидата\n"
         "/import — импортировать резюме PDF/DOCX/TXT\n"
