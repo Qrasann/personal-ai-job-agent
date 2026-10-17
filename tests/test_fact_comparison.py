@@ -248,6 +248,18 @@ def test_later_explicit_requirement_is_not_masked_by_earlier_negation_in_clause(
 
 
 @pytest.mark.parametrize("phrase", [
+    "Linux is not a requirement.",
+    "Linux is not essential.",
+    "Experience with Linux is not a prerequisite.",
+    "No Linux background needed.",
+])
+def test_explicit_non_requirement_wording_is_not_classified_as_required(phrase):
+    comparison = compare_facts(f"Requirements: {phrase}", [])
+
+    assert [(item.skill, item.importance) for item in comparison.requirements] == [("Linux", "unknown")]
+
+
+@pytest.mark.parametrize("phrase", [
     "Linux experience would be an advantage.",
     "Linux experience is beneficial.",
     "Linux будет преимуществом.",

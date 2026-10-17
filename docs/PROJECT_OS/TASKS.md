@@ -57,13 +57,20 @@
 
 # Tasks
 
+## 2026-10-17 — Candidate Fit: explicit non-requirements
+
+- [x] Reproduce four phrasings being scored as required despite explicit negation.
+- [x] Narrowly classify direct non-requirement wording as unknown; preserve positive contrastive requirements.
+- [x] Fact-comparison/recommendation/technical-score tests: 100 passed.
+- [ ] Run remaining unit and static gates; update full current handoff and checkpoint.
+- [ ] Continue the next independent Source Intelligence or Relocation-first issue.
+
 ## 2026-10-17 — distinguish US Georgia from country GE in Greenhouse
 
 - [x] Reproduce “Atlanta, Georgia, USA” entering a GE-targeted Greenhouse search.
 - [x] Disambiguate explicit US qualifiers without changing unqualified Georgia or Tbilisi, Georgia behavior.
 - [x] Greenhouse/Remotive/relocation tests: 84 passed; full isolated PostgreSQL suite: 1246 passed; test DB stopped; compileall, diff check and secret scan passed.
-- [ ] Update handoff, save checkpoint, publish PR to feature and wait for CI.
-- [ ] Continue another practical Relocation-first/source-quality task.
+- [x] Commit `236b065`, PR #38 passed Python checks, Docker build and secret scan, and merged to feature at `9244aca`.
 
 ## 2026-10-17 — recognize human medical networks as non-technical
 
