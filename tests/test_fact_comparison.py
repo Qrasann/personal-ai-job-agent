@@ -267,6 +267,8 @@ def test_skill_experience_that_would_be_an_advantage_is_preferred(phrase):
     "Linux желательно.",
     "Знание Linux желательно.",
     "Желательно знание Linux.",
+    "Владение Linux желательно.",
+    "Опыт работы с Linux будет преимуществом.",
 ])
 def test_russian_desirable_skill_wording_is_preferred(phrase):
     comparison = compare_facts(f"Requirements: {phrase}", [])

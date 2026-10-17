@@ -16,7 +16,7 @@ Red regression: Himalayas `locationRestrictions=["Georgia"]` became a confirmed 
 
 ## 2026-10-17 — classify Russian desirable skill wording as preferred
 
-Red regression: `Желательно знание Linux` under Requirements was incorrectly marked required. Narrow skill-local forms now recognize `Linux желательно`, `Знание Linux желательно`, and `Желательно знание Linux` as preferred without changing separate requirements. Candidate Fit/interview/resume suites: 103 passed; full offline unit suite: 1204 passed, 18 skipped; compileall, diff check, secret scan passed. No persistence behavior changed; PostgreSQL tests were not rerun for this unit-only increment.
+Red regression: `Желательно знание Linux` under Requirements was incorrectly marked required. Narrow skill-local forms now recognize `Linux желательно`, `Знание Linux желательно`, `Желательно знание Linux`, `Владение Linux желательно`, and `Опыт работы с Linux будет преимуществом` as preferred without changing separate requirements. Candidate Fit/interview/resume suites: 105 passed; full offline unit suite: 1206 passed, 18 skipped; compileall, diff check, secret scan passed. No persistence behavior changed; PostgreSQL tests were not rerun for this unit-only increment.
 
 ## 2026-10-17 — disambiguate ELK Stack from wildlife text
 
