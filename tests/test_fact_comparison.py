@@ -247,6 +247,22 @@ def test_later_explicit_requirement_is_not_masked_by_earlier_negation_in_clause(
     ]
 
 
+@pytest.mark.parametrize("phrase", [
+    "Linux experience would be an advantage.",
+    "Linux experience is beneficial.",
+    "Linux будет преимуществом.",
+])
+def test_skill_experience_that_would_be_an_advantage_is_preferred(phrase):
+    comparison = compare_facts(
+        f"Requirements: {phrase}",
+        [],
+    )
+
+    assert [(item.skill, item.importance) for item in comparison.requirements] == [
+        ("Linux", "preferred"),
+    ]
+
+
 def test_render_fact_comparison_separates_truth_levels():
     from app.telegram.vacancy_view import render_fact_comparison
 
