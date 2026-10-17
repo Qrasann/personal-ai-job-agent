@@ -6,6 +6,7 @@ import pytest
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
+from app.domain.relocation_evidence import build_relocation_evidence
 from app.sources.adapters.remotive import RemotiveSource
 from app.sources.base import SourceContext
 from app.sources.registry import build_source_plan, source_capabilities
@@ -73,6 +74,25 @@ def test_remotive_disambiguates_georgia_us_state_from_georgia_country(qualifier)
     assert georgia_jobs == []
     assert RemotiveSource._country_codes_in_location(location) == {"US"}
     assert len(country_jobs) == 1 and country_jobs[0].country == "GE"
+
+
+@pytest.mark.parametrize(
+    ("location", "target_countries", "market_country"),
+    [("Georgia", ["GE"], "GE"), ("Armenia, Georgia", ["AM"], "AM")],
+)
+def test_remotive_candidate_location_is_not_reported_as_physical_work_country(
+    location, target_countries, market_country,
+):
+    job = RemotiveSource.parse_payload(
+        {"jobs": [posting(23, "DevOps Engineer", location)]},
+        SourceContext(user_id=1, target_countries=target_countries, queries=["DevOps Engineer"]),
+    )[0]
+
+    assert job.country == market_country  # Retained as market identity for filtering/dedupe.
+    assert job.remote_scope == location
+    evidence = build_relocation_evidence(job)["fields"]
+    assert evidence["work_country"]["status"] == "unknown"
+    assert evidence["work_country"]["value"] is None
 
 
 def test_remotive_missing_candidate_location_stays_unknown_and_free_text_salary_is_not_structured():

@@ -1,3 +1,7 @@
+## 2026-10-17 — separate Remotive remote eligibility from work country
+
+Red regression: Remotive `candidate_required_location` is the applicant's required location for remote eligibility, while the adapter's `job.country` is a selected search market retained for filtering/dedupe. The evidence builder had treated the latter as a confirmed physical work country when no independent source country was present. For remote Remotive postings with this field, physical work country now remains unknown; source-scoped remote scope and normalized market identity are unchanged. Georgia and Armenia/Georgia fixture cases pass. Targeted suites: 160 passed; full isolated PostgreSQL suite: 1205 passed; compileall, diff check and secret scan passed. No schema/scoring/eligibility policy changes or live acceptance. JobMatch still lacks exact provider posting attribution; current source refs/snapshots keep review and `/prepare` source-scoped, but changing match identity needs separate compatibility analysis.
+
 ## 2026-10-17 — disambiguate ELK Stack from wildlife text
 
 Red regression: lowercase `elk migration` was emitted as an ELK Stack requirement, which can distort non-IT Relocation-first fit. The generic lowercase alias was removed; explicit ELK Stack/components and conventional uppercase `ELK` remain recognized. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL 1197 passed. No weight/threshold change.

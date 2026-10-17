@@ -183,7 +183,19 @@ def build_relocation_evidence(
             "confidence": confidence,
         }
 
-    country = str(job.country or "").strip()
+    raw = job.raw if isinstance(job.raw, dict) else {}
+    # Remotive's `candidate_required_location` describes where the applicant
+    # must be located for remote work. The adapter also keeps the selected
+    # market in `job.country` for filtering/dedupe; do not relabel that market
+    # as the physical country of work in relocation evidence.
+    candidate_location_scope = (
+        str(job.source or "").casefold() == "remotive"
+        and str(job.work_mode or "").casefold() == "remote"
+        and isinstance(raw.get("candidate_required_location"), str)
+        and bool(raw["candidate_required_location"].strip())
+        and not (isinstance(raw.get("source_country"), str) and raw["source_country"].strip())
+    )
+    country = "" if candidate_location_scope else str(job.country or "").strip()
     findings: dict[str, Any] = {
         "schema": "relocation_evidence_v1",
         "captured_at": captured,
@@ -192,7 +204,7 @@ def build_relocation_evidence(
     fields = findings["fields"]
     location_excerpt = None
     for raw_key in ("source_location", "source_country"):
-        raw_value = (job.raw or {}).get(raw_key)
+        raw_value = raw.get(raw_key)
         if isinstance(raw_value, str) and raw_value.strip():
             location_excerpt = " ".join(raw_value.split())[:240]
             break
