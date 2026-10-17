@@ -64,7 +64,8 @@
 - [x] Separate explicit CV/advertising posts from possible vacancy posts; keep unknown salary unknown; add offline regressions.
 - [ ] Owner performs interactive local MTProto login with private API credentials, reviews exact IDs/types/access and enables 2–3 broadcast channels.
 - [ ] Measure live posts, true vacancies, Good/Stretch, false positives, duplicates and errors; then incrementally enable remaining verified channels. No live acceptance claimed.
-- [ ] Implement bounded downtime catch-up and edit handling after access/data-quality evidence; avoid broad history reads.
+- [x] Implement bounded per-approved-channel cursor catch-up without account-wide updates; offline cursor/order tests pass.
+- [ ] Validate restart catch-up in the live 2–3-channel pilot; edited-post handling remains separate and unimplemented.
 
 ## 2026-10-17 — Recruiter work-eligibility sensitive topics
 

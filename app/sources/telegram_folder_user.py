@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 import re
+import os
+import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -76,3 +78,47 @@ def load_local_config(path: Path) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
     folder_slug(data.get("folder_link", ""))
     return data
+
+
+def load_cursors(path: Path) -> dict[str, int]:
+    if not path.exists():
+        return {}
+    if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
+        raise ValueError("Telegram cursor file must be private (mode 0600)")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or any(
+        not isinstance(key, str) or not re.fullmatch(r"-100\d{1,16}", key)
+        or not isinstance(value, int) or isinstance(value, bool) or value < 0
+        for key, value in data.items()
+    ):
+        raise ValueError("Invalid Telegram cursor file; original preserved")
+    return data
+
+
+def save_cursors(path: Path, cursors: dict[str, int]) -> None:
+    """Atomically save selected-channel offsets without exposing session data."""
+    descriptor, name = tempfile.mkstemp(prefix="cursor-", dir=path.parent)
+    temp = Path(name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(cursors, handle)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp, path)
+    finally:
+        if temp.exists():
+            temp.unlink()
+
+
+async def poll_channel(client, peer, previous_id: int | None, accept, *, limit: int = 20) -> int:
+    """Only query one approved channel; first poll anchors without backfill."""
+    if previous_id is None:
+        latest = await client.get_messages(peer, limit=1)
+        return latest[0].id if latest else 0
+    current = previous_id
+    async for message in client.iter_messages(peer, min_id=previous_id, reverse=True, limit=limit):
+        if message.id <= current:
+            continue
+        await accept(message)
+        current = message.id
+    return current

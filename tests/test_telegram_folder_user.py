@@ -1,9 +1,13 @@
+import asyncio
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-from app.sources.telegram_folder_user import folder_inventory, folder_slug, load_local_config, selected_channels
+from app.sources.telegram_folder_user import (
+    folder_inventory, folder_slug, load_cursors, load_local_config,
+    poll_channel, save_cursors, selected_channels,
+)
 
 
 def test_folder_slug_accepts_only_exact_telegram_folder_link():
@@ -57,3 +61,55 @@ def test_private_local_config_only(tmp_path: Path):
         load_local_config(path)
     path.chmod(0o600)
     assert load_local_config(path)["chats"] == []
+
+
+def test_cursor_file_is_private_and_rejects_corruption(tmp_path: Path):
+    path = tmp_path / "cursors.json"
+    assert load_cursors(path) == {}
+    save_cursors(path, {"-100123": 42})
+    assert path.stat().st_mode & 0o077 == 0
+    assert load_cursors(path) == {"-100123": 42}
+    path.write_text('{"-100123":true}', encoding="utf-8")
+    with pytest.raises(ValueError, match="original preserved"):
+        load_cursors(path)
+
+
+def test_poll_anchors_without_backfill_then_reads_only_new_selected_posts():
+    class FakeClient:
+        async def get_messages(self, peer, *, limit):
+            assert peer == "approved" and limit == 1
+            return [SimpleNamespace(id=100)]
+
+        async def iter_messages(self, peer, *, min_id, reverse, limit):
+            assert peer == "approved" and min_id == 100 and reverse and limit == 2
+            for message_id in (101, 102):
+                yield SimpleNamespace(id=message_id)
+
+    async def run():
+        observed = []
+        async def accept(message):
+            observed.append(message.id)
+        anchor = await poll_channel(FakeClient(), "approved", None, accept)
+        assert anchor == 100 and observed == []
+        latest = await poll_channel(FakeClient(), "approved", anchor, accept, limit=2)
+        assert latest == 102 and observed == [101, 102]
+
+    asyncio.run(run())
+
+
+def test_poll_failure_does_not_advance_cursor_past_failed_post():
+    class FakeClient:
+        async def iter_messages(self, peer, *, min_id, reverse, limit):
+            assert peer == "approved" and min_id == 100
+            for message_id in (101, 102):
+                yield SimpleNamespace(id=message_id)
+
+    async def run():
+        async def accept(message):
+            if message.id == 102:
+                raise RuntimeError("temporary")
+
+        with pytest.raises(RuntimeError, match="temporary"):
+            await poll_channel(FakeClient(), "approved", 100, accept)
+
+    asyncio.run(run())

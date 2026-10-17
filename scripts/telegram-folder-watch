@@ -14,7 +14,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.sources.telegram_folder_user import folder_inventory, folder_slug, load_local_config, selected_channels
+from app.sources.telegram_folder_user import (
+    folder_inventory, folder_slug, load_cursors, load_local_config,
+    poll_channel, save_cursors, selected_channels,
+)
 
 log = logging.getLogger("telegram_folder_watch")
 
@@ -29,7 +32,7 @@ def _private_directory() -> Path:
 
 async def _run(command: str) -> None:
     try:
-        from telethon import TelegramClient, events, types, utils
+        from telethon import TelegramClient, types, utils
         from telethon.tl.functions.chatlists import CheckChatlistInviteRequest
     except ImportError as exc:
         raise RuntimeError("Install optional requirements-telegram-user.txt first") from exc
@@ -49,7 +52,7 @@ async def _run(command: str) -> None:
     prior_umask = os.umask(0o077)
     try:
         client = TelegramClient(str(session_path), int(api_id), api_hash,
-                                receive_updates=command == "watch", catch_up=False)
+                                receive_updates=False, catch_up=False)
         # Telethon otherwise persists metadata for unrelated dialogs seen in
         # updates. Folder intake needs only the peers in the current preview.
         client.session.save_entities = False
@@ -77,6 +80,27 @@ async def _run(command: str) -> None:
             selected = selected_channels(config, inventory)
             if not selected:
                 raise RuntimeError("No verified broadcast channels enabled in private folder configuration")
+            peers = {}
+            for chat in result.chats:
+                chat_id = utils.get_peer_id(chat)
+                if chat_id not in selected:
+                    continue
+                if (not isinstance(chat, types.Channel) or not getattr(chat, "broadcast", False)
+                        or getattr(chat, "left", False) or not getattr(chat, "access_hash", None)):
+                    raise RuntimeError("Selected broadcast channel lacks an accessible peer reference")
+                peers[chat_id] = types.InputPeerChannel(chat.id, chat.access_hash)
+            if len(peers) != len(selected):
+                raise RuntimeError("Selected channel identities changed during folder validation")
+            if command == "probe":
+                for chat_id, peer in peers.items():
+                    try:
+                        await client.get_messages(peer, limit=1)
+                        print(f"{chat_id}: readable broadcast channel")
+                    except Exception as exc:
+                        print(f"{chat_id}: unavailable ({type(exc).__name__})")
+                    await asyncio.sleep(2)
+                return
+
             from aiogram import Bot
             from app.config import settings
             from app.database import repository as repo
@@ -87,42 +111,37 @@ async def _run(command: str) -> None:
             owner = await repo.get_user_by_chat(settings.telegram_admin_chat_id)
             if owner is None:
                 raise RuntimeError("Owner is not registered in the bot database")
-            peers = []
-            for chat in result.chats:
-                chat_id = utils.get_peer_id(chat)
-                if chat_id not in selected:
-                    continue
-                if (not isinstance(chat, types.Channel) or not getattr(chat, "broadcast", False)
-                        or getattr(chat, "left", False) or not getattr(chat, "access_hash", None)):
-                    raise RuntimeError("Selected broadcast channel lacks an accessible peer reference")
-                peers.append(types.InputPeerChannel(chat.id, chat.access_hash))
-            if len(peers) != len(selected):
-                raise RuntimeError("Selected channel identities changed during folder validation")
+            cursor_path = directory / "cursors.json"
+            cursors = load_cursors(cursor_path)
             bot = Bot(settings.telegram_bot_token)
             try:
                 for chat_id, channel in selected.items():
                     await change_subscription(owner.id, "add", str(chat_id), channel["scope"])
+                print(f"Polling {len(selected)} enabled broadcast channels; private chats excluded")
+                while True:
+                    started = asyncio.get_running_loop().time()
+                    for chat_id, peer in peers.items():
+                        async def accept(message):
+                            text = message.raw_text or ""
+                            if text.strip():
+                                result = await consume_channel_post(
+                                    bot, chat_id=chat_id, username=selected[chat_id]["username"],
+                                    message_id=message.id, text=text, only_user_id=owner.id,
+                                    published_at=message.date,
+                                )
+                                if not result.get("subscribers"):
+                                    raise RuntimeError("No active Telegram search subscription")
 
-                @client.on(events.NewMessage(chats=peers))
-                async def on_post(event):
-                    chat_id = event.chat_id
-                    if chat_id not in selected:
-                        return
-                    message = event.message
-                    text = message.raw_text or ""
-                    if not text.strip():
-                        return
-                    try:
-                        await consume_channel_post(
-                            bot, chat_id=chat_id, username=selected[chat_id]["username"],
-                            message_id=message.id, text=text, only_user_id=owner.id,
-                            published_at=message.date,
-                        )
-                    except Exception as exc:
-                        log.warning("Selected Telegram post failed (%s)", type(exc).__name__)
-
-                print(f"Watching {len(selected)} explicitly enabled broadcast channels; new posts only")
-                await client.run_until_disconnected()
+                        try:
+                            new_id = await poll_channel(client, peer, cursors.get(str(chat_id)), accept)
+                            if new_id != cursors.get(str(chat_id)):
+                                cursors[str(chat_id)] = new_id
+                                save_cursors(cursor_path, cursors)
+                        except Exception as exc:
+                            log.warning("Selected channel poll failed for %s (%s)", chat_id, type(exc).__name__)
+                        await asyncio.sleep(2)
+                    elapsed = asyncio.get_running_loop().time() - started
+                    await asyncio.sleep(max(0, 300 - elapsed))
             finally:
                 await bot.session.close()
     finally:
@@ -131,7 +150,7 @@ async def _run(command: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("inspect", "watch"))
+    parser.add_argument("command", choices=("inspect", "probe", "watch"))
     args = parser.parse_args()
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
     asyncio.run(_run(args.command))

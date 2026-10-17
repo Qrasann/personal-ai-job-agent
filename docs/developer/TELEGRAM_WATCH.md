@@ -18,21 +18,26 @@ all channels start disabled. A preview is not proof of joined/read access.
 Review the inventory locally, select only accessible broadcast channels by
 setting `enabled: true` and a `career`, `relocation` or `both` scope. Supergroups
 and peers no longer joined are excluded. Run `.venv/bin/python
-scripts/telegram-folder-watch watch` only after configuring the existing bot
+scripts/telegram-folder-watch probe` to check read access to enabled IDs without
+printing post text. Then run `watch` only after configuring the existing bot
 database and owner ID. The runner rechecks the folder preview and current IDs,
-uses a Telethon NewMessage filter for selected peers, and hands selected new
-posts to the existing `telegram_watch.consume_channel_post` pipeline. It has no
-history backfill or edit replay. Bot notifications still use the normal bot
-pipeline; the user client itself does not send. Only known public usernames
-produce public post links. No folder invite, API credentials or session belong
-in GitHub or logs. A single local runner is expected; do not launch duplicates.
+disables account-wide updates, and polls **only** selected broadcast peers every
+five minutes (two seconds between requests, up to 20 newer posts per channel
+per pass). It hands posts to the existing `telegram_watch.consume_channel_post`
+pipeline. The first pass anchors at the latest post without scanning history;
+later passes resume from a private, atomic `cursors.json` (0600), including
+bounded catch-up after restart. Very large backlogs take multiple passes; edits
+are not replayed. Bot notifications still use the normal bot pipeline; the user
+client itself does not send. Only known public usernames produce public post
+links. No folder invite, API credentials or session belong in GitHub or logs.
+A single local runner is expected; do not launch duplicates.
 
 Source identity is `channel:<numeric ID>:<message ID>`, with Telegram's post
 date saved in UTC and retained in the bounded retry queue. Explicitly labeled
 candidate CV posts and ads are counted separately and skipped. Other posts are
 vacancy **candidates**, not verified job offers; Good/Stretch count profile
 assessments and can exceed unique posts. Live false-positive/yield measurement
-and safe restart catch-up are still required before broad rollout. Telegram
+and live restart catch-up validation are still required before broad rollout. Telegram
 API terms and rate limits apply; no account login or live channel read was done
 in the offline implementation checkpoint.
 

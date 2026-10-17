@@ -54,9 +54,10 @@ def test_invalid_targets_do_not_create_subscriptions(value, memory):
     assert memory[0] == {}
 
 
-async def post():
+async def post(published_at=None):
     return await watch.consume_channel_post(None, chat_id=-100123, username="devopsjobs",
-                                            message_id=42, text="DevOps Engineer\nRemote worldwide\nLinux")
+                                            message_id=42, text="DevOps Engineer\nRemote worldwide\nLinux",
+                                            published_at=published_at)
 
 
 def test_subscription_delivery_is_scoped_persistent_and_replay_safe(memory):
@@ -345,7 +346,8 @@ def test_watchlist_and_replay_dedupe_survive_postgres_reload(monkeypatch):
             await watch.change_subscription(user.id, "add", "@devopsjobs")
             original_ingest = services.ingest_and_match
             monkeypatch.setattr(services, "ingest_and_match", AsyncMock(side_effect=RuntimeError("temporary")))
-            await post()
+            published = datetime(2026, 10, 17, 10, tzinfo=timezone.utc)
+            await post(published)
             assert (await watch.watch_state(user.id))["pending"]
             watch._LOCKS.clear()
             monkeypatch.setattr(services, "ingest_and_match", original_ingest)
@@ -361,6 +363,7 @@ def test_watchlist_and_replay_dedupe_survive_postgres_reload(monkeypatch):
             assert state["channels"]["@devopsjobs"]["stats"]["replays"] == 1
             rows = await watch.repo.latest_matches(user.id, limit=10, include_filtered=True)
             assert rows  # Real source persistence/matches, not a mocked scorer.
+            assert all(job.published_at == published.isoformat() for _, job in rows)
         finally:
             await engine.dispose()
     asyncio.run(run())
