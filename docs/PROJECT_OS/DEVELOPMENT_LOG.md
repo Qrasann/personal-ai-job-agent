@@ -1,3 +1,7 @@
+## 2026-10-17 — explicit candidate headers in Telegram channel posts
+
+Four offline fixtures (`#OpenToWork`, `#ищуработу`, `Резюме:`, `Resume:`) were previously parsed as vacancy candidates. The narrow first-line filter now excludes them and keeps a vacancy asking for a résumé in its body. Targeted regressions were red before the fix; full isolated PostgreSQL suite: 1298 passed. No real channel posts or user session accessed.
+
 ## 2026-10-17 — avoid repeated HH connection-timeout attempts within a scan
 
 HH's existing per-source backoff handled `httpx.ConnectError` but not `httpx.ConnectTimeout`; two enabled profiles could therefore each issue a long failing connection attempt. Added `ConnectTimeout` to the same bounded cooldown path. The first failure is still reported with its precise safe diagnostic; later profiles skip HH and other sources continue. Three targeted HH timeout/connection/TLS tests passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check and secret scan passed. No live HH probe.

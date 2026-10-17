@@ -1,6 +1,10 @@
 # Handoff
 
-## Current handoff — 2026-10-17 Telegram Career folder
+## Current handoff — 2026-10-17 candidate-header quality follow-up
+
+Feature has merged PR #46 at `486819d` after Python/Docker/secret CI passed. Current branch `work/telegram-folder-post-quality` adds a narrow filter for four explicit candidate headers (`#OpenToWork`, `#ищуработу`, `Резюме:`, `Resume:`); regressions were red before the fix and the full isolated PostgreSQL suite passed 1298 afterward. Final static gates, commit, PR/CI and feature merge remain next. The two owner proposal files remain untracked and untouched. No local Telegram API credentials/session exist; the 21 supplied chat labels have no verified IDs/access. Owner must perform private interactive folder inspection and 2–3-channel live acceptance before wider activation. No production change or account login occurred.
+
+## Earlier handoff — 2026-10-17 Telegram Career folder
 
 Branch `work/telegram-folder-watcher` has PR #46 to feature; latest pushed merge checkpoint `c5bd6b6` incorporated a concurrent feature documentation commit `b74fa06` without discarding either set of docs. The two owner proposal files remain untracked/untouched. Owner's local 21-item folder manifest has no verified IDs/usernames/types/access, so no live channel claim. Optional local Telethon preview writes a private all-disabled inventory; selected broadcast IDs use bounded five-minute polling with account-wide updates disabled and private restart cursors. Telegram post date survives retry; explicit CV/advertising headers are skipped; channel counters label possible vacancy posts, Good/Stretch assessments, replays and errors. No user login or production change; API credentials/session are absent here. Final isolated PostgreSQL suite passed 1294 after scoped polling; the added publication-date persistence regression passed separately (1). Push the latest received-count fix to PR #46 and wait for green CI. See `docs/developer/TELEGRAM_WATCH.md` for private local setup and `TASKS.md` for acceptance. Next: 2–3-channel owner-controlled identity/access/yield acceptance, then gradual expansion. Do not publish invite/session or treat preview as read access.
 

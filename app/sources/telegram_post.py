@@ -18,8 +18,9 @@ _COUNTRIES = {"AM": r"\b(?:armenia|армения|հայաստան)\b", "GE": r"
 # Only explicit self-promotion/advertising headers are rejected. A vacancy may
 # contain words such as "resume" or "advertising" in its requirements.
 _NON_VACANCY_HEADER = re.compile(
-    r"^\s*(?:#(?:реклама|advertisement|резюме)|(?:реклама|резюме кандидата|"
-    r"ищу работу|ищу вакансию|looking for (?:a )?job|my resume|мой опыт)\s*[:—-])",
+    r"^\s*(?:#(?:реклама|advertisement|резюме|opentowork|ищуработу|lookingforwork)(?=\W|$)|"
+    r"(?:реклама|резюме(?: кандидата)?|resume|ищу работу|ищу вакансию|"
+    r"looking for (?:a )?job|my resume|мой опыт)\s*[:—-])",
     re.I,
 )
 

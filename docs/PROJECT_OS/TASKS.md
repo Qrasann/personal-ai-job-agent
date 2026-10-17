@@ -66,6 +66,7 @@
 - [ ] Measure live posts, true vacancies, Good/Stretch, false positives, duplicates and errors; then incrementally enable remaining verified channels. No live acceptance claimed.
 - [x] Implement bounded per-approved-channel cursor catch-up without account-wide updates; offline cursor/order tests pass.
 - [ ] Validate restart catch-up in the live 2–3-channel pilot; edited-post handling remains separate and unimplemented.
+- [x] Reproduce four explicit candidate-header false positives and keep them out of vacancy ingestion; retain vacancy posts that merely ask applicants to send a résumé.
 
 ## 2026-10-17 — Recruiter work-eligibility sensitive topics
 

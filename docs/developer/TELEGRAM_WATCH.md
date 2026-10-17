@@ -34,7 +34,10 @@ A single local runner is expected; do not launch duplicates.
 
 Source identity is `channel:<numeric ID>:<message ID>`, with Telegram's post
 date saved in UTC and retained in the bounded retry queue. Explicitly labeled
-candidate CV posts and ads are counted separately and skipped. Other posts are
+candidate CV posts and ads are counted separately and skipped. Conservative
+first-line candidate markers include `Резюме:`, `Resume:`, `#OpenToWork` and
+`#ищуработу`; vacancy instructions that mention a résumé later in the post
+remain eligible for scoring. Other posts are
 vacancy **candidates**, not verified job offers; Good/Stretch count profile
 assessments and can exceed unique posts. Live false-positive/yield measurement
 and live restart catch-up validation are still required before broad rollout. Telegram
