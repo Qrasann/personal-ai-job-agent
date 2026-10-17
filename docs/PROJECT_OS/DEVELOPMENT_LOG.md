@@ -4,7 +4,7 @@ Red regression: lowercase `elk migration` was emitted as an ELK Stack requiremen
 
 ## 2026-10-17 — exclude professional contact network from technical fit
 
-Red regression: “an established network of industry contacts” under Requirements created a missing Networking skill and reduced score. Narrow explicit professional/business/contact-network phrases are now removed before matching; actual network, networking, firewall and related technical signals remain. Fit suites 72 passed; full unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed. No score weights or thresholds changed.
+Red regression: “an established network of industry contacts” under Requirements created a missing Networking skill and reduced score. Narrow explicit professional/business/contact-network phrases (industry/professional contacts and stakeholder networking) are now removed before matching; actual technical network, networking, firewall and related signals remain. Fit suites 74 passed; full unit suite 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed. No score weights or thresholds changed.
 
 ## 2026-10-17 — count Docker Compose once in Candidate Fit
 

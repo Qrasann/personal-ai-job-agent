@@ -7,7 +7,7 @@
 ## 2026-10-17 — Candidate Fit professional-network context
 
 - [x] Reproduce business contact network text as a false technical Networking requirement; suppress only explicit professional/contact phrases.
-- [x] Focused fit suites 72; unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed; test DB stopped.
+- [x] Focused fit suites 74; unit suite 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed; test DB stopped.
 - [ ] Continue a separate Candidate Fit or Source Intelligence edge case with fixture-backed evidence.
 
 ## 2026-10-17 — Candidate Fit compound Docker requirement

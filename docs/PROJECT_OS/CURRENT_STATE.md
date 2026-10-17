@@ -6,7 +6,7 @@ The bare lowercase word `elk` previously matched the ELK logging stack, potentia
 
 ## 2026-10-17 — distinguish contact networks from technical Networking
 
-`network of industry contacts` was parsed as the Networking skill and could lower fit. Explicit business/contact-network phrases are now excluded; technical networking and firewall terms still match. Focused fit suites 72 passed; full unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed. Scoring weights and thresholds unchanged.
+`network of industry contacts` was parsed as the Networking skill and could lower fit. Explicit business/contact-network phrases are now excluded; technical networking and firewall terms still match. Coverage includes industry contacts, professional contacts and stakeholder networking. Focused fit suites 74 passed; full unit suite 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed. Scoring weights and thresholds unchanged.
 
 ## 2026-10-17 — avoid double-counting Docker Compose in Candidate Fit
 

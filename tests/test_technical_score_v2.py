@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import pytest
+
 from app.database.models import CandidateFact, Job, SearchProfile
 from app.matching.engine import score_job
 from app.matching.fact_comparison import compare_facts, extract_requirement_importance
@@ -50,8 +52,13 @@ def test_standalone_docker_remains_a_separate_requirement_from_docker_compose():
     assert {item.skill for item in comparison.requirements} == {"Docker", "Docker Compose"}
 
 
-def test_professional_contact_network_does_not_create_technical_networking_requirement():
-    vacancy = "Requirements: An established network of industry contacts is required."
+@pytest.mark.parametrize("phrase", [
+    "an established network of industry contacts",
+    "a network of professional contacts",
+    "networking with key stakeholders",
+])
+def test_professional_contact_network_does_not_create_technical_networking_requirement(phrase):
+    vacancy = f"Requirements: {phrase} is required."
 
     assert compare_facts(vacancy, []).requirements == ()
     assert score_technical_v2(vacancy, []) is None

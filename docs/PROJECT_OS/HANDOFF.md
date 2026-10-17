@@ -1,8 +1,8 @@
 # Handoff
 
-## Current entry point — 2026-10-17 Candidate Fit ELK vocabulary
+## Current entry point — 2026-10-17 Candidate Fit networking context
 
-Starting HEAD `f7ef56b`, branch `work/v357-rejection-diagnostics`, 40 commits ahead of feature origin. Candidate Fit previously interpreted lowercase `elk` wildlife references as the ELK logging stack. Matching now preserves explicit ELK Stack/component forms and uppercase acronym while ignoring lowercase wildlife usage. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL 1197 passed. Test DB stopped. No scoring weights changed; offline fixtures only. Roadmap and Project OS updated. Run compile/diff/secret gates, inspect exact diff, checkpoint locally, then select another distinct Candidate Fit/Source Intelligence/Relocation-first issue. Preserve both user proposal files.
+Starting HEAD `daf5f10`, branch `work/v357-rejection-diagnostics`, 41 commits ahead of feature origin. Red regressions showed business contact-network wording (“industry contacts”, “professional contacts”, “stakeholder networking”) being interpreted as technical Networking. Those explicit phrases are now excluded; technical network, networking and firewall terms remain. Focused fit suites 74 passed; full unit suite 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed. Test DB stopped. Weights/thresholds unchanged; offline fixtures only. Roadmap and Project OS updated. Current change needs compile/diff/secret gates and local checkpoint. Next: inspect a distinct Source Intelligence/Relocation-first issue. Preserve both untracked user proposal files.
 
 ## Current entry point — 2026-10-17 regional relocation language evidence
 

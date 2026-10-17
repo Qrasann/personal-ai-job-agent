@@ -181,8 +181,9 @@ def _matches_skill(text: str, spec: SkillSpec) -> bool:
         # network/firewall terms in the same text remain detectable.
         text = re.sub(
             r"\b(?:professional|business|industry|sales|personal|client|customer) network\b|"
-            r"\bnetwork of (?:industry )?(?:contacts|partners|suppliers|clients|customers|professionals|recruiters)\b|"
-            r"\bnetworking with (?:contacts|partners|suppliers|clients|customers|professionals|recruiters)\b",
+            r"\bnetwork of (?:(?:industry|professional|business|sales|local) )?"
+            r"(?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders)\b|"
+            r"\bnetworking with (?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders)\b",
             " ", text or "", flags=re.I,
         )
     if any(_contains_alias(text, alias) for alias in spec.aliases):
