@@ -1,8 +1,12 @@
 # Current State
 
+## 2026-10-17 — source publication-age telemetry
+
+Source diagnostics previously reported only whether a publication-date field was populated. Added age buckets for timezone-aware source timestamps: ≤7 days, 8–30 days, >30 days, and unknown (including missing, timezone-naive, malformed, or future timestamps). This is source-quality telemetry only; it never filters a listing or calls an old posting closed. Targeted availability/diagnostics/scan suites: 104 passed. Full unit/static gates pending. Feature is synced at `543057f`; current branch `work/source-freshness-age-breakdown` has local changes.
+
 ## 2026-10-17 — Candidate Fit negated requirement variants
 
-Probes showed contractions (`isn't required`), “not a hard requirement/must-have”, and “no previous Linux experience is necessary” still became required. Added narrow normalization for `isn't` and direct variants; all 11 explicit non-requirement fixtures now classify unknown. Prior positive-after-`but`/`and` regression remains required. Full unit/static gates pending. Feature is synced at `d618dc8`; branch `work/candidate-fit-negated-requirements` contains local code/test/docs work.
+Probes showed contractions (`isn't required`), “not a hard requirement/must-have”, and “no previous Linux experience is necessary” still became required. Added narrow normalization for `isn't` and direct variants; all 11 explicit non-requirement fixtures now classify unknown. Prior positive-after-`but`/`and` regression remains required. Full unit suite 1241 passed/20 skipped; CI green. Merged in PR #41 at feature `543057f`.
 
 ## 2026-10-17 — Greenhouse Georgia postal-code state marker
 

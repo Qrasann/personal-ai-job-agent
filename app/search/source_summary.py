@@ -4,7 +4,12 @@ from app.domain.text_limits import utf16_length
 from app.sources.diagnostics import SourceSummaryError, legacy_diagnostic
 
 
-COUNTERS = ("found", "discovered", "preference_filtered", "processed", "qualified", "stretch", "notified", "filtered", "duplicate", "retry", "fallback", "processing_errors", "publication_date_provided", "publication_date_missing")
+COUNTERS = (
+    "found", "discovered", "preference_filtered", "processed", "qualified", "stretch",
+    "notified", "filtered", "duplicate", "retry", "fallback", "processing_errors",
+    "publication_date_provided", "publication_date_missing", "publication_age_0_7d",
+    "publication_age_8_30d", "publication_age_over_30d", "publication_age_unknown",
+)
 
 PREFERENCE_EXCLUSION_LABELS = {
     "domestic_onsite": "локальная onsite-вакансия не является релокацией",
@@ -174,6 +179,17 @@ def render_source_summary(source_id: str, info: dict) -> str:
     date_total = int(info.get("publication_date_provided", 0)) + int(info.get("publication_date_missing", 0))
     if date_total:
         line += f" · поле даты публикации заполнено: {int(info.get('publication_date_provided', 0))}/{date_total}"
+    age_counts = (
+        int(info.get("publication_age_0_7d", 0)),
+        int(info.get("publication_age_8_30d", 0)),
+        int(info.get("publication_age_over_30d", 0)),
+        int(info.get("publication_age_unknown", 0)),
+    )
+    if sum(age_counts):
+        line += (
+            f"\n  Возраст даты: ≤7 дн. {age_counts[0]}, 8–30 дн. {age_counts[1]}, "
+            f">30 дн. {age_counts[2]}, неизвестен {age_counts[3]}"
+        )
     for key, title in (("processed", "обработано"), ("qualified", "Good"), ("stretch", "Stretch"), ("filtered", "отфильтровано"), ("duplicate", "дубликатов"), ("failed", "ошибок попыток"), ("skipped", "пропусков"), ("processing_errors", "ошибок обработки"), ("partial_attempts", "частичных попыток"), ("retry", "повторов"), ("fallback", "fallback")):
         if isinstance(info.get(key), int) and info[key]:
             line += f" · {title}: {info[key]}"

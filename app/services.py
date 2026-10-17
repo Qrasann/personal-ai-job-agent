@@ -18,6 +18,7 @@ from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
+from app.domain.vacancy_availability import publication_age_bucket
 from app.geo.countries import normalize_country
 from app.matching.engine import score_job
 from app.matching.fact_comparison import compare_facts
@@ -636,6 +637,19 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                     bool(str(getattr(job, "published_at", "") or "").strip()) for job in jobs
                 )
                 info["publication_date_missing"] = len(jobs) - info["publication_date_provided"]
+                age_buckets = {
+                    "fresh_7d": "publication_age_0_7d",
+                    "age_8_30d": "publication_age_8_30d",
+                    "older_30d": "publication_age_over_30d",
+                    "unknown": "publication_age_unknown",
+                }
+                freshness_now = datetime.now(UTC)
+                for job in jobs:
+                    bucket = publication_age_bucket(
+                        getattr(job, "published_at", None), now=freshness_now,
+                    )
+                    key = age_buckets[bucket]
+                    info[key] = info.get(key, 0) + 1
                 cache_label = " (кэш)" if cache_hit else ""
                 await emit_progress(f"⏳ {search.name} · {adapter.name}: найдено {len(jobs)}{cache_label} · {duration_ms / 1000:.1f} с")
                 for index, job in enumerate(jobs, start=1):

@@ -57,12 +57,21 @@
 
 # Tasks
 
+## 2026-10-17 — Source Intelligence publication-age telemetry
+
+- [x] Keep only explicit timezone-aware source dates eligible for age calculations; naive, malformed, missing and future timestamps remain unknown.
+- [x] Add non-filtering age buckets: ≤7d, 8–30d, >30d, unknown; show them in source diagnostics.
+- [x] Targeted availability/diagnostics/scan suites: 104 passed.
+- [ ] Run full unit/static gates, checkpoint, publish PR to feature and wait for all CI checks.
+- [ ] Continue the next independent Relocation-first, Candidate Fit or Application Package gap.
+
 ## 2026-10-17 — Candidate Fit negated requirement variants
 
 - [x] Reproduce contractions, “not a hard requirement/must-have”, and “no previous experience is necessary” becoming required.
 - [x] Add direct negation normalization/patterns; keep these signals unknown without inferring refusal.
 - [x] All 11 explicit non-requirement fixtures pass; prior positive clauses after “but”/“and” remain required.
-- [ ] Run full unit/static gates, checkpoint and publish PR to feature; wait for green CI.
+- [x] Full unit suite: 1241 passed, 20 skipped; compileall, diff check, secret scan and CI passed.
+- [x] Commit `c5e0f44`, merge PR #41 to feature at `543057f`.
 - [ ] Continue an independent Source Intelligence or Relocation-first gap.
 
 ## 2026-10-17 — Greenhouse US Georgia postal-code variant

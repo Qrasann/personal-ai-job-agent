@@ -147,6 +147,21 @@ def test_source_dashboard_reports_publication_date_field_coverage_without_stalen
     assert "просроч" not in line
 
 
+def test_source_dashboard_shows_publication_age_as_observation_not_hiring_status():
+    sources = {}
+    aggregate_source(sources, "eures", {
+        "status": "success", "found": 4,
+        "publication_age_0_7d": 1,
+        "publication_age_8_30d": 1,
+        "publication_age_over_30d": 1,
+        "publication_age_unknown": 1,
+    })
+
+    line = render_source_summary("eures", sources["eures"])
+    assert "Возраст даты: ≤7 дн. 1, 8–30 дн. 1, >30 дн. 1, неизвестен 1" in line
+    assert "вакансия закрыта" not in line
+
+
 def test_dashboard_keeps_preference_exclusions_distinct_from_scoring_and_errors():
     sources = {}
     aggregate_source(sources, "eures", {
