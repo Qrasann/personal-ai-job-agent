@@ -2760,3 +2760,7 @@ Red PostgreSQL regression: two provider IDs from the same source deduped to one 
 ## 2026-10-17 — keep positive Candidate Fit requirement after negation
 
 Red regression: `Linux is not required, but Linux knowledge is mandatory` became unknown because a negative match suppressed the entire sentence. Required-skill matching now splits supported English, Russian and German contrastive connectors; a positive clause only counts when it independently names the skill. Fact-comparison tests: 44 passed; full unit suite: 1183 passed, 17 skipped. `compileall`, diff check and secret scan passed. Local checkpoint: `82d6ebf`; no threshold or schema change.
+
+## 2026-10-17 — classify explicit skill advantage wording as preferred
+
+Red regression: under Requirements, “Linux experience would be an advantage” was classified required. Added skill-local English advantage/beneficial forms and Russian “будет преимуществом” as preferred cues. Fact-comparison/interview/resume tests: 80 passed; full unit suite: 1186 passed, 17 skipped. Compileall, diff check and secret scan passed. Local code checkpoint `74015e4`; no scoring threshold or weight change.

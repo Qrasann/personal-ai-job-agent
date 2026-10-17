@@ -36,6 +36,14 @@
 
 # Tasks
 
+## 2026-10-17 — classify explicit skill advantage wording as preferred
+
+- [x] Red regression reproduced “Linux experience would be an advantage” being treated as required under a Requirements heading.
+- [x] Added narrow skill-local English advantage/beneficial and Russian “будет преимуществом” variants; no thresholds or weights changed.
+- [x] Fit/interview/resume suites: 80 passed; full unit suite: 1186 passed, 17 skipped; compileall, diff check and secret scan passed. Checkpoint `74015e4`.
+- [ ] Continue an independent Source Intelligence or Relocation-first offline regression.
+
+
 ## 2026-10-17 — preserve positive skill requirement after contrastive negation
 
 - [x] Red test reproduced a required skill classified `unknown` when a positive mention followed a negated mention after “but”.
