@@ -62,7 +62,8 @@
 - [x] Reproduce the same HH ConnectTimeout being attempted once per search profile in one scan.
 - [x] Apply the existing bounded HH cooldown to ConnectTimeout while preserving its notification and isolating other sources.
 - [x] Targeted HH timeout/connection/TLS tests: 3 passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check, secret scan passed.
-- [x] Checkpoint `4be92a6` committed; push to PR #32 and wait for updated CI.
+- [x] Checkpoint `4be92a6` and handoff `55a259b` pushed to PR #32; latest CI is running.
+- [ ] After green CI, continue an independent Source Intelligence/Relocation-first task.
 
 ## 2026-10-17 — Russian Candidate Fit aliases
 
