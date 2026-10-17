@@ -18,6 +18,17 @@ def test_opentelemetry_is_compared_only_when_explicitly_present():
     assert score_technical_v2("Requirements: OTel is required.", [fact]) is None
 
 
+def test_generic_gitlab_repository_work_does_not_create_ci_fit_score():
+    fact = SimpleNamespace(
+        id=13, value="Commercial GitLab repository administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    vacancy = "Requirements: maintain GitLab projects and repositories."
+
+    assert compare_facts(vacancy, [fact]).requirements == ()
+    assert score_technical_v2(vacancy, [fact]) is None
+
+
 def test_explicit_required_alternative_counts_as_one_scoring_choice():
     linux = SimpleNamespace(
         id=1, value="Commercial Linux administration", experience_type="commercial",

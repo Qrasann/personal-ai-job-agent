@@ -1,3 +1,7 @@
+## 2026-10-17 — precise GitLab CI Candidate Fit
+
+Red regression: `Requirements: experience managing GitLab projects and repositories` was extracted as a required GitLab CI skill because bare `gitlab` was an alias. Removed the broad alias and require CI/CD, pipeline or runner context, while retaining direct `GitLab CI` names and “CI/CD based on GitLab”. Focused Candidate Fit/scoring/resume/interview tests: 101 passed; full isolated PostgreSQL suite: 1157 passed. No threshold or score-weight change.
+
 ## 2026-10-17 — source first-seen provenance in vacancy details
 
 Fixed a misleading freshness cue: the vacancy card previously rendered the relocation evidence capture time as “Источник обнаружен”, even though evidence is regenerated on refresh. The service now uses the source reference's stable `first_seen_at`; naive stored UTC datetimes receive an explicit UTC offset. The evidence snapshot keeps its own `captured_at`. Targeted detail tests: 49 passed; full isolated PostgreSQL suite: 1154 passed; compileall and diff check passed. Offline-only; no schema changes or live source checks.

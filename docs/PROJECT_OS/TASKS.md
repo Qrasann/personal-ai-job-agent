@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — prevent GitLab repository work from inflating CI fit
+
+- [x] Reproduce GitLab-only repository/project wording being extracted as a GitLab CI requirement.
+- [x] Require explicit CI/CD, pipeline or runner context for the GitLab CI skill; preserve “CI/CD based on GitLab”.
+- [x] Candidate Fit, scoring, resume diff and interview suites: 101 passed; full isolated PostgreSQL suite: 1157 passed.
+- [ ] Continue Source Intelligence/Relocation-first offline review; no live source acceptance was performed.
+
 ## 2026-10-17 — correct source first-seen provenance in vacancy details
 
 - [x] Reproduce that “Источник обнаружен” was populated from refreshed relocation evidence `captured_at`, making old listings appear newly discovered.

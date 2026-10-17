@@ -1,6 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
+- Latest uncommitted Candidate Fit increment: bare GitLab repository/project references no longer imply GitLab CI; CI/CD/pipeline/runner context still does. Focused tests 101 passed; full isolated PostgreSQL suite 1157 passed. Commit after final gates; test DB stopped afterward.
 - Latest local checkpoint `b9e280f`: vacancy details now use stable source-reference first-seen time for the discovery label; the refreshed relocation-evidence capture time remains separate. Targeted 49 passed; isolated PostgreSQL 1154 passed. Test container stopped.
 - Source tree: working branch `work/v357-rejection-diagnostics`, based on published feature commit `2652416`, `VERSION=3.5.7`. Local commits add rejection diagnostics and focused source/matching safeguards; not pushed. Read current HEAD from Git. The last verified formal release is v3.5.6; `main` and production were not modified. Draft PRs #31 (prepare retry), #27 (history FK) and #18 (feature → main) remain open and unmerged as last checked on 2026-10-17.
 - Independent audit fixes #19–#26 and delivery PR #28 are merged into the feature branch. The feature is **not deployed**. PR #28 CI passed 1051 pytest cases, 82.94% coverage, Docker build and secret scan; check combined-branch CI before any release claim.

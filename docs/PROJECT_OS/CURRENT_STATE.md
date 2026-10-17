@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — precise GitLab CI Candidate Fit
+
+Candidate Fit no longer treats generic GitLab repository/project mentions as GitLab CI experience. Explicit CI/CD, pipeline or runner context still matches, including reversed “CI/CD based on GitLab” wording. This prevents irrelevant candidate facts from creating a required technical fit score. Focused Candidate Fit/scoring/resume/interview tests: 101 passed; full isolated PostgreSQL suite: 1157 passed. No scoring weights or thresholds changed.
+
 ## 2026-10-17 — source first-seen provenance
 
 Vacancy details now label the stable source-reference `first_seen_at` as discovery time instead of using relocation evidence `captured_at`, which refreshes each scan and could make an old posting look newly discovered. Naive database timestamps are exposed as explicit UTC; evidence capture time remains separate. Targeted tests: 49 passed; isolated PostgreSQL suite: 1154 passed. No schema or live-source changes.

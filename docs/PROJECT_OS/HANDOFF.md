@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 GitLab CI Candidate Fit
+
+Starting HEAD `3614f2a`; worktree had only the two user-owned untracked proposal files. Candidate Fit previously treated any GitLab mention as GitLab CI. A red test reproduced the false requirement/score. Matching now requires explicit CI/CD, pipeline or runner context with GitLab; repository/project-only text is not scored as GitLab CI. Existing explicit formulations still pass. Focused suites: 101 passed; full isolated PostgreSQL suite: 1157 passed. No weights, thresholds, schema, live sources or production changed. The isolated test DB is stopped. Next: continue Source Intelligence with a concrete offline adapter/provenance defect; retain uncertainty for live source quality and relocation eligibility.
+
 ## Current entry point — 2026-10-17 source first-seen provenance
 
 Branch `work/v357-rejection-diagnostics`; latest local code checkpoint `b9e280f`. Vacancy details now show stable `JobSourceRef.first_seen_at` for “Источник обнаружен”; they no longer reuse the refreshed `relocation_evidence_v1.captured_at`. Legacy naive UTC timestamps are serialized with `+00:00`. Evidence capture remains independently available. Targeted detail/service tests 49 passed, full isolated PostgreSQL suite 1154 passed, compileall, diff check and secret scan passed. The isolated test DB is stopped. No schema, live source, production, Telegram send or external change. Next: identify a distinct offline Source Intelligence or Candidate Fit regression; preserve uncertain relocation eligibility and keep live yield blocked pending authorized runtime evidence.

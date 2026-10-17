@@ -49,6 +49,18 @@ def test_extracts_canonical_devops_requirements_without_duplicates():
     assert len(skills) == len(set(skills))
 
 
+def test_gitlab_repository_requirement_does_not_imply_gitlab_ci():
+    assert "GitLab CI" not in extract_technical_requirements(
+        "Requirements: experience managing GitLab projects and repositories."
+    )
+
+
+def test_gitlab_pipeline_requirement_recognizes_explicit_ci_context():
+    assert "GitLab CI" in extract_technical_requirements(
+        "Requirements: maintain GitLab pipelines and runners."
+    )
+
+
 @pytest.mark.parametrize("mention", ["OpenShift", "Red Hat OpenShift"])
 def test_candidate_fit_recognizes_openshift_as_its_own_supported_skill(mention):
     comparison = compare_facts(

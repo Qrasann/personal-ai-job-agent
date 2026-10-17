@@ -38,7 +38,10 @@ SKILLS: tuple[SkillSpec, ...] = (
             "gitlab-ci",
             "gitlab ci/cd",
             "gitlab cicd",
-            "gitlab",
+            "gitlab pipeline",
+            "gitlab pipelines",
+            "gitlab runner",
+            "gitlab runners",
         ),
     ),
     SkillSpec("CI/CD", ("ci/cd", "cicd", "continuous integration", "continuous delivery")),
@@ -169,7 +172,23 @@ def _contains_alias(text: str, alias: str) -> bool:
 
 
 def _matches_skill(text: str, spec: SkillSpec) -> bool:
-    return any(_contains_alias(text, alias) for alias in spec.aliases)
+    if any(_contains_alias(text, alias) for alias in spec.aliases):
+        return True
+    if spec.name == "GitLab CI":
+        # GitLab alone may mean repositories/issues rather than CI. Accept the
+        # reversed phrasing only when CI/CD or pipeline context is explicit in
+        # the same clause, e.g. "CI/CD based on GitLab".
+        signals = (
+            "ci/cd", "cicd", "continuous integration", "continuous delivery",
+            "pipeline", "pipelines", "runner", "runners",
+        )
+        clauses = re.split(r"[\n.!?;]+", text or "")
+        return any(
+            _contains_alias(clause, "gitlab")
+            and any(_contains_alias(clause, signal) for signal in signals)
+            for clause in clauses
+        )
+    return False
 
 
 def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
