@@ -1,13 +1,13 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Active checkpoint (2026-10-17)
-- Feature branch/origin is synced at `ab00d5d` (PR #36 merged; PR #35 is its parent integration). Current work branch: `work/candidate-fit-healthcare-networks`, HEAD `6159bc0`; PR #37 targets feature and CI is running.
-- Candidate Fit still treated “network of medical professionals” and “network of physicians and nurses” as required technical Networking. Those explicitly human/healthcare network phrases are now excluded while technical network-routing/firewall matches remain. Red regressions reproduced both forms. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. Checkpoint is published in PR #37.
-- EURES detail-failure preservation and search-card coverage beyond the detail cap are integrated. Candidate import race protection, conservative remote work-authorization eligibility, and organizational network handling are also integrated. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched.
-- Next: wait for PR #37 CI, integrate if all checks pass, then continue another useful Source Intelligence/Candidate Fit task.
+- Feature branch/origin is synced at `1e66216` (PR #37 merged; PR #36 is its parent integration). Current work branch: `work/greenhouse-georgia-state-disambiguation`, based at `1e66216`.
+- Greenhouse parsed “Atlanta, Georgia, USA” as GE and admitted it into Georgia relocation search. Explicit US qualifiers now prevent that false country match; Tbilisi/Georgia remains GE. Regression covers USA, U.S.A., U.S., US, United States, United States of America. Targeted Greenhouse/Remotive/relocation suites: 84 passed; full isolated PostgreSQL suite: 1246 passed; DB stopped; compileall, diff check and secret scan passed. Change is local/uncommitted.
+- Candidate Fit medical-network correction (PR #37), EURES detail-failure preservation and bounded-detail/card coverage, resume-import idempotency, and conservative remote work-authorization handling are integrated. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched.
+- Next: update Project OS, checkpoint and publish the Greenhouse location fix, wait for CI, then continue another useful Relocation-first/source-quality task.
 
 ## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `ab00d5d`. Current branch `work/candidate-fit-healthcare-networks` starts at `ab00d5d`; checkpoint `6159bc0` is published in PR #37. Full isolated PostgreSQL suite on that code: 1240 passed. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `1e66216`. Current branch `work/greenhouse-georgia-state-disambiguation` starts at `1e66216`; Greenhouse location fix is uncommitted. Full isolated PostgreSQL suite on current code: 1246 passed. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

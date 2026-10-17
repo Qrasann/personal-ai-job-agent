@@ -2820,3 +2820,6 @@ A code review found that `max_details=8` also capped the returned EURES vacancie
 ## 2026-10-17 — classify medical-professional networks as organizational
 
 Additional fixtures showed the prior Candidate Fit fix missed “network of medical professionals” and “network of physicians and nurses”, which still matched the technical Networking alias. Added these to the narrow organizational-network context exclusions; infrastructure networking remains tested. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; test DB stopped; compileall, diff check and secret scan passed. No threshold/weight changes. Checkpoint `6159bc0` is in PR #37; CI is running. Continue roadmap work after integration.
+## 2026-10-17 — prevent Greenhouse US-state Georgia from entering GE search
+
+Reproduced “Atlanta, Georgia, USA” being parsed as country GE by the Greenhouse location parser. Explicit US qualifiers now suppress the ambiguous country match; unqualified Tbilisi, Georgia remains supported. Fixtures cover USA/U.S.A./U.S./US/United States forms. Greenhouse/Remotive/relocation tests: 84 passed; full isolated PostgreSQL suite: 1246 passed; test DB stopped; compileall, diff check and secret scan passed. Offline fixtures only; no legal or live-source conclusions. Next: checkpoint/PR and continue Relocation-first/source-quality work.
