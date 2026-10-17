@@ -314,8 +314,32 @@ def test_discover_keeps_other_details_after_one_http_error(monkeypatch):
     monkeypatch.setattr(httpx.AsyncClient, "get", get)
     source = EuresSource()
     result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps"])))
-    assert [job.source_job_id for job in result] == ["second"]
+    assert [job.source_job_id for job in result] == ["first", "second"]
+    assert result[0].description == "Operate cloud infrastructure."
+    assert result[0].url == EuresSource.portal_url
     assert source.partial_failures == 1
+
+
+def test_discover_returns_search_cards_when_every_detail_request_fails(monkeypatch):
+    async def post(self, url, json=None, **kwargs):
+        return httpx.Response(200, json={"jvs": [
+            search_row(id="first"), search_row(id="second", title="Cloud Engineer"),
+        ]}, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        return httpx.Response(503, request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    source = EuresSource()
+
+    result = asyncio.run(source.discover(SourceContext(1, queries=["Engineer"])))
+
+    assert [job.source_job_id for job in result] == ["first", "second"]
+    assert all(job.description == "Operate cloud infrastructure." for job in result)
+    assert all(job.url == EuresSource.portal_url for job in result)
+    assert source.partial_failures == 2
+    assert [item["operation"] for item in source.discovery_diagnostics] == ["detail_request"] * 2
 
 
 def test_discover_reports_all_search_http_failures(monkeypatch):

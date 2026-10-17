@@ -1,8 +1,12 @@
 # Current State
 
+## 2026-10-17 — preserve valid EURES search cards after detail failures
+
+EURES returned a valid employer-flagged search card with title/description and official portal URL, but a failing detail request caused the adapter to discard it. When all detail requests failed, it raised and returned no search results. The adapter now uses successful detail responses where available and falls back to each already-validated search card for failed details, preserving source attribution and the official portal link. Existing `partial_failures` and typed detail diagnostics remain active. Red regressions cover one failed detail among successes and all detail requests failing. EURES tests: 26 passed; full isolated PostgreSQL suite: 1235 passed; test DB stopped; compileall, diff check and secret scan passed. No schema or live-source changes. Branch `work/eures-detail-partial-results` is based on feature `abe9d35`; local changes not yet checkpointed.
+
 ## 2026-10-17 — preserve work-authorization restriction over worldwide boilerplate
 
-A posting saying “Applicants must already be authorized to work in Canada. Work from anywhere.” was classified remote-eligible because the worldwide phrase overrode a country-specific authorization prerequisite. `analyze_job_signals` now treats an explicit existing work-authorization requirement like other remote scope restrictions and leaves eligibility `uncertain`; this avoids both a false “yes” and an unsupported rejection. Regression was red before the fix. Relocation/source suites: 149 passed; full unit suite without PostgreSQL: 1214 passed, 20 skipped. No persistence/schema change. Follow-up is on `work/candidate-import-idempotency` after checkpoint `c523ebc`; PR #33 CI was still running at last check.
+A posting saying “Applicants must already be authorized to work in Canada. Work from anywhere.” was classified remote-eligible because the worldwide phrase overrode a country-specific authorization prerequisite. `analyze_job_signals` now treats an explicit existing work-authorization requirement like other remote scope restrictions and leaves eligibility `uncertain`; this avoids both a false “yes” and an unsupported rejection. Regression was red before the fix. Relocation/source suites: 149 passed; full unit suite without PostgreSQL: 1214 passed, 20 skipped. No persistence/schema change. Integrated in PR #33 at feature commit `abe9d35`; all CI checks passed.
 
 ## 2026-10-17 — make concurrent resume import confirmation idempotent
 
