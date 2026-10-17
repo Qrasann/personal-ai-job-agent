@@ -1,6 +1,14 @@
+## 2026-10-17 — preserve canonical fingerprint on blank-location refresh
+
+Source refresh treated empty country/city strings as a complete identity and could replace a previously valid canonical fingerprint. `_has_complete_identity` now requires nonempty trimmed values. The isolated PostgreSQL regression checks both the fingerprint and stored known location survive a same-provider refresh with blank location. Targeted integration: 1 passed; full isolated PostgreSQL suite: 1140 passed. No schema or matching policy change.
+
 ## 2026-10-17 — Application tracking status/history transaction acceptance
 
 Added isolated PostgreSQL fault injection at status-history event flush. A failed `interview` event leaves the Application status at `prepared` and preserves only its initial history event, confirming the repository's status and append-only history write roll back together. Existing owner scope, duplicate transition and concurrent identical-update coverage remains unchanged. Targeted fault test: 1 passed; full isolated PostgreSQL suite: 1139 passed. No application workflow/schema change.
+
+## 2026-10-17 — distinguish saved `/prepare` drafts from Telegram delivery failures
+
+The package is committed before Telegram sends/edits its preview. A delivery exception was rendered like a pre-save failure, even though `/prepare` again would create another draft. Both command and callback now report that the draft is already saved, direct the owner to `/applications`, and disclose that repeating `/prepare` creates a new draft. No persistence semantics, schema or outbound application action changed. Regression tests cover both post-save delivery failures and verify no second preparation call. Targeted 47 passed; unit suite 1124 passed/14 skipped; isolated PostgreSQL suite 1138 passed. Compileall, diff check and secret scan passed; isolated test container stopped.
 
 ## 2026-10-17 — bound unconfirmed resume-import previews
 
@@ -2664,10 +2672,3 @@ PostgreSQL: 988 passed.
 Explicit Russian statements that accommodation is or is not provided now
 produce attributed evidence; bare mentions stay unknown. Full isolated
 PostgreSQL: 988 passed.
-
-## 2026-10-17 — distinguish saved `/prepare` drafts from Telegram delivery failures
-
-The package is committed before Telegram sends/edits its preview. A delivery exception was rendered like a pre-save failure, even though `/prepare` again would create another draft. Both command and callback now report that the draft is already saved, direct the owner to `/applications`, and disclose that repeating `/prepare` creates a new draft. No persistence semantics, schema or outbound application action changed. Regression tests cover both post-save delivery failures and verify no second preparation call. Targeted 47 passed; unit suite 1124 passed/14 skipped; isolated PostgreSQL suite 1138 passed. Compileall, diff check and secret scan passed; isolated test container stopped.
-## 2026-10-17 — Application tracking status/history transaction acceptance
-
-Added isolated PostgreSQL fault injection at status-history event flush. A failed `interview` event leaves the Application status at `prepared` and preserves only its initial history event, confirming the repository's status and append-only history write roll back together. Existing owner scope, duplicate transition and concurrent identical-update coverage remains unchanged. Targeted fault test: 1 passed; full isolated PostgreSQL suite: 1139 passed. No application workflow/schema change.

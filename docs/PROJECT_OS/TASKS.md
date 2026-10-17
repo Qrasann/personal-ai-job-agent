@@ -6,6 +6,12 @@
 - [x] Targeted fault-injection test 1 passed; full isolated PostgreSQL suite 1139 passed.
 - [ ] Continue Source Intelligence with a concrete, locally reproducible adapter/parsing gap; keep live source relevance and HH root cause gated on authorized runtime evidence.
 
+## 2026-10-17 — preserve canonical identity on incomplete source refresh
+
+- [x] Reproduce blank country/city being treated as complete during same-posting refresh; require nonempty trimmed location fields before updating canonical fingerprint.
+- [x] Isolated PostgreSQL regression and full suite: 1140 passed. Existing canonical location/fingerprint preserved; schema and cross-source matching policy unchanged.
+- [ ] Continue practical Source Intelligence and Candidate Fit improvements using local evidence; live result yield still needs owner-approved source acceptance.
+
 ## 2026-10-17 — Application Package delivery retry safety
 
 - [x] Distinguish `/prepare` failures before persistence from Telegram delivery failures after durable save; point to `/applications` and warn that repeating preparation creates a second draft. Test command and callback delivery failures.

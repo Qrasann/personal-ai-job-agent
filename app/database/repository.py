@@ -379,8 +379,8 @@ def _has_complete_identity(job: NormalizedJob) -> bool:
     return bool(
         job.title.strip()
         and (job.company.strip() or job.description.strip())
-        and job.country is not None
-        and job.city is not None
+        and bool((job.country or "").strip())
+        and bool((job.city or "").strip())
     )
 
 

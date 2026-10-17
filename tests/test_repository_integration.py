@@ -238,6 +238,48 @@ async def _application_status_rollback_flow(monkeypatch):
         await engine.dispose()
 
 
+@pytest.mark.integration
+def test_incomplete_source_location_does_not_replace_canonical_fingerprint(monkeypatch):
+    _require_test_database()
+    asyncio.run(_incomplete_source_identity_flow(monkeypatch))
+
+
+async def _incomplete_source_identity_flow(monkeypatch):
+    from app.database.models import Job
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        job, created = await repo.upsert_job(NormalizedJob(
+            source="identity-test", source_job_id="posting-1",
+            title="Platform Engineer", company="Example",
+            country="GE", city="Tbilisi",
+        ))
+        assert created
+        canonical_fingerprint = job.fingerprint
+
+        refreshed, created = await repo.upsert_job(NormalizedJob(
+            source="identity-test", source_job_id="posting-1",
+            title="Platform Engineer", company="Example",
+            country="  ", city="",
+        ))
+
+        assert not created
+        assert refreshed.id == job.id
+        assert refreshed.fingerprint == canonical_fingerprint
+        assert await repo.get_job(job.id) is not None
+        async with test_session() as session:
+            saved = await session.get(Job, job.id)
+            assert saved.country == "GE"
+            assert saved.city == "Tbilisi"
+    finally:
+        await engine.dispose()
+
+
 async def _repository_review_flow(monkeypatch):
     engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
     test_session = async_sessionmaker(
