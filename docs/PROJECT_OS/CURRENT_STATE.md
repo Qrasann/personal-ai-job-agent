@@ -2,7 +2,7 @@
 
 ## 2026-10-17 — Candidate Fit non-requirement wording
 
-Reproduced four false hard requirements: “Linux is not a requirement”, “not essential”, “not a prerequisite”, and “No Linux background needed”. Narrow negation patterns now leave these skill mentions unknown; the explicit positive clause after “but” remains required. Fact-comparison, recommendation-model and technical-score suites: 100 passed. Full unit/isolated PostgreSQL gates are pending. No score-weight, schema, or live-data change. Current branch `work/source-ref-freshness-retry`, based on feature `9244aca`; local change uncommitted.
+Reproduced four false hard requirements: “Linux is not a requirement”, “not essential”, “not a prerequisite”, and “No Linux background needed”. Narrow negation patterns now leave these skill mentions unknown; positive clauses after “but” or “and” are evaluated independently and remain required. Fact-comparison suite: 60 passed; combined fact-comparison/recommendation/technical-score suites: 101 passed. Full unit/static gates are pending. No score-weight, schema, or live-data change. Current branch `work/source-ref-freshness-retry`, based on feature `9244aca`; local change uncommitted.
 
 ## 2026-10-17 — disambiguate Georgia (US state) in Greenhouse locations
 

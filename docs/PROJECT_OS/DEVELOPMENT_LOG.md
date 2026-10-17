@@ -20,7 +20,7 @@ Red regression: `GE` and `GE Only` in Remotive's candidate-location field were n
 
 ## 2026-10-17 — Candidate Fit explicit non-requirements
 
-Reproduced “Linux is not a requirement/essential/prerequisite” and “No Linux background needed” becoming required skill gaps. Added narrow direct-negation patterns; these mentions now remain unknown, while a later explicit positive clause is still required. Fact-comparison/recommendation/technical-score suites: 100 passed. Full unit and static gates are pending. No schema, score weights, or live data changes.
+Reproduced “Linux is not a requirement/essential/prerequisite” and “No Linux background needed” becoming required skill gaps. Added narrow direct-negation patterns; these mentions now remain unknown. A second regression confirmed that an explicit requirement after “and” was masked by the earlier negation; requirement clauses now split on common contrastive/conjunctive connectors. Fact-comparison/recommendation/technical-score suites: 101 passed. Full unit and static gates are pending. No schema, score weights, or live data changes.
 
 ## 2026-10-17 — disambiguate US state Georgia postal code
 

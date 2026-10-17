@@ -60,8 +60,8 @@
 ## 2026-10-17 — Candidate Fit: explicit non-requirements
 
 - [x] Reproduce four phrasings being scored as required despite explicit negation.
-- [x] Narrowly classify direct non-requirement wording as unknown; preserve positive contrastive requirements.
-- [x] Fact-comparison/recommendation/technical-score tests: 100 passed.
+- [x] Narrowly classify direct non-requirement wording as unknown; preserve positive requirements after “but” and “and”.
+- [x] Fact-comparison/recommendation/technical-score tests: 101 passed.
 - [ ] Run remaining unit and static gates; update full current handoff and checkpoint.
 - [ ] Continue the next independent Source Intelligence or Relocation-first issue.
 

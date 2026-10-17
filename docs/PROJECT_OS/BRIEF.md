@@ -3,7 +3,7 @@
 ## Active checkpoint (2026-10-17)
 - Feature includes PR #38 at `9244aca`. Current branch: `work/source-ref-freshness-retry`.
 - Greenhouse now excludes explicit US-qualified Georgia listings from GE relocation searches while retaining unqualified Georgian locations. PR #38 passed Python checks, Docker build and secret scan; offline targeted suites (84) and isolated PostgreSQL (1246) passed.
-- Candidate Fit now treats explicit “not a requirement/essential/prerequisite” and “no Linux background needed” wording as unknown instead of required; 100 fact-comparison/recommendation/technical-score tests passed on this branch. No scoring weights or schema changed. Working tree has this Candidate Fit change in progress.
+- Candidate Fit now treats explicit “not a requirement/essential/prerequisite” and “no Linux background needed” wording as unknown instead of required; positive Linux requirement after “but” or “and” is evaluated independently. Fact-comparison/recommendation/technical-score tests: 101 passed. No scoring weights or schema changed. Working tree has this Candidate Fit change in progress.
 - PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: complete full unit and static gates, document/checkpoint Candidate Fit fix, then continue an independent source-quality/relocation issue.
 
 ## Verified Git state

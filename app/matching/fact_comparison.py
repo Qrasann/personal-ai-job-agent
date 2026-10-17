@@ -273,7 +273,7 @@ def _required_skill_in_section(text: str, spec: SkillSpec) -> bool:
     # Split contrastive clauses as well as sentence punctuation so a negated
     # mention cannot mask a separate positive requirement in the same sentence.
     for clause in re.split(
-        r"[\n.!?;]+|\b(?:but|however|although|nevertheless|но|однако|aber|jedoch)\b",
+        r"[\n.!?;]+|\b(?:and|but|however|although|nevertheless|yet|whereas|while|но|однако|aber|jedoch)\b",
         text or "", flags=re.I,
     ):
         if (

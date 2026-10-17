@@ -247,6 +247,17 @@ def test_later_explicit_requirement_is_not_masked_by_earlier_negation_in_clause(
     ]
 
 
+def test_positive_requirement_after_and_is_not_masked_by_earlier_negation():
+    comparison = compare_facts(
+        "Requirements: Linux is not required and Linux administration experience is essential.",
+        [],
+    )
+
+    assert [(item.skill, item.status, item.importance) for item in comparison.requirements] == [
+        ("Linux", "missing", "required"),
+    ]
+
+
 @pytest.mark.parametrize("phrase", [
     "Linux is not a requirement.",
     "Linux is not essential.",
