@@ -57,6 +57,14 @@
 
 # Tasks
 
+## 2026-10-17 — recognize human medical networks as non-technical
+
+- [x] Reproduce medical professionals and physician/nurse networks becoming required technical Networking skills.
+- [x] Extend the narrow organizational-network exclusion while retaining explicit infrastructure network/firewall requirements.
+- [x] Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed.
+- [ ] Save local checkpoint and publish PR to feature; wait for CI.
+- [ ] Continue a separate roadmap task.
+
 ## 2026-10-17 — do not let EURES detail budget truncate search cards
 
 - [x] Reproduce five validated search cards collapsing to two results when `max_details=2`.
