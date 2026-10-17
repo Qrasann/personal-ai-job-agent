@@ -97,7 +97,7 @@ def render_subscriptions(state: dict) -> str:
     for key, item in state["channels"].items():
         stats = item.get("stats", {})
         lines.append(f"{'✅' if item.get('enabled') else '⏸'} {key} · {item.get('scope', 'both')}")
-        lines.append(f"Постов: {stats.get('posts', 0)} · возможно вакансий: {stats.get('vacancy_candidates', 0)} · не вакансий: {stats.get('non_vacancy', 0)} · Good-оценок: {stats.get('qualified', 0)} · Stretch-оценок: {stats.get('stretch', 0)} · уведомлений: {stats.get('notified', 0)} · повторов: {stats.get('replays', 0)} · ошибок: {stats.get('errors', 0)}")
+        lines.append(f"Получено: {stats.get('received', 0)} · обработано: {stats.get('posts', 0)} · возможно вакансий: {stats.get('vacancy_candidates', 0)} · не вакансий: {stats.get('non_vacancy', 0)} · Good-оценок: {stats.get('qualified', 0)} · Stretch-оценок: {stats.get('stretch', 0)} · уведомлений: {stats.get('notified', 0)} · повторов: {stats.get('replays', 0)} · ошибок: {stats.get('errors', 0)}")
         if item.get("last_post_at"):
             lines.append("Последний принятый пост: " + item["last_post_at"])
     if not state["channels"]:
@@ -187,6 +187,12 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                 state.get("pending", {}).pop(identity, None)
                 await _save(user.id, state)
                 continue
+            # A failed first attempt belongs to received yield too. Pending
+            # retries must not inflate the number of distinct received posts.
+            if identity not in state.get("pending", {}):
+                for _, item in items:
+                    stats = item.setdefault("stats", {})
+                    stats["received"] = stats.get("received", 0) + 1
             if explicit_non_vacancy(text):
                 try:
                     await repo.mark_message_seen(user.id, identity, str(chat_id), "", "telegram_watch")
@@ -199,7 +205,7 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                     continue
                 for _, item in items:
                     stats = item.setdefault("stats", {})
-                    for name in ("posts", "received", "non_vacancy", "filtered"):
+                    for name in ("posts", "non_vacancy", "filtered"):
                         stats[name] = stats.get(name, 0) + 1
                     item["last_post_at"] = datetime.now(timezone.utc).isoformat()
                 await _save(user.id, state)
@@ -212,6 +218,7 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                     for name in totals:
                         totals[name] += result.get(name, 0)
                 if not totals["processed"]:
+                    await _save(user.id, state)
                     continue
                 await repo.mark_message_seen(user.id, identity, str(chat_id), "", "telegram_watch")
             except Exception as exc:
@@ -234,7 +241,6 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                 # notifications if a retry follows partial profile success.
                 continue
             totals["posts"] = 1
-            totals["received"] = 1
             totals["vacancy_candidates"] = 1
             state.get("pending", {}).pop(identity, None)
             for _, item in items:

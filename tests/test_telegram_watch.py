@@ -194,6 +194,7 @@ def test_failed_processing_can_retry_without_consuming_seen_record(memory):
         state = await watch.watch_state(1)
         stats = state["channels"]["@devopsjobs"]["stats"]
         assert stats["errors"] == 1 and stats["posts"] == 1
+        assert stats["received"] == 1  # Failure then retry is one incoming post.
     asyncio.run(run())
     assert len(memory[1]) == 1
 
@@ -241,6 +242,13 @@ def test_render_discloses_actual_bot_api_access_limits():
     assert "Подписок пока нет" in text
     assert "история каналов не сканируется" in text
     assert "сама не добавляет бота" in text
+
+
+def test_channel_stats_distinguish_received_and_processed():
+    text = watch.render_subscriptions({"channels": {"@devopsjobs": {
+        "enabled": True, "scope": "career", "stats": {"received": 2, "posts": 1, "errors": 1}
+    }}})
+    assert "Получено: 2 · обработано: 1" in text
 
 
 def test_channels_command_uses_only_registered_users_state(monkeypatch):
