@@ -1,14 +1,25 @@
 # Handoff
 
-## Current handoff — 2026-10-17
+## Current restart point (GitHub verified after PR #44, 2026-10-17)
+- Feature baseline 8b33ee5, main v3.5.6, PR #18 Draft/open; PR #38–#44 merged. Verify the ACTUAL local HEAD/worktree and active Codex sessions on every restart.
+- Last user-reported offline suite: 1257 passed, 21 skipped; compileall, secret scan and CI passed. No evidence of current production release or authorized real-channel/source acceptance.
+- Follow root ROADMAP.md Unified execution priorities. Start with useful Career-first/Relocation-first source yield and a small authorized Telegram channel pilot, independently prepare v3.5.7 release gates. If blocked on permissions/runtime, work on P1 CV diff or interactive interview feedback.
+- Do not mistake Telegram folder display names for IDs or accessible feeds. Do not commit invitation links, CVs, finances, credentials or MTProto sessions. Preserve the two user-owned untracked proposal files.
+- PR #27/#31 were closed without direct merges: preserve behavior through regression and check patch equivalence before deleting unique branches.
+- New requests extend the same plan. Main-first; no force push/destructive cleanup. Employer outreach needs user approval of exact vacancy/message. Production requires backup/migration/rollback/smoke acceptance.
+
+## Historical handoff entries
+
+### Older checkpoint — 2026-10-17
 
 Feature/origin is synced at `0a50a29`; PRs #38–#43 passed CI and merged. PR #43 added isolated PostgreSQL `/prepare` failure→retry coverage (2 passed; full unit 1252 passed/21 skipped). Current branch `work/recruiter-eligibility-human-review` has a local Recruiter Agent fix: five English/Russian visa, work authorization and citizenship questions were incorrectly marked non-sensitive when model requested no review; explicit signals now force human review. Recruiter suite 15 passed; full unit 1257 passed/21 skipped; compileall/diff/secret scan passed. No messages sent and auto-reply remains disabled. Commit owned code/tests/docs only, never stage proposals; publish a PR to feature, wait for green CI and merge. Then continue with the next independent roadmap task. PR #18 still targets `main`; do not merge; production/runtime untouched.
 
-## Current handoff — 2026-10-17
+### Older checkpoint — 2026-10-17
 
 Branch `work/v357-rejection-diagnostics`; HEAD `55a259b`, 67 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, none behind at last fetch. PR #32 targets feature and CI is running on this exact head (prior head `4a15adb` passed Python, Docker build and secret scan). The branch includes atomic/idempotent `/prepare`, v8 application-history protection, Russian Linux/Docker/Kubernetes Candidate Fit aliases, and HH ConnectTimeout cooldown. Full isolated PostgreSQL suite: 1231 passed; targeted package tests 58, Candidate Fit/model tests 63, HH timeout/ConnectError/TLS tests 3; compileall, diff check and secret scan passed. Isolated PostgreSQL container is stopped. PR #31 and #27 remain open; their equivalent behavior is in #32 and should be marked superseded only after #32 merges. PR #18 still targets `main`; do not merge it or alter `main`. Only untracked files are the untouched user proposals. Production runtime/DB/volumes unchanged. Next: await #32 CI; if green, merge to feature, then close #31/#27 as superseded and continue Source Intelligence/Relocation-first.
 
-## Historical handoff entries
+
+
 
 Older entries below are dated checkpoints and must not be treated as current Git/runtime facts.
 

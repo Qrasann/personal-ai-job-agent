@@ -1,5 +1,24 @@
 # Roadmap
 
+## Unified execution priorities — audited 2026-10-17
+
+Every new user request continues this single Personal AI Job Agent product. Classify the request as merge / extend / conflict / new against existing code and milestones. Preserve past decisions unless explicitly superseded. This section is a priority queue, not an additional release or a statement of production readiness.
+
+Evidence levels are distinct: implemented in source; tested offline; accepted in owner-authorized live environment; released and observed in production.
+
+| Priority | Integrated work | Acceptance |
+| --- | --- | --- |
+| **P0 — measurable search value** | Career-first and Relocation-first source yield, source health, deduplication, source identity, uncertainty-aware eligibility, and reasons for filtering. Diagnose HH/international source failures using permitted runtime data. | Per source/profile received, parsed, excluded, duplicate, unique, Good, Stretch, actionable leads, latency and errors. Manually sample real links for false positives/negatives; do not call offline fixtures real vacancies. |
+| **P0 — Telegram Job Channel Watcher** | Reuse Bot API selected-channel ingestion, manual forwarding, parsing, provenance, existing Candidate Fit and review. User-selected folders/lists require real channel IDs, access and permissions before ingestion. Optional read-only user client is separately opt-in, locally authenticated and limited to approved sources. | At least one authorized real new post reaches /review with source identity, replay/duplicate safety, errors and channel yield measured; pilot a few permitted channels before scaling. Never collect private chats or auto-join. |
+| **P0 — v3.5.7 release gates** | Reconcile local/remote changes, CI, PostgreSQL migration/application history, /prepare retry idempotency, HH ambiguous submission, Telegram at-least-once delivery, owner scope, Docker and source smoke, verified backup/restore and rollback. | PR #18 remains Draft until gates are recorded. Current tests + CI are necessary but not substitutes for authorized runtime acceptance. Do not send real applications or recruiter messages without approval of exact content. |
+| **P1 — candidate-to-offer** | Candidate Facts backed RU/EN CV tailoring with diff/approval; application tracking and human-reviewed recruiter drafts; interactive Interview Agent question, user answer, deterministic rubric, feedback and learning gaps. | Every factual claim grounded in approved Candidate Facts; no invented work experience or probability of interview success. |
+| **P2 — measured expansion** | Official, dated relocation/legal reference, freelance lead type, AI Stack Watch for flagship/open-weight/experimental/specialized models, cost-quality evaluated AI Router/local models, later Web UI/multi-user. | Verified/partial/unknown legal status; measure model latency, accuracy, cost, VRAM and privacy before integration; personal usefulness first. |
+
+Known boundary: feature v3.5.7 has merged regressions, but live vacancy usefulness, Telegram channel-access acceptance, production migration/restore safety and legal hireability are not verified by CI. Remote work is not evidence of right to work in a country; unknown remains unknown.
+
+Documentation ownership: the repository-root ROADMAP.md is canonical. PROJECT_OS/BRIEF.md is a short current status; HANDOFF.md an executable restart point; historical logs are not another task queue. Keep private user profile, finances, resumes, folder invitations, credentials and Telegram sessions out of public repositories, issues, commits and CI.
+
+
 Canonical product roadmap. Reviewed against local source and tests on 2026-10-14.
 The active branch is `feature/v3.5.7-international-market-coverage` with
 `VERSION=3.5.7`; the latest formal release is v3.5.6. Older observations below
