@@ -1,9 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Current Telegram folder increment (2026-10-17)
-- PR #46 merged at feature `486819d`. Current follow-up branch: `work/telegram-folder-post-quality`. Optional local MTProto folder preview and selected broadcast-only polling reuse the existing watcher; account-wide updates are disabled and private cursors support bounded restart catch-up. No folder join, user-account send, production change or live login. All 21 manifest IDs/usernames/access remain unverified.
-- Telegram post date survives ingestion/retry; explicit CV/advertising and now four more explicit candidate headers are skipped, while unknown salary remains unknown. Per-channel counters distinguish received, processed, possible vacancy posts and Good/Stretch assessments. See `docs/developer/TELEGRAM_WATCH.md`.
-- Full isolated PostgreSQL suite: 1298 passed. Live acceptance needs owner-controlled Telegram API credentials and interactive local authorization, then 2–3 verified channels before wider rollout. Never publish folder invite/session.
+- PRs #46–#47 merged; feature is at `a11c176`. Current follow-up branch: `work/telegram-channel-quality-stats`. Optional local MTProto folder preview and selected broadcast-only polling reuse the watcher; account-wide updates are disabled and private cursors support bounded restart catch-up. No folder join, user-account send, production change or live login. All 21 manifest IDs/usernames/access remain unverified.
+- Telegram post date survives ingestion/retry; explicit CV/advertising/candidate headers are skipped, unknown salary remains unknown. `/channels` now visibly separates received/processed, possible vacancies, Good/Stretch assessments, duplicate assessments, filtering and errors. See `docs/developer/TELEGRAM_WATCH.md`.
+- Current UI-only follow-up: 1277 unit tests passed, 21 PostgreSQL tests skipped (isolated DB was not started for this UI change). Earlier PR #47 full isolated PostgreSQL suite: 1298 passed. Live acceptance needs owner-controlled credentials and interactive local authorization, then 2–3 verified channels. Never publish folder invite/session.
 
 ## Historical GitHub snapshot after PR #44
 - Stable main VERSION=3.5.6; development feature VERSION=3.5.7 at 8b33ee5 on 2026-10-17. PR #18 is Draft/open to main.

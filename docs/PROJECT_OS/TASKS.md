@@ -67,6 +67,7 @@
 - [x] Implement bounded per-approved-channel cursor catch-up without account-wide updates; offline cursor/order tests pass.
 - [ ] Validate restart catch-up in the live 2–3-channel pilot; edited-post handling remains separate and unimplemented.
 - [x] Reproduce four explicit candidate-header false positives and keep them out of vacancy ingestion; retain vacancy posts that merely ask applicants to send a résumé.
+- [x] Show persisted filtered/duplicate channel counters in `/channels` and describe Bot API plus the optional local client accurately; 1277 offline unit tests passed, 21 PostgreSQL tests skipped.
 
 ## 2026-10-17 — Recruiter work-eligibility sensitive topics
 

@@ -260,14 +260,19 @@ def test_render_discloses_actual_bot_api_access_limits():
     text = watch.render_subscriptions({"channels": {}})
     assert "Подписок пока нет" in text
     assert "история каналов не сканируется" in text
+    assert "локальный клиент" in text
     assert "сама не добавляет бота" in text
 
 
 def test_channel_stats_distinguish_received_and_processed():
     text = watch.render_subscriptions({"channels": {"@devopsjobs": {
-        "enabled": True, "scope": "career", "stats": {"received": 2, "posts": 1, "errors": 1}
+        "enabled": True, "scope": "career", "stats": {
+            "received": 2, "posts": 1, "errors": 1, "filtered": 4, "duplicate": 2
+        }
     }}})
     assert "Получено: 2 · обработано: 1" in text
+    assert "отсеиваний: 4" in text
+    assert "дубли оценок: 2" in text
 
 
 def test_channels_command_uses_only_registered_users_state(monkeypatch):

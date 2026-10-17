@@ -1,3 +1,7 @@
+## 2026-10-17 — Telegram channel quality counters in `/channels`
+
+The existing state stored filtering and duplicate counts, but the Telegram view hid them and claimed only Bot API automatic intake. Two red assertions reproduced this; the view now groups received/processed and possible vacancies, profile outcomes (Good/Stretch/filtering/duplicates), then delivery/replay/errors. Full offline unit suite: 1277 passed, 21 isolated PostgreSQL tests skipped. No data/schema change or live channel access.
+
 ## 2026-10-17 — explicit candidate headers in Telegram channel posts
 
 Four offline fixtures (`#OpenToWork`, `#ищуработу`, `Резюме:`, `Resume:`) were previously parsed as vacancy candidates. The narrow first-line filter now excludes them and keeps a vacancy asking for a résumé in its body. Targeted regressions were red before the fix; full isolated PostgreSQL suite: 1298 passed. No real channel posts or user session accessed.

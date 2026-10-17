@@ -1,6 +1,10 @@
 # Handoff
 
-## Current handoff — 2026-10-17 candidate-header quality follow-up
+## Current handoff — 2026-10-17 Telegram channel quality dashboard
+
+Feature includes merged PRs #46 and #47 at `a11c176`; current branch is `work/telegram-channel-quality-stats`. A red regression showed `/channels` hid persisted filtered and duplicate counts and still implied Bot API was the sole automatic intake path. The view now displays received/processed, possible vacancies, non-vacancies, Good/Stretch, filtering, duplicate assessments, replays and errors; its header explains the optional local client. Offline unit suite: 1277 passed, 21 PostgreSQL tests skipped; this UI-only change did not start the isolated DB. Final static gates, local commit, PR/CI and feature merge are next. The two owner proposal files remain untracked/untouched. All 21 folder IDs/access remain unverified; private interactive login and 2–3-channel live acceptance are still required. No production or user-account action.
+
+## Earlier handoff — 2026-10-17 candidate-header quality follow-up
 
 Feature has merged PR #46 at `486819d` after Python/Docker/secret CI passed. Current branch `work/telegram-folder-post-quality` adds a narrow filter for four explicit candidate headers (`#OpenToWork`, `#ищуработу`, `Резюме:`, `Resume:`); regressions were red before the fix and the full isolated PostgreSQL suite passed 1298 afterward. Final static gates, commit, PR/CI and feature merge remain next. The two owner proposal files remain untracked and untouched. No local Telegram API credentials/session exist; the 21 supplied chat labels have no verified IDs/access. Owner must perform private interactive folder inspection and 2–3-channel live acceptance before wider activation. No production change or account login occurred.
 

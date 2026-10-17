@@ -39,7 +39,10 @@ first-line candidate markers include `Резюме:`, `Resume:`, `#OpenToWork` a
 `#ищуработу`; vacancy instructions that mention a résumé later in the post
 remain eligible for scoring. Other posts are
 vacancy **candidates**, not verified job offers; Good/Stretch count profile
-assessments and can exceed unique posts. Live false-positive/yield measurement
+assessments and can exceed unique posts. `/channels` also shows profile-filter
+and duplicate assessments; its "отсеиваний" total additionally includes
+explicitly rejected non-vacancy posts, so it is not a unique-post count.
+Live false-positive/yield measurement
 and live restart catch-up validation are still required before broad rollout. Telegram
 API terms and rate limits apply; no account login or live channel read was done
 in the offline implementation checkpoint.
