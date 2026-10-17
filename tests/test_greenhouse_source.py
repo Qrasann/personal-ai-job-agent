@@ -79,6 +79,19 @@ def test_greenhouse_does_not_treat_georgia_usa_location_as_the_country(qualifier
     assert [job.source_job_id for job in jobs] == ["lineate:2"]
 
 
+@pytest.mark.parametrize("location", ["Atlanta, Georgia, GA", "Georgia (GA)", "GA, Georgia"])
+def test_greenhouse_does_not_treat_georgia_postal_code_as_the_country(location):
+    jobs = GreenhouseSource.parse_payload(
+        {"jobs": [
+            listing(1, "Infrastructure Engineer", location),
+            listing(2, "Infrastructure Engineer", "Tbilisi, Georgia (GE)"),
+        ]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )
+
+    assert [job.source_job_id for job in jobs] == ["lineate:2"]
+
+
 def test_greenhouse_support_requires_explicit_employer_evidence():
     offered = GreenhouseSource.parse_payload(
         {"jobs": [listing(1, "Infrastructure Engineer", "Georgian office", "We offer visa sponsorship and relocation assistance.")]},

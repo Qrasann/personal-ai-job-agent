@@ -1,13 +1,13 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Active checkpoint (2026-10-17)
-- Feature includes PR #38 at `9244aca`. Current branch: `work/source-ref-freshness-retry`.
-- Greenhouse now excludes explicit US-qualified Georgia listings from GE relocation searches while retaining unqualified Georgian locations. PR #38 passed Python checks, Docker build and secret scan; offline targeted suites (84) and isolated PostgreSQL (1246) passed.
-- Candidate Fit now treats explicit “not a requirement/essential/prerequisite” and “no Linux background needed” wording as unknown instead of required; positive Linux requirement after “but” or “and” is evaluated independently. Fact-comparison/recommendation/technical-score tests: 101 passed. No scoring weights or schema changed. Working tree has this Candidate Fit change in progress.
-- PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: complete full unit and static gates, document/checkpoint Candidate Fit fix, then continue an independent source-quality/relocation issue.
+- Feature includes PR #38 (`9244aca`) and PR #39 (`c73a38f`); both passed all CI checks. Current branch: `work/greenhouse-georgia-postal-code`, based on the merged feature.
+- Greenhouse excludes explicit US-qualified Georgia and Georgia+GA postal-code state forms from GE relocation searches while retaining unqualified Georgian locations. PR #38 passed CI; offline targeted suites (84) and isolated PostgreSQL (1246) passed. Current follow-up regression was red on three state-code forms and now passes; Greenhouse + Remotive tests: 52 passed.
+- Candidate Fit explicit non-requirements remain unknown, and a positive skill requirement after “but” or “and” remains required. PR #39 full unit suite: 1231 passed, 20 skipped; static gates and CI passed. No scoring weights or schema changed.
+- Current Greenhouse follow-up is local and uncommitted. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: run the full suite/static gates for postal-code fix, document/checkpoint and publish it to feature, then continue another independent source-quality/relocation issue.
 
 ## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and its origin are synced at `9244aca`. Current branch `work/source-ref-freshness-retry` is based there. Candidate Fit fix is uncommitted. Greenhouse PR #38 CI passed and merged; full isolated PostgreSQL suite for that merged change: 1246 passed. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `c73a38f`. Current branch `work/greenhouse-georgia-postal-code` is based there; postal-code disambiguation is local/uncommitted. PR #39 Candidate Fit fix merged and passed full unit/CI. Greenhouse PR #38 passed isolated PostgreSQL (1246). Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

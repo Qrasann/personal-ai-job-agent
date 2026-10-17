@@ -57,6 +57,14 @@
 
 # Tasks
 
+## 2026-10-17 — Greenhouse US Georgia postal-code variant
+
+- [x] Reproduce `Atlanta, Georgia, GA`, `Georgia (GA)` and `GA, Georgia` entering GE-targeted results.
+- [x] Exclude explicit Georgia+GA state markers while preserving `Tbilisi, Georgia (GE)`.
+- [x] Greenhouse + Remotive tests: 52 passed; red reproduction confirmed all three failures before fix.
+- [ ] Run full unit/static gates, checkpoint and publish PR to feature; wait for all CI checks.
+- [ ] Continue the next independent Source Intelligence or Relocation-first gap.
+
 ## 2026-10-17 — Candidate Fit: explicit non-requirements
 
 - [x] Reproduce four phrasings being scored as required despite explicit negation.

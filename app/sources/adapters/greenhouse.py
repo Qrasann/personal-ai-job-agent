@@ -48,6 +48,8 @@ class GreenhouseSource(JobSource):
     @staticmethod
     def _country_and_city(location: str) -> tuple[str | None, str | None]:
         normalized = " ".join(location.casefold().split())
+        if re.search(r"\b(?:georgia\s*[,(/-]\s*ga|ga\s*[,)]\s*georgia)\b", normalized):
+            return None, None
         if re.search(r"\b(?:usa|u\.s\.a\.?|united states(?: of america)?|u\.?s\.?)\b", normalized):
             return None, None
         if re.search(r"\b(?:armenia|yerevan)\b", normalized):
