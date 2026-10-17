@@ -76,6 +76,22 @@ def test_remotive_disambiguates_georgia_us_state_from_georgia_country(qualifier)
     assert len(country_jobs) == 1 and country_jobs[0].country == "GE"
 
 
+def test_remotive_disambiguates_georgia_with_us_state_postal_code():
+    row = posting(26, "DevOps Engineer", "Georgia, GA")
+    country_jobs = RemotiveSource.parse_payload(
+        {"jobs": [row]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+    )
+    gabon_jobs = RemotiveSource.parse_payload(
+        {"jobs": [row]},
+        SourceContext(user_id=1, target_countries=["GA"], queries=["DevOps Engineer"]),
+    )
+
+    assert RemotiveSource._country_codes_in_location("Georgia, GA") == {"US"}
+    assert country_jobs == []
+    assert gabon_jobs == []
+
+
 @pytest.mark.parametrize(
     ("location", "target_countries", "market_country"),
     [("Georgia", ["GE"], "GE"), ("Armenia, Georgia", ["AM"], "AM")],

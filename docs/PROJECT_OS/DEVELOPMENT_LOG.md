@@ -6,6 +6,10 @@ Red regression: Remotive `candidate_required_location` is the applicant's requir
 
 Red regression: `GE` and `GE Only` in Remotive's candidate-location field were not mapped to Georgia, so a GE-only posting could be skipped for the matching market. Parsing now recognizes known uppercase ISO alpha-2 tokens only when they are isolated/delimited or paired with explicit location qualifiers; ordinary lowercase words such as `in` and `am` remain unclassified. Fixtures cover `GE`, `GE Only`, `Remote - GE`, `Georgia (GE)`, cross-market exclusion, and lowercase ambiguity. Geography/relocation suites: 133 passed; full isolated PostgreSQL suite: 1212 passed; compileall, diff check and secret scan passed. No schema or policy change and no live source access.
 
+## 2026-10-17 — disambiguate US state Georgia postal code
+
+Red regression: `Georgia, GA` produced country codes GE and GA (Gabon) while omitting US. The Remotive location parser now recognizes only the explicit Georgia+GA postal form as the US state, removes both conflicting country interpretations, and preserves the standalone code semantics. This is local classification only; US is not a configured Remotive target market. Geography/relocation suites: 134 passed; full isolated PostgreSQL suite: 1213 passed; compileall, diff check and secret scan passed. No schema or search-policy change, no live source access.
+
 ## 2026-10-17 — disambiguate ELK Stack from wildlife text
 
 Red regression: lowercase `elk migration` was emitted as an ELK Stack requirement, which can distort non-IT Relocation-first fit. The generic lowercase alias was removed; explicit ELK Stack/components and conventional uppercase `ELK` remain recognized. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL 1197 passed. No weight/threshold change.

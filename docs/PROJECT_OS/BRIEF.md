@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; code checkpoint `9dd89b5`, 55 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work adds uncommitted Remotive ISO country-code parsing and regressions; the two user proposal files remain untouched and untracked. Latest full isolated PostgreSQL suite: 1212 passed; focused geography/relocation suites: 133 passed; compileall, diff check and secret scan passed. Test DB stopped. No live acceptance.
+- Branch `work/v357-rejection-diagnostics`; code checkpoint `fc77dd9`, 56 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Current work adds uncommitted disambiguation for Remotive `Georgia, GA`; the two user proposal files remain untouched and untracked. Latest full isolated PostgreSQL suite: 1213 passed; focused geography/relocation suites: 134 passed; compileall, diff check and secret scan passed. Test DB stopped. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
@@ -29,6 +29,7 @@ The personal flow is: discover → normalize/dedupe → fit/score → user revie
 - RemoteOK/Arbeitnow retain explicit known-geography `only` labels as remote scope and source evidence, so worldwide boilerplate cannot erase them. Plain office/global labels remain unknown; no inferred citizenship, residence, visa or work authorization. Existing records need rediscovery to acquire the new scope.
 - Remotive `candidate_required_location` remains remote eligibility scope and market-filter identity, not physical work-country evidence. Unknown visa sponsorship, relocation support and work authorization remain unknown.
 - Remotive recognizes clearly delimited uppercase ISO country codes as candidate location scope (including GE); lowercase common words are not treated as codes.
+- `Georgia, GA` is treated as the US state (not GE or Gabon/GA); US is not currently an enabled Remotive search market, so only the misclassification/exclusion is verified locally.
 - HH owner-only submission now persists a `sending` reservation **before** the external API call. A concurrent, previously attempted or ambiguous submission blocks automatic repeat. Confirmed `sent`, external handoff and unknown states are distinguished in database/history/UI. A prepared or reviewed-but-never-sent draft is not considered a submission. No live HH sending was done.
 - Recruiter auto-reply defaults OFF; invalid/nonfinite confidence requires human review. HH callback errors redact unexpected provider/DB payloads and validate IDs.
 - Auto-apply has **no implementation** despite legacy `AUTO_APPLY` config: /status now explicitly discloses that it never submits automatically. Do not enable it.

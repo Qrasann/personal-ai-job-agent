@@ -126,10 +126,17 @@ class RemotiveSource(JobSource):
             )
             if clearly_scoped:
                 codes.add(code)
-        # "Georgia, USA" refers to the US state, while unqualified "Georgia"
-        # remains the country. Do not let the country catalog alias override
-        # an explicit country qualifier in the source's hiring-location text.
-        if "US" in codes and "GE" in codes and re.search(
+        # "Georgia, USA" / "Georgia, GA" refer to the US state, while
+        # unqualified "Georgia" remains the country. GA is also Gabon's ISO
+        # code, so only the explicit Georgia+postal-code form is disambiguated.
+        us_georgia_state = bool(re.search(
+            r"\b(?:Georgia\s*[,(/-]\s*GA|GA\s*[,)]\s*Georgia)\b", location, re.I
+        ))
+        if us_georgia_state:
+            codes.discard("GE")
+            codes.discard("GA")
+            codes.add("US")
+        elif "US" in codes and "GE" in codes and re.search(
             r"\b(?:u\.?s\.?a?\.?|united states(?: of america)?)\b", text, re.I
         ):
             codes.discard("GE")

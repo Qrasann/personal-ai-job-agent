@@ -109,8 +109,9 @@ location remains remote eligibility scope, not a physical work-country claim;
 explicit uppercase ISO location codes such as `GE`/`GE Only` are now parsed
 without treating ordinary lowercase words as country codes. Rediscovery under
 a new provider ID preserves the canonical Job's source-scoped snapshot and
-latest provider reference. Offline fixtures and isolated PostgreSQL regressions
-pass; live source eligibility and usefulness remain unverified.
+latest provider reference. `Georgia, GA` is disambiguated as the US state,
+not Georgia country or Gabon. Offline fixtures and isolated PostgreSQL
+regressions pass; live source eligibility and usefulness remain unverified.
 Remote location follow-up: IMPLEMENTED preservation of explicit known-geography
 `only` labels for RemoteOK/Arbeitnow in scope and source evidence. Office/global
 labels remain unknown; candidate-specific legal eligibility stays PARTIAL.
