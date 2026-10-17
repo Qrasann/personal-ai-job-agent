@@ -1,12 +1,11 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; HEAD `2c06f33` before the current increment. It is 34 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, with no behind commits. Worktree had only the two untracked user proposal files; preserve them. Current increment is native-script citizenship/residence evidence; see HANDOFF for final checkpoint state.
-- The latest completed code checkpoints cover precise Candidate Fit GitLab CI vocabulary, EURES whole-token relevance and malformed metadata isolation, EURES date/link validation, safe Telegram vacancy links, and Armenian/Georgian relocation language evidence. Live source usefulness and Telegram acceptance remain unverified.
-- Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; do not infer deployment. PR #31 and other PR states are historical until rechecked.
-- PostgreSQL checks use only the isolated `job-agent-tests` container on port 55432. Latest run: unit suite 1167 passed / 17 skipped; isolated PostgreSQL suite 1184 passed. The test container is stopped.
-- User-owned untracked files `AI-JOB-AGENT-MERGED-ROADMAP-PROPOSAL.md` and `CODEX-MAIN-ROADMAP-SYNC-PROMPT.md` must stay untouched and uncommitted.
-- `ROADMAP.md` is the sole canonical roadmap; this brief and HANDOFF provide the current restart point. Do not repeat the readiness audit or claim offline checks as live acceptance.
+- Branch `work/v357-rejection-diagnostics`; HEAD `438ee6d` before the current increment. It is 35 commits ahead of `origin/feature/v3.5.7-international-market-coverage`, with no behind commits. The working changes are a Relocation Evidence restriction-classification fix; only the two untracked user proposal files are unrelated and must remain untouched.
+- Latest verified increments: native-script Armenian/Georgian citizen phrases are preserved as source evidence; ongoing regression tightens this to explicit restriction wording so neutral references to citizens are not treated as job eligibility limits. Unit suite 1170 passed / 17 skipped; isolated PostgreSQL suite 1187 passed. Test container stopped.
+- Candidate Fit and Source Intelligence fixes already present include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
+- Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
+- `ROADMAP.md` is the sole canonical roadmap; this brief and HANDOFF provide the current restart point. Do not claim offline checks as live acceptance.
 
 ## Product scope
 The personal flow is: discover → normalize/dedupe → fit/score → user review → grounded resume/cover letter package → explicit owner approval → application tracking → interview practice. Maintain independent **Career-first** (DevOps/Linux/Infrastructure/SRE) and **Relocation-first** (lawful international employment, including non-IT roles) search profiles. Never invent candidate experience, remote hiring eligibility, visa sponsorship, housing, salary period or employer promises. Unknown evidence remains unknown. Preserve selected provider/source-posting identity and snapshots in review and application packages.

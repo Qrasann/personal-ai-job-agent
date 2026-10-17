@@ -1,3 +1,7 @@
+## 2026-10-17 — require explicit citizenship restriction wording
+
+Red regressions showed that a neutral mention such as “services for citizens” was being recorded as a work restriction. Citizenship vocabulary now requires explicit limiting wording, while direct residence phrases retain their existing behavior. Explicit `US citizens only`, Armenian-only and Georgian-only fixtures remain recognized. Unit tests: 1170 passed, 17 skipped; isolated PostgreSQL: 1187 passed. Offline fixtures only; no legal eligibility inference.
+
 ## 2026-10-17 — native regional citizenship evidence
 
 Red regressions showed that explicit Armenian `քաղաքացիների` and Georgian `მოქალაქეებისთვის` posting text stayed unknown. The narrow vocabulary now captures these source phrases and labels the observed scope as citizenship. This is evidence extraction only: no legal eligibility or foreign-hire conclusion. References checked: [Armenian IOM migration glossary](https://publications.iom.int/system/files/pdf/iml30_migration_law_glossary_armenian.pdf), [Georgian-English Dictionary.ge](https://dictionary.ge/ka/word/citizen/). Targeted relocation evidence: 29 passed; full unit suite: 1167 passed, 17 skipped; isolated PostgreSQL suite: 1184 passed. Synthetic fixtures only; test container stopped.

@@ -1,8 +1,8 @@
 # Handoff
 
-## Current entry point — 2026-10-17 native regional citizenship evidence
+## Current entry point — 2026-10-17 explicit relocation restriction wording
 
-Starting HEAD `2c06f33`, branch `work/v357-rejection-diagnostics`, 34 commits ahead of feature origin. Added conservative native-script recognition for explicit Armenian and Georgian citizen wording; the resulting field is source evidence with citizenship scope, not legal eligibility. Red tests failed before the code change; relocation evidence tests 29 passed, full unit suite 1167 passed / 17 skipped, isolated PostgreSQL suite 1184 passed. Test DB stopped. `BRIEF.md`, `CURRENT_STATE.md`, `TASKS.md`, `DEVELOPMENT_LOG.md`, and `ROADMAP.md` record the increment. Offline fixtures only, no network/live acceptance. Next: inspect one independent Candidate Fit or source quality edge case, then run relevant tests and preserve a local checkpoint. Do not stage the two user proposal files.
+Starting HEAD `438ee6d`, branch `work/v357-rejection-diagnostics`, 35 commits ahead of feature origin. A red regression reproduced neutral English/German/Russian mentions of citizens being classified as work restrictions. The extractor now requires an explicit restriction construction while retaining US `citizens only` and Armenian/Georgian native-script explicit forms. Relocation evidence tests 32 passed; full unit suite 1170 passed / 17 skipped; isolated PostgreSQL suite 1187 passed. Test DB stopped. Roadmap and PROJECT_OS reflect the change. Offline fixtures only; no live source checks or legal conclusions. Next: run compileall, diff check and secret scan, inspect the exact diff, then local checkpoint; afterwards inspect a separate Candidate Fit or Source Intelligence issue. Preserve both untracked user proposal files.
 
 ## Current entry point — 2026-10-17 regional relocation language evidence
 

@@ -1,3 +1,9 @@
+## 2026-10-17 — avoid false relocation restrictions from neutral wording
+
+- [x] Reproduce neutral English/German/Russian citizen mentions being classified as hiring restrictions; require explicit restriction wording while retaining tested US and regional native-script phrases.
+- [x] Relocation evidence tests 32; unit suite 1170 passed / 17 skipped; isolated PostgreSQL 1187 passed; test DB stopped.
+- [ ] Continue an independent Candidate Fit or Source Intelligence regression; do not infer live hiring eligibility.
+
 ## 2026-10-17 — Relocation Evidence native citizenship terms
 
 - [x] Reproduce missing Armenian/Georgian native-script citizen conditions and retain observed citizenship scope without making a legal conclusion.

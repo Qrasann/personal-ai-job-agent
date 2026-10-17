@@ -26,12 +26,18 @@ EVIDENCE_FIELDS = (
 
 _RULES: dict[str, re.Pattern[str]] = {
     "citizenship_or_residence_restriction": re.compile(
-        r"[^.!?;\n]{0,100}(?:citizens|citizenship|nationals only|residents only|"
+        r"[^.!?;\n]{0,100}(?:only (?:[a-z]+ ){0,4}(?:citizens|nationals)|"
+        r"(?:citizens|nationals)(?: of [^.!?;\n]{1,50})? only|"
+        r"citizenship (?:is )?(?:required|mandatory)|must be (?:a )?(?:citizen|national)|"
+        r"nationals only|residents only|"
         r"must be located in|only candidates (?:currently )?(?:living|residing|located) in|"
         r"candidates must (?:currently )?(?:live|reside|be located) in|applicants must be based in|"
-        r"staatsangehörig\w*|staatsbürger\w*|nur bewerber mit wohnsitz|wohnhaft in|wohnsitz in .{1,60} erforderlich|"
+        r"(?:nur [^.!?;\n]{0,60}(?:staatsangehörig\w*|staatsbürger\w*)|"
+        r"(?:staatsangehörig\w*|staatsbürger\w*)[^.!?;\n]{0,60}(?:nur|erforderlich))|"
+        r"nur bewerber mit wohnsitz|wohnhaft in|wohnsitz in .{1,60} erforderlich|"
         r"(?:граждан|резидент)\w* только|только для граждан|проживать в|"
-        r"քաղաքացի\w*|მოქალაქე\w*)"
+        r"միայն[^.!?;\n]{0,60}քաղաքացի\w*|քաղաքացի\w*[^.!?;\n]{0,60}միայն|"
+        r"მხოლოდ[^.!?;\n]{0,60}მოქალაქე\w*|მოქალაქე\w*[^.!?;\n]{0,60}მხოლოდ)"
         r"[^.!?;\n]{0,100}", re.I
     ),
     "language_requirement": re.compile(

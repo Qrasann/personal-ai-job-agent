@@ -234,6 +234,23 @@ def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():
 
 
 @pytest.mark.parametrize("description", [
+    "We build digital services for citizens and public institutions.",
+    "The role supports programs for Staatsangehörige and local communities.",
+    "Сервис помогает гражданам находить государственные услуги.",
+])
+def test_neutral_citizenship_mentions_are_not_work_eligibility_restrictions(description):
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="neutral-citizens", title="Engineer",
+        description=description,
+    )
+
+    field = build_relocation_evidence(job)["fields"]["citizenship_or_residence_restriction"]
+
+    assert field["status"] == "unknown"
+    assert "interpretation" not in field
+
+
+@pytest.mark.parametrize("description", [
     "Միայն Հայաստանի քաղաքացիների համար։",
     "ვაკანსია მხოლოდ საქართველოს მოქალაქეებისთვის.",
 ])

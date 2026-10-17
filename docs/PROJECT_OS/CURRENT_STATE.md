@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — require explicit citizenship restriction wording
+
+Neutral references to citizens in vacancy text were incorrectly captured as a hiring restriction. Citizenship terms now require explicit limiting language (for example `citizens only` or equivalent native-script forms); neutral mentions remain unknown. Existing US, Armenian and Georgian explicit forms still pass. Relocation evidence tests 32 passed; full unit suite 1170 passed / 17 skipped; isolated PostgreSQL suite 1187 passed. Test DB stopped; fixtures only.
+
 ## 2026-10-17 — Armenian/Georgian citizenship evidence
 
 Relocation Evidence previously missed explicit Armenian and Georgian native-script citizen wording. The extractor now preserves these as source text with `citizenship` scope; it does not infer legal eligibility, residence, or permission to work. Targeted evidence tests: 29 passed; full unit suite: 1167 passed, 17 skipped; full isolated PostgreSQL suite: 1184 passed. Test DB stopped. Offline fixtures only.
