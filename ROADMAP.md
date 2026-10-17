@@ -117,6 +117,10 @@ remain untouched and selection does not boost match scores. Reviewed tailored
 RU/EN CV generation remains PLANNED; the overall milestone remains PARTIAL.
 The shared role matcher also handles the system/systems spelling variant, and
 CV role matching excludes generic terms when preferring a specific role.
+Candidate Fit vocabulary now recognizes explicit `OpenTelemetry` and `Open
+Telemetry` variants without inferring the skill from the ambiguous `OTel`
+acronym alone. Full isolated PostgreSQL suite: 1144 passed; broader vocabulary
+coverage and candidate-specific quality validation remain PARTIAL.
 Source robustness: IMPLEMENTED safe handling of malformed optional RemoteOK/
 Arbeitnow tags and typed/invalid RemoteOK salary metadata, preserving valid jobs.
 RemoteOK also normalizes valid explicit publication instants and keeps invalid

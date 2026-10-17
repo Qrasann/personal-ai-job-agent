@@ -61,6 +61,22 @@ def test_candidate_fit_recognizes_openshift_as_its_own_supported_skill(mention):
     ]
 
 
+@pytest.mark.parametrize("mention", ["OpenTelemetry", "Open Telemetry"])
+def test_candidate_fit_recognizes_explicit_opentelemetry_variants(mention):
+    comparison = compare_facts(
+        f"Requirements: Production experience with {mention} is required.",
+        [fact(8, "Commercial OpenTelemetry collector operations", "commercial")],
+    )
+
+    assert [(item.skill, item.status, item.importance) for item in comparison.requirements] == [
+        ("OpenTelemetry", "commercial", "required"),
+    ]
+
+
+def test_candidate_fit_does_not_treat_ambiguous_otel_acronym_as_confirmed_skill():
+    assert "OpenTelemetry" not in extract_technical_requirements("Requirements: OTel required.")
+
+
 def test_recognizes_common_remote_job_board_requirement_headings():
     text = clean_html_text(
         """

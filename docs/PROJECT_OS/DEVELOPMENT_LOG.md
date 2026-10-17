@@ -1,3 +1,7 @@
+## 2026-10-17 — Candidate Fit OpenTelemetry vocabulary
+
+Added exact `OpenTelemetry` and `Open Telemetry` aliases to the deterministic Candidate Fit vocabulary. Tests prove required-role fact matching and score behavior for both spellings, while acronym-only `OTel` remains unknown to avoid an unsafe inference. Focused fit/score tests: 65 passed; full isolated PostgreSQL suite: 1144 passed. No score weights or thresholds changed.
+
 ## 2026-10-17 — preserve canonical fingerprint on blank-location refresh
 
 Source refresh treated empty country/city strings as a complete identity and could replace a previously valid canonical fingerprint. `_has_complete_identity` now requires nonempty trimmed values. The isolated PostgreSQL regression checks both the fingerprint and stored known location survive a same-provider refresh with blank location. Targeted integration: 1 passed; full isolated PostgreSQL suite: 1140 passed. No schema or matching policy change.

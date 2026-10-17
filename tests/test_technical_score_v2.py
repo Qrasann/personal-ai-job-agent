@@ -6,6 +6,18 @@ from app.matching.fact_comparison import compare_facts, extract_requirement_impo
 from app.matching.technical_score import score_technical_v2
 
 
+def test_opentelemetry_is_compared_only_when_explicitly_present():
+    fact = SimpleNamespace(
+        id=12, value="Commercial Open Telemetry deployment", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    vacancy = "Requirements: OpenTelemetry is required."
+
+    assert score_technical_v2(vacancy, [fact]) == 100
+    assert score_technical_v2(vacancy, []) == 0
+    assert score_technical_v2("Requirements: OTel is required.", [fact]) is None
+
+
 def test_explicit_required_alternative_counts_as_one_scoring_choice():
     linux = SimpleNamespace(
         id=1, value="Commercial Linux administration", experience_type="commercial",

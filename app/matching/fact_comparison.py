@@ -52,6 +52,7 @@ SKILLS: tuple[SkillSpec, ...] = (
     SkillSpec("GitOps", ("gitops", "git ops")),
     SkillSpec("Prometheus", ("prometheus",)),
     SkillSpec("Grafana", ("grafana",)),
+    SkillSpec("OpenTelemetry", ("opentelemetry", "open telemetry")),
     SkillSpec("Zabbix", ("zabbix",)),
     SkillSpec("ELK", ("elk", "elk stack", "elk-stack", "elasticsearch logstash kibana")),
     SkillSpec("Graylog", ("graylog",)),

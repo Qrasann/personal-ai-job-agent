@@ -12,6 +12,12 @@
 - [x] Isolated PostgreSQL regression and full suite: 1140 passed. Existing canonical location/fingerprint preserved; schema and cross-source matching policy unchanged.
 - [ ] Continue practical Source Intelligence and Candidate Fit improvements using local evidence; live result yield still needs owner-approved source acceptance.
 
+## 2026-10-17 — Candidate Fit OpenTelemetry vocabulary
+
+- [x] Add explicit `OpenTelemetry` / `Open Telemetry` matching for vacancy requirements and Candidate Facts; avoid ambiguous acronym-only matches.
+- [x] Focused fit/score tests 65 passed; full isolated PostgreSQL suite 1144 passed.
+- [ ] Continue reviewing the remaining supported-vocabulary gaps and Source Intelligence contracts without broad score-policy changes.
+
 ## 2026-10-17 — Application Package delivery retry safety
 
 - [x] Distinguish `/prepare` failures before persistence from Telegram delivery failures after durable save; point to `/applications` and warn that repeating preparation creates a second draft. Test command and callback delivery failures.
