@@ -1,3 +1,7 @@
+## 2026-10-17 — Telegram US Georgia city ambiguity
+
+Offline fixtures reproduced `Atlanta, Georgia` and `Savannah, Georgia` being assigned country GE. A narrow explicit US-city cue now conflicts with the bare country name and leaves country unknown, preventing false Georgia-country attribution; `Tbilisi, Georgia` remains GE. Targeted Telegram suites: 57 passed, 1 skipped; full isolated PostgreSQL suite: 1300 passed. No live Telegram/source use or legal conclusion.
+
 ## 2026-10-17 — Telegram channel quality counters in `/channels`
 
 The existing state stored filtering and duplicate counts, but the Telegram view hid them and claimed only Bot API automatic intake. Two red assertions reproduced this; the view now groups received/processed and possible vacancies, profile outcomes (Good/Stretch/filtering/duplicates), then delivery/replay/errors. Full offline unit suite: 1277 passed, 21 isolated PostgreSQL tests skipped. No data/schema change or live channel access.

@@ -1,9 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Current Telegram folder increment (2026-10-17)
-- PRs #46–#47 merged; feature is at `a11c176`. Current follow-up branch: `work/telegram-channel-quality-stats`. Optional local MTProto folder preview and selected broadcast-only polling reuse the watcher; account-wide updates are disabled and private cursors support bounded restart catch-up. No folder join, user-account send, production change or live login. All 21 manifest IDs/usernames/access remain unverified.
-- Telegram post date survives ingestion/retry; explicit CV/advertising/candidate headers are skipped, unknown salary remains unknown. `/channels` now visibly separates received/processed, possible vacancies, Good/Stretch assessments, duplicate assessments, filtering and errors. See `docs/developer/TELEGRAM_WATCH.md`.
-- Current UI-only follow-up: 1277 unit tests passed, 21 PostgreSQL tests skipped (isolated DB was not started for this UI change). Earlier PR #47 full isolated PostgreSQL suite: 1298 passed. Live acceptance needs owner-controlled credentials and interactive local authorization, then 2–3 verified channels. Never publish folder invite/session.
+- PRs #46–#48 merged; feature is at `a2df2dc`. Current branch `work/telegram-georgia-location` fixes a Telegram location ambiguity. Optional local MTProto folder preview and selected broadcast-only polling reuse the watcher; account-wide updates are disabled and private cursors support bounded restart catch-up. No folder join, user-account send, production change or live login. All 21 manifest IDs/usernames/access remain unverified.
+- Telegram post date survives ingestion/retry; explicit CV/advertising/candidate headers are skipped, unknown salary remains unknown. `/channels` shows received/processed, possible vacancies, Good/Stretch, duplicate assessments, filtering and errors. Telegram `Atlanta/Savannah, Georgia` must not be labeled country GE. See `docs/developer/TELEGRAM_WATCH.md`.
+- Current isolated PostgreSQL suite: 1300 passed. Live acceptance needs owner-controlled credentials and interactive local authorization, then 2–3 verified channels. Never publish folder invite/session.
 
 ## Historical GitHub snapshot after PR #44
 - Stable main VERSION=3.5.6; development feature VERSION=3.5.7 at 8b33ee5 on 2026-10-17. PR #18 is Draft/open to main.

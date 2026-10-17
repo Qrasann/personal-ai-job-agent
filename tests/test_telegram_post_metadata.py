@@ -20,7 +20,8 @@ def test_labeled_role_company_and_armenia_location_are_not_hashtag_titles():
     assert job.raw["text"].startswith("#vacancy")
 
 
-@pytest.mark.parametrize("location", ["Georgia, Armenia", "Georgia, USA", "Remote worldwide", "not disclosed"])
+@pytest.mark.parametrize("location", ["Georgia, Armenia", "Georgia, USA", "Remote worldwide", "not disclosed",
+                                      "Atlanta, Georgia", "Savannah, Georgia"])
 def test_ambiguous_labeled_locations_do_not_invent_country(location):
     job = parse_telegram_job("Role: Support\nLocation: " + location, source_ref="fixture")
     assert job.country is None

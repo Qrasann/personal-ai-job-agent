@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — Telegram US Georgia city ambiguity
+
+Two offline fixtures showed `Location: Atlanta, Georgia` and `Savannah, Georgia` being assigned country GE, which could enter Georgia-country relocation searches. The parser now leaves country unknown when these explicit US Georgia city patterns conflict with the bare country name; `Tbilisi, Georgia` still resolves GE. This is location classification only and does not infer work authorization. Targeted Telegram suites: 57 passed, 1 skipped; full isolated PostgreSQL suite: 1300 passed. No live channel access or production change.
+
 ## 2026-10-17 — expose Telegram channel quality counters
 
 The watcher persisted filtered and duplicate assessment counts but `/channels` hid both. Its header also described Bot API as the only automatic path after the optional local folder client was added. The dashboard now shows received/processed, possible vacancies, non-vacancies, Good/Stretch, filtering, duplicate assessments, notifications, replays and errors with truthful intake options. The two regression assertions failed before the fix; full offline unit suite: 1277 passed, 21 isolated PostgreSQL tests skipped. No DB or live Telegram action.
