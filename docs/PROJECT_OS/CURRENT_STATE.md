@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — expose Telegram channel quality counters
+
+The watcher persisted filtered and duplicate assessment counts but `/channels` hid both. Its header also described Bot API as the only automatic path after the optional local folder client was added. The dashboard now shows received/processed, possible vacancies, non-vacancies, Good/Stretch, filtering, duplicate assessments, notifications, replays and errors with truthful intake options. The two regression assertions failed before the fix; full offline unit suite: 1277 passed, 21 isolated PostgreSQL tests skipped. No DB or live Telegram action.
+
 ## 2026-10-17 — explicit candidate posts excluded from folder yield
 
 Offline regressions reproduced four false vacancy candidates with first-line `#OpenToWork`, `#ищуработу`, `Резюме:` and `Resume:`. The narrow header filter now counts them as non-vacancy posts without ingestion; a job post that asks applicants to send a résumé later remains eligible. Full isolated PostgreSQL suite: 1298 passed. PR #46's folder intake is merged at feature `486819d`; this follow-up is local on `work/telegram-folder-post-quality`. No live posts were inspected.

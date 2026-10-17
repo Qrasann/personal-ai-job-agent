@@ -93,11 +93,13 @@ async def change_subscription(user_id: int, action: str, target: str, scope: str
 
 
 def render_subscriptions(state: dict) -> str:
-    lines = ["📡 Telegram Channel Watch", "Новые посты через Bot API; история каналов не сканируется."]
+    lines = ["📡 Telegram Channel Watch", "Новые посты: Bot API или включённый локальный клиент; старая история каналов не сканируется."]
     for key, item in state["channels"].items():
         stats = item.get("stats", {})
         lines.append(f"{'✅' if item.get('enabled') else '⏸'} {key} · {item.get('scope', 'both')}")
-        lines.append(f"Получено: {stats.get('received', 0)} · обработано: {stats.get('posts', 0)} · возможно вакансий: {stats.get('vacancy_candidates', 0)} · не вакансий: {stats.get('non_vacancy', 0)} · Good-оценок: {stats.get('qualified', 0)} · Stretch-оценок: {stats.get('stretch', 0)} · уведомлений: {stats.get('notified', 0)} · повторов: {stats.get('replays', 0)} · ошибок: {stats.get('errors', 0)}")
+        lines.append(f"Получено: {stats.get('received', 0)} · обработано: {stats.get('posts', 0)} · возможно вакансий: {stats.get('vacancy_candidates', 0)} · не вакансий: {stats.get('non_vacancy', 0)}")
+        lines.append(f"Оценки: Good {stats.get('qualified', 0)} · Stretch {stats.get('stretch', 0)} · отсеиваний: {stats.get('filtered', 0)} · дубли оценок: {stats.get('duplicate', 0)}")
+        lines.append(f"Уведомлений: {stats.get('notified', 0)} · повторов: {stats.get('replays', 0)} · ошибок: {stats.get('errors', 0)}")
         if item.get("last_post_at"):
             lines.append("Последний принятый пост: " + item["last_post_at"])
     if not state["channels"]:
@@ -105,7 +107,7 @@ def render_subscriptions(state: dict) -> str:
     lines.append(f"Ожидают повторной обработки: {len(state.get('pending', {}))}")
     if state.get("retry_overflow"):
         lines.append(f"Ошибок вне переполненной очереди: {state['retry_overflow']}")
-    lines.extend(["", "/channels add @канал [career|relocation|both]", "/channels on|off|remove @канал", "/channels retry — повторить до 5 неуспешных постов", "Подписка сама не добавляет бота в канал. Для автоприёма добавьте бота в канал; иначе пересылайте посты вручную."])
+    lines.extend(["", "/channels add @канал [career|relocation|both]", "/channels on|off|remove @канал", "/channels retry — повторить до 5 неуспешных постов", "Подписка сама не добавляет бота в канал. Для Bot API добавьте бота в канал; другой вариант — отдельный локальный клиент для разрешённых каналов или ручная пересылка."])
     return "\n".join(lines)
 
 
