@@ -1,8 +1,8 @@
 # Handoff
 
-## Current entry point — 2026-10-17 Candidate Fit networking context
+## Current entry point — 2026-10-17 verified offline quality checkpoint
 
-Starting HEAD `daf5f10`, branch `work/v357-rejection-diagnostics`, 41 commits ahead of feature origin. Red regressions showed business contact-network wording (“industry contacts”, “professional contacts”, “stakeholder networking”) being interpreted as technical Networking. Those explicit phrases are now excluded; technical network, networking and firewall terms remain. Focused fit suites 74 passed; full unit suite 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed. Test DB stopped. Weights/thresholds unchanged; offline fixtures only. Roadmap and Project OS updated. Current change needs compile/diff/secret gates and local checkpoint. Next: inspect a distinct Source Intelligence/Relocation-first issue. Preserve both untracked user proposal files.
+Branch `work/v357-rejection-diagnostics`; HEAD `184fdeb`, 42 commits ahead of `origin/feature/v3.5.7-international-market-coverage` with no behind commits. Worktree is clean except the two untracked user proposal files, which must remain untouched. Latest Candidate Fit fix prevents business/contact networks from appearing as technical Networking requirements; preceding checkpoints deduplicate Docker Compose, disambiguate ELK from wildlife, tighten Relocation citizenship evidence, and disambiguate Remotive `Georgia, USA`. Latest complete tests: unit 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed. Test DB stopped. `compileall`, `git diff --check`, secret scan all passed. All checks were local/offline fixtures; no live source, Telegram, employer, production, push or merge actions. Next: inspect a distinct high-value Source Intelligence or Relocation-first edge case, add a red fixture before a minimal fix, then target/full tests and update docs/checkpoint. Preserve two proposals; do not publish this work without authorization.
 
 ## Current entry point — 2026-10-17 regional relocation language evidence
 
