@@ -2,7 +2,7 @@
 
 ## Current handoff — 2026-10-17
 
-Feature branch/origin is synced at `fe05acf`. PR #34 merged after Python, Docker build and secret scan passed; its EURES change preserves validated search cards when detail requests fail. PR #33 is integrated and PR #31/#27 were superseded; PR #18 still targets `main` and must not be merged. Current work branch `work/candidate-fit-organizational-networking`, HEAD `be421c8`; PR #35 targets feature and CI is running. Candidate Fit fix excludes explicit institutional networks such as hospitals/clinics from technical Networking while keeping routing/firewall detectable. Targeted tests 89 passed; full isolated PostgreSQL suite 1237 passed; DB stopped; compileall, diff check and secret scan passed. Next: wait for PR #35 CI and integrate if all checks pass, then continue another concrete Source Intelligence/Candidate Fit issue. Production/runtime untouched.
+Feature branch/origin is synced at `52aeb1c`. PR #35 merged after all checks passed; PR #34 is also integrated, and PR #31/#27 were superseded. PR #18 still targets `main`; do not merge it. Current branch `work/eures-search-card-coverage` starts at `52aeb1c`. EURES change is uncommitted: all validated cards from bounded search responses now survive the detail enrichment cap; at most eight detail requests still run. Red test covered five cards/two details. EURES tests 27 passed; full isolated PostgreSQL suite 1238 passed; test DB stopped; compileall, diff check and secret scan passed. Next: inspect and document diff, commit only owned code/test/PROJECT_OS files, push/open PR to feature, wait for CI, then continue another source-quality/Candidate Fit issue. Production/runtime and user proposal files untouched.
 
 ## Current handoff — 2026-10-17
 

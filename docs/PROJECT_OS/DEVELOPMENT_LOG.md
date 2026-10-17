@@ -2813,3 +2813,7 @@ A failed EURES detail request previously discarded a validated search card; if a
 ## 2026-10-17 — avoid false technical Networking requirements in healthcare postings
 
 Reproduced “a nationwide network of clinics and hospitals” becoming a required Networking skill in Candidate Fit. Narrow institutional network phrases are now excluded; technical routing/firewall wording remains recognized. Fact-comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed. No scoring weights or thresholds changed. Checkpoint `be421c8` is in PR #35; CI is running. Continue source/fit reliability work after integration.
+
+## 2026-10-17 — separate EURES enrichment limits from returned coverage
+
+A code review found that `max_details=8` also capped the returned EURES vacancies, silently dropping already-fetched search cards even when the API request itself was bounded to at most six queries of 50 cards each. The adapter now enriches at most eight but retains all validated cards from those bounded search pages. Five-card/two-detail regression was red before the change. EURES tests: 27 passed; full isolated PostgreSQL suite: 1238 passed; isolated DB stopped; compileall, diff check and secret scan passed. No additional requests or schema changes. Next: checkpoint/PR/CI, then continue roadmap work.

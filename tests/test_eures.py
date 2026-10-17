@@ -342,6 +342,31 @@ def test_discover_returns_search_cards_when_every_detail_request_fails(monkeypat
     assert [item["operation"] for item in source.discovery_diagnostics] == ["detail_request"] * 2
 
 
+def test_detail_request_bound_does_not_truncate_valid_search_card_results(monkeypatch):
+    detail_ids = []
+
+    async def post(self, url, json=None, **kwargs):
+        return httpx.Response(200, json={"jvs": [
+            search_row(id=f"posting-{index}", title=f"DevOps Engineer {index}")
+            for index in range(5)
+        ]}, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        detail_ids.append(url)
+        return httpx.Response(200, json=details(), request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    source = EuresSource()
+    source.max_details = 2
+
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps"])))
+
+    assert len(result) == 5
+    assert len(detail_ids) == 2
+    assert [job.url == EuresSource.portal_url for job in result] == [False, False, True, True, True]
+
+
 def test_discover_reports_all_search_http_failures(monkeypatch):
     async def post(self, url, json=None, **kwargs):
         return httpx.Response(503, request=httpx.Request("POST", url))

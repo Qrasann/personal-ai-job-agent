@@ -255,9 +255,10 @@ class EuresSource(JobSource):
                     found.setdefault(job.source_job_id, job)
             if successful_searches == 0 and source_errors:
                 raise source_errors[-1]
-            candidates = list(found.values())[: self.max_details]
+            candidates = list(found.values())
+            detail_candidates = candidates[: self.max_details]
             enriched_by_id: dict[str, NormalizedJob] = {}
-            for job in candidates:
+            for job in detail_candidates:
                 try:
                     response = await self._request_with_retry(client.get, job.raw["evidence_url"])
                     enriched_job = self.enrich(job, response.json())
