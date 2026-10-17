@@ -1,8 +1,8 @@
 # Handoff
 
-## Current entry point — 2026-10-17 explicit relocation restriction wording
+## Current entry point — 2026-10-17 Remotive country disambiguation
 
-Starting HEAD `438ee6d`, branch `work/v357-rejection-diagnostics`, 35 commits ahead of feature origin. A red regression reproduced neutral English/German/Russian mentions of citizens being classified as work restrictions. The extractor now requires an explicit restriction construction while retaining US `citizens only` and Armenian/Georgian native-script explicit forms. Relocation evidence tests 32 passed; full unit suite 1170 passed / 17 skipped; isolated PostgreSQL suite 1187 passed. Test DB stopped. Roadmap and PROJECT_OS reflect the change. Offline fixtures only; no live source checks or legal conclusions. Next: run compileall, diff check and secret scan, inspect the exact diff, then local checkpoint; afterwards inspect a separate Candidate Fit or Source Intelligence issue. Preserve both untracked user proposal files.
+Starting HEAD `4d7a9b8`, branch `work/v357-rejection-diagnostics`, 36 commits ahead of feature origin. A red fixture showed `Georgia, USA` was parsed as GE and passed a Georgia-targeted search. Remotive now resolves explicit US qualifiers as US, while unqualified `Georgia` remains GE. Remotive tests 9 passed; full unit suite 1171 passed / 17 skipped; isolated PostgreSQL suite 1188 passed. Test DB stopped. `ROADMAP.md` and Project OS updated. No live API request; current selectable-country catalog does not support US targeting. Next: run final compile/diff/secret gates, review the source parser diff, checkpoint locally, then inspect the next distinct Candidate Fit or Source Intelligence issue. Preserve user proposal files.
 
 ## Current entry point — 2026-10-17 regional relocation language evidence
 

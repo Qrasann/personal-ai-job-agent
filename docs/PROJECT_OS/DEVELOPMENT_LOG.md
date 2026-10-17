@@ -1,3 +1,7 @@
+## 2026-10-17 — disambiguate Remotive Georgia location
+
+Red regression: `Georgia, USA` matched both the supported Georgia country alias and US, so a GE-targeted search accepted an explicitly US-scoped listing. An explicit US qualifier now removes the ambiguous GE code; unqualified `Georgia` remains GE. Remotive tests 9 passed; full unit suite 1171 passed / 17 skipped; isolated PostgreSQL 1188 passed. Offline fixture only. The current selectable country catalog does not support US targeting; this change does not add it.
+
 ## 2026-10-17 — require explicit citizenship restriction wording
 
 Red regressions showed that a neutral mention such as “services for citizens” was being recorded as a work restriction. Citizenship vocabulary now requires explicit limiting wording, while direct residence phrases retain their existing behavior. Explicit `US citizens only`, Armenian-only and Georgian-only fixtures remain recognized. Unit tests: 1170 passed, 17 skipped; isolated PostgreSQL: 1187 passed. Offline fixtures only; no legal eligibility inference.

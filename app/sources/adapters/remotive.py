@@ -106,6 +106,13 @@ class RemotiveSource(JobSource):
                 if re.search(rf"(?<!\w){re.escape(name.casefold())}(?!\w)", text):
                     codes.add(code)
                     break
+        # "Georgia, USA" refers to the US state, while unqualified "Georgia"
+        # remains the country. Do not let the country catalog alias override
+        # an explicit country qualifier in the source's hiring-location text.
+        if "US" in codes and "GE" in codes and re.search(
+            r"\b(?:u\.?s\.?a?\.?|united states(?: of america)?)\b", text, re.I
+        ):
+            codes.discard("GE")
         return codes
 
     @classmethod

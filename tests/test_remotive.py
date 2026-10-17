@@ -55,6 +55,23 @@ def test_remotive_keeps_worldwide_and_selected_markets_but_rejects_country_only_
     assert all(job.visa_sponsorship is None and job.relocation is None for job in jobs)
 
 
+def test_remotive_disambiguates_georgia_us_state_from_georgia_country():
+    row = posting(21, "DevOps Engineer", "Georgia, USA")
+
+    georgia_jobs = RemotiveSource.parse_payload(
+        {"jobs": [row]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+    )
+    country_jobs = RemotiveSource.parse_payload(
+        {"jobs": [posting(22, "DevOps Engineer", "Georgia")]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+    )
+
+    assert georgia_jobs == []
+    assert RemotiveSource._country_codes_in_location("Georgia, USA") == {"US"}
+    assert len(country_jobs) == 1 and country_jobs[0].country == "GE"
+
+
 def test_remotive_missing_candidate_location_stays_unknown_and_free_text_salary_is_not_structured():
     row = posting(7, "Linux Administrator", "")
     row.pop("candidate_required_location")

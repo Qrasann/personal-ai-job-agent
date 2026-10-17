@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — Remotive Georgia country disambiguation
+
+Remotive location parsing previously read `Georgia, USA` as both GE and US, allowing a US-state-only listing to pass a GE target filter. An explicit US qualifier now suppresses the ambiguous GE alias; unqualified `Georgia` remains GE. Remotive tests 9 passed; full unit suite 1171 passed / 17 skipped; isolated PostgreSQL suite 1188 passed. The source parser is offline-tested; US is not a selectable target in the current country catalog, so no US-market search support is claimed.
+
 ## 2026-10-17 — require explicit citizenship restriction wording
 
 Neutral references to citizens in vacancy text were incorrectly captured as a hiring restriction. Citizenship terms now require explicit limiting language (for example `citizens only` or equivalent native-script forms); neutral mentions remain unknown. Existing US, Armenian and Georgian explicit forms still pass. Relocation evidence tests 32 passed; full unit suite 1170 passed / 17 skipped; isolated PostgreSQL suite 1187 passed. Test DB stopped; fixtures only.
