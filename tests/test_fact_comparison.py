@@ -263,6 +263,13 @@ def test_positive_requirement_after_and_is_not_masked_by_earlier_negation():
     "Linux is not essential.",
     "Experience with Linux is not a prerequisite.",
     "No Linux background needed.",
+    "Linux isn't required.",
+    "Linux isn't a requirement.",
+    "Experience with Linux isn't essential.",
+    "Linux is not a must.",
+    "Linux is not a hard requirement.",
+    "No previous Linux experience is necessary.",
+    "Linux experience is not a must-have.",
 ])
 def test_explicit_non_requirement_wording_is_not_classified_as_required(phrase):
     comparison = compare_facts(f"Requirements: {phrase}", [])
