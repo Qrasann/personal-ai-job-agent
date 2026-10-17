@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — Armenian/Georgian citizenship evidence
+
+Relocation Evidence previously missed explicit Armenian and Georgian native-script citizen wording. The extractor now preserves these as source text with `citizenship` scope; it does not infer legal eligibility, residence, or permission to work. Targeted evidence tests: 29 passed; full unit suite: 1167 passed, 17 skipped; full isolated PostgreSQL suite: 1184 passed. Test DB stopped. Offline fixtures only.
+
 ## 2026-10-17 — Armenian/Georgian native language cues
 
 Relocation Evidence now classifies narrow native-script Armenian and Georgian words for required, preferred and explicit negative language conditions. Negative phrases remain unspecified rather than becoming false hard requirements. The lexical cues are recorded as descriptive evidence only. Relocation evidence tests: 27 passed; full isolated PostgreSQL suite: 1182 passed. No candidate proficiency, legal eligibility or work permission is inferred.

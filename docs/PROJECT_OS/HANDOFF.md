@@ -1,8 +1,8 @@
 # Handoff
 
-## Current entry point — 2026-10-17 native relocation language conditions
+## Current entry point — 2026-10-17 native regional citizenship evidence
 
-Starting code checkpoint `3109046` added Armenian/Georgian language-name recognition. This follow-up reproduced missing required/preferred native-script condition cues and added narrow positive/negative wording. Explicit negation stays unspecified. The lexical basis and limitations are documented in DEVELOPMENT_LOG with Armenian National Library and Georgian dictionary references. Relocation evidence tests 27 passed; full isolated PostgreSQL suite 1182 passed. Current code/docs need final gates and local checkpoint; stop isolated DB before handoff. No legal eligibility/proficiency conclusions or live source checks. Next: another distinct offline Relocation-first/source evidence case.
+Starting HEAD `2c06f33`, branch `work/v357-rejection-diagnostics`, 34 commits ahead of feature origin. Added conservative native-script recognition for explicit Armenian and Georgian citizen wording; the resulting field is source evidence with citizenship scope, not legal eligibility. Red tests failed before the code change; relocation evidence tests 29 passed, full unit suite 1167 passed / 17 skipped, isolated PostgreSQL suite 1184 passed. Test DB stopped. `BRIEF.md`, `CURRENT_STATE.md`, `TASKS.md`, `DEVELOPMENT_LOG.md`, and `ROADMAP.md` record the increment. Offline fixtures only, no network/live acceptance. Next: inspect one independent Candidate Fit or source quality edge case, then run relevant tests and preserve a local checkpoint. Do not stage the two user proposal files.
 
 ## Current entry point — 2026-10-17 regional relocation language evidence
 

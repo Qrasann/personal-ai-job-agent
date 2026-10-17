@@ -30,7 +30,8 @@ _RULES: dict[str, re.Pattern[str]] = {
         r"must be located in|only candidates (?:currently )?(?:living|residing|located) in|"
         r"candidates must (?:currently )?(?:live|reside|be located) in|applicants must be based in|"
         r"staatsangehörig\w*|staatsbürger\w*|nur bewerber mit wohnsitz|wohnhaft in|wohnsitz in .{1,60} erforderlich|"
-        r"(?:граждан|резидент)\w* только|только для граждан|проживать в)"
+        r"(?:граждан|резидент)\w* только|только для граждан|проживать в|"
+        r"քաղաքացի\w*|მოქალაქე\w*)"
         r"[^.!?;\n]{0,100}", re.I
     ),
     "language_requirement": re.compile(
@@ -203,7 +204,10 @@ def build_relocation_evidence(
     )
     if restriction:
         normalized_restriction = restriction.casefold()
-        citizenship = bool(re.search(r"citizens|citizenship|nationals|граждан", normalized_restriction))
+        citizenship = bool(re.search(
+            r"citizens|citizenship|nationals|граждан|քաղաքացի|მოქალაქე",
+            normalized_restriction,
+        ))
         residence = bool(re.search(
             r"residents|located|living|residing|live|reside|based in|wohn|wohnsitz|проживать|резидент",
             normalized_restriction,

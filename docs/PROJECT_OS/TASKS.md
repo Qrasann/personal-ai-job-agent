@@ -1,3 +1,9 @@
+## 2026-10-17 — Relocation Evidence native citizenship terms
+
+- [x] Reproduce missing Armenian/Georgian native-script citizen conditions and retain observed citizenship scope without making a legal conclusion.
+- [x] Relocation evidence tests 29; unit suite 1167 passed / 17 skipped; isolated PostgreSQL 1184 passed; test DB stopped.
+- [ ] Continue independent Candidate Fit/source-quality review using fixtures; live regional hiring eligibility remains unverified.
+
 # Tasks
 
 ## 2026-10-17 — native Armenian/Georgian language requirement cues

@@ -233,6 +233,23 @@ def test_citizenship_and_residence_restrictions_keep_separate_observed_scope():
     assert "Germany" in fields_b["citizenship_or_residence_restriction"]["excerpt"]
 
 
+@pytest.mark.parametrize("description", [
+    "Միայն Հայաստանի քաղաքացիների համար։",
+    "ვაკანსია მხოლოდ საქართველოს მოქალაქეებისთვის.",
+])
+def test_native_armenian_and_georgian_citizenship_word_is_preserved_as_evidence(description):
+    job = NormalizedJob(
+        source="synthetic_fixture", source_job_id="native-citizenship",
+        title="Support role", description=description,
+    )
+
+    field = build_relocation_evidence(job)["fields"]["citizenship_or_residence_restriction"]
+
+    assert field["status"] == "confirmed"
+    assert field["interpretation"]["scope"] == "citizenship"
+    assert field["excerpt"] == description.rstrip(".")
+
+
 def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_unknown():
     def extract(description):
         job = NormalizedJob(
