@@ -2752,3 +2752,7 @@ PostgreSQL: 988 passed.
 ## 2026-10-17 — validate rediscovery and cross-source evidence invariants
 
 Reviewed repeat source upsert, partial discovery cache and cross-source canonical dedupe together. Existing source-scoped snapshots/evidence refresh correctly, first-seen provenance remains stable, independent provider refs survive dedupe, and cached partial diagnostics are not double-counted. No reproducible defect was found; no code change. Focused offline tests: 95 passed, 1 skipped; isolated PostgreSQL rediscovery/dedupe/application-flow tests: 3 passed. Test container stopped. Exact provider-posting attribution is still absent from canonical `JobMatch` and remains a known product limitation, not a live-acceptance claim.
+
+## 2026-10-17 — choose freshest posting for source-scoped review
+
+Red PostgreSQL regression: two provider IDs from the same source deduped to one canonical Job, but non-exact source-ref selection kept returning the older posting for detail/preparation. Source-ref lookup now prefers the newest valid source evidence capture; exact provider IDs remain exact and legacy refs without timestamps retain first-ref ordering. Focused tests: 38 passed; full isolated PostgreSQL suite: 1199 passed. `compileall`, `git diff --check` and secret scan passed; test DB stopped. Local code checkpoint: `577859a`. No schema or live behavior change.

@@ -36,6 +36,13 @@
 
 # Tasks
 
+## 2026-10-17 — choose freshest same-source posting after canonical dedupe
+
+- [x] Reproduce same-source multiple provider IDs mapping to one canonical Job while source selection returned the oldest ref.
+- [x] Select the newest valid source evidence capture for non-exact lookups; preserve exact ID resolution and deterministic legacy fallback.
+- [x] Focused tests: 38 passed; full isolated PostgreSQL suite: 1199 passed; DB stopped. Checkpoint `577859a`.
+- [ ] Continue with a distinct Candidate Fit or Source Intelligence regression; do not conflate canonical match identity with exact provider-posting attribution.
+
 ## 2026-10-17 — rediscovery / partial failure / cross-source consistency review
 
 - [x] Verify existing source snapshot refresh, stable first-seen provenance, independent refs after dedupe, and partial-cache attempt aggregation.
