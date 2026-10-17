@@ -57,12 +57,20 @@
 
 # Tasks
 
+## 2026-10-17 — Application Package Telegram failure integration
+
+- [x] Verify persisted package → failed Telegram confirmation → `/prepare` retry against isolated PostgreSQL.
+- [x] Confirm retry returns the same package without duplicate or content replacement.
+- [x] Targeted isolated PostgreSQL file: 2 passed; full unit suite 1252 passed/21 skipped; compileall, diff check and secret scan passed.
+- [ ] Commit and publish test-only PR to feature, wait for CI, merge, then continue roadmap.
+
 ## 2026-10-17 — Source Intelligence publication-age telemetry
 
 - [x] Keep only explicit timezone-aware source dates eligible for age calculations; naive, malformed, missing and future timestamps remain unknown.
 - [x] Add non-filtering age buckets: ≤7d, 8–30d, >30d, unknown; show them in source diagnostics.
 - [x] Targeted availability/diagnostics/scan suites: 104 passed.
-- [ ] Run full unit/static gates, checkpoint, publish PR to feature and wait for all CI checks.
+- [x] Full unit suite: 1252 passed, 20 skipped; compileall, diff check and secret scan passed.
+- [x] Commit `a037d67`, merge PR #42 at feature `f6e354b` after all CI checks passed.
 - [ ] Continue the next independent Relocation-first, Candidate Fit or Application Package gap.
 
 ## 2026-10-17 — Candidate Fit negated requirement variants

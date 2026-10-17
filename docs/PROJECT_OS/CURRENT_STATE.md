@@ -1,8 +1,12 @@
 # Current State
 
+## 2026-10-17 — Application Package Telegram delivery retry integration
+
+Added an offline PostgreSQL handler+repository integration path: `/prepare` saves an Application, its Telegram edit fails, then retry returns the saved package without replacing its content or adding a duplicate. Targeted isolated PostgreSQL file: 2 passed; full unit suite 1252 passed/21 skipped; compileall, diff check and secret scan passed. No application is sent. Feature/origin is `f6e354b`; branch `work/prepare-telegram-retry-postgres` contains local test/docs changes.
+
 ## 2026-10-17 — source publication-age telemetry
 
-Source diagnostics previously reported only whether a publication-date field was populated. Added age buckets for timezone-aware source timestamps: ≤7 days, 8–30 days, >30 days, and unknown (including missing, timezone-naive, malformed, or future timestamps). This is source-quality telemetry only; it never filters a listing or calls an old posting closed. Targeted availability/diagnostics/scan suites: 104 passed. Full unit/static gates pending. Feature is synced at `543057f`; current branch `work/source-freshness-age-breakdown` has local changes.
+Source diagnostics previously reported only whether a publication-date field was populated. Added age buckets for timezone-aware source timestamps: ≤7 days, 8–30 days, >30 days, and unknown (including missing, timezone-naive, malformed, or future timestamps). This is source-quality telemetry only; it never filters a listing or calls an old posting closed. Targeted suites 104 passed; full unit 1252 passed/20 skipped; CI green. Merged in PR #42 at feature `f6e354b`.
 
 ## 2026-10-17 — Candidate Fit negated requirement variants
 
