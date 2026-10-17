@@ -1,8 +1,8 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Branch `work/v357-rejection-diagnostics`; HEAD `577859a`, 45 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. Worktree is clean except the two untracked user proposal files, which remain untouched. Latest full isolated PostgreSQL suite: 1199 passed after the source-ref selection fix; compileall, diff check and secret scan passed. Test container stopped.
-- Recent verified increments: non-exact source-ref lookup now selects the newest source evidence capture when multiple provider IDs from one source dedupe to one canonical Job. Exact provider-ID lookup and legacy timestamp-less selection remain stable. Earlier Candidate Fit and relocation/source fixes remain covered by the full suite.
+- Branch `work/v357-rejection-diagnostics`; HEAD `82d6ebf`, 47 commits ahead of `origin/feature/v3.5.7-international-market-coverage`. The worktree is clean except the two untouched untracked user proposal files. Latest full unit suite: 1183 passed, 17 skipped. The previous source-selection checkpoint `577859a` passed full isolated PostgreSQL suite 1199; test DB stopped. Current Candidate Fit change is deterministic parsing only; compileall, diff check and secret scan passed.
+- Recent verified increments: source-scoped review now chooses the freshest same-source posting after canonical dedupe; Candidate Fit recognizes a positively restated skill after a contrastive negation without letting the earlier negative clause suppress it. No scoring thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
 - `ROADMAP.md` is the sole canonical roadmap; this brief and HANDOFF provide the current restart point. Do not claim offline checks as live acceptance.

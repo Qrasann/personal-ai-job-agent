@@ -2756,3 +2756,7 @@ Reviewed repeat source upsert, partial discovery cache and cross-source canonica
 ## 2026-10-17 — choose freshest posting for source-scoped review
 
 Red PostgreSQL regression: two provider IDs from the same source deduped to one canonical Job, but non-exact source-ref selection kept returning the older posting for detail/preparation. Source-ref lookup now prefers the newest valid source evidence capture; exact provider IDs remain exact and legacy refs without timestamps retain first-ref ordering. Focused tests: 38 passed; full isolated PostgreSQL suite: 1199 passed. `compileall`, `git diff --check` and secret scan passed; test DB stopped. Local code checkpoint: `577859a`. No schema or live behavior change.
+
+## 2026-10-17 — keep positive Candidate Fit requirement after negation
+
+Red regression: `Linux is not required, but Linux knowledge is mandatory` became unknown because a negative match suppressed the entire sentence. Required-skill matching now splits supported English, Russian and German contrastive connectors; a positive clause only counts when it independently names the skill. Fact-comparison tests: 44 passed; full unit suite: 1183 passed, 17 skipped. `compileall`, diff check and secret scan passed. Local checkpoint: `82d6ebf`; no threshold or schema change.

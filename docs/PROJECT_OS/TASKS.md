@@ -36,6 +36,14 @@
 
 # Tasks
 
+## 2026-10-17 — preserve positive skill requirement after contrastive negation
+
+- [x] Red test reproduced a required skill classified `unknown` when a positive mention followed a negated mention after “but”.
+- [x] Split contrastive clauses for required-skill classification; the skill must be named in the positive clause.
+- [x] Fact-comparison tests: 44 passed; full unit suite: 1183 passed, 17 skipped; compileall, diff check, secret scan passed. Checkpoint `82d6ebf`.
+- [ ] Continue with the next distinct offline source-quality, Candidate Fit or Relocation-first regression.
+
+
 ## 2026-10-17 — choose freshest same-source posting after canonical dedupe
 
 - [x] Reproduce same-source multiple provider IDs mapping to one canonical Job while source selection returned the oldest ref.
