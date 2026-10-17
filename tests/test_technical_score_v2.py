@@ -1,6 +1,164 @@
+from types import SimpleNamespace
+
+import pytest
+
 from app.database.models import CandidateFact, Job, SearchProfile
 from app.matching.engine import score_job
+from app.matching.fact_comparison import compare_facts, extract_requirement_importance
 from app.matching.technical_score import score_technical_v2
+
+
+def test_opentelemetry_is_compared_only_when_explicitly_present():
+    fact = SimpleNamespace(
+        id=12, value="Commercial Open Telemetry deployment", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    vacancy = "Requirements: OpenTelemetry is required."
+
+    assert score_technical_v2(vacancy, [fact]) == 100
+    assert score_technical_v2(vacancy, []) == 0
+    assert score_technical_v2("Requirements: OTel is required.", [fact]) is None
+
+
+def test_generic_gitlab_repository_work_does_not_create_ci_fit_score():
+    fact = SimpleNamespace(
+        id=13, value="Commercial GitLab repository administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    vacancy = "Requirements: maintain GitLab projects and repositories."
+
+    assert compare_facts(vacancy, [fact]).requirements == ()
+    assert score_technical_v2(vacancy, [fact]) is None
+
+
+def test_docker_compose_is_not_double_counted_as_a_separate_docker_requirement():
+    vacancy = "Requirements: Linux and Docker Compose experience required."
+    linux = SimpleNamespace(
+        id=14, value="Commercial Linux administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+
+    comparison = compare_facts(vacancy, [linux])
+
+    assert [item.skill for item in comparison.requirements] == ["Linux", "Docker Compose"]
+    assert score_technical_v2(vacancy, [linux]) == 50
+
+
+def test_standalone_docker_remains_a_separate_requirement_from_docker_compose():
+    comparison = compare_facts(
+        "Requirements: Docker and Docker Compose administration required.", [],
+    )
+
+    assert {item.skill for item in comparison.requirements} == {"Docker", "Docker Compose"}
+
+
+@pytest.mark.parametrize("phrase", [
+    "an established network of industry contacts",
+    "a network of professional contacts",
+    "networking with key stakeholders",
+    "a nationwide network of clinics and hospitals",
+    "a network of medical professionals",
+    "a network of physicians and nurses",
+])
+def test_professional_contact_network_does_not_create_technical_networking_requirement(phrase):
+    vacancy = f"Requirements: {phrase} is required."
+
+    assert compare_facts(vacancy, []).requirements == ()
+    assert score_technical_v2(vacancy, []) is None
+
+
+def test_technical_network_and_firewall_requirement_is_not_filtered_as_an_organization_network():
+    result = compare_facts("Requirements: Configure network routing and firewall rules.", [])
+
+    assert [(item.skill, item.importance) for item in result.requirements] == [("Networking", "required")]
+
+
+def test_explicit_required_alternative_counts_as_one_scoring_choice():
+    linux = SimpleNamespace(
+        id=1, value="Commercial Linux administration", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    text = "Requirements: Linux or Windows.\nDocker."
+    comparison = compare_facts(text, [linux])
+
+    assert comparison.alternative_groups == (("Linux", "Windows"),)
+    assert comparison.skills_for("missing") == ["Windows", "Docker"]
+    assert score_technical_v2(text, [linux]) == 50
+    assert score_technical_v2("Требования: Linux или Windows", [linux]) == 100
+    assert score_technical_v2("Requirements: Linux and Windows", [linux]) == 50
+
+
+def test_repeated_or_ambiguous_skills_remain_independent_requirements():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial",
+        active=True, deleted_at=None,
+    )
+    repeated = "Requirements: Linux or Windows.\nWindows is also mandatory."
+    ambiguous = "Requirements: Linux or Windows and Docker."
+
+    assert compare_facts(repeated, [linux]).alternative_groups == ()
+    assert score_technical_v2(repeated, [linux]) == 50
+    assert compare_facts(ambiguous, [linux]).alternative_groups == ()
+    assert score_technical_v2(ambiguous, [linux]) == 33
+
+
+def test_preferred_alternative_uses_one_preferred_scoring_choice():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    docker = SimpleNamespace(
+        id=2, value="Docker", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements: Linux. Nice to have: Docker or Kubernetes."
+
+    comparison = compare_facts(vacancy, [linux, docker])
+    assert comparison.preferred_alternative_groups == (("Docker", "Kubernetes"),)
+    assert score_technical_v2(vacancy, [linux, docker]) == 100
+    assert score_technical_v2(vacancy, [linux]) == 85
+    assert score_technical_v2(
+        "Requirements: Linux. Nice to have: Docker and Kubernetes.",
+        [linux, docker],
+    ) == 92
+
+
+def test_required_alternative_before_another_sentence_keeps_one_choice():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements: Linux or Windows. Docker."
+
+    assert compare_facts(vacancy, [linux]).alternative_groups == (("Linux", "Windows"),)
+    assert score_technical_v2(vacancy, [linux]) == 50
+    assert compare_facts(
+        "Requirements: Linux or Windows. Windows is mandatory.", [linux]
+    ).alternative_groups == ()
+
+
+def test_explicit_multiline_alternative_groups_only_the_two_connected_skills():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements:\nLinux\nor Windows\nDocker"
+
+    comparison = compare_facts(vacancy, [linux])
+
+    assert comparison.alternative_groups == (("Linux", "Windows"),)
+    assert comparison.skills_for("missing") == ["Windows", "Docker"]
+    assert score_technical_v2(vacancy, [linux]) == 50
+
+
+def test_multiline_alternative_with_repeated_skill_stays_independent():
+    linux = SimpleNamespace(
+        id=1, value="Linux", experience_type="commercial", active=True,
+        deleted_at=None,
+    )
+    vacancy = "Requirements:\nLinux\nor Windows\nWindows also required"
+
+    assert compare_facts(vacancy, [linux]).alternative_groups == ()
 
 
 def _fact(skill: str, experience_type: str, *, fact_id: int = 1, active: bool = True, deleted=False):
@@ -41,6 +199,11 @@ def test_required_commercial_is_full_technical_match():
     assert score_technical_v2(text, [_fact("Linux", "commercial")]) == 100
 
 
+def test_inline_preferred_section_uses_existing_preferred_weight():
+    text = "Requirements: Linux. Nice to have: Docker."
+    assert score_technical_v2(text, [_fact("Linux", "commercial")]) == 85
+
+
 def test_required_experience_levels_have_strict_order():
     text = "Требования\nLinux"
 
@@ -76,6 +239,37 @@ Docker
 """
     facts = [_fact("Docker", "commercial")]
     assert score_technical_v2(text, facts) == 15
+
+
+def test_necessary_qualification_is_scored_as_required_requirements():
+    text = """Necessary Qualification:
+Minimum 3 years of hands-on Linux system administration experience.
+Minimum 2 years of hands-on experience with AWS in a production environment.
+Working familiarity with AWS Databricks.
+At least 1 year of Windows system administration experience.
+Working familiarity with Kubernetes.
+Preferred:
+Terraform or Ansible.
+"""
+    importance = extract_requirement_importance(text)
+
+    assert importance["Linux"] == "required"
+    assert importance["AWS"] == "required"
+    assert importance["Kubernetes"] == "required"
+    assert importance["Databricks"] == "required"
+    assert importance["Windows"] == "required"
+    assert importance["Terraform"] == "preferred"
+    assert score_technical_v2(
+        text,
+        [_fact("Linux", "commercial"), _fact("Terraform", "commercial", fact_id=2)],
+    ) < 100
+
+    # Greenhouse retains this singular heading in the current Lineate posting;
+    # older pages using the plural form must continue to classify identically.
+    plural_heading = text.replace(
+        "Necessary Qualification:", "Necessary Qualifications:"
+    )
+    assert extract_requirement_importance(plural_heading) == importance
 
 
 def test_missing_preferred_requirement_only_reduces_small_bonus_lane():
@@ -151,6 +345,7 @@ Kubernetes
         country="RU",
         salary_to=150000,
         salary_currency="RUR",
+        salary_period="monthly",
     )
     facts = [
         _fact("Linux", "commercial", fact_id=1),
@@ -193,6 +388,7 @@ def test_score_job_can_use_full_details_for_technical_only():
         country="RU",
         salary_to=150000,
         salary_currency="RUR",
+        salary_period="monthly",
     )
     facts = [
         _fact("Linux", "commercial", fact_id=1),

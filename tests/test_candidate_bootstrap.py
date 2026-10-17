@@ -10,6 +10,7 @@ def _config():
         "candidate": {
             "facts": ["Linux experience", "Docker labs"],
             "hh_resume_id": "hh-123",
+            "english": "B1",
         },
         "geography": {
             "current_country": "ru",
@@ -53,6 +54,7 @@ def test_bootstrap_creates_missing_candidate_data(monkeypatch):
     assert user is refreshed_user
     assert returned_profile is profile
     bootstrap.repo.create_user.assert_awaited_once_with(123, "Roma")
+    bootstrap.repo.ensure_default_profile.assert_awaited_once_with(1, english_level="B1")
     bootstrap.repo.set_user_country.assert_awaited_once_with(1, "RU")
     assert bootstrap.repo.add_fact.await_count == 2
     assert bootstrap.repo.add_resume.await_count == 3
@@ -79,6 +81,7 @@ def test_bootstrap_does_not_duplicate_existing_data(monkeypatch):
     asyncio.run(bootstrap.bootstrap_user(123, "Roma"))
 
     bootstrap.repo.create_user.assert_not_awaited()
+    bootstrap.repo.ensure_default_profile.assert_awaited_once_with(1, english_level="B1")
     bootstrap.repo.set_user_country.assert_not_awaited()
     bootstrap.repo.add_fact.assert_not_awaited()
     bootstrap.repo.update_search_settings.assert_not_awaited()

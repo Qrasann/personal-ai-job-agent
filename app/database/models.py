@@ -4,6 +4,7 @@ from datetime import datetime
 from app.database.time_utils import utcnow_naive
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -186,13 +187,27 @@ class Application(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
+    # Application records are an audit trail and retain a frozen vacancy snapshot.
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="RESTRICT"), index=True)
     source_id: Mapped[str] = mapped_column(String(64))
     source_application_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
     external_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     resume_id: Mapped[int | None] = mapped_column(ForeignKey("resume_profiles.id", ondelete="SET NULL"), nullable=True)
+    resume_snapshot: Mapped[str] = mapped_column(Text, default="")
+    resume_external_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    vacancy_snapshot: Mapped[dict] = mapped_column(JSONB, default=dict)
     message: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(64), default="sent")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+
+
+class ApplicationStatusEvent(Base):
+    __tablename__ = "application_status_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("applications.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 

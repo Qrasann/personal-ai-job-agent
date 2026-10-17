@@ -1,4 +1,5 @@
 import asyncio
+import pytest
 
 from app.config import Settings, settings
 from app.sources.adapters.hh import HHSource
@@ -58,6 +59,91 @@ def test_hh_public_discovery_searches_each_role_separately_without_details():
     assert len(jobs) == 1
     assert jobs[0].source_job_id == "123"
     assert jobs[0].country == "RU"
+
+
+def test_hh_searches_catalogued_target_country_and_does_not_guess_unsupported_area():
+    fake = FakeHHClient()
+    source = HHSource(fake)
+    ctx = SourceContext(
+        user_id=1,
+        current_country="RU",
+        target_countries=["GE", "AM"],
+        queries=["DevOps Engineer"],
+    )
+
+    jobs = asyncio.run(source.discover(ctx))
+
+    assert [(call[0], call[3]) for call in fake.search_calls] == [
+        ("DevOps Engineer", "113"),
+        ("DevOps Engineer", "28"),
+    ]
+    # Duplicate postings returned across area searches are deduplicated, and
+    # country attribution follows the scoped official area request.
+    assert len(jobs) == 1
+    assert jobs[0].country == "RU"
+
+
+def test_hh_target_georgia_only_search_is_attributed_to_georgia():
+    class DistinctMarketHHClient(FakeHHClient):
+        async def search(self, text, page=0, per_page=20, area=None):
+            self.search_calls.append((text, page, per_page, area))
+            return {
+                "items": [{
+                    "id": "ge-job" if area == "28" else "ru-job",
+                    "name": text,
+                    "employer": {"name": "Example"},
+                    "area": {"name": "Tbilisi" if area == "28" else "Moscow"},
+                    "alternate_url": "https://hh.ru/vacancy/123",
+                }]
+            }
+
+    fake = DistinctMarketHHClient()
+    source = HHSource(fake)
+    ctx = SourceContext(
+        user_id=1,
+        current_country="RU",
+        target_countries=["GE"],
+        queries=["Linux Administrator"],
+    )
+
+    jobs = asyncio.run(source.discover(ctx))
+
+    assert fake.search_calls[0][3] == "113"
+    assert fake.search_calls[1][3] == "28"
+    assert [(job.source_job_id, job.country) for job in jobs] == [
+        ("ru-job", "RU"),
+        ("ge-job", "GE"),
+    ]
+
+
+def test_hh_public_web_fallback_attributes_selected_georgia_area():
+    class FallbackHHClient(FakeHHClient):
+        async def search(self, text, page=0, per_page=20, area=None):
+            from app.providers.hh import HHAPIForbidden
+            raise HHAPIForbidden("403")
+
+        async def search_web(self, text, page=0, area=None):
+            job_id = "222" if area == "28" else "111"
+            return (
+                '<div data-qa="vacancy-serp__vacancy">'
+                f'<a data-qa="serp-item__title" href="https://hh.ru/vacancy/{job_id}">{text}</a>'
+                "</div>"
+            )
+
+    source = HHSource(FallbackHHClient())
+    ctx = SourceContext(
+        user_id=1,
+        current_country="RU",
+        target_countries=["GE"],
+        queries=["Linux Administrator"],
+    )
+
+    jobs = asyncio.run(source.discover(ctx))
+
+    assert [(job.source_job_id, job.country) for job in jobs] == [
+        ("111", "RU"),
+        ("222", "GE"),
+    ]
 
 
 class FakeHH403ThenWeb:
@@ -159,6 +245,154 @@ def test_hh_web_parser_keeps_card_text_for_seniority_signals():
 def test_hh_default_web_search_uses_three_pages():
     assert Settings.model_fields["hh_web_max_pages"].default == 3
 
+
+def test_hh_public_api_retries_one_transient_transport_failure(monkeypatch):
+    import httpx
+    from types import SimpleNamespace
+    from app.providers import hh as hh_provider
+
+    class FlakyClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def request(self, *_args, **_kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise httpx.ReadTimeout("temporary response timeout")
+            return SimpleNamespace(status_code=200, json=lambda: {"items": []})
+
+    client = FlakyClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(hh_provider.asyncio, "sleep", no_sleep)
+
+    provider = hh_provider.HHClient()
+    result = asyncio.run(provider.search("DevOps"))
+
+    assert provider.public_search_retry_count == 1
+    assert result == {"items": []}
+    assert client.calls == 2
+
+
+def test_hh_public_web_search_retries_one_transient_transport_failure(monkeypatch):
+    import httpx
+    from types import SimpleNamespace
+    from app.providers import hh as hh_provider
+
+    class FlakyClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def get(self, *_args, **_kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise httpx.ReadTimeout("temporary response timeout")
+            return SimpleNamespace(
+                status_code=200,
+                text='<div data-qa="vacancy-serp__vacancy"></div>',
+                url="https://hh.ru/search/vacancy",
+            )
+
+    client = FlakyClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(hh_provider.asyncio, "sleep", no_sleep)
+
+    html = asyncio.run(hh_provider.HHClient().search_web("DevOps"))
+
+    assert "vacancy-serp" in html
+    assert client.calls == 2
+
+
+def test_hh_public_api_skips_immediately_on_connect_error(monkeypatch):
+    import httpx
+    from app.providers import hh as hh_provider
+
+    class OfflineClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def request(self, *_args, **_kwargs):
+            self.calls += 1
+            raise httpx.ConnectError("temporary TLS/connect failure")
+
+    client = OfflineClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    with pytest.raises(httpx.ConnectError):
+        asyncio.run(hh_provider.HHClient().search("DevOps"))
+
+    assert client.calls == 1
+
+
+def test_hh_api_error_does_not_repeat_untrusted_response_body(monkeypatch):
+    import httpx
+    from app.providers import hh as hh_provider
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def request(self, method, url, **_kwargs):
+            request = httpx.Request(method, url)
+            return httpx.Response(403, json={"debug": "token=private-value"}, request=request)
+
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: Client())
+    with pytest.raises(hh_provider.HHAPIForbidden) as error:
+        asyncio.run(hh_provider.HHClient().search("DevOps"))
+    assert str(error.value) == "HH API 403"
+
+
+def test_hh_public_web_search_skips_immediately_on_connect_error(monkeypatch):
+    import httpx
+    from app.providers import hh as hh_provider
+
+    class OfflineClient:
+        calls = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def get(self, *_args, **_kwargs):
+            self.calls += 1
+            raise httpx.ConnectError("temporary TLS/connect failure")
+
+    client = OfflineClient()
+    monkeypatch.setattr(hh_provider.httpx, "AsyncClient", lambda **_kwargs: client)
+
+    with pytest.raises(httpx.ConnectError):
+        asyncio.run(hh_provider.HHClient().search_web("DevOps"))
+
+    assert client.calls == 1
+
+
 class FakeHH403Paged:
     def __init__(self):
         self.api_calls = []
@@ -197,6 +431,9 @@ def test_hh_403_fallback_pages_roles_dedupes_and_stops(monkeypatch):
     )
     jobs = asyncio.run(source.discover(ctx))
 
+    assert source.fallback_count == 1
+    assert source.discovery_diagnostics[0]["code"] == "HTTP_403_FORBIDDEN"
+    assert source.discovery_diagnostics[0]["action"] == "fallback"
     assert fake.api_calls == ["DevOps Engineer"]
     assert fake.web_calls == [
         ("DevOps Engineer", 0, "113"),
@@ -209,3 +446,16 @@ def test_hh_403_fallback_pages_roles_dedupes_and_stops(monkeypatch):
         ("Infrastructure Engineer", 1, "113"),
     ]
     assert [job.source_job_id for job in jobs] == ["11", "12", "13", "22", "23", "31"]
+
+
+def test_hh_source_retry_metric_is_current_discovery_delta():
+    class Provider:
+        public_search_retry_count=7
+        async def search(self,*args,**kwargs):
+            self.public_search_retry_count+=1
+            return {'items':[]}
+    provider=Provider()
+    source=HHSource(provider)
+    asyncio.run(source.discover(SourceContext(user_id=1,current_country='RU',queries=['DevOps'])))
+    assert source.retry_count==provider.public_search_retry_count-7
+    assert source.retry_count>0

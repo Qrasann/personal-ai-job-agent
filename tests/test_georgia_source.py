@@ -109,6 +109,44 @@ def test_hr_ge_detail_does_not_guess_currency_work_mode_or_relocation(monkeypatc
     assert client_config["timeout"].read == georgia.REQUEST_TIMEOUT_SECONDS
 
 
+@pytest.mark.parametrize("source,malicious,safe", [
+    (georgia.JobsGESource, "https://127.0.0.1/view=jobs&id=7", "/en/?view=jobs&id=8"),
+    (georgia.HRGESource, "https://127.0.0.1/announcement/7/", "/en/announcement/8/"),
+])
+def test_georgia_listing_cannot_send_detail_request_to_other_host(monkeypatch, source, malicious, safe):
+    async def fake_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(georgia.asyncio, "sleep", fake_sleep)
+    listing = f'<a href="{malicious}">DevOps Engineer</a><a href="{safe}">DevOps Engineer</a>'
+
+    class Response:
+        def __init__(self, body):
+            self.text = body
+
+        def raise_for_status(self):
+            return None
+
+    calls = []
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def get(self, url):
+            calls.append(url)
+            return Response(listing if url == source.base else "Company: Example")
+
+    monkeypatch.setattr(georgia.httpx, "AsyncClient", lambda **_kwargs: Client())
+    asyncio.run(source().discover(SourceContext(user_id=1, queries=["DevOps Engineer"])))
+
+    assert len(calls) == 2
+    assert all("127.0.0.1" not in url for url in calls)
+
+
 def test_detail_fetch_is_bounded_and_keeps_successes_after_http_errors(monkeypatch):
     delays = []
 

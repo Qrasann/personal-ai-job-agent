@@ -51,6 +51,36 @@ def test_search_only_returns_employer_flagged_role_relevant_vacancies():
     assert result[0].relocation is None
 
 
+def test_search_query_token_does_not_match_a_longer_unrelated_title_word():
+    rows = [
+        search_row(id="javascript", title="JavaScript Developer"),
+        search_row(id="java", title="Java DevOps Engineer"),
+    ]
+
+    result = EuresSource.parse_search({"jvs": rows}, "Java")
+
+    assert [job.source_job_id for job in result] == ["java"]
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_boolean_creation_date_remains_unknown(value):
+    assert EuresSource._timestamp(value) is None
+
+
+def test_malformed_optional_search_metadata_does_not_drop_other_eures_results():
+    malformed_optional = search_row(
+        id="optional-metadata", locationMap=7, employer=["invalid shape"],
+    )
+
+    result = EuresSource.parse_search(
+        {"jvs": [search_row(id="valid"), malformed_optional]}, "DevOps"
+    )
+
+    assert [job.source_job_id for job in result] == ["valid", "optional-metadata"]
+    assert result[1].country is None
+    assert result[1].company == ""
+
+
 def test_eures_flag_is_not_visa_or_relocation_support():
     job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
     job = EuresSource.enrich(job, details())
@@ -63,6 +93,50 @@ def test_eures_flag_is_not_visa_or_relocation_support():
     assert job.relocation is None
     assert job.raw["international_candidates"] is True
     assert job.raw["evidence_url"].endswith(job.source_job_id + "?requestLang=en")
+
+
+@pytest.mark.parametrize("target", [
+    "https://user:password@careers.example.org/123",
+    "javascript:alert(1)",
+    "https://[invalid/123",
+])
+def test_eures_ignores_unsafe_application_instruction_links(target):
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+
+    enriched = EuresSource.enrich(job, details(
+        applicationInstructions=[f'<a href="{target}">Apply</a>']
+    ))
+
+    assert enriched.url == EuresSource.portal_url
+
+
+def test_eures_long_application_url_uses_portal_fallback_to_preserve_clickability():
+    target = "https://careers.example.org/" + "x" * 600
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+
+    enriched = EuresSource.enrich(job, details(
+        applicationInstructions=[f'<a href="{target}">Apply</a>']
+    ))
+
+    assert enriched.url == EuresSource.portal_url
+
+
+def test_eures_city_collapses_source_padding_before_storage():
+    padded = "CAHERCALLA COMMUNITY HOSPITAL" + (" " * 300) + "Cahercalla Comm Hosp, Co. Clare V95 NR59"
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[{"countryCode": "ie", "cityName": padded}]))
+    assert job.country == "IE"
+    assert job.city == "CAHERCALLA COMMUNITY HOSPITAL Cahercalla Comm Hosp, Co. Clare V95 NR59"
+    assert len(job.city) <= 256
+
+
+def test_eures_unusable_long_city_remains_unknown_with_source_value_preserved():
+    source_city = "Subregion " * 40
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[{"countryCode": "ie", "cityName": source_city}]))
+    assert job.country == "IE"
+    assert job.city is None
+    assert job.raw["location_text"] == source_city
 
 
 def test_search_request_filters_for_cross_border_vacancies():
@@ -140,9 +214,11 @@ def test_discover_retries_transient_transport_failure(monkeypatch):
 
     monkeypatch.setattr(httpx.AsyncClient, "post", post)
     monkeypatch.setattr("app.sources.adapters.eures.asyncio.sleep", no_wait)
-    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps"])))
+    source = EuresSource()
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps"])))
     assert result == []
     assert len(calls) == 2
+    assert source.retry_count == 1
 
 
 def test_request_does_not_retry_http_status_errors():
@@ -199,7 +275,102 @@ def test_discover_keeps_successful_queries_when_another_exhausts_retries(monkeyp
     monkeypatch.setattr(httpx.AsyncClient, "post", post)
     monkeypatch.setattr(httpx.AsyncClient, "get", get)
     monkeypatch.setattr("app.sources.adapters.eures.asyncio.sleep", no_wait)
-    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps", "Cloud"])))
+    source = EuresSource()
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps", "Cloud"])))
     assert [job.title for job in result] == ["Cloud Engineer"]
     assert posts == ["DevOps"] * 3 + ["Cloud"]
     assert len(gets) == 1
+    assert source.partial_failures == 1
+
+
+@pytest.mark.parametrize("bad_kind", ["http", "contract"])
+def test_discover_keeps_second_query_after_first_bad_response(monkeypatch, bad_kind):
+    async def post(self, url, json=None, **kwargs):
+        query = json["keywords"][0]["keyword"]
+        status = 503 if query == "DevOps" and bad_kind == "http" else 200
+        payload = ({"error": "bad contract"} if query == "DevOps" and bad_kind == "contract"
+                   else {"jvs": [search_row(id="cloud", title="Cloud Engineer")]})
+        return httpx.Response(status, json=payload, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=details(title="Cloud Engineer"), request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    result = asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps", "Cloud"])))
+    assert [job.title for job in result] == ["Cloud Engineer"]
+
+
+def test_discover_keeps_other_details_after_one_http_error(monkeypatch):
+    async def post(self, url, json=None, **kwargs):
+        rows = [search_row(id="first"), search_row(id="second")]
+        return httpx.Response(200, json={"jvs": rows}, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        status = 404 if "first" in url else 200
+        return httpx.Response(status, json=details(), request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    source = EuresSource()
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps"])))
+    assert [job.source_job_id for job in result] == ["first", "second"]
+    assert result[0].description == "Operate cloud infrastructure."
+    assert result[0].url == EuresSource.portal_url
+    assert source.partial_failures == 1
+
+
+def test_discover_returns_search_cards_when_every_detail_request_fails(monkeypatch):
+    async def post(self, url, json=None, **kwargs):
+        return httpx.Response(200, json={"jvs": [
+            search_row(id="first"), search_row(id="second", title="Cloud Engineer"),
+        ]}, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        return httpx.Response(503, request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    source = EuresSource()
+
+    result = asyncio.run(source.discover(SourceContext(1, queries=["Engineer"])))
+
+    assert [job.source_job_id for job in result] == ["first", "second"]
+    assert all(job.description == "Operate cloud infrastructure." for job in result)
+    assert all(job.url == EuresSource.portal_url for job in result)
+    assert source.partial_failures == 2
+    assert [item["operation"] for item in source.discovery_diagnostics] == ["detail_request"] * 2
+
+
+def test_detail_request_bound_does_not_truncate_valid_search_card_results(monkeypatch):
+    detail_ids = []
+
+    async def post(self, url, json=None, **kwargs):
+        return httpx.Response(200, json={"jvs": [
+            search_row(id=f"posting-{index}", title=f"DevOps Engineer {index}")
+            for index in range(5)
+        ]}, request=httpx.Request("POST", url))
+
+    async def get(self, url, **kwargs):
+        detail_ids.append(url)
+        return httpx.Response(200, json=details(), request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    source = EuresSource()
+    source.max_details = 2
+
+    result = asyncio.run(source.discover(SourceContext(1, queries=["DevOps"])))
+
+    assert len(result) == 5
+    assert len(detail_ids) == 2
+    assert [job.url == EuresSource.portal_url for job in result] == [False, False, True, True, True]
+
+
+def test_discover_reports_all_search_http_failures(monkeypatch):
+    async def post(self, url, json=None, **kwargs):
+        return httpx.Response(503, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", post)
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(EuresSource().discover(SourceContext(1, queries=["DevOps", "Cloud"])))

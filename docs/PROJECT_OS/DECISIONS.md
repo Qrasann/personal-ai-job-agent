@@ -1,5 +1,62 @@
 # Decisions
 
+## 2026-10-14 — no raw network exception payloads in logs
+
+Telegram startup and HH chat poll diagnostics report exception class and
+retry behavior without logging untrusted URL or response text.
+
+## 2026-10-14 — patched dependency minimums
+
+Set minimum pypdf 6.20.1 and python-multipart 0.0.31 based on upstream
+security advisories. This keeps compatible newer releases within the existing
+major-version policy; reproducible locking needs a separate reviewed process.
+
+## 2026-10-14 — EURES partial failure contract
+
+Search queries and detail IDs are independent EURES work units. A single HTTP
+status or malformed response does not discard results from another unit. If
+all searches or all attempted details fail, the source reports an error.
+Transport retries remain bounded; HTTP statuses are not retried here.
+
+## 2026-10-14 — bounded Job Bank detail cache
+
+Job Bank listing discovery remains fresh on normal source-cache expiry. Detail
+HTML for an ID still present in that listing may be reused for one hour in a
+256-entry in-memory cache. Manual force refresh bypasses detail cache. The
+documented five-second crawl interval remains unchanged.
+
+## 2026-10-14 — fixed source host for Georgia details
+
+Listing HTML is untrusted input. HR.ge/JOBS.GE detail requests accept only
+HTTPS URLs on the source host and standard port. Any new HTML detail adapter
+must enforce its own source boundary before network fetches.
+
+## 2026-10-14 — one-time resume import confirmation
+
+The pending import preview is claimed before its first persistence operation to
+prevent two Telegram callbacks from writing it concurrently. A failed claimed
+preview is re-created by resending the file; atomic resume/fact persistence
+requires a separate repository transaction design.
+
+## 2026-10-14 — scoped reliability and security boundaries
+
+Candidate Telegram commands and callbacks are private-chat actions; selected
+Bot API channel posts retain their separate watcher route. The one configured
+HH applicant credential belongs to the owner profile until per-user OAuth is
+designed and approved. A failed vacancy is isolated within its source, with
+partial status retained; transport errors are reported by type and HTTP status
+without untrusted URLs or response bodies.
+
+## 2026-10-14 — roadmap reconciliation
+
+The complete original v3.5.1–v4.x product vision remains in canonical root
+`ROADMAP.md`; already released versions and historical milestone meanings are
+immutable. Proposed v3.5.8 Telegram Watcher and v3.5.9 Source Intelligence are
+planning labels, not a `VERSION` change or a claim of release. Capability status
+is tied to code, tests and runtime evidence. Career-first and Relocation-first
+remain independent, and missing hiring/visa/relocation evidence remains unknown.
+The two owner proposal Markdown files are reference input and remain untracked.
+
 1. main stays on v3.5.1 until v3.5.2 passes CI and smoke tests.
 2. testsbuild is reference/experimental work, not an automatic merge source.
 3. v3.5.2 Search Control lives in SearchProfile.settings to avoid premature DB migration.

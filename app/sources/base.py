@@ -12,6 +12,7 @@ class SourceContext:
     current_country: str | None = None
     target_countries: list[str] | None = None
     queries: list[str] | None = None
+    force_refresh: bool = False
 
 
 class JobSource(ABC):

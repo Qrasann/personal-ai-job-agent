@@ -1,6 +1,10 @@
 import asyncio
+import json
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+
+import pytest
 
 from app import services
 
@@ -8,6 +12,240 @@ from app import services
 def test_georgia_sources_use_a_long_scheduled_cache():
     assert services._cache_ttl("jobs_ge") == 6 * 60 * 60
     assert services._cache_ttl("hr_ge") == 6 * 60 * 60
+
+
+def test_himalayas_uses_the_provider_daily_refresh_window():
+    assert services._cache_ttl("himalayas") == 24 * 60 * 60
+
+
+def test_curated_lever_board_uses_six_hour_cache():
+    assert services._cache_ttl("lever") == 6 * 60 * 60
+
+
+def test_remotive_uses_the_provider_daily_refresh_window():
+    assert services._cache_ttl("remotive") == 24 * 60 * 60
+
+
+def test_remotive_payload_is_shared_across_profiles_and_persisted_across_restarts(monkeypatch):
+    from app.sources.adapters.remotive import RemotiveSource
+    from app.sources.base import SourceContext
+
+    calls = []
+    persisted = {}
+    # Ignore fresh caches populated by both former, unfiltered API queries.
+    legacy_cache = json.dumps(
+        {"fetched_at": datetime.now(UTC).isoformat(), "payload": {"jobs": []}}
+    )
+    persisted[(812, "source_cache.remotive")] = legacy_cache
+    persisted[(812, "source_cache.remotive.v2")] = legacy_cache
+    payload = {
+        "jobs": [
+            {
+                "id": 101,
+                "title": "DevOps Engineer",
+                "company_name": "Example",
+                "category": "Devops",
+                "candidate_required_location": "Worldwide",
+                "url": "https://remotive.com/remote/jobs/devops/101",
+                "description": "Linux and Terraform",
+            },
+            {
+                "id": 102,
+                "title": "Linux Administrator",
+                "company_name": "Example",
+                "category": "Devops",
+                "candidate_required_location": "Georgia",
+                "url": "https://remotive.com/remote/jobs/devops/102",
+                "description": "Linux administration",
+            },
+        ]
+    }
+
+    async def fetch(self):
+        calls.append(1)
+        return payload
+
+    async def get_state(user_id, key, default=""):
+        return persisted.get((user_id, key), default)
+
+    async def set_state(user_id, key, value):
+        persisted[(user_id, key)] = value
+
+    async def list_active_users():
+        return [SimpleNamespace(id=812), SimpleNamespace(id=913)]
+
+    monkeypatch.setattr(RemotiveSource, "fetch_payload", fetch)
+    monkeypatch.setattr(services.repo, "get_state", get_state)
+    monkeypatch.setattr(services.repo, "set_state", set_state)
+    monkeypatch.setattr(services.repo, "list_active_users", list_active_users)
+    services._REMOTIVE_PAYLOAD_CACHE = None
+
+    async def check():
+        career, cache_hit, _ = await services._discover_remotive(
+            RemotiveSource(),
+            SourceContext(user_id=812, target_countries=["GE"], queries=["DevOps Engineer"]),
+        )
+        relocation, second_hit, _ = await services._discover_remotive(
+            RemotiveSource(),
+            SourceContext(user_id=812, target_countries=["GE"], queries=["Linux Administrator"]),
+        )
+        services._REMOTIVE_PAYLOAD_CACHE = None  # simulate a process restart
+        restarted, restart_hit, _ = await services._discover_remotive(
+            RemotiveSource(),
+            SourceContext(user_id=812, target_countries=["GE"], queries=["DevOps Engineer"]),
+        )
+        return career, cache_hit, relocation, second_hit, restarted, restart_hit
+
+    career, cache_hit, relocation, second_hit, restarted, restart_hit = asyncio.run(check())
+
+    assert [job.source_job_id for job in career] == ["101"]
+    assert [job.source_job_id for job in relocation] == ["102"]
+    assert [job.source_job_id for job in restarted] == ["101"]
+    assert cache_hit is False
+    assert second_hit is True
+    assert restart_hit is True
+    assert len(calls) == 1
+    assert (812, services.REMOTIVE_STATE_KEY) in persisted
+    services._REMOTIVE_PAYLOAD_CACHE = None
+
+
+@pytest.fixture
+def remotive_daily_cache(monkeypatch):
+    """A persisted feed fetched 23 hours ago, with controllable wall/elapsed time."""
+    from app.sources.adapters.remotive import RemotiveSource
+    from app.sources.base import SourceContext
+
+    wall = [datetime(2026, 10, 12, 12, tzinfo=UTC)]
+    monotonic = [1_000_000.0]
+    calls = []
+    persisted = {}
+
+    def payload(identifier):
+        return {"jobs": [{
+            "id": identifier,
+            "title": "DevOps Engineer",
+            "company_name": "Example",
+            "category": "Devops",
+            "candidate_required_location": "Worldwide",
+            "url": f"https://remotive.com/remote/jobs/devops/{identifier}",
+            "description": "Linux and monitoring",
+        }]}
+
+    persisted[services.REMOTIVE_STATE_KEY] = json.dumps({
+        "fetched_at": (wall[0] - timedelta(hours=23)).isoformat(),
+        "payload": payload("old-feed"),
+    })
+
+    class ClockDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return wall[0].astimezone(tz) if tz else wall[0].replace(tzinfo=None)
+
+    async def get_state(_user_id, key, default=""):
+        return persisted.get(key, default)
+
+    async def set_state(_user_id, key, value):
+        persisted[key] = value
+
+    async def fetch(_self):
+        calls.append(wall[0])
+        return payload("fresh-feed")
+
+    def advance(seconds):
+        wall[0] += timedelta(seconds=seconds)
+        monotonic[0] += seconds
+
+    monkeypatch.setattr(services, "datetime", ClockDateTime)
+    monkeypatch.setattr(services.time, "monotonic", lambda: monotonic[0])
+    monkeypatch.setattr(services, "_REMOTIVE_PAYLOAD_CACHE", None)
+    monkeypatch.setattr(services, "_REMOTIVE_PAYLOAD_LOCK", asyncio.Lock())
+    monkeypatch.setattr(services, "_DISCOVERY_CACHE", {})
+    monkeypatch.setattr(services.repo, "get_state", get_state)
+    monkeypatch.setattr(services.repo, "set_state", set_state)
+    monkeypatch.setattr(services.repo, "list_active_users", AsyncMock(return_value=[SimpleNamespace(id=7)]))
+    monkeypatch.setattr(RemotiveSource, "fetch_payload", fetch)
+    return SimpleNamespace(
+        adapter=RemotiveSource(),
+        context=SourceContext(user_id=7, target_countries=["GE"], queries=["DevOps Engineer"]),
+        advance=advance,
+        calls=calls,
+    )
+
+
+@pytest.mark.parametrize("restart", [False, True])
+def test_aged_remotive_payload_expires_at_its_original_deadline(remotive_daily_cache, restart):
+    cache = remotive_daily_cache
+
+    async def check():
+        jobs, cached, _ = await services._discover_remotive(cache.adapter, cache.context)
+        assert cached and [job.source_job_id for job in jobs] == ["old-feed"]
+        cache.advance(3599)
+        if restart:
+            services._REMOTIVE_PAYLOAD_CACHE = None
+        jobs, cached, _ = await services._discover_remotive(cache.adapter, cache.context)
+        assert cached and [job.source_job_id for job in jobs] == ["old-feed"]
+        assert cache.calls == []
+        cache.advance(1)
+        jobs, cached, _ = await services._discover_remotive(cache.adapter, cache.context)
+        assert not cached and [job.source_job_id for job in jobs] == ["fresh-feed"]
+        _, cached, _ = await services._discover_remotive(cache.adapter, cache.context)
+        assert cached
+
+    asyncio.run(check())
+
+    assert len(cache.calls) == 1
+
+
+def test_remotive_manual_scan_keeps_original_expiry_in_context_cache(monkeypatch, remotive_daily_cache):
+    cache = remotive_daily_cache
+    targets = ["GE"]
+    ingested = []
+
+    async def fake_context(_user_id):
+        user = SimpleNamespace(id=7, current_country="RU", telegram_chat_id="123")
+        profile = SimpleNamespace(target_role="DevOps Engineer")
+        search = SimpleNamespace(id=11, name="Career-first", settings={
+            "queries": ["DevOps Engineer"],
+            "target_countries": list(targets),
+            "modes": {"remote_international": True},
+        })
+        return user, profile, [search]
+
+    async def ingest(_bot, job, **_kwargs):
+        ingested.append(job.source_job_id)
+        return {}
+
+    monkeypatch.setattr(services, "_user_context", fake_context)
+    monkeypatch.setattr(services, "build_source_plan", lambda *a, **k: [
+        SimpleNamespace(source_id="remotive", implemented=True)
+    ])
+    monkeypatch.setattr(services, "vacancy_allowed", lambda *a, **k: True)
+    monkeypatch.setattr(services, "job_priority", lambda *a, **k: 0)
+    monkeypatch.setattr(services, "ingest_and_match", ingest)
+
+    async def check():
+        first = await services.scan_for_user(object(), 7, force_refresh=True)
+        assert first["sources"]["remotive"]["cache"] is True
+        cache.advance(3599)
+        second = await services.scan_for_user(object(), 7, force_refresh=True)
+        assert second["sources"]["remotive"]["cache"] is True
+        targets[:] = ["AM"]
+        other_market = await services.scan_for_user(object(), 7, force_refresh=True)
+        assert other_market["sources"]["remotive"]["cache"] is True
+        assert cache.calls == []
+        cache.advance(1)
+        # Both contexts used the aged response: neither may extend its expiry.
+        targets[:] = ["GE"]
+        expired = await services.scan_for_user(object(), 7, force_refresh=True)
+        assert expired["sources"]["remotive"]["cache"] is False
+        targets[:] = ["AM"]
+        refreshed_market = await services.scan_for_user(object(), 7, force_refresh=True)
+        assert refreshed_market["sources"]["remotive"]["cache"] is True
+
+    asyncio.run(check())
+
+    assert ingested == ["old-feed", "old-feed", "old-feed", "fresh-feed", "fresh-feed"]
+    assert len(cache.calls) == 1
 
 
 def test_force_refresh_bypasses_discovery_cache(monkeypatch):
@@ -36,6 +274,47 @@ def test_force_refresh_bypasses_discovery_cache(monkeypatch):
     asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
 
     assert len(calls) == 2
+
+
+def test_himalayas_manual_refresh_respects_daily_cache_and_market_scope(monkeypatch):
+    calls = []
+    target = ["GE"]
+
+    class FakeHimalayasSource:
+        source_id = "himalayas"
+        name = "Himalayas"
+
+        async def discover(self, context):
+            calls.append(list(context.target_countries or []))
+            return []
+
+    async def fake_context(user_id):
+        user = SimpleNamespace(id=7, current_country="RU", telegram_chat_id="123")
+        profile = SimpleNamespace(target_role="DevOps")
+        search = SimpleNamespace(
+            id=1,
+            name="Career-first",
+            settings={
+                "queries": ["DevOps Engineer"],
+                "target_countries": list(target),
+                "modes": {"remote_international": True},
+            },
+        )
+        return user, profile, [search]
+
+    monkeypatch.setattr(services, "_user_context", fake_context)
+    monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
+    monkeypatch.setattr(services, "build_source_plan", lambda *a, **k: [SimpleNamespace(source_id="himalayas", implemented=True)])
+    monkeypatch.setattr(services, "HimalayasSource", FakeHimalayasSource)
+    services._DISCOVERY_CACHE.clear()
+
+    asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    target[:] = ["AM"]
+    asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert calls == [["GE"], ["AM"]]
+    services._DISCOVERY_CACHE.clear()
 
 
 def test_scan_uses_each_search_profile_independently(monkeypatch):

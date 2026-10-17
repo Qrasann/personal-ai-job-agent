@@ -19,6 +19,53 @@ def _result(technical, total, fit="good"):
     )
 
 
+def test_ingest_scores_the_exact_source_posting_not_cross_source_canonical(monkeypatch):
+    normalized = NormalizedJob(
+        source="jobs_ge", source_job_id="posting-42", title="Jobs.ge role",
+        company="Example", description="Jobs.ge Docker requirement", country="GE",
+    )
+    canonical = SimpleNamespace(
+        id=24, title="Other source role", company="Example",
+        description="Other source Kubernetes requirement", country="DE",
+    )
+    ref = SimpleNamespace(source_id="jobs_ge", source_job_id="posting-42", url="https://example.invalid/42", raw={
+        "normalized_posting_v1": {
+            "schema": "normalized_posting_v1", "title": normalized.title,
+            "company": normalized.company, "description": normalized.description,
+            "country": normalized.country,
+        },
+    })
+    score_inputs = []
+
+    async def source_ref(job_id, source_id=None, *, source_job_id=None):
+        assert (job_id, source_id, source_job_id) == (24, "jobs_ge", "posting-42")
+        return ref
+
+    monkeypatch.setattr(services.repo, "upsert_job", lambda *_: asyncio.sleep(0, result=(canonical, False)))
+    monkeypatch.setattr(services.repo, "source_ref", source_ref)
+    monkeypatch.setattr(services.repo, "list_active_users", lambda: asyncio.sleep(0, result=[SimpleNamespace(id=7)]))
+    monkeypatch.setattr(services.repo, "get_state", lambda *_: asyncio.sleep(0, result="false"))
+    monkeypatch.setattr(services.repo, "active_profile", lambda *_: asyncio.sleep(0, result=SimpleNamespace(id=8)))
+    monkeypatch.setattr(services.repo, "list_facts", lambda *_: asyncio.sleep(0, result=[]))
+    monkeypatch.setattr(services.repo, "list_resumes", lambda *_: asyncio.sleep(0, result=[]))
+    monkeypatch.setattr(services.repo, "list_search_profiles", lambda *_: asyncio.sleep(0, result=[
+        SimpleNamespace(id=9, settings={"notify_min_score": 65})
+    ]))
+    monkeypatch.setattr(services.repo, "save_match", lambda **_: asyncio.sleep(0, result=SimpleNamespace(id=301, status="new")))
+    monkeypatch.setattr(services.repo, "set_match_status", lambda *_: asyncio.sleep(0))
+
+    def score(job, *_args, **_kwargs):
+        score_inputs.append((job.title, job.description, job.country))
+        return _result(20, 20)
+
+    monkeypatch.setattr(services, "score_job", score)
+
+    counters = asyncio.run(services.ingest_and_match(object(), normalized, only_user_id=7))
+
+    assert score_inputs == [("Jobs.ge role", "Jobs.ge Docker requirement", "GE")]
+    assert counters["scoring_exclusion_reasons"] == {"technical_gap": 1}
+
+
 def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
     normalized = NormalizedJob(
         source="hh",
@@ -62,7 +109,7 @@ def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
     async def fake_upsert_job(value):
         return job, False
 
-    async def fake_source_ref(job_id, source_id=None):
+    async def fake_source_ref(job_id, source_id=None, *, source_job_id=None):
         return ref
 
     async def fake_users():
@@ -89,8 +136,8 @@ def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
     async def fake_set_status(match_id, status):
         statuses.append((match_id, status))
 
-    async def fake_details(job_id):
-        details_calls.append(job_id)
+    async def fake_details(job_id, *, source_job_id=None):
+        details_calls.append((job_id, source_job_id))
         return {
             "description": (
                 "Требования:\n"
@@ -128,7 +175,7 @@ def test_hh_ingest_rechecks_plausible_job_with_full_details(monkeypatch):
         )
     )
 
-    assert details_calls == [24]
+    assert details_calls == [(24, "123")]
     assert score_calls == [
         None,
         "Требования:\nLinux\nDocker\nKubernetes\nNginx",
@@ -242,3 +289,18 @@ def test_match_lane_routes_good_stretch_and_skip():
     assert services._match_lane(_result(80, 65, "stretch"), 65) == "stretch"
     assert services._match_lane(_result(80, 64, "stretch"), 65) == "filtered"
     assert services._match_lane(_result(100, 100, "skip"), 65) == "filtered"
+
+
+def test_scoring_exclusion_reason_uses_structured_scores_and_caps():
+    assert services._scoring_exclusion_reason(_result(100, 100, "skip"), 65) == "fit_skip"
+    assert services._scoring_exclusion_reason(_result(80, 65), 65) is None
+    capped = SimpleNamespace(
+        technical_score=100, geography_score=100, salary_score=100,
+        relocation_score=100, total_score=54, fit="good",
+    )
+    assert services._scoring_exclusion_reason(capped, 65) == "score_cap_or_risk"
+    geography_gap = SimpleNamespace(
+        technical_score=100, geography_score=0, salary_score=100,
+        relocation_score=100, total_score=73, fit="good",
+    )
+    assert services._scoring_exclusion_reason(geography_gap, 80) == "geography_gap"

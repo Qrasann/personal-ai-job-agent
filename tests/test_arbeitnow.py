@@ -5,6 +5,19 @@ import pytest
 
 from app.sources.adapters.arbeitnow import ArbeitnowSource
 from app.sources.base import SourceContext
+from app.search.preferences import vacancy_allowed
+from app.domain.relocation_evidence import build_relocation_evidence
+
+
+@pytest.mark.parametrize("tags", [42, True, {"DevOps": True}])
+def test_arbeitnow_malformed_optional_tags_do_not_abort_neighboring_roles(tags):
+    jobs = ArbeitnowSource.parse_payload({"data": [
+        {"slug": "bad-tags", "title": "DevOps Engineer", "tags": tags},
+        {"slug": "valid", "title": "DevOps Engineer", "tags": ["Linux", None]},
+    ]}, SourceContext(user_id=1, queries=["DevOps"]))
+    assert [job.source_job_id for job in jobs] == ["bad-tags", "valid"]
+    assert jobs[0].skills == []
+    assert jobs[1].skills == ["Linux"]
 
 
 def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
@@ -44,6 +57,52 @@ def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
     assert jobs[0].visa_sponsorship is True
     assert jobs[0].relocation is True
     assert jobs[0].description == "Visa support and relocation assistance are provided."
+    assert jobs[0].published_at == "2026-10-11T00:00:00+00:00"
+
+
+def test_arbeitnow_remote_free_form_location_does_not_confirm_work_country():
+    payload = {"data": [{
+        "slug": "remote-1", "title": "DevOps Engineer", "location": "Worldwide",
+        "remote": True,
+    }]}
+    job = ArbeitnowSource.parse_payload(payload, SourceContext(user_id=1, queries=["DevOps"]))[0]
+    assert job.work_mode == "remote"
+    assert job.country is None
+    assert job.city is None
+    assert job.raw["source_location"] == "Worldwide"
+    country = build_relocation_evidence(job)["fields"]["work_country"]
+    assert country["status"] == "unknown"
+    assert country["excerpt"] == "Worldwide"
+
+
+def test_arbeitnow_keeps_explicit_remote_location_limit_in_card():
+    from types import SimpleNamespace
+    from app.database.models import Job
+    from app.telegram.vacancy_view import render_job_details
+
+    item = ArbeitnowSource.parse_payload({"data": [{
+        "slug": "remote-limit", "title": "DevOps Engineer", "location": "Germany only",
+        "remote": True, "description": "Work from anywhere.",
+    }]}, SourceContext(user_id=1))[0]
+    assert item.remote_scope == "Germany only"
+    assert item.country is None
+    job = Job(id=1, title=item.title, description=item.description,
+              work_mode=item.work_mode, remote_scope=item.remote_scope)
+    match = SimpleNamespace(total_score=72, technical_score=94, geography_score=100,
+                            salary_score=58, relocation_score=50, reason="")
+    card = render_job_details({"job": job, "match": match, "source": "arbeitnow"})
+    assert "Germany only указано источником" in card
+    assert "по всему миру указано источником" not in card
+
+
+@pytest.mark.parametrize("created_at", [None, True, "not-a-timestamp", 1e100])
+def test_arbeitnow_keeps_invalid_publication_timestamps_unknown(created_at):
+    payload = {"data": [{
+        "slug": "role-1", "title": "DevOps Engineer", "remote": False,
+        "created_at": created_at,
+    }]}
+    item = ArbeitnowSource.parse_payload(payload, SourceContext(user_id=1, queries=[]))[0]
+    assert item.published_at is None
 
 
 def test_arbeitnow_retries_transient_transport_failure(monkeypatch):
@@ -79,8 +138,10 @@ def test_arbeitnow_retries_transient_transport_failure(monkeypatch):
     monkeypatch.setattr("app.sources.adapters.arbeitnow.asyncio.sleep", fake_sleep)
     monkeypatch.setattr("app.sources.adapters.arbeitnow.httpx.AsyncClient", Client)
 
-    jobs = asyncio.run(ArbeitnowSource().discover(SourceContext(user_id=1, queries=[])))
+    source = ArbeitnowSource()
+    jobs = asyncio.run(source.discover(SourceContext(user_id=1, queries=[])))
 
+    assert source.retry_count == 1
     assert jobs == []
     assert delays == [0.5]
 
@@ -145,3 +206,23 @@ def test_arbeitnow_surfaces_error_after_one_retry(monkeypatch):
 
     assert len(calls) == 2
     assert delays == [0.5]
+
+
+@pytest.mark.parametrize("description, visa, relocation", [
+    ("We do not provide visa sponsorship or relocation assistance.", False, False),
+    ("No visa sponsorship or relocation assistance is provided.", False, False),
+    ("Visa sponsorship and relocation assistance are not available.", False, False),
+    ("We provide visa sponsorship and relocation assistance.", True, True),
+    ("Must already have the right to work in Germany.", None, None),
+    ("Visa sponsorship and relocation assistance may be available.", None, None),
+    ("We provide visa sponsorship guidance.", None, None),
+])
+def test_arbeitnow_preserves_unknown_and_refused_support(description, visa, relocation):
+    payload = {"data": [{
+        "slug": "role-1", "title": "DevOps Engineer", "description": description,
+        "remote": False, "relocation": True, "visa_sponsorship": True,
+    }]}
+    item = ArbeitnowSource.parse_payload(payload, SourceContext(user_id=1, queries=[]))[0]
+    assert item.visa_sponsorship is visa
+    assert item.relocation is relocation
+    assert vacancy_allowed(item, {"relocation_preferences": {"visa_sponsorship": "require"}}) is (visa is True)

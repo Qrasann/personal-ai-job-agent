@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 import httpx
 from bs4 import BeautifulSoup
@@ -51,7 +51,9 @@ CITY_NAMES = (
 
 
 def _tokens(text: str) -> set[str]:
-    return set(re.findall(r"[a-zа-яё0-9+#.-]+", text.casefold()))
+    # Unicode words admit owner-selected Georgian/Armenian role text while
+    # preserving the original treatment of technical punctuation/underscores.
+    return set(re.findall(r"(?:[^\W_]|[+#.-])+", text.casefold()))
 
 
 def _matches(title: str, queries: list[str] | None) -> bool:
@@ -65,6 +67,21 @@ def _matches(title: str, queries: list[str] | None) -> bool:
         if title_tokens & match_tokens:
             return True
     return False
+
+
+def _source_detail_url(base: str, href: str) -> str | None:
+    """Keep listing-provided detail requests on the source's HTTPS host."""
+    url = urljoin(base, href)
+    try:
+        parsed = urlsplit(url)
+        host = urlsplit(base).hostname
+        if (parsed.scheme != "https" or parsed.hostname != host
+                or parsed.port not in (None, 443)
+                or parsed.username is not None or parsed.password is not None):
+            return None
+    except ValueError:
+        return None
+    return url
 
 
 def _salary_from_text(
@@ -172,7 +189,9 @@ class JobsGESource(JobSource):
                 title = a.get_text(" ", strip=True)
                 if "view=jobs" not in href or "id=" not in href or not title or not _matches(title, context.queries):
                     continue
-                url = urljoin(self.base, href)
+                url = _source_detail_url(self.base, href)
+                if url is None:
+                    continue
                 if (title, url) not in links:
                     links.append((title, url))
                 if len(links) >= MAX_DETAILS_PER_SOURCE:
@@ -214,7 +233,9 @@ class HRGESource(JobSource):
                 title = a.get_text(" ", strip=True)
                 if "/announcement/" not in href or not title or not _matches(title, context.queries):
                     continue
-                url = urljoin(self.base, href)
+                url = _source_detail_url(self.base, href)
+                if url is None:
+                    continue
                 if (title, url) not in links:
                     links.append((title, url))
                 if len(links) >= MAX_DETAILS_PER_SOURCE:

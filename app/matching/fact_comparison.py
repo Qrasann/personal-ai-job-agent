@@ -20,11 +20,20 @@ class SkillSpec:
 # search terms decide which vacancies are interesting, while this vocabulary
 # describes technologies/signals that can be compared with Candidate Facts.
 SKILLS: tuple[SkillSpec, ...] = (
-    SkillSpec("Linux", ("linux", "debian", "ubuntu", "centos", "rhel")),
+    SkillSpec(
+        "Linux",
+        ("linux", "линукс", "линукса", "линуксе", "линуксом", "debian", "ubuntu", "centos", "rhel"),
+    ),
+    SkillSpec("Windows", ("windows",)),
     SkillSpec("systemd", ("systemd",)),
-    SkillSpec("Docker", ("docker",)),
+    SkillSpec("Docker", ("docker", "докер", "докера", "докеру", "докером")),
     SkillSpec("Docker Compose", ("docker compose", "docker-compose")),
-    SkillSpec("Kubernetes", ("kubernetes", "k8s")),
+    SkillSpec(
+        "Kubernetes",
+        ("kubernetes", "k8s", "кубернетес", "кубернетеса", "кубернетесу", "кубернетесом"),
+    ),
+    SkillSpec("OpenShift", ("openshift", "red hat openshift")),
+    SkillSpec("Databricks", ("databricks",)),
     SkillSpec("Nginx", ("nginx",)),
     SkillSpec("HAProxy", ("haproxy",)),
     SkillSpec("Git", ("git",)),
@@ -35,7 +44,10 @@ SKILLS: tuple[SkillSpec, ...] = (
             "gitlab-ci",
             "gitlab ci/cd",
             "gitlab cicd",
-            "gitlab",
+            "gitlab pipeline",
+            "gitlab pipelines",
+            "gitlab runner",
+            "gitlab runners",
         ),
     ),
     SkillSpec("CI/CD", ("ci/cd", "cicd", "continuous integration", "continuous delivery")),
@@ -49,8 +61,9 @@ SKILLS: tuple[SkillSpec, ...] = (
     SkillSpec("GitOps", ("gitops", "git ops")),
     SkillSpec("Prometheus", ("prometheus",)),
     SkillSpec("Grafana", ("grafana",)),
+    SkillSpec("OpenTelemetry", ("opentelemetry", "open telemetry")),
     SkillSpec("Zabbix", ("zabbix",)),
-    SkillSpec("ELK", ("elk", "elk stack", "elk-stack", "elasticsearch logstash kibana")),
+    SkillSpec("ELK", ("elk stack", "elk-stack", "elasticsearch logstash kibana")),
     SkillSpec("Graylog", ("graylog",)),
     SkillSpec("MySQL", ("mysql",)),
     SkillSpec("PostgreSQL", ("postgresql", "postgres")),
@@ -61,6 +74,12 @@ SKILLS: tuple[SkillSpec, ...] = (
     SkillSpec("GCP", ("gcp", "google cloud", "google cloud platform")),
     SkillSpec("Active Directory", ("active directory", "active directory domain", "ad ds")),
     SkillSpec("VPN", ("vpn", "wireguard", "openvpn")),
+    SkillSpec("DNS", ("dns", "domain name system", "domain name resolution")),
+    SkillSpec("TLS", ("tls", "ssl", "tls ssl", "tls/ssl")),
+    SkillSpec(
+        "Security Operations",
+        ("security operations", "cybersecurity", "information security", "информационная безопасность"),
+    ),
     SkillSpec(
         "Networking",
         (
@@ -100,6 +119,8 @@ class RequirementMatch:
 @dataclass(frozen=True, slots=True)
 class FactComparison:
     requirements: tuple[RequirementMatch, ...]
+    alternative_groups: tuple[tuple[str, ...], ...] = ()
+    preferred_alternative_groups: tuple[tuple[str, ...], ...] = ()
 
     @property
     def total(self) -> int:
@@ -157,21 +178,147 @@ def _contains_alias(text: str, alias: str) -> bool:
 
 
 def _matches_skill(text: str, spec: SkillSpec) -> bool:
-    return any(_contains_alias(text, alias) for alias in spec.aliases)
+    if spec.name == "ELK" and re.search(r"\bELK\b", text or ""):
+        # Keep the conventional uppercase acronym without matching the animal.
+        return True
+    if spec.name == "Networking":
+        # Recruitment copy can use "network" to mean professional contacts.
+        # Remove only those explicit business-network phrases; technical
+        # network/firewall terms in the same text remain detectable.
+        text = re.sub(
+            r"\b(?:professional|business|industry|sales|personal|client|customer) network\b|"
+            r"\bnetwork of (?:(?:industry|professional|business|sales|local) )?"
+            r"(?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders|"
+            r"clinics?|hospitals?|medical centers?|medical professionals?|physicians?|doctors?|nurses?|"
+            r"healthcare providers?|care providers?|schools?|universities|pharmacies)\b|"
+            r"\bnetworking with (?:contacts|partners|suppliers|clients|customers|professionals|recruiters|(?:key )?stakeholders)\b",
+            " ", text or "", flags=re.I,
+        )
+    if any(_contains_alias(text, alias) for alias in spec.aliases):
+        return True
+    if spec.name == "GitLab CI":
+        # GitLab alone may mean repositories/issues rather than CI. Accept the
+        # reversed phrasing only when CI/CD or pipeline context is explicit in
+        # the same clause, e.g. "CI/CD based on GitLab".
+        signals = (
+            "ci/cd", "cicd", "continuous integration", "continuous delivery",
+            "pipeline", "pipelines", "runner", "runners",
+        )
+        clauses = re.split(r"[\n.!?;]+", text or "")
+        return any(
+            _contains_alias(clause, "gitlab")
+            and any(_contains_alias(clause, signal) for signal in signals)
+            for clause in clauses
+        )
+    return False
+
+
+def _has_standalone_docker(text: str) -> bool:
+    # Docker Compose is represented as the more specific skill; don't count
+    # its embedded Docker token twice unless the vacancy names Docker alone.
+    without_compose = re.sub(r"\bdocker[\s-]+compose\b", " ", text or "", flags=re.I)
+    return _matches_skill(without_compose, next(spec for spec in SKILLS if spec.name == "Docker"))
+
+
+def _matched_skill_names(text: str) -> list[str]:
+    matched = [spec.name for spec in SKILLS if _matches_skill(text, spec)]
+    if "Docker Compose" in matched and "Docker" in matched and not _has_standalone_docker(text):
+        matched.remove("Docker")
+    return matched
+
+
+def _explicitly_not_required(text: str, spec: SkillSpec) -> bool:
+    """Recognize narrow, direct negations of a skill requirement."""
+    normalized = _normalize_text(text)
+    normalized = re.sub(r"\bisn t\b", "is not", normalized)
+    for alias in spec.aliases:
+        target = re.escape(_normalize_text(alias)).replace(r"\ ", r"\s+")
+        patterns = (
+            rf"\bno (?:prior |previous )?(?:experience|knowledge|proficiency) (?:with |in |of )?{target}\b",
+            rf"\bno {target} (?:experience|knowledge|proficiency)\b",
+            rf"\bno {target} (?:is )?(?:required|mandatory|necessary|needed)\b",
+            rf"\bno need for {target}\b",
+            rf"\b{target}(?: (?:experience|knowledge|proficiency))? (?:is )?(?:not required|not mandatory|not necessary|not needed|optional)\b",
+            rf"\b{target}(?: (?:experience|knowledge|proficiency))? (?:is )?not (?:a )?(?:hard )?(?:requirement|prerequisite|essential|mandatory|necessary|needed|must(?: have)?)\b",
+            rf"\b(?:experience|knowledge|proficiency|background) (?:with |in |of )?{target} (?:is )?not (?:a )?(?:hard )?(?:requirement|prerequisite|essential|mandatory|necessary|needed|must(?: have)?)\b",
+            rf"\b(?:not required|not mandatory|not necessary|not needed) (?:for )?(?:experience|knowledge|proficiency)(?: (?:with|in|of))? {target}\b",
+            rf"\bno {target} (?:background|experience|knowledge|proficiency) (?:is )?(?:needed|required|necessary|mandatory)\b",
+            rf"\bno (?:prior |previous )?{target} (?:background|experience|knowledge|proficiency) (?:is )?(?:needed|required|necessary|mandatory)\b",
+            rf"\bno experience (?:with|in|of) {target} required\b",
+        )
+        if any(re.search(pattern, normalized) for pattern in patterns):
+            return True
+    return False
+
+
+def _explicitly_preferred(text: str, spec: SkillSpec) -> bool:
+    """Recognize a narrow skill-local optional/preferred phrase."""
+    normalized = _normalize_text(text)
+    for alias in spec.aliases:
+        target = re.escape(_normalize_text(alias)).replace(r"\ ", r"\s+")
+        patterns = (
+            rf"\b{target}(?: (?:experience|knowledge))? (?:is )?(?:a )?(?:plus|bonus|preferred|desirable|optional|nice to have)\b",
+            rf"\b{target}(?: (?:опыт|знание))? (?:желательно|желателен|желательна|желательны)\b",
+            rf"\b{target}(?: (?:experience|knowledge))? (?:would be )?(?:a )?plus\b",
+            rf"\b{target}(?: (?:experience|knowledge))? (?:is|would be|will be) an? (?:advantage|benefit)\b",
+            rf"\b{target}(?: (?:experience|knowledge))? (?:is|would be|will be) (?:advantageous|beneficial)\b",
+            rf"\b{target} (?:будет плюсом|будет преимуществом|приветствуется|желательно|является преимуществом)\b",
+            rf"\b(?:preferred|desirable|optional|nice to have|bonus|будет плюсом|желательно|приветствуется) (?:experience|knowledge)? (?:with |in )?{target}\b",
+            rf"\b(?:желательно|приветствуется) (?:знание|опыт(?: работы)?) (?:с |по |в )?{target}\b",
+        )
+        if any(re.search(pattern, normalized) for pattern in patterns):
+            return True
+    return False
+
+
+def _required_skill_in_section(text: str, spec: SkillSpec) -> bool:
+    # Split contrastive clauses as well as sentence punctuation so a negated
+    # mention cannot mask a separate positive requirement in the same sentence.
+    for clause in re.split(
+        r"[\n.!?;]+|\b(?:and|but|however|although|nevertheless|yet|whereas|while|но|однако|aber|jedoch)\b",
+        text or "", flags=re.I,
+    ):
+        if (
+            _matches_skill(clause, spec)
+            and not _explicitly_not_required(clause, spec)
+            and not _explicitly_preferred(clause, spec)
+        ):
+            return True
+    return False
+
+
+def _preferred_skill_in_section(text: str, spec: SkillSpec) -> bool:
+    return any(
+        _matches_skill(clause, spec) and _explicitly_preferred(clause, spec)
+        for clause in re.split(r"[\n.!?;]+", text or "")
+    )
 
 
 _REQUIRED_HEADINGS = (
     "требования к кандидатам",
     "обязательные требования",
+    "necessary qualification",
+    "necessary qualifications",
+    "required qualification",
+    "required qualifications",
+    "minimum qualification",
+    "minimum qualifications",
+    "essential qualification",
+    "essential qualifications",
     "требования",
     "что мы ожидаем",
     "мы ожидаем",
     "необходимо",
     "requirements",
+    "what we are looking for",
+    "what we are looking for in you",
+    "what you'll bring",
+    "what you bring",
     "must have",
     "must-have",
     "required",
     "what we expect",
+    "what we expect from candidates",
 )
 
 _PREFERRED_HEADINGS = (
@@ -184,10 +331,13 @@ _PREFERRED_HEADINGS = (
     "желательные требования",
     "nice to have",
     "nice-to-have",
+    "nice to have skills",
+    "nice-to-have skills",
     "preferred",
     "preferred qualifications",
     "bonus",
     "would be a plus",
+    "as a plus",
 )
 
 _NEUTRAL_HEADINGS = (
@@ -212,11 +362,37 @@ _NEUTRAL_HEADINGS = (
     "benefits",
 )
 
+_INLINE_HEADING_BREAK = re.compile(
+    r"(?<=[.;])\s+(?=(?:"
+    + "|".join(
+        re.escape(heading)
+        for heading in sorted(
+            set(_REQUIRED_HEADINGS + _PREFERRED_HEADINGS + _NEUTRAL_HEADINGS),
+            key=len,
+            reverse=True,
+        )
+    )
+    + r")\s*:)",
+    flags=re.IGNORECASE,
+)
+
+# An example of a language choice is not an individual must-have. Keep the
+# mention in the vacancy text (and thus in unknown evidence), but exclude the
+# explicitly qualified clause from the required bucket. This intentionally
+# handles only the unambiguous wording observed in an employer posting.
+_LANGUAGE_ALTERNATIVE_EXAMPLE = re.compile(
+    r"\bwith\s+[^.\n:]{1,80}?\s+among\s+(?:the\s+)?language\s+alternatives?\b",
+    flags=re.IGNORECASE,
+)
+
 
 def _match_section_heading(
     line: str,
     headings: tuple[str, ...],
 ) -> tuple[bool, str]:
+    # Preserve common typographic apostrophes used by job boards while
+    # matching against the canonical ASCII heading variants.
+    line = line.replace("’", "'").replace("‘", "'")
     for heading in headings:
         match = re.match(
             rf"^\s*{re.escape(heading)}\s*(?:[:.\-–—]\s*(.*))?\s*$",
@@ -238,7 +414,10 @@ def _split_requirement_sections(text: str) -> dict[str, str]:
 
     current = "unknown"
 
-    for raw_line in (text or "").splitlines():
+    # Some feeds flatten adjacent labelled sections into one sentence. Split
+    # only at an explicit punctuated heading so a preferred skill does not
+    # inherit the previous required section.
+    for raw_line in _INLINE_HEADING_BREAK.sub("\n", text or "").splitlines():
         line = raw_line.strip()
 
         if not line:
@@ -289,17 +468,128 @@ def extract_requirement_importance(text: str) -> dict[str, str]:
         required > preferred > unknown
     """
     sections = _split_requirement_sections(text)
+    required_text = _LANGUAGE_ALTERNATIVE_EXAMPLE.sub("", sections["required"])
     result: dict[str, str] = {}
 
     for spec in SKILLS:
-        if _matches_skill(sections["required"], spec):
+        if _required_skill_in_section(required_text, spec):
             result[spec.name] = "required"
-        elif _matches_skill(sections["preferred"], spec):
+        elif _preferred_skill_in_section(required_text, spec) or _matches_skill(sections["preferred"], spec):
             result[spec.name] = "preferred"
         elif _matches_skill(text, spec):
             result[spec.name] = "unknown"
 
+    docker_importance = result.get("Docker")
+    if docker_importance and result.get("Docker Compose") == docker_importance:
+        scoped_text = {
+            "required": required_text,
+            "preferred": sections["preferred"],
+            "unknown": text,
+        }[docker_importance]
+        if not _has_standalone_docker(scoped_text):
+            del result["Docker"]
+
     return result
+
+
+def extract_skill_alternatives(
+    text: str, importance: str,
+) -> tuple[tuple[str, ...], ...]:
+    """Find isolated, explicit skill choices in a labelled section.
+
+    A choice may wrap around an explicit ``or``/``или`` line break. A clause
+    may contain two or more options, each separated by an explicit connector.
+    A clause with additional skills or a repeated skill remains ungrouped.
+    """
+    if importance not in {"required", "preferred"}:
+        return ()
+    raw_lines = _split_requirement_sections(text)[importance].splitlines()
+    merged_lines: list[str] = []
+    for raw_line in raw_lines:
+        line = raw_line.strip()
+        if not line:
+            continue
+        begins_connector = re.match(r"^(?:or|или)\b", line, flags=re.IGNORECASE)
+        previous_ends_connector = bool(
+            merged_lines
+            and re.search(r"\b(?:or|или)$", merged_lines[-1], flags=re.IGNORECASE)
+        )
+        if merged_lines and (begins_connector or previous_ends_connector):
+            merged_lines[-1] += " " + line
+        else:
+            merged_lines.append(line)
+    section_lines = [
+        clause.strip()
+        for line in merged_lines
+        for clause in re.split(r"(?<=[.;])\s+", line)
+        if clause.strip()
+    ]
+    mentions = [
+        tuple(_matched_skill_names(line))
+        for line in section_lines
+    ]
+    counts = {
+        skill: sum(skill in line_skills for line_skills in mentions)
+        for line_skills in mentions
+        for skill in line_skills
+    }
+    groups: list[tuple[str, ...]] = []
+    skill_specs = {spec.name: spec for spec in SKILLS}
+
+    def explicit_options(expression: str, candidates: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = re.sub(r",\s*(?=(?:or|или)\b)", " ", expression, flags=re.IGNORECASE)
+        if not re.search(r"\b(?:or|или)\b", normalized, flags=re.IGNORECASE):
+            return ()
+        options = [option.strip() for option in re.split(r"\b(?:or|или)\b|,\s*", normalized, flags=re.IGNORECASE)]
+        if any(re.match(r"^(?:and|и)\b", option, flags=re.IGNORECASE) for option in options):
+            return ()
+        if len(options) != len(candidates):
+            return ()
+        option_skills = [
+            [skill for skill in candidates if _matches_skill(option, skill_specs[skill])]
+            for option in options
+        ]
+        return tuple(option[0] for option in option_skills) if all(len(option) == 1 for option in option_skills) else ()
+
+    for line, line_skills in zip(section_lines, mentions):
+        if len(line_skills) < 2 or any(counts[skill] != 1 for skill in line_skills):
+            continue
+        # Only word connectors count. A slash also occurs inside names such
+        # as CI/CD and can mean a combined skill rather than a choice.
+        whole_line_group = explicit_options(line, line_skills)
+        if whole_line_group:
+            groups.append(whole_line_group)
+            # A pure OR chain already includes every option, even when some
+            # are parenthesized. Adding inner groups would count them twice.
+            continue
+        # Parentheses let an explicit choice coexist with a separate skill in
+        # the same clause. Keep the outer expression intact so a nested flat
+        # OR chain is recognized as one choice instead of only its inner tail.
+        parenthesized: list[tuple[int, int]] = []
+        depth = 0
+        start = -1
+        for index, character in enumerate(line):
+            if character == "(":
+                if depth == 0:
+                    start = index
+                depth += 1
+            elif character == ")" and depth:
+                depth -= 1
+                if depth == 0:
+                    parenthesized.append((start, index))
+        for start, end in parenthesized:
+            expression = line[start + 1:end]
+            candidates = tuple(
+                skill for skill in line_skills
+                if _matches_skill(expression, skill_specs[skill])
+            )
+            outside = line[:start] + line[end + 1:]
+            repeated_outside = any(_matches_skill(outside, skill_specs[skill]) for skill in candidates)
+            if len(candidates) >= 2 and not repeated_outside and all(counts[skill] == 1 for skill in candidates):
+                parenthesized_group = explicit_options(expression, candidates)
+                if parenthesized_group:
+                    groups.append(parenthesized_group)
+    return tuple(dict.fromkeys(groups))
 
 
 def extract_technical_requirements(text: str) -> list[str]:
@@ -308,11 +598,7 @@ def extract_technical_requirements(text: str) -> list[str]:
     This is intentionally deterministic. It does not infer technologies that
     are not present in the vacancy text.
     """
-    return [
-        spec.name
-        for spec in SKILLS
-        if _matches_skill(text, spec)
-    ]
+    return _matched_skill_names(text)
 
 
 def compare_facts(
@@ -400,4 +686,15 @@ def compare_facts(
             )
         )
 
-    return FactComparison(tuple(requirements))
+    def valid_groups(importance: str) -> tuple[tuple[str, ...], ...]:
+        return tuple(
+            group
+            for group in extract_skill_alternatives(vacancy_text, importance)
+            if all(importance_by_skill.get(skill) == importance for skill in group)
+        )
+
+    return FactComparison(
+        tuple(requirements),
+        valid_groups("required"),
+        valid_groups("preferred"),
+    )

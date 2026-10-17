@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 4
+CURRENT_SCHEMA_VERSION = 8
 
 
 @dataclass(frozen=True)
@@ -59,6 +59,54 @@ MIGRATIONS: tuple[Migration, ...] = (
         name="job_match_recommendation_scores",
         statements=(
             "ALTER TABLE job_matches ADD COLUMN IF NOT EXISTS recommendation_scores JSONB NOT NULL DEFAULT '{}'::jsonb",
+        ),
+    ),
+    Migration(
+        version=5,
+        name="application_status_history",
+        statements=(
+            "CREATE TABLE IF NOT EXISTS application_status_events ("
+            "id SERIAL PRIMARY KEY, "
+            "application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE, "
+            "user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, "
+            "status VARCHAR(64) NOT NULL, "
+            "created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP"
+            ")",
+            "CREATE INDEX IF NOT EXISTS ix_application_status_events_application_id "
+            "ON application_status_events(application_id)",
+            "CREATE INDEX IF NOT EXISTS ix_application_status_events_user_id "
+            "ON application_status_events(user_id)",
+        ),
+    ),
+    Migration(
+        version=6,
+        name="application_resume_snapshot",
+        statements=(
+            "ALTER TABLE applications ADD COLUMN IF NOT EXISTS resume_snapshot TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE applications ADD COLUMN IF NOT EXISTS resume_external_id VARCHAR(256) NULL",
+            "INSERT INTO application_status_events (application_id, user_id, status, created_at) "
+            "SELECT a.id, a.user_id, a.status, a.created_at FROM applications a "
+            "WHERE NOT EXISTS (SELECT 1 FROM application_status_events e "
+            "WHERE e.application_id = a.id)",
+        ),
+    ),
+    Migration(
+        version=7,
+        name="application_vacancy_snapshot",
+        statements=(
+            "ALTER TABLE applications ADD COLUMN IF NOT EXISTS vacancy_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb",
+        ),
+    ),
+    Migration(
+        version=8,
+        name="protect_application_history_on_job_delete",
+        statements=(
+            # Preserve stored application evidence when routine vacancy cleanup
+            # attempts to remove a job. This changes a constraint only; no rows
+            # are deleted or rewritten.
+            "ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_job_id_fkey",
+            "ALTER TABLE applications ADD CONSTRAINT applications_job_id_fkey "
+            "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE RESTRICT",
         ),
     ),
 )

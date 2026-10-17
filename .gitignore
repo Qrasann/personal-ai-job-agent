@@ -17,6 +17,9 @@ id_ed25519.pub
 storage/
 backups/
 logs/
+.private/
+*.session
+*.session-journal
 *.dump
 *.backup
 *.log

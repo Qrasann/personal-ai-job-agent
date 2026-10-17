@@ -54,13 +54,17 @@ def build_recommendation_breakdown(
     salary_score: int,
     relocation_score: int,
     fit: str,
+    technical_text: str | None = None,
 ) -> dict[str, dict[str, int | str | None]]:
     """Expose evidence-backed dimensions without inventing missing signals.
 
     This is an explainability breakdown, not a reweighting of the established
     notification score. Dimensions without source evidence stay null.
     """
-    text = clean_html_text(" ".join((job.title or "", job.description or ""))).casefold()
+    description = clean_html_text(
+        technical_text if technical_text is not None else (job.description or "")
+    )
+    text = clean_html_text(" ".join((job.title or "", description))).casefold()
     text = re.sub(r"\s+", " ", text)
     fact_text = " ".join(
         fact.value.casefold()
@@ -71,7 +75,7 @@ def build_recommendation_breakdown(
     growth_hit = _explicit_term(text, _GROWTH)
     fast_hit = _explicit_term(text, _FAST)
     fast_block = _explicit_term(text, _FAST_BLOCK)
-    required_technical = score_technical_v2(job.description or "", facts)
+    required_technical = score_technical_v2(description, facts)
 
     infrastructure_terms = {
         label: aliases
@@ -112,7 +116,7 @@ def build_recommendation_breakdown(
         "growth": _score(100 if growth_hit else None, growth_hit or "в описании нет явных условий развития"),
         "fast_exit": _score(100 if fast_hit else 0 if fast_block else None, fast_hit or fast_block or "срок выхода не указан"),
         "interview_risk": _score(100 - required_technical if required_technical is not None else None,
-                                  f"явное покрытие обязательных требований; fit={fit}" if required_technical is not None else "нет извлечённых обязательных требований"),
+                                  f"индекс тех. риска: 100 − покрытие обязательных тех. требований; fit={fit}" if required_technical is not None else "технические обязательные требования не извлечены; индекс риска н/д"),
         "salary": _score(salary_score if job.salary_from is not None or job.salary_to is not None else None,
                          "зарплата указана структурированными полями" if job.salary_from is not None or job.salary_to is not None else "зарплата не указана"),
         "remote": _score(remote_score, signals.remote_reason or "remote-сигнал не указан"),
