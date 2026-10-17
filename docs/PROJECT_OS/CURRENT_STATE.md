@@ -1,8 +1,12 @@
 # Current State
 
+## 2026-10-17 — disambiguate Georgia (US state) in Greenhouse locations
+
+Greenhouse's location parser treated any `Georgia` substring as the country code GE. A US-state listing such as “Atlanta, Georgia, USA” therefore entered a Georgia-targeted search. Explicit US qualifiers (USA, U.S.A., U.S., US, United States, United States of America) now leave country unknown and exclude the listing from the GE market; unqualified “Tbilisi, Georgia” remains GE. Regression was red before the fix. Greenhouse/Remotive/relocation suites: 84 passed; full isolated PostgreSQL suite: 1246 passed; test DB stopped; compileall, diff check and secret scan passed. No live source or schema changes. Feature is synced at `1e66216`; follow-up is local on `work/greenhouse-georgia-state-disambiguation`.
+
 ## 2026-10-17 — exclude medical-professional networks from technical Candidate Fit
 
-Follow-up fixtures reproduced `network of medical professionals` and `network of physicians and nurses` being treated as required technical Networking skills. The narrow organizational-network exclusion now covers medical professionals, physicians, doctors and nurses, alongside the previously tested institutional types. Network routing and firewall requirements remain recognized. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. No score changes. Checkpoint `6159bc0` is published in PR #37; CI is running.
+Follow-up fixtures reproduced `network of medical professionals` and `network of physicians and nurses` being treated as required technical Networking skills. The narrow organizational-network exclusion now covers medical professionals, physicians, doctors and nurses, alongside the previously tested institutional types. Network routing and firewall requirements remain recognized. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. No score changes. Integrated by PR #37 at feature commit `1e66216` after CI passed.
 
 ## 2026-10-17 — separate EURES detail request budget from search result coverage
 

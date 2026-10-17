@@ -57,6 +57,14 @@
 
 # Tasks
 
+## 2026-10-17 — distinguish US Georgia from country GE in Greenhouse
+
+- [x] Reproduce “Atlanta, Georgia, USA” entering a GE-targeted Greenhouse search.
+- [x] Disambiguate explicit US qualifiers without changing unqualified Georgia or Tbilisi, Georgia behavior.
+- [x] Greenhouse/Remotive/relocation tests: 84 passed; full isolated PostgreSQL suite: 1246 passed; test DB stopped; compileall, diff check and secret scan passed.
+- [ ] Update handoff, save checkpoint, publish PR to feature and wait for CI.
+- [ ] Continue another practical Relocation-first/source-quality task.
+
 ## 2026-10-17 — recognize human medical networks as non-technical
 
 - [x] Reproduce medical professionals and physician/nurse networks becoming required technical Networking skills.
@@ -88,7 +96,7 @@
 - [x] Reproduce valid EURES search cards being dropped after detail 404/503, including a total detail outage that failed the entire source.
 - [x] Return search-level cards with official EURES fallback links when detail enrichment fails; keep successfully enriched cards, partial counters and per-detail diagnostics.
 - [x] EURES tests: 26 passed; full isolated PostgreSQL suite: 1235 passed; test database stopped; compileall, diff check and secret scan passed.
-- [ ] Save local checkpoint and publish PR to feature; wait for CI.
+- [x] Save checkpoint `6159bc0`, publish PR #37 and integrate at feature commit `1e66216` after CI passed.
 - [ ] Continue another independent Source Intelligence/Candidate Fit improvement.
 
 ## 2026-10-17 — keep local work-authorization gates visible in remote eligibility

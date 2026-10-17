@@ -66,6 +66,19 @@ def test_greenhouse_parses_armenia_only_when_am_is_selected():
     assert armenia_jobs[0].city == "Yerevan"
 
 
+@pytest.mark.parametrize("qualifier", ["USA", "U.S.A.", "U.S.", "US", "United States", "United States of America"])
+def test_greenhouse_does_not_treat_georgia_usa_location_as_the_country(qualifier):
+    jobs = GreenhouseSource.parse_payload(
+        {"jobs": [
+            listing(1, "Infrastructure Engineer", f"Atlanta, Georgia, {qualifier}"),
+            listing(2, "Infrastructure Engineer", "Tbilisi, Georgia"),
+        ]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )
+
+    assert [job.source_job_id for job in jobs] == ["lineate:2"]
+
+
 def test_greenhouse_support_requires_explicit_employer_evidence():
     offered = GreenhouseSource.parse_payload(
         {"jobs": [listing(1, "Infrastructure Engineer", "Georgian office", "We offer visa sponsorship and relocation assistance.")]},
