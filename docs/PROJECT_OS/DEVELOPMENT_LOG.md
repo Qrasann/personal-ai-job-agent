@@ -2660,3 +2660,7 @@ PostgreSQL: 988 passed.
 Explicit Russian statements that accommodation is or is not provided now
 produce attributed evidence; bare mentions stay unknown. Full isolated
 PostgreSQL: 988 passed.
+
+## 2026-10-17 — distinguish saved `/prepare` drafts from Telegram delivery failures
+
+The package is committed before Telegram sends/edits its preview. A delivery exception was rendered like a pre-save failure, even though `/prepare` again would create another draft. Both command and callback now report that the draft is already saved, direct the owner to `/applications`, and disclose that repeating `/prepare` creates a new draft. No persistence semantics, schema or outbound application action changed. Regression tests cover both post-save delivery failures and verify no second preparation call. Targeted 47 passed; unit suite 1124 passed/14 skipped; isolated PostgreSQL suite 1138 passed. Compileall, diff check and secret scan passed; isolated test container stopped.

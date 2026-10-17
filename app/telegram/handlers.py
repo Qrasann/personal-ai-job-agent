@@ -1576,6 +1576,16 @@ async def _prepare_saved_preview(match_id: int, user_id: int) -> str:
     return preview + f"\n\n💾 Черновик письма сохранён как отклик #{application.id}. /applications"
 
 
+def _prepare_error_text(exc: Exception, *, package_saved: bool) -> str:
+    issue = classify_source_error(exc, stage="processing")
+    text = f"⚠ {html.escape(issue['message'])} Код: {issue['code']}."
+    if package_saved:
+        # Retrying /prepare creates another draft. Point to the durable record
+        # so a transient Telegram delivery failure cannot prompt duplication.
+        return text + " Пакет уже сохранён; открой /applications. Повторный /prepare создаст новый черновик."
+    return text + " Проверь /applications перед повтором."
+
+
 @router.message(Command("prepare"))
 async def prepare_command(message: Message) -> None:
     user = await _require_user(message)
@@ -1598,17 +1608,18 @@ async def prepare_command(message: Message) -> None:
             return
         search_filter = {"search_profile_id": search.id}
     progress = await message.answer("⏳ Готовлю пакет для твоей проверки…")
+    package_saved = False
     try:
         match = await repo.get_match_for_user_job(user.id, int(parts[1]), **search_filter)
         if not match:
             await progress.edit_text("❌ Вакансия не найдена среди твоих совпадений в выбранном поиске.")
             return
         preview = await _prepare_saved_preview(match.id, user.id)
+        package_saved = True
         await progress.edit_text(preview, parse_mode="HTML", disable_web_page_preview=True)
     except Exception as exc:
-        issue = classify_source_error(exc, stage="processing")
         await progress.edit_text(
-            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
+            _prepare_error_text(exc, package_saved=package_saved),
             parse_mode="HTML",
         )
 
@@ -1979,17 +1990,18 @@ async def prepare_callback(callback: CallbackQuery) -> None:
         return
     match_id = int(raw_id)
     await callback.answer("Готовлю…")
+    package_saved = False
     try:
         preview = await _prepare_saved_preview(match_id, user.id)
+        package_saved = True
         await callback.message.answer(
             preview,
             parse_mode="HTML",
             disable_web_page_preview=True,
         )
     except Exception as exc:
-        issue = classify_source_error(exc, stage="processing")
         await callback.message.answer(
-            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}. Проверь /applications перед повтором.",
+            _prepare_error_text(exc, package_saved=package_saved),
             parse_mode="HTML",
         )
 

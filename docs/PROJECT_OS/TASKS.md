@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-17 — Application Package delivery retry safety
+
+- [x] Distinguish `/prepare` failures before persistence from Telegram delivery failures after durable save; point to `/applications` and warn that repeating preparation creates a second draft. Test command and callback delivery failures.
+- [x] Targeted tests 47; unit suite 1124 passed/14 skipped; isolated PostgreSQL suite 1138 passed; compileall, diff check and secret scan passed.
+- [ ] Next: continue offline workflow reliability and practical source/Candidate Fit improvements. Live source usefulness, Telegram channel acceptance and HH root-cause diagnosis remain blocked on owner-approved runtime evidence.
+
 ## 2026-10-17 — source relevance follow-up
 
 - [x] Reproduce RemoteOK short-role loss and substring false positives; retain whole QA/HR/Go/C# terms with title/tag matching and all-specific-token semantics. Targeted 71; full isolated PostgreSQL 1070 passed.

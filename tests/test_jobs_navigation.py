@@ -459,6 +459,44 @@ def test_prepare_command_hides_internal_error_and_points_to_saved_applications(m
     assert "/applications" in rendered
 
 
+def test_prepare_command_delivery_failure_discloses_saved_draft_without_retrying(monkeypatch):
+    _mock_profiles(monkeypatch)
+    monkeypatch.setattr(handlers.repo, "get_match_for_user_job", AsyncMock(return_value=SimpleNamespace(id=51)))
+    prepare = AsyncMock(return_value="SAVED PACKAGE")
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    progress = SimpleNamespace(edit_text=AsyncMock(side_effect=[RuntimeError("Telegram timeout"), None]))
+    message = SimpleNamespace(text="/prepare 25", answer=AsyncMock(return_value=progress))
+
+    asyncio.run(handlers.prepare_command(message))
+
+    prepare.assert_awaited_once_with(51, 7)
+    notice = progress.edit_text.await_args_list[1].args[0]
+    assert "Пакет уже сохранён" in notice
+    assert "/applications" in notice
+    assert "Повторный /prepare создаст новый черновик" in notice
+    assert "Telegram timeout" not in notice
+
+
+def test_prepare_callback_delivery_failure_discloses_saved_draft_without_retrying(monkeypatch):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    prepare = AsyncMock(return_value="SAVED PACKAGE")
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    answer = AsyncMock(side_effect=[RuntimeError("Telegram timeout"), None])
+    callback = SimpleNamespace(
+        data="prepare:51", answer=AsyncMock(),
+        message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=answer),
+    )
+
+    asyncio.run(handlers.prepare_callback(callback))
+
+    prepare.assert_awaited_once_with(51, 7)
+    notice = answer.await_args_list[1].args[0]
+    assert "Пакет уже сохранён" in notice
+    assert "/applications" in notice
+    assert "Повторный /prepare создаст новый черновик" in notice
+    assert "Telegram timeout" not in notice
+
+
 def test_application_status_command_uses_explicit_manual_status(monkeypatch):
     _mock_profiles(monkeypatch)
     update = AsyncMock(return_value=True)
