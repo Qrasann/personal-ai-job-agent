@@ -95,6 +95,10 @@ def recruiter_reply(question: str, facts: list[CandidateFact], context: str = ""
         "паспорт", "passport", "document", "bank", "банков", "инн", "снилс", "salary", "зарплат", "оклад",
         "interview", "интервью", "созвон", "meeting", "дата выхода", "start date", "offer", "оффер",
         "relocation", "релокац", "when can", "когда сможете",
+        "visa", "виз", "sponsorship", "спонсорств", "work permit", "разрешение на работу",
+        "work authorization", "authorized to work", "authorised to work", "right to work",
+        "eligible to work", "legally allowed to work", "право на работу", "гражданств",
+        "citizenship", "nationality",
     ]
     sensitive = any(x in lowered for x in sensitive_markers)
     client = _client()

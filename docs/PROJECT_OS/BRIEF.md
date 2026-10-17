@@ -1,14 +1,14 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Active checkpoint (2026-10-17)
-- Feature includes PRs #38–#42 and is synced at `f6e354b`; all checks passed. Current branch: `work/prepare-telegram-retry-postgres` based on `f6e354b`.
-- Greenhouse excludes explicit US-qualified Georgia and Georgia+GA postal-code forms from GE searches; PR #40 full unit suite 1234 passed/20 skipped and CI green. Candidate Fit negation variants merged in #41; full unit suite 1241 passed/20 skipped, CI green.
-- Source publication age bands (≤7, 8–30, >30 days, unknown/future) merged in PR #42; full suite 1252 passed/20 skipped, CI green. Dates are observational only, not availability decisions.
-- Application Package test now joins real PostgreSQL persistence with Telegram delivery failure and retry; package ID/content/status remain unchanged and no duplicate is created. Targeted isolated PostgreSQL flow: 2 passed; full unit suite: 1252 passed/21 skipped; static gates passed. Current test/docs change is local and uncommitted. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched.
-- Next: checkpoint/publish the Application Package integration test, then continue the next independent roadmap task.
+- Feature includes PRs #38–#43 and is synced at `0a50a29`; all CI passed. Current branch: `work/recruiter-eligibility-human-review` based on `0a50a29`.
+- Greenhouse Georgia country/state distinctions, Candidate Fit explicit-negation handling, and source publication age telemetry are merged. Publication age is observational; it does not filter or infer job closure.
+- `/prepare` PostgreSQL handler+repository failure/retry integration test is merged in PR #43 after CI. It verifies durable save, safe retry, and unchanged source/provider identity without duplicate packages; isolated PostgreSQL: 2 passed.
+- Recruiter reply risk probe reproduced visa, work authorization and citizenship questions returning `requires_human=False`; explicit English/Russian markers now force human review. Recruiter tests 15 passed; full unit suite 1257 passed/21 skipped; static checks passed. Current fix is local/uncommitted.
+- PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: checkpoint/publish the recruiter safety fix, then continue the next independent roadmap task.
 
 ## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `f6e354b`. Current branch `work/prepare-telegram-retry-postgres` is based there; Application Package integration test/docs are local/uncommitted. PRs #38–#42 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `0a50a29`. Current branch `work/recruiter-eligibility-human-review` is based there; Recruiter safety fix is local/uncommitted. PRs #38–#43 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

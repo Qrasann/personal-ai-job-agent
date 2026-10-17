@@ -1,8 +1,12 @@
 # Current State
 
+## 2026-10-17 — Recruiter work-eligibility questions require human review
+
+Reproduced five questions about visa sponsorship, legal work authorization, citizenship, Russian work permits and Russian citizenship receiving `requires_human=False` when the model requested no review. Explicit English/Russian sensitive markers now override the model and require human review. Recruiter tests: 15 passed; full unit suite: 1257 passed/21 skipped; compileall, diff check and secret scan passed. No outbound message sent. Feature is `0a50a29`; current fix is local on `work/recruiter-eligibility-human-review`.
+
 ## 2026-10-17 — Application Package Telegram delivery retry integration
 
-Added an offline PostgreSQL handler+repository integration path: `/prepare` saves an Application, its Telegram edit fails, then retry returns the saved package without replacing its content or adding a duplicate. Targeted isolated PostgreSQL file: 2 passed; full unit suite 1252 passed/21 skipped; compileall, diff check and secret scan passed. No application is sent. Feature/origin is `f6e354b`; branch `work/prepare-telegram-retry-postgres` contains local test/docs changes.
+Added an offline PostgreSQL handler+repository integration path: `/prepare` saves an Application, its Telegram edit fails, then retry returns the saved package without replacing its content or adding a duplicate. Targeted isolated PostgreSQL file: 2 passed; full unit suite 1252 passed/21 skipped; CI green. No application is sent. Merged in PR #43 at feature `0a50a29`.
 
 ## 2026-10-17 — source publication-age telemetry
 
