@@ -103,6 +103,14 @@ RemoteOK role precision follow-up (2026-10-17): IMPLEMENTED offline regression
 coverage for short role/language terms and whole title/tag matching, avoiding
 generic-role leakage and Java/JavaScript substring collisions. Live usefulness
 and source coverage remain PARTIAL; no threshold reduction.
+
+Relocation evidence follow-up (2026-10-17): Remotive candidate-required
+location remains remote eligibility scope, not a physical work-country claim;
+explicit uppercase ISO location codes such as `GE`/`GE Only` are now parsed
+without treating ordinary lowercase words as country codes. Rediscovery under
+a new provider ID preserves the canonical Job's source-scoped snapshot and
+latest provider reference. Offline fixtures and isolated PostgreSQL regressions
+pass; live source eligibility and usefulness remain unverified.
 Remote location follow-up: IMPLEMENTED preservation of explicit known-geography
 `only` labels for RemoteOK/Arbeitnow in scope and source evidence. Office/global
 labels remain unknown; candidate-specific legal eligibility stays PARTIAL.

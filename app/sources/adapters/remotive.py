@@ -94,7 +94,8 @@ class RemotiveSource(JobSource):
     def _country_codes_in_location(cls, location: str) -> set[str]:
         text = location.casefold()
         codes: set[str] = set()
-        for code, cfg in load_country_catalog().get("countries", {}).items():
+        catalog = load_country_catalog().get("countries", {})
+        for code, cfg in catalog.items():
             names = [cfg.get("name", ""), *(cfg.get("aliases") or [])]
             for name in names:
                 name = str(name).strip()
@@ -106,6 +107,25 @@ class RemotiveSource(JobSource):
                 if re.search(rf"(?<!\w){re.escape(name.casefold())}(?!\w)", text):
                     codes.add(code)
                     break
+        # Accept uppercase ISO alpha-2 codes only when they are clearly used
+        # as a location token. Lowercase matching would misread ordinary words
+        # such as "in" and "am" as country codes.
+        known_codes = {str(code).upper() for code in catalog} | set(cls._external_country_aliases)
+        for match in re.finditer(r"(?<![A-Za-z])([A-Z]{2})(?![A-Za-z])", location):
+            code = match.group(1)
+            if code not in known_codes:
+                continue
+            prefix = location[:match.start()].rstrip()
+            suffix = location[match.end():].lstrip()
+            clearly_scoped = (
+                not prefix and not suffix
+                or prefix.endswith((",", "(", "[", "/", "|", "-"))
+                or suffix.startswith((",", ")", "]", "/", "|", "-"))
+                or re.search(r"\b(?:only|remote|country|based|residents?)\s*$", prefix, re.I)
+                or re.match(r"(?:only|remote|country|based|residents?)\b", suffix, re.I)
+            )
+            if clearly_scoped:
+                codes.add(code)
         # "Georgia, USA" refers to the US state, while unqualified "Georgia"
         # remains the country. Do not let the country catalog alias override
         # an explicit country qualifier in the source's hiring-location text.

@@ -95,6 +95,32 @@ def test_remotive_candidate_location_is_not_reported_as_physical_work_country(
     assert evidence["work_country"]["value"] is None
 
 
+@pytest.mark.parametrize("location", ["GE", "GE Only", "Remote - GE", "Georgia (GE)"])
+def test_remotive_recognizes_unambiguous_georgia_country_code_locations(location):
+    jobs = RemotiveSource.parse_payload(
+        {"jobs": [posting(24, "DevOps Engineer", location)]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["DevOps Engineer"]),
+    )
+
+    assert len(jobs) == 1
+    assert jobs[0].country == "GE"
+
+
+def test_remotive_country_code_only_location_excludes_other_markets():
+    jobs = RemotiveSource.parse_payload(
+        {"jobs": [posting(25, "DevOps Engineer", "GE Only")]},
+        SourceContext(user_id=1, target_countries=["AM"], queries=["DevOps Engineer"]),
+    )
+
+    assert jobs == []
+
+
+def test_remotive_country_code_detection_does_not_match_lowercase_common_words():
+    assert RemotiveSource._country_codes_in_location("in") == set()
+    assert RemotiveSource._country_codes_in_location("am") == set()
+    assert RemotiveSource._country_codes_in_location("GE Only") == {"GE"}
+
+
 def test_remotive_missing_candidate_location_stays_unknown_and_free_text_salary_is_not_structured():
     row = posting(7, "Linux Administrator", "")
     row.pop("candidate_required_location")
