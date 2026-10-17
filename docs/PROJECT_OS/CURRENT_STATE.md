@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — avoid classifying healthcare organizations as technical networks
+
+Candidate Fit's broad `network` alias classified “a nationwide network of clinics and hospitals” as a required Networking skill in a non-technical healthcare vacancy. Added a narrow exclusion for organizational networks (clinics, hospitals, care/healthcare providers, schools, universities, pharmacies); explicit network routing and firewall requirements still match. Regression was red before the fix. Fact-comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed. No scoring changes. Checkpoint `be421c8` is published in PR #35 to feature; CI is running.
+
 ## 2026-10-17 — preserve valid EURES search cards after detail failures
 
 EURES returned a valid employer-flagged search card with title/description and official portal URL, but a failing detail request caused the adapter to discard it. When all detail requests failed, it raised and returned no search results. The adapter now uses successful detail responses where available and falls back to each already-validated search card for failed details, preserving source attribution and the official portal link. Existing `partial_failures` and typed detail diagnostics remain active. Red regressions cover one failed detail among successes and all detail requests failing. EURES tests: 26 passed; full isolated PostgreSQL suite: 1235 passed; test DB stopped; compileall, diff check and secret scan passed. No schema or live-source changes. Branch `work/eures-detail-partial-results` is based on feature `abe9d35`; local changes not yet checkpointed.
