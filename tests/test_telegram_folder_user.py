@@ -20,11 +20,12 @@ def test_folder_slug_accepts_only_exact_telegram_folder_link():
 
 
 def test_inventory_uses_peer_id_and_never_label_as_identity():
-    result = SimpleNamespace(chats=[
+    chats = [
         SimpleNamespace(id=11, title="Same", username="devops_jobs", broadcast=True),
         SimpleNamespace(id=12, title="Same", username=None, broadcast=True),
         SimpleNamespace(id=13, title="Private discussion", username=None, megagroup=True),
-    ])
+    ]
+    result = SimpleNamespace(chats=chats, peers=chats)
     inventory = folder_inventory(result, peer_id=lambda chat: -100000 - chat.id)
     assert [item["chat_id"] for item in inventory] == [-100011, -100012, -100013]
     assert all(not item["enabled"] and item["access"] == "not_probed" for item in inventory)
@@ -47,11 +48,20 @@ def test_selection_requires_current_folder_broadcast_id_and_explicit_opt_in():
 
 
 def test_left_channel_is_not_enabled_from_folder_preview():
-    result = SimpleNamespace(chats=[SimpleNamespace(id=42, title="Jobs", username="jobs", broadcast=True, left=True)])
+    chat = SimpleNamespace(id=42, title="Jobs", username="jobs", broadcast=True, left=True)
+    result = SimpleNamespace(chats=[chat], peers=[chat])
     inventory = folder_inventory(result, peer_id=lambda chat: -100000 - chat.id)
     assert inventory[0]["access"] == "left"
     with pytest.raises(ValueError):
         selected_channels({"chats": [{"chat_id": -100042, "scope": "both", "enabled": True}]}, inventory)
+
+
+def test_inventory_excludes_chat_metadata_not_referenced_by_folder():
+    permitted = SimpleNamespace(id=1, title="Approved", broadcast=True)
+    unrelated = SimpleNamespace(id=2, title="Other", broadcast=True)
+    inventory = folder_inventory(SimpleNamespace(chats=[permitted, unrelated], peers=[permitted]),
+                                 peer_id=lambda chat: -100000 - chat.id)
+    assert [item["chat_id"] for item in inventory] == [-100001]
 
 
 def test_private_local_config_only(tmp_path: Path):

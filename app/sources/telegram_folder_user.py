@@ -29,11 +29,15 @@ def folder_inventory(result, *, peer_id) -> list[dict]:
 
     Preview membership is not proof of joined status or history access.
     """
+    references = getattr(result, "peers", None)
+    if references is None:
+        references = list(getattr(result, "already_peers", ())) + list(getattr(result, "missing_peers", ()))
+    allowed_ids = {peer_id(peer) for peer in references}
     inventory = []
     seen = set()
     for chat in result.chats:
         chat_id = peer_id(chat)
-        if chat_id in seen:
+        if chat_id in seen or chat_id not in allowed_ids:
             continue
         seen.add(chat_id)
         kind = ("broadcast" if getattr(chat, "broadcast", False) else

@@ -3,7 +3,7 @@
 ## Current Telegram folder increment (2026-10-17)
 - New `work/telegram-folder-watcher` branch adds optional local MTProto folder preview and selected broadcast-only polling through the existing watcher pipeline. Account-wide updates are disabled; private cursors support bounded restart catch-up. No folder join, user-account send, production change or live login. Owner's 21-item manifest contains labels only: every numeric ID, username and access remains unverified.
 - Telegram post date now survives ingestion/retry; explicit CV/advertising headers are skipped, while unknown salary remains unknown. Per-channel counters distinguish candidate posts from Good/Stretch profile assessments. See `docs/developer/TELEGRAM_WATCH.md`.
-- Final isolated PostgreSQL suite: 1293 passed; publication-date persistence regression also passed separately (1). Live acceptance needs owner-controlled Telegram API credentials and interactive local authorization, then 2–3 verified channels before wider rollout. Never publish folder invite/session.
+- Final isolated PostgreSQL suite: 1294 passed; publication-date persistence regression also passed separately (1). Live acceptance needs owner-controlled Telegram API credentials and interactive local authorization, then 2–3 verified channels before wider rollout. Never publish folder invite/session.
 
 ## Verified GitHub snapshot after PR #44
 - Stable main VERSION=3.5.6; development feature VERSION=3.5.7 at 8b33ee5 on 2026-10-17. PR #18 is Draft/open to main.
