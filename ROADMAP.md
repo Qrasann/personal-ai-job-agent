@@ -115,6 +115,8 @@ v3.6 CV selection follow-up: IMPLEMENTED exact role/content term matching for
 short known roles/languages and Java/JavaScript distinction. Stored CV/facts
 remain untouched and selection does not boost match scores. Reviewed tailored
 RU/EN CV generation remains PLANNED; the overall milestone remains PARTIAL.
+The shared role matcher also handles the system/systems spelling variant, and
+CV role matching excludes generic terms when preferring a specific role.
 Source robustness: IMPLEMENTED safe handling of malformed optional RemoteOK/
 Arbeitnow tags and typed/invalid RemoteOK salary metadata, preserving valid jobs.
 RemoteOK also normalizes valid explicit publication instants and keeps invalid

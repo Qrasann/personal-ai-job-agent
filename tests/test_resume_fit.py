@@ -47,6 +47,7 @@ def test_resume_selector_ignores_inactive_resume():
     ("HR Specialist", "Recruitment Specialist"),
     ("C# Developer", "C++ Developer"),
     ("JavaScript Developer", "Java Developer"),
+    ("System Administrator", "Network Administrator"),
 ])
 def test_resume_selector_prefers_exact_short_role_over_generic_tie(role, unrelated_role):
     job = Job(title=role, description="", country="AM")
@@ -62,6 +63,14 @@ def test_resume_content_overlap_retains_short_technical_names_without_new_claims
     selected.role = unrelated.role = "Developer"
     assert choose_resume(job, [selected, unrelated]) == 1
     assert selected.content == "C#"
+
+
+def test_resume_role_specific_terms_outweigh_shared_generic_title():
+    job = Job(title="QA Engineer", description="", country="AM")
+    qa, platform = _resume(1, ""), _resume(2, "")
+    qa.role = "QA Analyst"
+    platform.role = "Platform Engineer"
+    assert choose_resume(job, [platform, qa]) == 1
 
 
 def test_resume_selection_does_not_inflate_match_score():

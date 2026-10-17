@@ -80,6 +80,7 @@ def test_matching_does_not_treat_arbitrary_short_fragments_as_roles():
     ("Java Developer", "Java Engineer", "JavaScript Developer"),
     ("IT Support", "IT Support", "Customer Support"),
     ("UX Designer", "UX Designer", "Graphic Designer"),
+    ("System Administrator", "Systems Administrator", "Network Administrator"),
 ])
 def test_fallback_role_bonus_requires_exact_specific_terms(query, matching, unrelated):
     matched = _score(matching, query)

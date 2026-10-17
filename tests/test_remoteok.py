@@ -93,6 +93,7 @@ def test_remoteok_preserves_explicit_location_limit_over_worldwide_boilerplate(m
         ("Java Developer", "Java Engineer", "JavaScript Developer"),
         ("DevOps Engineer", "DevOps/SRE Engineer", "Software Engineer"),
         ("Linux Administrator", "Linux-System Administrator", "Windows Administrator"),
+        ("System Administrator", "Systems Administrator", "Network Administrator"),
     ],
 )
 def test_remoteok_matches_role_tokens_without_dropping_short_terms(

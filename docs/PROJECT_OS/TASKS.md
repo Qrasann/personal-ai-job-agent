@@ -9,6 +9,7 @@
 - [x] v3.6: fix resume role/content ambiguity for short names and Java/JavaScript; six red regressions, targeted 69 and full isolated PostgreSQL 1110 passed. CV/facts unchanged; no score boost from CV selection.
 - [x] Source reliability: RemoteOK/Arbeitnow malformed optional tags and RemoteOK invalid optional salary types no longer fail or discard a valid row; targeted 71, full isolated PostgreSQL 1125 passed.
 - [x] Normalize RemoteOK publication dates conservatively and keep invalid dates unknown; RemoteOK tests 30, full isolated PostgreSQL 1130 passed.
+- [x] Preserve the common system/systems role variant and exclude generic engineer/administrator terms when choosing among CVs; full isolated PostgreSQL 1134 passed.
 - [x] Verify Candidate Facts ADD/UPDATE/KEEP against code/tests: overlap defaults to KEEP, duplicate target UPDATE rejected, stale/foreign replacement blocked in transaction, imported experience remains `unknown`/noncommercial. Existing tests cover these invariants; no duplicate code change.
 - [ ] Live source/query usefulness remains pending an explicitly authorized scan environment.
 

@@ -1,3 +1,7 @@
+## 2026-10-17 — preserve role variants and prefer specific CV match
+
+Offline matching showed the shared tokenizer needed one narrow system/systems form, and generic engineer/administrator words could tie an unrelated CV with a role-specific one. Source filtering and scoring now share the explicit system/systems variant. CV selection removes generic role terms before scoring the role portion. Targeted source/matching/CV tests 97; full isolated PostgreSQL 1134 passed. No experience/fact/score-policy change.
+
 ## 2026-10-17 — normalize RemoteOK publication dates
 
 RemoteOK previously copied arbitrary `date` values to publication metadata. It now stores only `source_datetime()`'s valid UTC-normalized output and leaves malformed/timezone-less dates unknown. Synthetic malformed values do not discard a valid sibling listing. RemoteOK tests 30; full isolated PostgreSQL 1130 passed.

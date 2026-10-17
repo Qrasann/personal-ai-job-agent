@@ -62,7 +62,7 @@ def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
     ranked: list[tuple[int, int]] = []
     for resume in available:
         score = 0
-        for token in _matching_role_tokens(resume.role):
+        for token in _matching_role_tokens(resume.role) - _RESUME_GENERIC_TOKENS:
             if token in job_tokens:
                 score += 5
 
