@@ -2,7 +2,7 @@
 
 ## Current entry point — 2026-10-17 EURES partial parsing
 
-Branch `work/v357-rejection-diagnostics`; latest code checkpoint before this increment `bc8a68c` (whole-token EURES query matching). The follow-up reproduced integer `locationMap` raising `TypeError` and aborting the page. Malformed optional `locationMap`/`employer` values now become unknown/empty metadata; valid listing rows and siblings are preserved. EURES tests 19 passed; full isolated PostgreSQL 1159 passed. Current edits need final gates and a local checkpoint. Stop the isolated DB before handoff. No live EURES/network, schema or production action. Next: continue a distinct offline Source Intelligence or Relocation-first regression check.
+Branch `work/v357-rejection-diagnostics`; latest checkpoint `23b5418`. The follow-up reproduced integer `locationMap` raising `TypeError` and aborting the page. Malformed optional `locationMap`/`employer` values now become unknown/empty metadata; valid listing rows and siblings are preserved. EURES tests 19 passed; full isolated PostgreSQL 1159 passed. The isolated test DB is stopped. No live EURES/network, schema or production action. Next: continue a distinct offline Source Intelligence or Relocation-first regression check.
 
 ## Current entry point — 2026-10-17 EURES query relevance
 
