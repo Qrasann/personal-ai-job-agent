@@ -1,13 +1,13 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Active checkpoint (2026-10-17)
-- Feature includes PR #38 (`9244aca`), PR #39 (`c73a38f`) and PR #40 (`d618dc8`); all CI passed. Current branch: `work/candidate-fit-negated-requirements`, based on `d618dc8`.
-- Greenhouse excludes explicit US-qualified Georgia and Georgia+GA postal-code forms from GE searches; PR #40 offline suites 52 passed, full unit suite 1234 passed/20 skipped, CI green. No live source acceptance.
-- Candidate Fit direct non-requirements and positive clauses after “but”/“and” are covered in merged PR #39. A new fixture probe found further false-required variants (contractions, “not a hard requirement/must-have”, “no previous experience is necessary”); 7 red regressions reproduced, and narrow normalization/patterns now pass all 11 non-requirement cases. Full suite/static gates pending.
-- Current Candidate Fit follow-up is local and uncommitted. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: run full suite/static gates, update/checkpoint and publish a PR to feature, then continue another independent source-quality/relocation issue.
+- Feature includes PRs #38–#41 and is synced at `543057f`; all checks passed. Current branch: `work/source-freshness-age-breakdown` based on `543057f`.
+- Greenhouse excludes explicit US-qualified Georgia and Georgia+GA postal-code forms from GE searches; PR #40 full unit suite 1234 passed/20 skipped and CI green. Candidate Fit negation variants merged in #41; full unit suite 1241 passed/20 skipped, CI green.
+- Current Source Intelligence change adds age bands only for explicit timezone-aware publication dates (≤7, 8–30, >30 days, unknown/future). It does not filter postings or claim that old/expired listings are closed. Targeted source/availability/scan suites: 104 passed; full suite pending.
+- Current telemetry change is local and uncommitted. PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: complete full unit/static gates, checkpoint/publish to feature, then continue another independent roadmap issue.
 
 ## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `d618dc8`. Current branch `work/candidate-fit-negated-requirements` is based there; Candidate Fit wording follow-up is local/uncommitted. PRs #38–#40 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
+- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `543057f`. Current branch `work/source-freshness-age-breakdown` is based there; telemetry change is local/uncommitted. PRs #38–#41 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
 - Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
 - Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
 - Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.

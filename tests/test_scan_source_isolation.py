@@ -1,5 +1,6 @@
 import asyncio
 import ssl
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -166,6 +167,35 @@ def test_scan_summary_counts_nonempty_source_publication_date_fields(monkeypatch
     assert info["found"] == 3
     assert info["publication_date_provided"] == 1
     assert info["publication_date_missing"] == 2
+
+
+def test_scan_summary_counts_publication_age_without_filtering_or_guessing_timezone(monkeypatch):
+    now = datetime.now(UTC)
+
+    class Source:
+        source_id = name = "remoteok"
+
+        async def discover(self, _context):
+            return [
+                NormalizedJob(source="remoteok", source_job_id="fresh", title="DevOps", published_at=(now - timedelta(days=2)).isoformat()),
+                NormalizedJob(source="remoteok", source_job_id="middle", title="DevOps", published_at=(now - timedelta(days=14)).isoformat()),
+                NormalizedJob(source="remoteok", source_job_id="old", title="DevOps", published_at=(now - timedelta(days=45)).isoformat()),
+                NormalizedJob(source="remoteok", source_job_id="naive", title="DevOps", published_at=(now.replace(tzinfo=None)).isoformat()),
+                NormalizedJob(source="remoteok", source_job_id="missing", title="DevOps"),
+            ]
+
+    configure_scan(monkeypatch, {"remoteok": Source})
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={"processed": 1}))
+    monkeypatch.setattr(services, "notify_chat", AsyncMock())
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    info = summary["sources"]["remoteok"]
+
+    assert info["found"] == 5
+    assert info["publication_age_0_7d"] == 1
+    assert info["publication_age_8_30d"] == 1
+    assert info["publication_age_over_30d"] == 1
+    assert info["publication_age_unknown"] == 2
 
 
 def test_scan_summary_keeps_scoring_filter_reasons_from_ingestion(monkeypatch):

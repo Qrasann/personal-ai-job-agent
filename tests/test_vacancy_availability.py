@@ -4,6 +4,7 @@ import pytest
 
 from app.domain.vacancy_availability import (
     listing_expiry_metadata,
+    publication_age_bucket,
     source_datetime,
     vacancy_availability,
     vacancy_availability_lines,
@@ -11,6 +12,21 @@ from app.domain.vacancy_availability import (
 
 
 NOW = datetime(2026, 10, 13, 12, tzinfo=UTC)
+
+
+@pytest.mark.parametrize(("value", "expected"), [
+    ("2026-10-13T12:00:00Z", "fresh_7d"),
+    ("2026-10-06T12:00:00Z", "fresh_7d"),
+    ("2026-10-06T11:59:59Z", "age_8_30d"),
+    ("2026-09-13T12:00:00Z", "age_8_30d"),
+    ("2026-09-13T11:59:59Z", "older_30d"),
+    ("2026-10-14T12:00:00Z", "unknown"),
+    ("2026-10-13T12:00:00", "unknown"),
+    ("2026-10-13", "unknown"),
+    (None, "unknown"),
+])
+def test_publication_age_buckets_require_unambiguous_timezone_aware_dates(value, expected):
+    assert publication_age_bucket(value, now=NOW) == expected
 
 
 @pytest.mark.parametrize("value", [

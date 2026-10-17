@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 
@@ -34,6 +34,30 @@ def source_datetime(value: object) -> datetime | None:
         return parsed.astimezone(UTC)
     except (OverflowError, ValueError):
         return None
+
+
+def publication_age_bucket(
+    value: object, *, now: datetime | None = None,
+) -> Literal["fresh_7d", "age_8_30d", "older_30d", "unknown"]:
+    """Bucket only explicit, timezone-aware publication timestamps.
+
+    This is observational source telemetry; it does not establish whether an
+    employer is still hiring and never filters a vacancy.
+    """
+    published = source_datetime(value)
+    if published is None:
+        return "unknown"
+    current = now if now is not None else datetime.now(UTC)
+    if current.tzinfo is None or current.utcoffset() is None:
+        raise ValueError("Publication age comparison requires a timezone-aware current time")
+    age = current.astimezone(UTC) - published
+    if age < timedelta(0):
+        return "unknown"
+    if age <= timedelta(days=7):
+        return "fresh_7d"
+    if age <= timedelta(days=30):
+        return "age_8_30d"
+    return "older_30d"
 
 
 def listing_expiry_metadata(value: object) -> dict:
