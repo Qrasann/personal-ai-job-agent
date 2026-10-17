@@ -7,6 +7,12 @@
 - [x] Disambiguate `Georgia, GA` from country GE and ISO Gabon/GA; country-code helper resolves it to US. Focused suites 134 passed; isolated full suite 1213 passed. US is not an enabled Remotive target market.
 - [ ] Continue review of exact provider attribution in JobMatch only after confirming a compatible non-schema approach; meanwhile choose another independent source-quality/candidate-fit issue.
 
+## 2026-10-17 — Himalayas remote country restrictions
+
+- [x] Reproduce `locationRestrictions=[Georgia]` being reported as physical work country; keep market filter and remote scope, leave work country unknown absent employer location.
+- [x] Verify sponsorship, relocation assistance, and prior work authorization remain unknown; targeted relocation/source suites 169 passed; isolated PostgreSQL suite 1219 passed; compileall, diff check, secret scan passed.
+- [ ] Continue an independent Source Intelligence or Candidate Fit fixture-backed issue.
+
 ## 2026-10-17 — ELK/non-IT Candidate Fit vocabulary
 
 - [x] Reproduce wildlife `elk` text matching the ELK Stack skill; preserve uppercase acronym and explicit stack matching while eliminating lowercase wildlife false positives.

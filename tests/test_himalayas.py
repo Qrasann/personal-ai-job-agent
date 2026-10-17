@@ -7,6 +7,7 @@ from app.domain.job_text import format_salary
 from app.domain.vacancy_availability import vacancy_availability
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import Job
+from app.domain.relocation_evidence import build_relocation_evidence
 from app.sources.adapters.himalayas import HimalayasSource
 from app.sources.base import SourceContext
 from app.sources.registry import build_source_plan, source_capabilities
@@ -69,6 +70,23 @@ def test_himalayas_keeps_only_selected_location_restrictions_and_preserves_salar
         period=worldwide.salary_period,
     ) == "72 000–96 000 $ в год"
     assert worldwide.url.startswith("https://himalayas.app/")
+
+
+def test_himalayas_remote_eligibility_countries_are_not_work_country_evidence():
+    jobs = HimalayasSource.parse_payload(
+        {"jobs": [listing("scope-only", "Infrastructure Engineer", ["Georgia"])]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Infrastructure Engineer"]),
+    )
+
+    assert len(jobs) == 1
+    assert jobs[0].country == "GE"  # Search-market identity still selects this target.
+    assert jobs[0].remote_scope == "Georgia"
+    fields = build_relocation_evidence(jobs[0])["fields"]
+    assert fields["work_country"]["status"] == "unknown"
+    assert fields["work_country"]["value"] is None
+    for field in ("visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"):
+        assert fields[field]["status"] == "unknown"
+        assert fields[field]["value"] is None
 
 
 @pytest.mark.parametrize("application_link", [

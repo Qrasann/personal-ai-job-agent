@@ -112,6 +112,9 @@ a new provider ID preserves the canonical Job's source-scoped snapshot and
 latest provider reference. `Georgia, GA` is disambiguated as the US state,
 not Georgia country or Gabon. Offline fixtures and isolated PostgreSQL
 regressions pass; live source eligibility and usefulness remain unverified.
+Himalayas `locationRestrictions` are also treated as remote candidate
+eligibility, not physical work-country evidence; visa/relocation/authorization
+fields remain unknown without posting evidence.
 Remote location follow-up: IMPLEMENTED preservation of explicit known-geography
 `only` labels for RemoteOK/Arbeitnow in scope and source evidence. Office/global
 labels remain unknown; candidate-specific legal eligibility stays PARTIAL.

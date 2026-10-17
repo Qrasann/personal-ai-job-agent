@@ -184,16 +184,28 @@ def build_relocation_evidence(
         }
 
     raw = job.raw if isinstance(job.raw, dict) else {}
-    # Remotive's `candidate_required_location` describes where the applicant
-    # must be located for remote work. The adapter also keeps the selected
-    # market in `job.country` for filtering/dedupe; do not relabel that market
-    # as the physical country of work in relocation evidence.
-    candidate_location_scope = (
-        str(job.source or "").casefold() == "remotive"
-        and str(job.work_mode or "").casefold() == "remote"
+    # Remotive's `candidate_required_location` and Himalayas'
+    # `location_restrictions` describe where the applicant must be located for
+    # remote work. Adapters also keep a matched search market in `job.country`
+    # for filtering/dedupe; do not relabel that market as physical work country.
+    source_id = str(job.source or "").casefold()
+    is_remote = str(job.work_mode or "").casefold() == "remote"
+    has_source_country = isinstance(raw.get("source_country"), str) and bool(
+        raw["source_country"].strip()
+    )
+    remotive_candidate_scope = (
+        source_id == "remotive"
         and isinstance(raw.get("candidate_required_location"), str)
         and bool(raw["candidate_required_location"].strip())
-        and not (isinstance(raw.get("source_country"), str) and raw["source_country"].strip())
+    )
+    himalayas_candidate_scope = (
+        source_id == "himalayas"
+        and isinstance(raw.get("location_restrictions"), list)
+        and bool(raw["location_restrictions"])
+    )
+    candidate_location_scope = (
+        is_remote and (remotive_candidate_scope or himalayas_candidate_scope)
+        and not has_source_country
     )
     country = "" if candidate_location_scope else str(job.country or "").strip()
     findings: dict[str, Any] = {
