@@ -57,12 +57,19 @@
 
 # Tasks
 
+## 2026-10-17 — Recruiter work-eligibility sensitive topics
+
+- [x] Reproduce visa, work authorization and citizenship questions accepted as non-sensitive when model returned `requires_human=false`.
+- [x] Add narrow English/Russian markers that force human review; no automatic replies enabled.
+- [x] Recruiter tests: 15 passed; full unit suite 1257 passed/21 skipped; compileall, diff check and secret scan passed.
+- [ ] Commit/publish PR to feature, wait for all CI, merge, then continue roadmap.
+
 ## 2026-10-17 — Application Package Telegram failure integration
 
 - [x] Verify persisted package → failed Telegram confirmation → `/prepare` retry against isolated PostgreSQL.
 - [x] Confirm retry returns the same package without duplicate or content replacement.
 - [x] Targeted isolated PostgreSQL file: 2 passed; full unit suite 1252 passed/21 skipped; compileall, diff check and secret scan passed.
-- [ ] Commit and publish test-only PR to feature, wait for CI, merge, then continue roadmap.
+- [x] Commit `7b90d5a`, publish PR #43 and merge after CI; feature now `0a50a29`.
 
 ## 2026-10-17 — Source Intelligence publication-age telemetry
 

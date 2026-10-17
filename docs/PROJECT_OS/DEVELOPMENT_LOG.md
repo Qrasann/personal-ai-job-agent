@@ -18,6 +18,10 @@ Red regression: Remotive `candidate_required_location` is the applicant's requir
 
 Red regression: `GE` and `GE Only` in Remotive's candidate-location field were not mapped to Georgia, so a GE-only posting could be skipped for the matching market. Parsing now recognizes known uppercase ISO alpha-2 tokens only when they are isolated/delimited or paired with explicit location qualifiers; ordinary lowercase words such as `in` and `am` remain unclassified. Fixtures cover GE/AM short codes, `Only`/`Remote -`/parenthesized forms, cross-market exclusion, and lowercase ambiguity. Geography/relocation suites: 139 passed; full isolated PostgreSQL suite: 1218 passed; offline unit suite: 1200 passed, 18 skipped; compileall, diff check and secret scan passed. No schema or policy change and no live source access.
 
+## 2026-10-17 — Recruiter work-eligibility sensitive topics
+
+The recruiter draft classifier treated five English/Russian work-eligibility and citizenship questions as ordinary despite a model response requesting no human review. Added explicit visa/sponsorship, right-to-work, permit, work-authorization, citizenship/nationality markers; these force human review regardless of model flag. Recruiter tests 15 passed; full unit 1257 passed/21 skipped; compileall, diff check, secret scan passed. No message sent and auto-reply remains disabled.
+
 ## 2026-10-17 — Application Package Telegram retry integration
 
 Added a single offline PostgreSQL path joining `/prepare` handler delivery with persisted repository state. The first response edit fails after the transaction saves the package; the user-facing fallback directs to `/applications`; a second `/prepare` returns the same draft and creates no duplicate. Targeted isolated PostgreSQL tests: 2 passed; full unit suite: 1252 passed/21 skipped; compileall, diff check and secret scan passed. No outbound application was sent.

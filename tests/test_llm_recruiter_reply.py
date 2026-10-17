@@ -77,6 +77,29 @@ def test_recruiter_context_and_question_are_untrusted_json_data(monkeypatch):
     assert payload["context"] == hostile_context
     assert payload["question"] == question
 
+
+@pytest.mark.parametrize("question", [
+    "Do you require visa sponsorship?",
+    "Are you legally authorized to work in Georgia?",
+    "What is your citizenship?",
+    "Нужно ли вам разрешение на работу?",
+    "Какое у вас гражданство?",
+])
+def test_work_eligibility_and_citizenship_questions_always_require_human(question, monkeypatch):
+    monkeypatch.setattr(llm, "_client", lambda: FakeClient({
+        "reply": "I am eligible to work.",
+        "confidence": 0.99,
+        "requires_human": False,
+        "reason": "simple answer",
+    }))
+
+    _reply, _confidence, requires_human, _reason = llm.recruiter_reply(
+        question, [], context="",
+    )
+
+    assert requires_human is True
+
+
 @pytest.mark.parametrize("invalid_confidence", ["NaN", "Infinity", "-Infinity", -0.1, 1.01])
 def test_recruiter_invalid_confidence_cannot_authorize_auto_reply(monkeypatch, invalid_confidence):
     monkeypatch.setattr(llm, "_client", lambda: FakeClient({
