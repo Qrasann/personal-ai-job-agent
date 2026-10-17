@@ -1,18 +1,13 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
-## Active checkpoint (2026-10-17)
-- Feature includes PRs #38–#43 and is synced at `0a50a29`; all CI passed. Current branch: `work/recruiter-eligibility-human-review` based on `0a50a29`.
-- Greenhouse Georgia country/state distinctions, Candidate Fit explicit-negation handling, and source publication age telemetry are merged. Publication age is observational; it does not filter or infer job closure.
-- `/prepare` PostgreSQL handler+repository failure/retry integration test is merged in PR #43 after CI. It verifies durable save, safe retry, and unchanged source/provider identity without duplicate packages; isolated PostgreSQL: 2 passed.
-- Recruiter reply risk probe reproduced visa, work authorization and citizenship questions returning `requires_human=False`; explicit English/Russian markers now force human review. Recruiter tests 15 passed; full unit suite 1257 passed/21 skipped; static checks passed. Current fix is local/uncommitted.
-- PR #18 still targets `main`; do not merge. Production/runtime and proposal files untouched. Next: checkpoint/publish the recruiter safety fix, then continue the next independent roadmap task.
-
-## Verified Git state
-- Feature branch `feature/v3.5.7-international-market-coverage` and origin are synced at `0a50a29`. Current branch `work/recruiter-eligibility-human-review` is based there; Recruiter safety fix is local/uncommitted. PRs #38–#43 merged with green CI. Proposal files remain untouched and untracked. No live acceptance.
-- Recent verified increments: freshest same-source posting after canonical dedupe; Candidate Fit contrastive-negation scoping; explicit English/Russian advantage wording classified as preferred. No weights/thresholds changed.
-- Candidate Fit and Source Intelligence fixes also include GitLab CI context, EURES token-boundary relevance and malformed optional metadata isolation, EURES timestamp/link validation, and stable source provenance. Live source usefulness and Telegram acceptance remain unverified.
-- Current release remains v3.5.7; formal release last known v3.5.6. This feature work is local; deployment and historic PR state must not be inferred.
-- `ROADMAP.md` is the sole canonical roadmap; this brief and HANDOFF provide the current restart point. Do not claim offline checks as live acceptance.
+## Verified GitHub snapshot after PR #44
+- Stable main VERSION=3.5.6; development feature VERSION=3.5.7 at 8b33ee5 on 2026-10-17. PR #18 is Draft/open to main.
+- PRs #38–#44 merged after CI; the last user-reported offline suite is 1257 passed, 21 skipped. These tests are not proof of current production behavior.
+- 28 superseded remote branches were deleted; 9 retained; branches with unique histories require separate review before deletion.
+- Offline-implemented modules include job discovery, source snapshots/deduplication, independent Career-first and Relocation-first, Candidate Facts/CV comparison, review, idempotent preparation, application history, recruiter human-review gates and curated interview exercises.
+- Telegram Channel Watcher supports selected Bot API channel posts and manual forwarding, but user-selected channel IDs/permissions and live automatic ingestion are not yet verified.
+- Live source usefulness, HH network root cause, Telegram acceptance and release backup/migration/rollback/smoke gates remain unverified. Do not infer a production deployment.
+- Current priorities and acceptance criteria are the Unified execution priorities section of root ROADMAP.md. Protect local untracked files, CVs, secrets and other private context. Check live Git status/PR state before work.
 
 ## Product scope
 The personal flow is: discover → normalize/dedupe → fit/score → user review → grounded resume/cover letter package → explicit owner approval → application tracking → interview practice. Maintain independent **Career-first** (DevOps/Linux/Infrastructure/SRE) and **Relocation-first** (lawful international employment, including non-IT roles) search profiles. Never invent candidate experience, remote hiring eligibility, visa sponsorship, housing, salary period or employer promises. Unknown evidence remains unknown. Preserve selected provider/source-posting identity and snapshots in review and application packages.
