@@ -1,3 +1,7 @@
+## 2026-10-17 — disambiguate ELK Stack from wildlife text
+
+Red regression: lowercase `elk migration` was emitted as an ELK Stack requirement, which can distort non-IT Relocation-first fit. The generic lowercase alias was removed; explicit ELK Stack/components and conventional uppercase `ELK` remain recognized. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL 1197 passed. No weight/threshold change.
+
 ## 2026-10-17 — exclude professional contact network from technical fit
 
 Red regression: “an established network of industry contacts” under Requirements created a missing Networking skill and reduced score. Narrow explicit professional/business/contact-network phrases are now removed before matching; actual network, networking, firewall and related technical signals remain. Fit suites 72 passed; full unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed. No score weights or thresholds changed.

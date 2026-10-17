@@ -1,3 +1,9 @@
+## 2026-10-17 — ELK/non-IT Candidate Fit vocabulary
+
+- [x] Reproduce wildlife `elk` text matching the ELK Stack skill; preserve uppercase acronym and explicit stack matching while eliminating lowercase wildlife false positives.
+- [x] Fact-comparison tests 43; unit suite 1180 passed / 17 skipped; isolated PostgreSQL 1197 passed; test DB stopped.
+- [ ] Continue fixture-backed Candidate Fit and Relocation-first quality checks.
+
 ## 2026-10-17 — Candidate Fit professional-network context
 
 - [x] Reproduce business contact network text as a false technical Networking requirement; suppress only explicit professional/contact phrases.

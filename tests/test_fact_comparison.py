@@ -561,6 +561,18 @@ def test_docker_compose_alternative_is_one_choice_without_embedded_docker_duplic
     assert comparison.alternative_groups == (("Docker Compose", "Kubernetes"),)
 
 
+def test_wildlife_elk_mention_does_not_match_elk_stack_but_explicit_stack_does():
+    wildlife = extract_technical_requirements("Requirements: knowledge of elk migration patterns.")
+    technical = extract_technical_requirements(
+        "Requirements: ELK Stack or Elasticsearch, Logstash and Kibana."
+    )
+    explicit_acronym = extract_technical_requirements("Requirements: ELK is used for log aggregation.")
+
+    assert "ELK" not in wildlife
+    assert "ELK" in technical
+    assert "ELK" in explicit_acronym
+
+
 def test_comparison_keeps_only_strongest_matching_fact_ids():
     facts = [
         fact(30, "Linux administration.", "commercial"),

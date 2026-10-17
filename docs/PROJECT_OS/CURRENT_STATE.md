@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — avoid wildlife false positive for ELK
+
+The bare lowercase word `elk` previously matched the ELK logging stack, potentially adding a false technical requirement to non-IT relocation vacancies. Matching now retains explicit ELK Stack/component forms and uppercase `ELK`, but not lowercase wildlife usage. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL suite 1197 passed. No score weights changed.
+
 ## 2026-10-17 — distinguish contact networks from technical Networking
 
 `network of industry contacts` was parsed as the Networking skill and could lower fit. Explicit business/contact-network phrases are now excluded; technical networking and firewall terms still match. Focused fit suites 72 passed; full unit suite 1179 passed / 17 skipped; isolated PostgreSQL 1196 passed. Scoring weights and thresholds unchanged.

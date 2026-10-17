@@ -57,7 +57,7 @@ SKILLS: tuple[SkillSpec, ...] = (
     SkillSpec("Grafana", ("grafana",)),
     SkillSpec("OpenTelemetry", ("opentelemetry", "open telemetry")),
     SkillSpec("Zabbix", ("zabbix",)),
-    SkillSpec("ELK", ("elk", "elk stack", "elk-stack", "elasticsearch logstash kibana")),
+    SkillSpec("ELK", ("elk stack", "elk-stack", "elasticsearch logstash kibana")),
     SkillSpec("Graylog", ("graylog",)),
     SkillSpec("MySQL", ("mysql",)),
     SkillSpec("PostgreSQL", ("postgresql", "postgres")),
@@ -172,6 +172,9 @@ def _contains_alias(text: str, alias: str) -> bool:
 
 
 def _matches_skill(text: str, spec: SkillSpec) -> bool:
+    if spec.name == "ELK" and re.search(r"\bELK\b", text or ""):
+        # Keep the conventional uppercase acronym without matching the animal.
+        return True
     if spec.name == "Networking":
         # Recruitment copy can use "network" to mean professional contacts.
         # Remove only those explicit business-network phrases; technical
