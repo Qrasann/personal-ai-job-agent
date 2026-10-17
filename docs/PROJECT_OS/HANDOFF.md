@@ -1,6 +1,10 @@
 # Handoff
 
-## Current handoff — 2026-10-17 Telegram channel quality dashboard
+## Current handoff — 2026-10-17 Telegram Georgia location
+
+Feature includes merged PRs #46–#48 at `a2df2dc`; current branch is `work/telegram-georgia-location`. Red offline fixtures showed `Atlanta, Georgia` and `Savannah, Georgia` parsed as country GE. The narrow parser guard leaves their country unknown while `Tbilisi, Georgia` remains GE. Targeted Telegram suites: 57 passed, 1 skipped; full isolated PostgreSQL suite: 1300 passed. Static gates, local commit, PR/CI and feature merge are next. No live Telegram account access or production change. The two owner proposal files remain untracked. All 21 folder IDs/access remain unverified; owner-controlled local login and 2–3-channel live acceptance are still required.
+
+## Earlier handoff — 2026-10-17 Telegram channel quality dashboard
 
 Feature includes merged PRs #46 and #47 at `a11c176`; current branch is `work/telegram-channel-quality-stats`. A red regression showed `/channels` hid persisted filtered and duplicate counts and still implied Bot API was the sole automatic intake path. The view now displays received/processed, possible vacancies, non-vacancies, Good/Stretch, filtering, duplicate assessments, replays and errors; its header explains the optional local client. Offline unit suite: 1277 passed, 21 PostgreSQL tests skipped; this UI-only change did not start the isolated DB. Final static gates, local commit, PR/CI and feature merge are next. The two owner proposal files remain untracked/untouched. All 21 folder IDs/access remain unverified; private interactive login and 2–3-channel live acceptance are still required. No production or user-account action.
 

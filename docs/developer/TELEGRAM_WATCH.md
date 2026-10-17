@@ -99,6 +99,8 @@ Explicit Role/Position/Вакансия, Company/Компания, Location/Ло
 Work mode/Формат labels are used; free-text offices are not location evidence.
 Country/city scope remains source evidence, not work permission. Generic
 headers and hashtag-only lines are skipped for title extraction.
+`Atlanta/Savannah, Georgia` is not treated as country GE; these location
+fixtures stay country-unknown, while `Tbilisi, Georgia` remains GE.
 Channel forwards preserve original numeric channel/message identity and public
 URL if provided. Photo captions also route through manual ingestion. Manual
 and automatic delivery share a per-user lock/SeenMessage replay guard; paused

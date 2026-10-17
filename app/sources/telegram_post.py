@@ -14,6 +14,7 @@ _CITIES = {"Yerevan": ("AM", r"\b(?:yerevan|ереван)\b"),
            "Tbilisi": ("GE", r"\b(?:tbilisi|тбилиси)\b"),
            "Batumi": ("GE", r"\b(?:batumi|батуми)\b")}
 _COUNTRIES = {"AM": r"\b(?:armenia|армения|հայաստան)\b", "GE": r"\b(?:georgia|грузия|საქართველო)\b"}
+_US_GEORGIA_CITY = re.compile(r"\b(?:atlanta|savannah|augusta|athens|macon|columbus)\s*,\s*georgia\b", re.I)
 
 # Only explicit self-promotion/advertising headers are rejected. A vacancy may
 # contain words such as "resume" or "advertising" in its requirements.
@@ -46,6 +47,11 @@ def post_fields(text: str) -> dict:
     cities = [(city, code) for city, (code, pattern) in _CITIES.items() if re.search(pattern, location, re.I)]
     countries.update(code for _, code in cities)
     if re.search(r"\b(?:USA|United States)\b", location, re.I) or re.search(r"\bUS\b", location):
+        countries.add("US")
+    if _US_GEORGIA_CITY.search(location):
+        # The city disambiguates the US state, while the bare country word
+        # would otherwise be read as GE. Preserve conflicting evidence as
+        # unknown rather than calling this a Georgian-country vacancy.
         countries.add("US")
     normalized = normalize_country(location)
     if normalized:
