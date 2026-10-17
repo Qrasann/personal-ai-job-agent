@@ -1,5 +1,9 @@
 # Handoff
 
+## Current entry point — 2026-10-17 safe Telegram source links
+
+Starting checkpoint `8fd949c`. Reproduced that vacancy details made `javascript:`, credential-bearing and protocol-relative source URLs clickable. A shared bounded HTTP(S) validator now checks vacancy details, job-list source attribution and `/prepare` preview, rejecting unsafe schemes, userinfo, malformed authorities and oversized/control-character URLs. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link cases: 6 passed. Full suite ran on isolated DB; it has been stopped. No outbound requests, source scraping, applications, schema or production changes. Final gates and local checkpoint remain. Next: continue a separate offline Relocation-first evidence case; no live eligibility claims.
+
 ## Current entry point — 2026-10-17 EURES timestamp validation
 
 Starting HEAD `c77c087`. EURES freshness review found booleans accepted as numeric epoch milliseconds, producing false 1970 publication dates. They now remain unknown; valid numeric timestamps retain UTC normalization. EURES tests 21 passed; full isolated PostgreSQL suite 1161 passed. Code/docs need final gates and local checkpoint; test DB must be stopped before handoff. No live calls or schema changes. Next: continue Relocation-first quality with an offline evidence/eligibility regression that does not infer legal eligibility.

@@ -18,6 +18,29 @@ def _clip(value: str, limit: int) -> str:
     return text[: max(0, limit - 1)].rstrip() + "…"
 
 
+def _safe_http_url(value: object, *, max_length: int = 600) -> str | None:
+    """Return a navigable HTTP(S) URL without credentials or malformed authority."""
+    if not isinstance(value, str):
+        return None
+    url = value.strip()
+    if not url or len(url) > max_length or any(ord(char) < 33 or ord(char) == 127 for char in url):
+        return None
+    try:
+        parsed = urlsplit(url)
+        # Accessing .port validates malformed/out-of-range port syntax.
+        parsed.port
+    except ValueError:
+        return None
+    if (
+        parsed.scheme.casefold() not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        return None
+    return url
+
+
 def _escape_clipped(value: str, limit: int) -> str:
     """Bound encoded text without cutting an HTML entity."""
     if len(html.escape(value)) <= limit:
@@ -439,9 +462,9 @@ def render_jobs_list(
             source_items = []
         if source_items:
             anchors = [
-                f'<a href="{html.escape(url, quote=True)}">{html.escape(name)}</a>'
+                f'<a href="{html.escape(safe_url, quote=True)}">{html.escape(name)}</a>'
                 for url, name in source_items
-                if url and name
+                if (safe_url := _safe_http_url(url)) and name
             ]
             if anchors:
                 lines.append("🌐 Источник: " + " · ".join(anchors))
@@ -456,7 +479,7 @@ def render_job_details(payload: dict) -> str:
     match = payload["match"]
     details = payload.get("details") or {}
     source = str(payload.get("source") or "unknown").upper()
-    url = str(payload.get("url") or "")
+    url = _safe_http_url(payload.get("url")) or ""
     warning = str(payload.get("warning") or "")
     fallback_salary_text = str(payload.get("fallback_salary_text") or "")
 
@@ -779,18 +802,8 @@ def render_application_package(payload: dict) -> str:
         "supported_missing_from_resume", "resume_only_unconfirmed", "missing_from_both",
     )):
         lines.append("• По распознанным навыкам дополнительных расхождений нет.")
-    source_url = str(payload.get("url") or "").strip()
-    try:
-        parsed_url = urlsplit(source_url)
-        safe_link = (
-            len(source_url) <= 600
-            and parsed_url.scheme.casefold() in {"http", "https"}
-            and parsed_url.hostname
-            and not parsed_url.username
-            and not parsed_url.password
-        )
-    except ValueError:
-        safe_link = False
+    source_url = _safe_http_url(payload.get("url"))
+    safe_link = source_url is not None
     if safe_link:
         url = html.escape(source_url, quote=True)
         if len(url.encode("utf-16-le")) // 2 <= 900:

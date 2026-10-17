@@ -1,3 +1,7 @@
+## 2026-10-17 — safe Telegram source URL rendering
+
+Red regression: vacancy details rendered arbitrary stored URLs as clickable HTML, including javascript schemes, credential-bearing and protocol-relative values. A shared bounded HTTP(S) validator now covers details, source attribution and prepare preview. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link cases: 6 passed. No outbound requests.
+
 ## 2026-10-17 — reject boolean EURES publication timestamps
 
 Red regression: Python booleans satisfy `isinstance(value, int)`, so malformed EURES `creationDate: true/false` became a 1970 timestamp. Explicitly exclude bool while preserving numeric epoch-millisecond values. EURES tests: 21 passed; full isolated PostgreSQL suite: 1161 passed. No live API call.

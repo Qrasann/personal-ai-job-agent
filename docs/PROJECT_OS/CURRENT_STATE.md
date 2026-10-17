@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — safe source URL rendering
+
+Telegram vacancy details previously emitted any stored URL as an HTML link. A shared bounded HTTP(S) validator now rejects unsafe schemes, protocol-relative URLs, userinfo, malformed authorities and oversized/control-character values in vacancy details, source attribution lists and `/prepare` preview. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link regressions: 6 passed. External links remain user-opened; no network navigation or employer action occurs.
+
 ## 2026-10-17 — EURES boolean timestamp validation
 
 EURES `creationDate` values `true`/`false` previously passed Python's numeric type check and became publication timestamps in 1970. They now remain unknown; valid numeric epoch milliseconds continue to normalize to UTC. EURES tests: 21 passed; full isolated PostgreSQL suite: 1161 passed. Offline fixtures only.

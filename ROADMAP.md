@@ -130,6 +130,9 @@ without embedded credentials or nonstandard ports; rejected feed links are not
 persisted. Its normalized provider identity is bounded to the storage column,
 hashing overlong stable IDs without changing IDs already within bounds. Live
 availability and source permissions still need runtime review.
+Vacancy details, job-list attribution and application-package previews share a
+bounded HTTP(S) URL validator; unsafe schemes, credentials, malformed
+authorities and oversized links are not rendered as clickable links.
 Source refresh identity now requires nonempty country and city before replacing
 an established canonical fingerprint; PostgreSQL regression confirms blank
 location updates preserve the known identity. Wider cross-source source quality

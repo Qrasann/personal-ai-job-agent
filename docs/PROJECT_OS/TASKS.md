@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-17 — validate source links before Telegram rendering
+
+- [x] Reproduce vacancy details rendering `javascript:`, credential-bearing and protocol-relative source URLs as clickable HTML.
+- [x] Share bounded HTTP(S), host, credential, control-character and authority validation across vacancy details, list attribution and `/prepare` preview.
+- [x] Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; post-suite link regressions: 6 passed.
+- [ ] Continue Relocation-first evidence review; no live source or employer action was performed.
+
 ## 2026-10-17 — reject boolean EURES publication timestamps
 
 - [x] Reproduce booleans being treated as integers and rendered as 1970 publication dates.
