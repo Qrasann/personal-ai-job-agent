@@ -9,7 +9,7 @@ from sqlalchemy.exc import DBAPIError
 
 from app.database import repository as repo
 from app.database.migrations import apply_migrations
-from app.database.models import Application, ApplicationStatusEvent, Base, CandidateFact, Job, JobSourceRef, SchemaMigration
+from app.database.models import Application, ApplicationStatusEvent, Base, CandidateFact, Job, JobSourceRef, ResumeProfile, SchemaMigration
 from app.domain.jobs import NormalizedJob
 from app.domain.application_package import snapshot_vacancy
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
@@ -23,6 +23,43 @@ def _require_test_database():
     if os.getenv("CI"):
         pytest.fail("CI requires JOB_AGENT_TEST_DATABASE_URL")
     pytest.skip("JOB_AGENT_TEST_DATABASE_URL is not configured")
+
+
+@pytest.mark.integration
+def test_concurrent_resume_import_fingerprint_is_persisted_only_once(monkeypatch):
+    _require_test_database()
+    asyncio.run(_concurrent_resume_import_flow(monkeypatch))
+
+
+async def _concurrent_resume_import_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        owner = await repo.create_user("resume-import-race", "Owner")
+        profile = await repo.ensure_default_profile(owner.id)
+        fact = {"category": "skills", "value": "Linux", "confidence": 0.9, "section": "Skills"}
+
+        async def import_same_file():
+            return await repo.add_imported_resume_with_facts(
+                profile.id, "Concurrent import", "en", "DevOps", "Linux", "same-sha256", [fact],
+            )
+
+        outcomes = await asyncio.gather(import_same_file(), import_same_file(), return_exceptions=True)
+        saved = [item for item in outcomes if isinstance(item, ResumeProfile)]
+        assert len(saved) == 1, "concurrent uploads of one fingerprint created duplicate resume rows"
+        duplicate = [item for item in outcomes if isinstance(item, repo.ResumeImportExists)]
+        assert len(saved) == len(duplicate) == 1
+        assert duplicate[0].resume_id == saved[0].id
+        assert len(await repo.list_resumes(profile.id)) == 1
+        imported_facts = [item for item in await repo.list_facts(profile.id) if item.provenance == "resume_import"]
+        assert len(imported_facts) == 1
+        assert imported_facts[0].value == "Linux"
+    finally:
+        await engine.dispose()
 
 
 @pytest.mark.integration

@@ -57,6 +57,22 @@
 
 # Tasks
 
+## 2026-10-17 — keep local work-authorization gates visible in remote eligibility
+
+- [x] Reproduce worldwide boilerplate overriding an explicit existing Canadian work-authorization prerequisite and yielding a false `eligible=yes`.
+- [x] Let explicit work-authorization requirements keep remote eligibility `uncertain`; do not infer rejection from unknown candidate authorization.
+- [x] Relocation/source suites: 149 passed; full unit suite: 1214 passed, 20 PostgreSQL-dependent tests skipped because the isolated DB was stopped. Compileall, diff check and secret scan passed.
+- [ ] Commit this follow-up and confirm CI on PR #33.
+- [ ] Continue an independent Source Intelligence/Candidate Fit regression after feature integration.
+
+## 2026-10-17 — serialize duplicate Candidate Facts resume imports
+
+- [x] Reproduce two simultaneous confirmations of one resume fingerprint creating duplicate `ResumeProfile` rows and imported facts.
+- [x] Recheck profile/source/fingerprint inside the repository transaction while locking the candidate profile; return the existing resume ID to the losing Telegram confirmation and consume its stale preview.
+- [x] Targeted Telegram/repository integration checks: 28 passed; full isolated PostgreSQL suite: 1233 passed; compileall, diff check and secret scan passed. No schema change; isolated test DB stopped.
+- [ ] Save the focused local checkpoint, publish PR against the feature branch, and wait for CI.
+- [ ] Continue the next distinct Source Intelligence or Relocation-first regression.
+
 ## 2026-10-17 — bound HH ConnectTimeout retries
 
 - [x] Reproduce the same HH ConnectTimeout being attempted once per search profile in one scan.

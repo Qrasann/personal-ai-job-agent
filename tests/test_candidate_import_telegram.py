@@ -278,3 +278,26 @@ def test_failed_atomic_resume_import_can_be_retried(monkeypatch, failure_stage):
         assert callback.answer.await_args.kwargs["show_alert"] is True
     finally:
         handlers._PENDING_RESUME_IMPORTS.pop(token, None)
+
+
+def test_resume_import_race_reports_the_existing_record_without_retrying(monkeypatch):
+    token = "duplicate-race"
+    pending = {
+        "user_id": 7, "profile_id": 11, "content": "Skills\nLinux", "fingerprint": "same-hash",
+        "language": "en", "role": "DevOps", "proposals": (), "overlaps": (),
+        "created_at": time.time(),
+    }
+    handlers._PENDING_RESUME_IMPORTS[token] = pending
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_resumes", AsyncMock(return_value=[]))
+    save = AsyncMock(side_effect=handlers.repo.ResumeImportExists(22))
+    monkeypatch.setattr(handlers.repo, "add_imported_resume_with_facts", save)
+    message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock(), edit_reply_markup=AsyncMock())
+    callback = SimpleNamespace(data=f"rimp:facts:{token}", message=message, answer=AsyncMock())
+
+    asyncio.run(handlers.confirm_resume_import(callback))
+
+    assert "#22" in message.edit_text.await_args.args[0]
+    assert "уже импортировано" in message.edit_text.await_args.args[0]
+    assert token not in handlers._PENDING_RESUME_IMPORTS
+    callback.answer.assert_awaited_once_with("Импорт уже выполнен")
