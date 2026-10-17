@@ -1,5 +1,9 @@
 # Current State
 
+## 2026-10-17 — Greenhouse Georgia postal-code state marker
+
+After PR #38 handled explicit US country qualifiers, fixtures reproduced `Atlanta, Georgia, GA`, `Georgia (GA)`, and `GA, Georgia` still entering GE searches. Greenhouse now treats explicit Georgia+GA as US-state ambiguity and leaves country unknown; `Tbilisi, Georgia (GE)` remains GE. Greenhouse + Remotive tests: 52 passed. Full unit/static gates pending; no database or live-source change. Feature is synced at `c73a38f`; current branch `work/greenhouse-georgia-postal-code` has local code/test/docs work.
+
 ## 2026-10-17 — Candidate Fit non-requirement wording
 
 Reproduced four false hard requirements: “Linux is not a requirement”, “not essential”, “not a prerequisite”, and “No Linux background needed”. Narrow negation patterns now leave these skill mentions unknown; positive clauses after “but” or “and” are evaluated independently and remain required. Fact-comparison suite: 60 passed; combined fact-comparison/recommendation/technical-score suites: 101 passed. Full unit/static gates are pending. No score-weight, schema, or live-data change. Current branch `work/source-ref-freshness-retry`, based on feature `9244aca`; local change uncommitted.
