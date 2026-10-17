@@ -1,7 +1,7 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
 ## Verified Git state
-- Source tree: `work/v357-rejection-diagnostics` at local HEAD `3ce764b`, based on published feature commit `2652416`, `VERSION=3.5.7`. Ten local commits since that base add rejection diagnostics and focused source/matching safeguards; not pushed. The last verified formal release is v3.5.6; `main` and production were not modified. Draft PRs #31 (prepare retry), #27 (history FK) and #18 (feature → main) remain open and unmerged as last checked on 2026-10-17.
+- Source tree: working branch `work/v357-rejection-diagnostics`, based on published feature commit `2652416`, `VERSION=3.5.7`. Local commits add rejection diagnostics and focused source/matching safeguards; not pushed. Read current HEAD from Git. The last verified formal release is v3.5.6; `main` and production were not modified. Draft PRs #31 (prepare retry), #27 (history FK) and #18 (feature → main) remain open and unmerged as last checked on 2026-10-17.
 - Independent audit fixes #19–#26 and delivery PR #28 are merged into the feature branch. The feature is **not deployed**. PR #28 CI passed 1051 pytest cases, 82.94% coverage, Docker build and secret scan; check combined-branch CI before any release claim.
 - Full previous `BRIEF.md` is preserved in `history/BRIEF_PRE_AUDIT_2026-10-16.md`. Root `ROADMAP.md` is the sole canonical product roadmap; this file records the current working checkpoint.
 - User-owned untracked files `AI-JOB-AGENT-MERGED-ROADMAP-PROPOSAL.md` and `CODEX-MAIN-ROADMAP-SYNC-PROMPT.md` must stay untouched and uncommitted.
