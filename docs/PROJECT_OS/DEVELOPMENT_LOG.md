@@ -2748,3 +2748,7 @@ PostgreSQL: 988 passed.
 Explicit Russian statements that accommodation is or is not provided now
 produce attributed evidence; bare mentions stay unknown. Full isolated
 PostgreSQL: 988 passed.
+
+## 2026-10-17 — validate rediscovery and cross-source evidence invariants
+
+Reviewed repeat source upsert, partial discovery cache and cross-source canonical dedupe together. Existing source-scoped snapshots/evidence refresh correctly, first-seen provenance remains stable, independent provider refs survive dedupe, and cached partial diagnostics are not double-counted. No reproducible defect was found; no code change. Focused offline tests: 95 passed, 1 skipped; isolated PostgreSQL rediscovery/dedupe/application-flow tests: 3 passed. Test container stopped. Exact provider-posting attribution is still absent from canonical `JobMatch` and remains a known product limitation, not a live-acceptance claim.

@@ -36,6 +36,12 @@
 
 # Tasks
 
+## 2026-10-17 — rediscovery / partial failure / cross-source consistency review
+
+- [x] Verify existing source snapshot refresh, stable first-seen provenance, independent refs after dedupe, and partial-cache attempt aggregation.
+- [x] Focused offline suites: 95 passed, 1 skipped; isolated PostgreSQL rediscovery/dedupe/application-flow checks: 3 passed.
+- [ ] Continue with a distinct, reproducible Candidate Fit or Source Intelligence issue. Exact provider posting attribution is not stored on canonical `JobMatch`; investigate only with a user-visible reproducer before proposing data-model work.
+
 ## 2026-10-17 — native Armenian/Georgian language requirement cues
 
 - [x] Reproduce Armenian/Georgian required and preferred phrases being left unspecified; include explicit negations to guard against false required status.
