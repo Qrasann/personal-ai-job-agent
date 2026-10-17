@@ -7,6 +7,7 @@ import httpx
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.remote_evidence import remote_location_restriction
 from app.domain.role_text import role_tokens
+from app.domain.vacancy_availability import source_datetime
 from app.sources.base import JobSource, SourceContext
 from app.sources.diagnostics import SourceInvalidResponse
 
@@ -60,6 +61,7 @@ class RemoteOKSource(JobSource):
                 continue
             title = str(row.get("position") or "")
             tags = self._tags(row.get("tags"))
+            published = source_datetime(row.get("date"))
             # Discovery should match the role, not a generic word such as
             # "engineer" buried somewhere in a long description. This avoids
             # unrelated RemoteOK rows such as housekeeping/data/software roles
@@ -90,7 +92,7 @@ class RemoteOKSource(JobSource):
                     salary_to=self._amount(row.get("salary_max")),
                     salary_currency="USD" if self._amount(row.get("salary_min")) or self._amount(row.get("salary_max")) else None,
                     skills=tags,
-                    published_at=str(row.get("date") or "") or None,
+                    published_at=published.isoformat() if published else None,
                     raw={**row, "source_location": row.get("location")},
                 )
             )

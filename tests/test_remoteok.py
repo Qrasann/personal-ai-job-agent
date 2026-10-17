@@ -42,6 +42,21 @@ def test_remoteok_invalid_salary_stays_unknown_without_losing_role(monkeypatch, 
     assert jobs[1].salary_period is None  # The feed has not confirmed a pay period.
 
 
+@pytest.mark.parametrize("published", [None, True, {}, "no date", "2026-10-17T12:00:00"])
+def test_remoteok_unusable_publication_date_is_unknown_and_neighbor_survives(monkeypatch, published):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[
+            {"id": 1, "position": "DevOps", "date": published},
+            {"id": 2, "position": "DevOps", "date": "2026-10-17T12:00:00+00:00"},
+        ], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    jobs = asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1)))
+    assert [job.source_job_id for job in jobs] == ["1", "2"]
+    assert jobs[0].published_at is None
+    assert jobs[1].published_at == "2026-10-17T12:00:00+00:00"
+
+
 def test_remoteok_preserves_explicit_location_limit_over_worldwide_boilerplate(monkeypatch):
     async def get(self, url, **kwargs):
         return httpx.Response(200, json=[{

@@ -1,3 +1,7 @@
+## 2026-10-17 — normalize RemoteOK publication dates
+
+RemoteOK previously copied arbitrary `date` values to publication metadata. It now stores only `source_datetime()`'s valid UTC-normalized output and leaves malformed/timezone-less dates unknown. Synthetic malformed values do not discard a valid sibling listing. RemoteOK tests 30; full isolated PostgreSQL 1130 passed.
+
 ## 2026-10-17 — isolate malformed RemoteOK/Arbeitnow metadata
 
 Reproduced whole-adapter exceptions from non-list `tags` values and a RemoteOK row carrying a malformed salary. Optional tag containers/items now keep only nonempty strings. RemoteOK salary normalization accepts only finite positive integral numbers in the PostgreSQL signed-Integer range; invalid salary stays unknown and valid sibling vacancies remain parseable. Currency is attached only when a normalized salary exists; no salary period is inferred. Targeted 71; full isolated PostgreSQL 1125 passed.

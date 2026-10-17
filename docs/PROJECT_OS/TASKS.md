@@ -8,6 +8,7 @@
 - [x] Fix fallback matching dropping short role names and substring collisions; eight red regressions, targeted 83 and full isolated PostgreSQL 1104 passed. Structured skill scoring/thresholds unchanged.
 - [x] v3.6: fix resume role/content ambiguity for short names and Java/JavaScript; six red regressions, targeted 69 and full isolated PostgreSQL 1110 passed. CV/facts unchanged; no score boost from CV selection.
 - [x] Source reliability: RemoteOK/Arbeitnow malformed optional tags and RemoteOK invalid optional salary types no longer fail or discard a valid row; targeted 71, full isolated PostgreSQL 1125 passed.
+- [x] Normalize RemoteOK publication dates conservatively and keep invalid dates unknown; RemoteOK tests 30, full isolated PostgreSQL 1130 passed.
 - [ ] Candidate Facts ADD/UPDATE/KEEP: inspect current planner for conflict/atomicity edge, retain user confirmation and provenance.
 - [ ] Live source/query usefulness remains pending an explicitly authorized scan environment.
 

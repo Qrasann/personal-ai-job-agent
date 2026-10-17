@@ -117,6 +117,8 @@ remain untouched and selection does not boost match scores. Reviewed tailored
 RU/EN CV generation remains PLANNED; the overall milestone remains PARTIAL.
 Source robustness: IMPLEMENTED safe handling of malformed optional RemoteOK/
 Arbeitnow tags and typed/invalid RemoteOK salary metadata, preserving valid jobs.
+RemoteOK also normalizes valid explicit publication instants and keeps invalid
+or timezone-less dates unknown.
 
 ## Historical v3.5.7 development notes
 
