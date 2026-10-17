@@ -15,6 +15,18 @@ _CITIES = {"Yerevan": ("AM", r"\b(?:yerevan|ереван)\b"),
            "Batumi": ("GE", r"\b(?:batumi|батуми)\b")}
 _COUNTRIES = {"AM": r"\b(?:armenia|армения|հայաստան)\b", "GE": r"\b(?:georgia|грузия|საქართველო)\b"}
 
+# Only explicit self-promotion/advertising headers are rejected. A vacancy may
+# contain words such as "resume" or "advertising" in its requirements.
+_NON_VACANCY_HEADER = re.compile(
+    r"^\s*(?:#(?:реклама|advertisement|резюме)|(?:реклама|резюме кандидата|"
+    r"ищу работу|ищу вакансию|looking for (?:a )?job|my resume|мой опыт)\s*[:—-])",
+    re.I,
+)
+
+
+def explicit_non_vacancy(text: str) -> bool:
+    return bool(_NON_VACANCY_HEADER.match(text[:500]))
+
 
 def post_fields(text: str) -> dict:
     lines = [line.strip() for line in text.splitlines() if line.strip()]

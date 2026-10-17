@@ -11,11 +11,12 @@ from urllib.parse import urlparse
 from app.database import repository as repo
 from app.search.preferences import search_strategy, source_enabled
 from app.sources.adapters.telegram_ingest import parse_telegram_job
+from app.sources.telegram_post import explicit_non_vacancy
 
 STATE_KEY = "telegram_channel_watch_v1"
 MAX_CHANNELS = 50
 MAX_PENDING = 100
-_COUNTERS = ("posts", "processed", "qualified", "stretch", "filtered", "notified", "duplicate", "replays", "errors")
+_COUNTERS = ("posts", "received", "vacancy_candidates", "non_vacancy", "processed", "qualified", "stretch", "filtered", "notified", "duplicate", "replays", "errors")
 # One polling process, matching the existing deployment. Cross-process delivery
 # coordination is a later multi-worker concern; PostgreSQL seen records survive restart.
 _LOCKS: dict[int, asyncio.Lock] = {}
@@ -96,7 +97,7 @@ def render_subscriptions(state: dict) -> str:
     for key, item in state["channels"].items():
         stats = item.get("stats", {})
         lines.append(f"{'✅' if item.get('enabled') else '⏸'} {key} · {item.get('scope', 'both')}")
-        lines.append(f"Постов: {stats.get('posts', 0)} · Good-оценок: {stats.get('qualified', 0)} · Stretch-оценок: {stats.get('stretch', 0)} · уведомлений: {stats.get('notified', 0)} · повторов: {stats.get('replays', 0)} · ошибок: {stats.get('errors', 0)}")
+        lines.append(f"Получено: {stats.get('received', 0)} · обработано: {stats.get('posts', 0)} · возможно вакансий: {stats.get('vacancy_candidates', 0)} · не вакансий: {stats.get('non_vacancy', 0)} · Good-оценок: {stats.get('qualified', 0)} · Stretch-оценок: {stats.get('stretch', 0)} · уведомлений: {stats.get('notified', 0)} · повторов: {stats.get('replays', 0)} · ошибок: {stats.get('errors', 0)}")
         if item.get("last_post_at"):
             lines.append("Последний принятый пост: " + item["last_post_at"])
     if not state["channels"]:
@@ -123,11 +124,13 @@ async def consume_forwarded_job(bot, user_id: int, job) -> bool:
 
 
 async def consume_channel_post(bot, *, chat_id: int, username: str | None, message_id: int, text: str,
-                               only_user_id: int | None = None) -> dict:
+                               only_user_id: int | None = None, published_at: datetime | None = None) -> dict:
     from app.services import ingest_and_match
 
     if not text.strip():
         return {"subscribers": 0}
+    if username and not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{4,31}", username):
+        username = None
     keys = {str(chat_id)}
     if username:
         keys.add("@" + username.casefold())
@@ -135,6 +138,11 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
     url = f"https://t.me/{username}/{message_id}" if username else ""
     normalized = parse_telegram_job(text, source_ref=identity, source_url=url)
     normalized.raw.update(channel_id=chat_id, channel_username=username, message_id=message_id)
+    if published_at is not None:
+        if published_at.tzinfo is None:
+            raise ValueError("Telegram publication date must include timezone")
+        normalized.published_at = published_at.astimezone(timezone.utc).isoformat()
+        normalized.raw["telegram_published_at"] = normalized.published_at
     subscribers = 0
     for user in await repo.list_active_users():
         if only_user_id is not None and user.id != only_user_id:
@@ -179,6 +187,29 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                 state.get("pending", {}).pop(identity, None)
                 await _save(user.id, state)
                 continue
+            # A failed first attempt belongs to received yield too. Pending
+            # retries must not inflate the number of distinct received posts.
+            if identity not in state.get("pending", {}):
+                for _, item in items:
+                    stats = item.setdefault("stats", {})
+                    stats["received"] = stats.get("received", 0) + 1
+            if explicit_non_vacancy(text):
+                try:
+                    await repo.mark_message_seen(user.id, identity, str(chat_id), "", "telegram_watch")
+                except Exception as exc:
+                    log.warning("Telegram watch rejected-post marker failed (%s)", type(exc).__name__)
+                    for _, item in items:
+                        stats = item.setdefault("stats", {})
+                        stats["errors"] = stats.get("errors", 0) + 1
+                    await _save(user.id, state)
+                    continue
+                for _, item in items:
+                    stats = item.setdefault("stats", {})
+                    for name in ("posts", "non_vacancy", "filtered"):
+                        stats[name] = stats.get(name, 0) + 1
+                    item["last_post_at"] = datetime.now(timezone.utc).isoformat()
+                await _save(user.id, state)
+                continue
             totals = {name: 0 for name in _COUNTERS}
             try:
                 for search in searches:
@@ -187,6 +218,7 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                     for name in totals:
                         totals[name] += result.get(name, 0)
                 if not totals["processed"]:
+                    await _save(user.id, state)
                     continue
                 await repo.mark_message_seen(user.id, identity, str(chat_id), "", "telegram_watch")
             except Exception as exc:
@@ -199,7 +231,8 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                     # Rotate failures to avoid starving later queued posts.
                     pending.pop(identity, None)
                     pending[identity] = {"chat_id": chat_id, "username": username,
-                                         "message_id": message_id, "text": text[:16384]}
+                                         "message_id": message_id, "text": text[:16384],
+                                         "published_at": normalized.published_at}
                 else:
                     state["retry_overflow"] = state.get("retry_overflow", 0) + 1
                     log.warning("Telegram watch retry queue full; failure counted outside queue")
@@ -208,6 +241,7 @@ async def consume_channel_post(bot, *, chat_id: int, username: str | None, messa
                 # notifications if a retry follows partial profile success.
                 continue
             totals["posts"] = 1
+            totals["vacancy_candidates"] = 1
             state.get("pending", {}).pop(identity, None)
             for _, item in items:
                 stats = item.setdefault("stats", {})
@@ -245,8 +279,18 @@ async def retry_pending(bot, *, user_id: int | None = None, limit: int = 5) -> i
             if not enabled & keys:
                 continue
             attempted += 1
+            published_at = None
+            if event.get("published_at"):
+                try:
+                    published_at = datetime.fromisoformat(event["published_at"])
+                    if published_at.tzinfo is None:
+                        raise ValueError("missing timezone")
+                except (TypeError, ValueError):
+                    log.warning("Telegram watch invalid publication date preserved for retry")
+                    continue
             await consume_channel_post(bot, chat_id=event["chat_id"], username=event.get("username"),
-                                       message_id=event["message_id"], text=event["text"], only_user_id=user.id)
+                                       message_id=event["message_id"], text=event["text"], only_user_id=user.id,
+                                       published_at=published_at)
     return attempted
 
 
