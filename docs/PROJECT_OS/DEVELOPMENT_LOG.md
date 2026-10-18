@@ -2892,3 +2892,7 @@ Replaced the raw scan-journal dump on Dashboard with persistent user-facing stat
 ## 2026-10-18 — daily Jobs and Review cards
 
 Added GET filters for search direction, match status and title/company plus compact vacancy cards with known location, mode, salary/date and a collapsed score explanation. Below-threshold status automatically includes the below-threshold range. Save, skip and manual package preparation keep existing owner checks and do not submit an application. Web unit suite passed 16 tests; combined HTTP/PostgreSQL Web suites passed 17. Runtime was not changed.
+
+## 2026-10-18 — Search and Applications daily workflow
+
+Search now presents Career-first and Relocation-first readiness, queries, countries, enabled-source count, thresholds and persisted scan state without source telemetry. Applications adds status and vacancy text filters, concise frozen-package cards and safe external links. Web unit suite passed 18 tests; combined HTTP/PostgreSQL Web suites passed 19. Runtime was not changed.

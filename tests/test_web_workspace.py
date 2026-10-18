@@ -84,6 +84,59 @@ async def test_dashboard_is_compact_and_diagnostics_owns_source_errors(monkeypat
 
 
 @pytest.mark.asyncio
+async def test_search_page_explains_both_profiles_and_uses_persisted_status(monkeypatch):
+    searches = [
+        SimpleNamespace(id=3, kind="career", name="Career", settings={"notify_min_score": 65}),
+        SimpleNamespace(id=4, kind="relocation", name="Relocation", settings={
+            "notify_min_score": 60, "target_countries": ["GE", "AM"],
+            "relocation_queries": ["warehouse", "hotel staff"],
+        }),
+    ]
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2, target_role="SRE"), searches
+
+    async def fake_state(_user_id, key, _default):
+        return json.dumps({"status": "completed", "summary": {"sources": {}}}) if key == "scan_dashboard" else "{}"
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "get_state", fake_state)
+    request = SimpleNamespace(query={}, app={"scan_state": {}})
+    body = await gui.page_content(request, SimpleNamespace(id=1), "search")
+    assert "Career-first" in body and "Relocation-first" in body
+    assert "warehouse" in body and "hotel staff" in body
+    assert "GE, AM" in body
+    assert "Запустить Career-first и Relocation-first поиск" in body
+    assert "/diagnostics" in body
+
+
+@pytest.mark.asyncio
+async def test_applications_filter_frozen_cards_and_hide_unsafe_external_url(monkeypatch):
+    applications = [
+        SimpleNamespace(id=1, job_id=10, status="reviewed", source_id="fixture", created_at=None,
+                        external_url="javascript:alert(1)", vacancy_snapshot={"title": "Platform Engineer", "company": "Alpha"}),
+        SimpleNamespace(id=2, job_id=11, status="prepared", source_id="fixture", created_at=None,
+                        external_url=None, vacancy_snapshot={"title": "Warehouse Specialist", "company": "Beta"}),
+    ]
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2), []
+
+    async def fake_apps(_user_id, _limit):
+        return applications
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "list_applications", fake_apps)
+    request = SimpleNamespace(query={"status": "reviewed", "q": "platform"})
+    body = await gui.page_content(request, SimpleNamespace(id=1), "applications")
+    assert "Platform Engineer" in body and "Alpha" in body
+    assert "Warehouse Specialist" not in body
+    assert "Проверен" in body
+    assert "Пакет, история и ручной статус" in body
+    assert "javascript:" not in body and "Внешний отклик" not in body
+
+
+@pytest.mark.asyncio
 async def test_web_login_and_csrf_gate(monkeypatch):
     monkeypatch.setattr(gui.settings, "telegram_admin_chat_id", "123")
     app = gui.create_app(object(), "long-private-token-for-test")

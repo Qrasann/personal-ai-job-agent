@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 connected daily Web MVP
+
+Dashboard/Diagnostics is committed at `23bcc7b`; Jobs/Review is committed at `88b4feb`. The working tree completes Search readiness/persisted status and Applications status/text filters, frozen-package cards and safe external links. Career-first and IT/non-IT Relocation-first configuration is visible without mixing in technical telemetry. Web unit suite passed 18; combined owner-authenticated HTTP/PostgreSQL Web suites passed 19. The isolated test database is stopped. Finish static gates and checkpoint, then run the full PostgreSQL suite and Docker build as the integrated MVP stabilization stage. Runtime remains unchanged and live browser/source acceptance is still pending.
+
 ## Current handoff — 2026-10-18 Jobs/Review daily workflow
 
 On top of committed Dashboard/Diagnostics checkpoint `23bcc7b`, the working tree adds Career/Relocation, status and title/company filters to Jobs/Review and compact vacancy cards with known metadata, collapsed scoring reasons and explicit manual package preparation. Save/skip/prepare retain existing owner checks; no external submission path was added. Web unit suite passed 16 tests; combined owner-authenticated HTTP/PostgreSQL Web suites passed 17. The isolated database is stopped. Finish static gates and checkpoint, then continue Search/Application clarity before integrated MVP stabilization. Runtime remains unchanged.

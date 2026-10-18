@@ -2050,3 +2050,7 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — daily Jobs/Review workflow
 
 - Completed: Career/Relocation, status and title/company filters; compact cards; collapsed score explanation; explicit manual package action. Unit Web tests passed 16 and combined Web HTTP/PostgreSQL tests passed 17. Next: make Search and Applications equally clear for daily use, then run the integrated stabilization gates.
+
+## 2026-10-18 — connected Web MVP daily workflow
+
+- Completed Search readiness and persistent status plus Applications filters/cards/safe links. Unit Web tests passed 18 and combined Web HTTP/PostgreSQL tests passed 19. The full Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications path is now implemented for local owner use. Next: full regression, Docker build and static stabilization gates, then gated runtime/browser/source acceptance.
