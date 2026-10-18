@@ -2054,3 +2054,7 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — connected Web MVP daily workflow
 
 - Completed Search readiness and persistent status plus Applications filters/cards/safe links. Unit Web tests passed 18 and combined Web HTTP/PostgreSQL tests passed 19. The full Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications path is now implemented for local owner use. Next: full regression, Docker build and static stabilization gates, then gated runtime/browser/source acceptance.
+
+## 2026-10-18 — integrated Web MVP stabilization
+
+- Completed: full isolated PostgreSQL suite 1325 passed; current validation Docker image built; test DB stopped without volume deletion. Finish static checks and a local checkpoint, publish exact-commit CI, inspect fresh real Telegram search yield, then continue the already prepared backup/config/rollback/private smoke gates for localhost deployment.

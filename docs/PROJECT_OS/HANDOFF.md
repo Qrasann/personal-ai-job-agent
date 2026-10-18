@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 integrated Web MVP stabilization
+
+The connected daily Web MVP is committed through `e856813`. Full isolated PostgreSQL suite passed 1325 tests; `job-agent-web-mvp-validation:local` built successfully; the test database is stopped without volume deletion. Finish final static checks and checkpoint this documentation, then push the three post-PR-50 MVP commits, open a feature-targeted PR and require exact-commit CI. After publication, use read-only runtime evidence to confirm fresh Telegram Career-first/Relocation-first search activity before gated localhost Web deployment. Runtime remains unchanged.
+
 ## Current handoff — 2026-10-18 connected daily Web MVP
 
 Dashboard/Diagnostics is committed at `23bcc7b`; Jobs/Review is committed at `88b4feb`. The working tree completes Search readiness/persisted status and Applications status/text filters, frozen-package cards and safe external links. Career-first and IT/non-IT Relocation-first configuration is visible without mixing in technical telemetry. Web unit suite passed 18; combined owner-authenticated HTTP/PostgreSQL Web suites passed 19. The isolated test database is stopped. Finish static gates and checkpoint, then run the full PostgreSQL suite and Docker build as the integrated MVP stabilization stage. Runtime remains unchanged and live browser/source acceptance is still pending.

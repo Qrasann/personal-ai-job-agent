@@ -2896,3 +2896,7 @@ Added GET filters for search direction, match status and title/company plus comp
 ## 2026-10-18 — Search and Applications daily workflow
 
 Search now presents Career-first and Relocation-first readiness, queries, countries, enabled-source count, thresholds and persisted scan state without source telemetry. Applications adds status and vacancy text filters, concise frozen-package cards and safe external links. Web unit suite passed 18 tests; combined HTTP/PostgreSQL Web suites passed 19. Runtime was not changed.
+
+## 2026-10-18 — integrated Web MVP stabilization
+
+The full isolated PostgreSQL suite passed 1325 tests after installing the Git executable required by the secret-scan fixture; the first lightweight-container pass had already reached 1320 passes and only those five environment setup errors. The current source built successfully as `job-agent-web-mvp-validation:local`. The test database was stopped without deleting its volume. Runtime was not changed.
