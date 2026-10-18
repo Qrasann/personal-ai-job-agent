@@ -61,6 +61,56 @@ def test_hh_public_discovery_searches_each_role_separately_without_details():
     assert jobs[0].country == "RU"
 
 
+def test_hh_discards_broad_results_without_a_meaningful_query_term():
+    class BroadHHClient(FakeHHClient):
+        async def search(self, text, page=0, per_page=20, area=None):
+            self.search_calls.append((text, page, per_page, area))
+            return {"items": [
+                {
+                    "id": "teacher", "name": "Преподаватель английского языка",
+                    "employer": {"name": "School"}, "area": {"name": "Москва"},
+                    "alternate_url": "https://hh.ru/vacancy/teacher",
+                },
+                {
+                    "id": "cleaner", "name": "Cleaner / Housekeeping staff",
+                    "employer": {"name": "Hotel"}, "area": {"name": "Москва"},
+                    "alternate_url": "https://hh.ru/vacancy/cleaner",
+                },
+            ]}
+
+    source = HHSource(BroadHHClient())
+    jobs = asyncio.run(source.discover(SourceContext(
+        user_id=1, current_country="RU", target_countries=[], queries=["cleaner"],
+    )))
+
+    assert [job.source_job_id for job in jobs] == ["cleaner"]
+
+
+def test_hh_web_fallback_discards_broad_results_without_query_term(monkeypatch):
+    class BroadFallbackHHClient(FakeHHClient):
+        async def search(self, text, page=0, per_page=20, area=None):
+            from app.providers.hh import HHAPIForbidden
+            raise HHAPIForbidden("403")
+
+        async def search_web(self, text, page=0, area=None):
+            return '''
+            <div data-qa="vacancy-serp__vacancy">
+              <a data-qa="serp-item__title" href="https://hh.ru/vacancy/100">Преподаватель английского языка</a>
+            </div>
+            <div data-qa="vacancy-serp__vacancy">
+              <a data-qa="serp-item__title" href="https://hh.ru/vacancy/101">Cleaner / Housekeeping staff</a>
+            </div>
+            '''
+
+    monkeypatch.setattr(settings, "hh_web_max_pages", 1)
+    source = HHSource(BroadFallbackHHClient())
+    jobs = asyncio.run(source.discover(SourceContext(
+        user_id=1, current_country="RU", target_countries=[], queries=["cleaner"],
+    )))
+
+    assert [job.source_job_id for job in jobs] == ["101"]
+
+
 def test_hh_searches_catalogued_target_country_and_does_not_guess_unsupported_area():
     fake = FakeHHClient()
     source = HHSource(fake)

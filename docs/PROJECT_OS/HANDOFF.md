@@ -1,5 +1,37 @@
 # Handoff
 
+## Current handoff — 2026-10-18 HH real-yield stabilization
+
+PR #51 already contains the connected Web MVP; working code now also fixes the concrete real-source sample where HH returned teacher/sales titles for `cleaner`. Both HH API and web fallback require a meaningful query token in title, excluding generic role words. Targeted HH suite passed 19; full isolated PostgreSQL suite passed 1327; test DB is stopped. Commit/push code/tests/docs and wait for exact-head CI, then merge to the feature branch. Existing runtime data and services remain unchanged; refreshed yield requires gated deployment and rediscovery.
+
+## Current handoff — 2026-10-18 real search active, Web PR #51
+
+Draft PR #51 targets the feature branch at code/docs checkpoint `c83ded2`; CI is running. Read-only runtime logs and aggregate state confirm the existing Telegram scheduler completed a real 09:12:07–09:15:56 UTC pass with 11 successful source aggregates and 271 processed vacancies. Career-first: 52 Good, 26 Stretch, 144 scoring-filtered. Relocation-first: 0 Good/Stretch, 49 scoring-filtered and 50 preference exclusions. No new notification was emitted. This confirms active real search but not useful Relocation-first yield. Commit/push this evidence, require exact-head CI, then sample a few current links and continue gated localhost Web rollout. Runtime and production DB were not changed by development actions.
+
+## Current handoff — 2026-10-18 integrated Web MVP stabilization
+
+The connected daily Web MVP is committed through `e856813`. Full isolated PostgreSQL suite passed 1325 tests; `job-agent-web-mvp-validation:local` built successfully; the test database is stopped without volume deletion. Finish final static checks and checkpoint this documentation, then push the three post-PR-50 MVP commits, open a feature-targeted PR and require exact-commit CI. After publication, use read-only runtime evidence to confirm fresh Telegram Career-first/Relocation-first search activity before gated localhost Web deployment. Runtime remains unchanged.
+
+## Current handoff — 2026-10-18 connected daily Web MVP
+
+Dashboard/Diagnostics is committed at `23bcc7b`; Jobs/Review is committed at `88b4feb`. The working tree completes Search readiness/persisted status and Applications status/text filters, frozen-package cards and safe external links. Career-first and IT/non-IT Relocation-first configuration is visible without mixing in technical telemetry. Web unit suite passed 18; combined owner-authenticated HTTP/PostgreSQL Web suites passed 19. The isolated test database is stopped. Finish static gates and checkpoint, then run the full PostgreSQL suite and Docker build as the integrated MVP stabilization stage. Runtime remains unchanged and live browser/source acceptance is still pending.
+
+## Current handoff — 2026-10-18 Jobs/Review daily workflow
+
+On top of committed Dashboard/Diagnostics checkpoint `23bcc7b`, the working tree adds Career/Relocation, status and title/company filters to Jobs/Review and compact vacancy cards with known metadata, collapsed scoring reasons and explicit manual package preparation. Save/skip/prepare retain existing owner checks; no external submission path was added. Web unit suite passed 16 tests; combined owner-authenticated HTTP/PostgreSQL Web suites passed 17. The isolated database is stopped. Finish static gates and checkpoint, then continue Search/Application clarity before integrated MVP stabilization. Runtime remains unchanged.
+
+## Current handoff — 2026-10-18 concise Web scan results
+
+Working tree adds a compact persistent Dashboard summary and separate Diagnostics page on top of checkpoint `9b7356d`. Dashboard shows scan status, processed/Good/Stretch/new totals, Career-first/Relocation-first results and daily workflow links instead of the raw JSON journal. Diagnostics shows sanitized source status, controlled codes and filter reasons without stored raw exception messages. Web unit suite passed 15 tests; combined owner-authenticated HTTP/PostgreSQL Web suites passed 16. The isolated test database is stopped. Finish static gates and checkpoint this increment, then continue Jobs/Review filtering and cards. Runtime remains unchanged.
+
+## Safe restart checkpoint — 2026-10-18 Web GUI MVP merged
+
+- GUI code on local branch `work/codex-main-20261018` is at `c7ce239`; this restart note is the following documentation-only checkpoint. PR #50 merged into `feature/v3.5.7-international-market-coverage` as `1131bc4`; both pull-request and push CI runs passed Python checks, Docker build and secret scan.
+- The private owner-only GUI implements Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications on the existing PostgreSQL/backend. It includes real Career-first/Relocation-first scans, source evidence, below-threshold relocation leads, Candidate Facts, reviewed PDF/DOCX/TXT CV import, frozen application packages/history, CSRF/owner isolation and a PostgreSQL lease shared with Telegram/scheduled scans. The localhost-only Compose overlay is opt-in.
+- Verification passed: full isolated PostgreSQL suite through 1318 tests before the last selector assertion; subsequent targeted scan/Web tests, the selector regression and the nine-page HTTP/PostgreSQL owner flow passed. GitHub CI is green on the exact merged commit. A private production dump was created outside both repositories with mode `0600`, `pg_restore --list` succeeded, and a full restore into a disposable tmpfs PostgreSQL verified schema 8 plus representative row counts. The disposable verifier and isolated test PostgreSQL are stopped; no Docker volume was deleted.
+- Not finished: the Web GUI is not deployed or browser-smoke-tested against runtime; no `WEB_GUI_TOKEN` has been configured here. Runtime `/mnt/Storage/AI-Job-Bot/repo` and its production database were not changed. Live source usefulness still needs a small owner-requested Career-first/Relocation-first scan and link sample; no application or recruiter message has been sent.
+- After restart: inspect Git/runtime status first, fetch the merged feature commit, confirm the private backup still exists, then prepare the exact runtime update and localhost Web service smoke using `docs/developer/WEB_GUI_ROLLOUT.md`. Do not start rollout until token/config compatibility is confirmed; preserve Telegram as the immediate search interface. Resume Telegram Folder Watcher, interactive Interview Agent, AI Router and international-source roadmap work after the GUI release gate.
+
 ## Current handoff — 2026-10-18 Web GUI PostgreSQL acceptance and rollout plan
 
 Local code checkpoint `7c4215e` includes per-user scan coordination. New isolated HTTP/PostgreSQL acceptance passes: all nine GUI stages, real owner-scoped match/application status writes, frozen export and denial of another user's package. A read-only runtime check found schema 8, matching development's expected version 8. `docs/developer/WEB_GUI_ROLLOUT.md` now gives backup/restore, compatibility, private smoke and non-destructive rollback gates; none has been performed against runtime yet. GitHub push/PR remains unavailable after DNS and unsandboxed connection timeout, so CI is pending. Finish static checks/local checkpoint for this test/runbook, then retry publication when network returns. No runtime mutation or employer contact.

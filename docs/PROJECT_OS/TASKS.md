@@ -2042,3 +2042,27 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — Web GUI PostgreSQL acceptance and rollout prep
 
 - Isolated HTTP/PostgreSQL test passed for all nine routes, owner-scoped status writes, export and cross-owner denial. Runtime/development schema versions read-only matched at 8. Added a concrete backup/restore, private smoke and rollback runbook; actual backup and release gates remain pending. Commit the verified test/docs, then retry Draft PR/CI when GitHub connectivity returns.
+
+## 2026-10-18 — daily Web dashboard clarity
+
+- Completed: concise persistent scan status and totals on Dashboard, per-profile Career-first/Relocation-first links, daily workflow shortcuts, and a separate sanitized Diagnostics page. Web unit tests passed 15; combined Web HTTP/PostgreSQL tests passed 16. Next: improve Jobs/Review cards and filters for fast save/skip/manual-application work, then perform integrated MVP stabilization.
+
+## 2026-10-18 — daily Jobs/Review workflow
+
+- Completed: Career/Relocation, status and title/company filters; compact cards; collapsed score explanation; explicit manual package action. Unit Web tests passed 16 and combined Web HTTP/PostgreSQL tests passed 17. Next: make Search and Applications equally clear for daily use, then run the integrated stabilization gates.
+
+## 2026-10-18 — connected Web MVP daily workflow
+
+- Completed Search readiness and persistent status plus Applications filters/cards/safe links. Unit Web tests passed 18 and combined Web HTTP/PostgreSQL tests passed 19. The full Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications path is now implemented for local owner use. Next: full regression, Docker build and static stabilization gates, then gated runtime/browser/source acceptance.
+
+## 2026-10-18 — integrated Web MVP stabilization
+
+- Completed: full isolated PostgreSQL suite 1325 passed; current validation Docker image built; test DB stopped without volume deletion. Finish static checks and a local checkpoint, publish exact-commit CI, inspect fresh real Telegram search yield, then continue the already prepared backup/config/rollback/private smoke gates for localhost deployment.
+
+## 2026-10-18 — fresh real search before Web deployment
+
+- Completed read-only acceptance of the existing runtime scheduled pass: 11 successful source aggregates, Career-first 52 Good/26 Stretch, Relocation-first 0 Good/Stretch with 49 scoring and 50 preference exclusions. Next: manually sample a few current links and diagnose relocation yield while keeping unknown evidence and thresholds unchanged; merge PR #51 after exact-head CI before any gated Web rollout.
+
+## 2026-10-18 — HH non-IT query relevance
+
+- Completed: reject HH API/web fallback results whose titles share no meaningful token with the active role query. Regressions cover the observed `cleaner` noise in both transports; HH suite 19 passed and full PostgreSQL suite 1327 passed. Push the exact checkpoint to PR #51 and require green CI. Re-measure only after gated deployment/rediscovery; do not rewrite existing production matches.

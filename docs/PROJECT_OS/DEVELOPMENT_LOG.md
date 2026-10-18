@@ -2884,3 +2884,27 @@ Scheduled bot scans, manual Telegram `/scan` and Web GUI search now acquire the 
 ## 2026-10-18 — Web GUI HTTP/PostgreSQL acceptance
 
 A full owner-authenticated HTTP walk through all nine GUI stages passed against isolated PostgreSQL. It persisted a saved match and manually reviewed application, exported the frozen package and returned 404 for another owner's package. Read-only schema comparison showed development and runtime both at version 8. Added a rollout/rollback runbook; no production backup, restore, deployment or data change was performed.
+
+## 2026-10-18 — concise Web scan dashboard and diagnostics
+
+Replaced the raw scan-journal dump on Dashboard with persistent user-facing status, four outcome metrics, Career-first/Relocation-first cards and daily workflow links. Added a separate Diagnostics route for sanitized per-source status, controlled error codes and filter reasons; arbitrary stored exception messages remain hidden. Web unit suite passed 15 tests and the combined owner-authenticated HTTP/PostgreSQL Web suites passed 16 tests. Runtime was not changed.
+
+## 2026-10-18 — daily Jobs and Review cards
+
+Added GET filters for search direction, match status and title/company plus compact vacancy cards with known location, mode, salary/date and a collapsed score explanation. Below-threshold status automatically includes the below-threshold range. Save, skip and manual package preparation keep existing owner checks and do not submit an application. Web unit suite passed 16 tests; combined HTTP/PostgreSQL Web suites passed 17. Runtime was not changed.
+
+## 2026-10-18 — Search and Applications daily workflow
+
+Search now presents Career-first and Relocation-first readiness, queries, countries, enabled-source count, thresholds and persisted scan state without source telemetry. Applications adds status and vacancy text filters, concise frozen-package cards and safe external links. Web unit suite passed 18 tests; combined HTTP/PostgreSQL Web suites passed 19. Runtime was not changed.
+
+## 2026-10-18 — integrated Web MVP stabilization
+
+The full isolated PostgreSQL suite passed 1325 tests after installing the Git executable required by the secret-scan fixture; the first lightweight-container pass had already reached 1320 passes and only those five environment setup errors. The current source built successfully as `job-agent-web-mvp-validation:local`. The test database was stopped without deleting its volume. Runtime was not changed.
+
+## 2026-10-18 — fresh existing-runtime search evidence
+
+A read-only query of the persisted scheduled dashboard confirmed a real 09:12–09:15 UTC pass: 11 source aggregates succeeded; 271 vacancies were processed, with Career-first at 52 Good/26 Stretch/144 filtered and Relocation-first at 0 Good/0 Stretch/49 filtered plus 50 preference exclusions. No new notification was emitted. No runtime command, deployment or database write was performed by this development session.
+
+## 2026-10-18 — HH broad-query noise guard
+
+Real Relocation-first samples showed HH returning an English teacher and sales manager for the `cleaner` web-search query. HH API and fallback results now require title overlap with a meaningful query token after removing generic role words. This retains exact/specific IT and non-IT terms while rejecting broad recommendations. Targeted HH suite passed 19; full isolated PostgreSQL suite passed 1327. Runtime was not changed.

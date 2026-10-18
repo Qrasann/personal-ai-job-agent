@@ -1,6 +1,7 @@
 """Security and workflow boundaries for the private web workspace."""
 
 import io
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -27,6 +28,112 @@ def test_web_escapes_vacancy_text_and_rejects_unsafe_links():
     assert gui.safe_link("javascript:alert(1)") == ""
     assert gui.safe_link("https://user:password@example.org/job") == ""
     assert gui.safe_link("https://example.org/job") == "https://example.org/job"
+
+
+def test_scan_state_parser_rejects_malformed_or_non_object_values():
+    assert gui.parse_scan_state("not-json") == {}
+    assert gui.parse_scan_state("[]") == {}
+    assert gui.parse_scan_state('{"status":"completed"}') == {"status": "completed"}
+
+
+@pytest.mark.asyncio
+async def test_dashboard_is_compact_and_diagnostics_owns_source_errors(monkeypatch):
+    search = SimpleNamespace(id=4, kind="relocation", name="Relocation")
+    summary = {
+        "processed": 12, "qualified": 2, "stretch": 3, "notified": 1,
+        "searches": {"4": {"name": "Relocation", "processed": 7, "qualified": 1, "stretch": 2,
+                             "preference_exclusion_reasons": {"domestic_onsite": 4}}},
+        "sources": {"jobbank": {"name": "Job Bank", "status": "partial", "found": 9,
+                                   "processed": 7, "processing_errors": 1,
+                                   "diagnostics": [{"code": "NETWORK_CONNECT_ERROR", "profiles": ["Relocation"],
+                                                    "message": "raw transport detail must stay hidden"}]}}
+    }
+    state = {"status": "completed", "started_at": "2026-10-18 08:00 UTC",
+             "finished_at": "2026-10-18 08:02 UTC", "summary": summary}
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2), [search]
+
+    async def fake_stats(_user_id):
+        return {"matches": 20, "notified": 5, "filtered": 11, "applications": 2}
+
+    async def fake_state(_user_id, key, _default):
+        return json.dumps(state) if key == "scan_dashboard" else "{}"
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "stats", fake_stats)
+    monkeypatch.setattr(gui.repo, "get_state", fake_state)
+    request = SimpleNamespace(query={})
+    user = SimpleNamespace(id=1)
+
+    dashboard = await gui.page_content(request, user, "dashboard")
+    assert "Поиск завершён частично" in dashboard
+    assert "Обработано</h2><strong>12" in dashboard
+    assert "Good</h2><strong>2" in dashboard
+    assert "/jobs?scope=relocation" in dashboard
+    assert "/diagnostics" in dashboard
+    assert "NETWORK_CONNECT_ERROR" not in dashboard
+    assert "raw transport detail" not in dashboard
+    assert "<pre>" not in dashboard
+
+    diagnostics = await gui.page_content(request, user, "diagnostics")
+    assert "Job Bank" in diagnostics
+    assert "NETWORK_CONNECT_ERROR" in diagnostics
+    assert "Не удалось установить соединение с источником" in diagnostics
+    assert "raw transport detail" not in diagnostics
+
+
+@pytest.mark.asyncio
+async def test_search_page_explains_both_profiles_and_uses_persisted_status(monkeypatch):
+    searches = [
+        SimpleNamespace(id=3, kind="career", name="Career", settings={"notify_min_score": 65}),
+        SimpleNamespace(id=4, kind="relocation", name="Relocation", settings={
+            "notify_min_score": 60, "target_countries": ["GE", "AM"],
+            "relocation_queries": ["warehouse", "hotel staff"],
+        }),
+    ]
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2, target_role="SRE"), searches
+
+    async def fake_state(_user_id, key, _default):
+        return json.dumps({"status": "completed", "summary": {"sources": {}}}) if key == "scan_dashboard" else "{}"
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "get_state", fake_state)
+    request = SimpleNamespace(query={}, app={"scan_state": {}})
+    body = await gui.page_content(request, SimpleNamespace(id=1), "search")
+    assert "Career-first" in body and "Relocation-first" in body
+    assert "warehouse" in body and "hotel staff" in body
+    assert "GE, AM" in body
+    assert "Запустить Career-first и Relocation-first поиск" in body
+    assert "/diagnostics" in body
+
+
+@pytest.mark.asyncio
+async def test_applications_filter_frozen_cards_and_hide_unsafe_external_url(monkeypatch):
+    applications = [
+        SimpleNamespace(id=1, job_id=10, status="reviewed", source_id="fixture", created_at=None,
+                        external_url="javascript:alert(1)", vacancy_snapshot={"title": "Platform Engineer", "company": "Alpha"}),
+        SimpleNamespace(id=2, job_id=11, status="prepared", source_id="fixture", created_at=None,
+                        external_url=None, vacancy_snapshot={"title": "Warehouse Specialist", "company": "Beta"}),
+    ]
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2), []
+
+    async def fake_apps(_user_id, _limit):
+        return applications
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "list_applications", fake_apps)
+    request = SimpleNamespace(query={"status": "reviewed", "q": "platform"})
+    body = await gui.page_content(request, SimpleNamespace(id=1), "applications")
+    assert "Platform Engineer" in body and "Alpha" in body
+    assert "Warehouse Specialist" not in body
+    assert "Проверен" in body
+    assert "Пакет, история и ручной статус" in body
+    assert "javascript:" not in body and "Внешний отклик" not in body
 
 
 @pytest.mark.asyncio
@@ -161,6 +268,40 @@ async def test_relocation_below_threshold_keeps_manual_leads_without_domestic_on
     assert "Warehouse worker" in body
     assert "Domestic onsite" not in body
     assert "geography unknown" in body
+
+
+@pytest.mark.asyncio
+async def test_jobs_filters_scope_status_and_title_before_rendering_cards(monkeypatch):
+    career = SimpleNamespace(id=3, kind="career", name="Career", settings={"notify_min_score": 65})
+    relocation = SimpleNamespace(id=4, kind="relocation", name="Relocation", settings={"notify_min_score": 65})
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2), [career, relocation]
+
+    def match(match_id, search_id, status, score):
+        return SimpleNamespace(id=match_id, search_profile_id=search_id, status=status, total_score=score, reason="Linux fit")
+
+    def job(job_id, title, company):
+        return SimpleNamespace(id=job_id, title=title, company=company, city="", country="", work_mode=None,
+                               salary_from=None, salary_to=None, published_at=None)
+
+    async def fake_latest(*_args, **_kwargs):
+        return [
+            (match(1, 3, "saved", 82), job(10, "Platform Engineer", "Alpha")),
+            (match(2, 3, "notified", 79), job(11, "Platform Engineer", "Beta")),
+            (match(3, 4, "saved", 76), job(12, "Warehouse Specialist", "Gamma")),
+        ]
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "latest_matches", fake_latest)
+    request = SimpleNamespace(query={"scope": "career", "status": "saved", "q": "platform"})
+    body = await gui.page_content(request, SimpleNamespace(id=8, current_country="RU"), "jobs")
+    assert "Platform Engineer" in body and "Alpha" in body
+    assert "Beta" not in body and "Warehouse Specialist" not in body
+    assert "Подготовить ручной отклик" in body
+    assert "Почему такой score" in body
+    assert 'value="career" selected' in body
+    assert 'value="saved" selected' in body
 
 
 @pytest.mark.asyncio

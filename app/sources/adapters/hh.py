@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup, Tag
 from app.config import settings
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.job_text import clean_html_text, parse_salary_text, salary_fragment
+from app.domain.role_text import role_tokens
 from app.sources.diagnostics import classify_source_error
 from app.providers.hh import HHAPIForbidden, HHCaptchaRequired, HHClient
 from app.sources.base import JobSource, SourceContext
@@ -27,6 +28,11 @@ class HHSource(JobSource):
     # IDs from HeadHunter's public /areas catalog. Armenia is not present in
     # that catalog, so it must not be approximated with an unrelated area.
     MARKET_AREAS = {"RU": "113", "GE": "28"}
+    GENERIC_ROLE_TOKENS = {
+        "admin", "administrator", "assistant", "engineer", "lead", "manager",
+        "specialist", "staff", "worker", "администратор", "ассистент", "инженер",
+        "менеджер", "работник", "сотрудник", "специалист",
+    }
 
     def __init__(self, client: HHClient | None = None) -> None:
         self.client = client or HHClient()
@@ -38,6 +44,12 @@ class HHSource(JobSource):
     @staticmethod
     def _salary(text: str) -> tuple[int | None, int | None, str | None]:
         return parse_salary_text(text)
+
+    @classmethod
+    def _matches_query(cls, title: str, query: str) -> bool:
+        query_terms = role_tokens(query)
+        meaningful = query_terms - cls.GENERIC_ROLE_TOKENS or query_terms
+        return bool(meaningful and role_tokens(title) & meaningful)
 
     @staticmethod
     def _first(card: Tag, selectors: tuple[str, ...]) -> Tag | None:
@@ -368,6 +380,8 @@ class HHSource(JobSource):
                     break
 
                 for job in self._from_api(payload, country=country):
+                    if not self._matches_query(job.title, query):
+                        continue
                     if job.source_job_id in seen_jobs:
                         continue
                     seen_jobs.add(job.source_job_id)
@@ -391,6 +405,8 @@ class HHSource(JobSource):
                     previous_page_ids = page_ids
 
                     for job in jobs:
+                        if not self._matches_query(job.title, query):
+                            continue
                         if job.source_job_id in seen_jobs:
                             continue
                         seen_jobs.add(job.source_job_id)

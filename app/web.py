@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import html
+import json
 import logging
 import os
 import secrets
@@ -22,14 +23,16 @@ from app.config import settings
 from app.database import repository as repo
 from app.geo.countries import normalize_country
 from app.search.preferences import discovery_queries, relocation_first_allows, search_config
+from app.search.source_summary import render_filter_reason_counts, scan_outcome, select_scan_dashboard
 from app.services import ScanAlreadyRunning, coordinated_scan_for_user, get_vacancy_details
+from app.sources.diagnostics import MESSAGES, legacy_diagnostic
 from app.sources.registry import IMPLEMENTED
 from app.telegram.handlers import _prepare_saved_preview, _save_scan_dashboard
 from app.telegram.vacancy_view import render_application_export, render_job_details
 
 log = logging.getLogger(__name__)
-PAGES = ("dashboard", "search", "jobs", "review", "profiles", "sources", "relocation", "cv", "applications")
-LABELS = ("Dashboard", "Search", "Jobs", "Review", "Profiles", "Sources", "Relocation", "CV", "Applications")
+PAGES = ("dashboard", "search", "jobs", "review", "profiles", "sources", "relocation", "cv", "applications", "diagnostics")
+LABELS = ("Dashboard", "Search", "Jobs", "Review", "Profiles", "Sources", "Relocation", "CV", "Applications", "Diagnostics")
 SCAN_SOURCES = IMPLEMENTED - {"telegram", "jobs_ge"}
 CV_PREVIEW_TTL = 15 * 60
 
@@ -79,30 +82,239 @@ def selected_search(searches, raw: str):
     return next((s for s in searches if str(s.id) == raw), None)
 
 
+def parse_scan_state(value: str) -> dict:
+    try:
+        state = json.loads(value or "{}")
+    except (TypeError, ValueError):
+        return {}
+    return state if isinstance(state, dict) else {}
+
+
+async def latest_scan_state(user_id: int) -> dict:
+    manual = parse_scan_state(await repo.get_state(user_id, "scan_dashboard", "{}"))
+    scheduled = parse_scan_state(await repo.get_state(user_id, "scheduled_scan_dashboard", "{}"))
+    return select_scan_dashboard(manual, scheduled)
+
+
+def scan_status_label(state: dict) -> tuple[str, str]:
+    status = str(state.get("status") or "unknown")
+    summary = state.get("summary") if isinstance(state.get("summary"), dict) else {}
+    if status == "completed" and summary:
+        status = scan_outcome(summary)
+    labels = {
+        "running": ("Поиск выполняется", "Идёт запрос к источникам. Уже обработанные результаты сохраняются."),
+        "completed": ("Поиск завершён", "Результаты готовы к просмотру."),
+        "partial": ("Поиск завершён частично", "Часть источников недоступна, но найденные результаты сохранены."),
+        "failed": ("Поиск не завершён", "Источники не вернули пригодный результат. Подробности доступны в диагностике."),
+        "cancelled": ("Поиск остановлен", "Результаты уже обработанных источников сохранены."),
+        "skipped": ("Поиск пропущен", "Другой поиск для этого профиля уже выполнялся."),
+    }
+    return labels.get(status, ("Поиск ещё не запускался", "Запусти первый поиск на странице Search."))
+
+
+def scan_result_cards(summary: dict) -> str:
+    metrics = (
+        ("Обработано", summary.get("processed", 0)),
+        ("Good", summary.get("qualified", 0)),
+        ("Stretch", summary.get("stretch", 0)),
+        ("Новых", summary.get("notified", 0)),
+    )
+    return '<div class="grid">' + "".join(
+        f'<div class="card"><h2>{label}</h2><strong>{e(int(value or 0))}</strong></div>'
+        for label, value in metrics
+    ) + "</div>"
+
+
+def scan_profile_cards(summary: dict, searches) -> str:
+    search_by_id = {str(search.id): search for search in searches}
+    rows = []
+    for search_id, info in (summary.get("searches") or {}).items():
+        if not isinstance(info, dict):
+            continue
+        search = search_by_id.get(str(search_id))
+        scope = getattr(search, "kind", "")
+        scope_label = "Relocation-first" if scope == "relocation" else "Career-first" if scope == "career" else "Профиль поиска"
+        link_scope = f"?scope={quote(scope)}" if scope in {"career", "relocation"} else ""
+        reasons = render_filter_reason_counts(
+            info.get("preference_exclusion_reasons"), info.get("scoring_exclusion_reasons"), limit=1,
+        )
+        rows.append(
+            f'<div class="card"><h2>{e(info.get("name") or getattr(search, "name", scope_label))}</h2>'
+            f'<p>{e(scope_label)} · обработано {e(int(info.get("processed", 0)))} · '
+            f'<strong>{e(int(info.get("qualified", 0)))} Good</strong> · {e(int(info.get("stretch", 0)))} Stretch</p>'
+            + (f'<p class="muted">Чаще всего исключались: {e(reasons)}</p>' if reasons else "")
+            + f'<a href="/jobs{link_scope}">Открыть результаты</a></div>'
+        )
+    return '<div class="grid">' + "".join(rows) + "</div>" if rows else ""
+
+
+def diagnostics_content(state: dict) -> str:
+    summary = state.get("summary") if isinstance(state.get("summary"), dict) else {}
+    sources = summary.get("sources") if isinstance(summary.get("sources"), dict) else {}
+    title, note = scan_status_label(state)
+    blocks = [
+        f'<section><h2>{e(title)}</h2><p>{e(note)}</p>'
+        f'<p class="muted">Начато: {e(state.get("started_at") or "—")} · завершено: {e(state.get("finished_at") or "—")}</p></section>'
+    ]
+    for source_id, info in sources.items():
+        if not isinstance(info, dict):
+            continue
+        status = str(info.get("status") or "unknown")
+        issues = info.get("diagnostics") if isinstance(info.get("diagnostics"), list) else []
+        if not issues and info.get("error"):
+            issues = [legacy_diagnostic(info.get("error"))]
+        rendered_issues = []
+        for item in issues:
+            if not isinstance(item, dict):
+                continue
+            code = str(item.get("code") or "SOURCE_PROCESSING_FAILED")
+            message = MESSAGES.get(code, MESSAGES["SOURCE_PROCESSING_FAILED"])
+            scope = " / ".join(str(value) for value in item.get("profiles", []) if value)
+            rendered_issues.append(
+                f'<li>{e(message)} <small>[{e(code)}]{" · " + e(scope) if scope else ""}</small></li>'
+            )
+        reasons = render_filter_reason_counts(
+            info.get("preference_exclusion_reasons"), info.get("scoring_exclusion_reasons"), limit=3,
+        )
+        details = (
+            f'<p>Статус: {e(status)} · найдено {e(int(info.get("found", 0)))} · '
+            f'обработано {e(int(info.get("processed", 0)))} · ошибок обработки {e(int(info.get("processing_errors", 0)))}</p>'
+            + (f'<p>Причины исключения: {e(reasons)}</p>' if reasons else "")
+            + (f'<ul>{"".join(rendered_issues)}</ul>' if rendered_issues else '<p class="muted">Технических ошибок не зафиксировано.</p>')
+        )
+        blocks.append(f'<section><h2>{e(info.get("name") or source_id)}</h2>{details}</section>')
+    if not sources:
+        blocks.append('<section>Диагностика появится после первого поиска.</section>')
+    return "".join(blocks)
+
+
+MATCH_FILTERS = {
+    "": "Все статусы",
+    "notified": "Новые Good",
+    "stretch": "Stretch",
+    "saved": "Сохранённые",
+    "prepared": "Пакет подготовлен",
+    "skipped": "Пропущенные",
+    "filtered": "Ниже порога",
+}
+
+APPLICATION_STATUS_LABELS = {
+    "prepared": "Подготовлен",
+    "reviewed": "Проверен",
+    "submitted": "Отправлен вручную",
+    "external": "Открыт внешний отклик",
+    "sent": "Отправлен провайдером",
+    "interview": "Интервью",
+    "offer": "Оффер",
+    "rejected": "Отказ",
+    "withdrawn": "Отозван",
+}
+
+
+def jobs_filter_bar(page: str, query) -> str:
+    scope = str(query.get("scope", ""))
+    status = str(query.get("status", ""))
+    needle = str(query.get("q", ""))[:100]
+    below = str(query.get("below", "")) == "1" or status == "filtered"
+    scope_options = "".join(
+        f'<option value="{value}" {"selected" if scope == value else ""}>{label}</option>'
+        for value, label in (("", "Все направления"), ("career", "Career-first"), ("relocation", "Relocation-first"))
+    )
+    status_options = "".join(
+        f'<option value="{value}" {"selected" if status == value else ""}>{label}</option>'
+        for value, label in MATCH_FILTERS.items()
+    )
+    status_field = f'<label>Статус <select name="status">{status_options}</select></label>' if page == "jobs" else ""
+    below_field = '<label><input type="checkbox" name="below" value="1" checked> Показать ниже порога</label>' if below else '<label><input type="checkbox" name="below" value="1"> Показать ниже порога</label>'
+    return (
+        f'<section><form method="get" action="/{page}"><label>Направление <select name="scope">{scope_options}</select></label>'
+        f'{status_field}<label>Название или компания <input name="q" type="text" maxlength="100" value="{e(needle)}"></label>'
+        f'{below_field if page == "jobs" else ""}<button>Применить</button></form> '
+        f'<a href="/{page}">Сбросить</a></section>'
+    )
+
+
+def job_card(match, job, search) -> str:
+    scope = getattr(search, "kind", "")
+    scope_label = "Relocation-first" if scope == "relocation" else "Career-first" if scope == "career" else "Профиль"
+    location = ", ".join(value for value in (getattr(job, "city", None), getattr(job, "country", None)) if value) or "география не указана"
+    metadata = [scope_label, location]
+    if getattr(job, "work_mode", None):
+        metadata.append(str(job.work_mode))
+    if getattr(job, "salary_from", None) is not None or getattr(job, "salary_to", None) is not None:
+        bounds = "–".join(str(value) for value in (getattr(job, "salary_from", None), getattr(job, "salary_to", None)) if value is not None)
+        metadata.append(" ".join(value for value in (bounds, getattr(job, "salary_currency", None), getattr(job, "salary_period", None)) if value))
+    if getattr(job, "published_at", None):
+        metadata.append(f"опубликовано {job.published_at}")
+    fields = f'<input type="hidden" name="id" value="{match.id}">'
+    buttons = form("/action/match", "Сохранить", fields + '<input type="hidden" name="status" value="saved">') if match.status not in {"saved", "prepared"} else ""
+    buttons += form("/action/match", "Пропустить", fields + '<input type="hidden" name="status" value="skipped">', secondary=True) if match.status not in {"skipped", "prepared"} else ""
+    buttons += form("/action/prepare", "Подготовить ручной отклик", fields)
+    return (
+        f'<section><div class="row"><div><h2><a href="/job/{job.id}?search={match.search_profile_id}">{e(job.title)}</a></h2>'
+        f'<p><strong>{e(job.company or "Компания не указана")}</strong></p></div><span class="score">{e(match.total_score)}/100</span></div>'
+        f'<p>{e(" · ".join(metadata))}</p><p>Статус: {e(MATCH_FILTERS.get(match.status, match.status))}</p>'
+        f'<details><summary>Почему такой score</summary><p>{e(match.reason or "Подробное объяснение отсутствует")}</p></details>'
+        f'<p><a href="/job/{job.id}?search={match.search_profile_id}">Карточка источника и relocation evidence</a></p>{buttons}</section>'
+    )
+
+
 async def page_content(request: web.Request, user, page: str) -> str:
     profile, searches = await profile_and_searches(user)
     if not profile:
         return '<section class="error">Активный профиль не найден. Создай его через Telegram /start.</section>'
     if page == "dashboard":
         stats = await repo.stats(user.id)
-        scan = await repo.get_state(user.id, "scan_dashboard", "")
-        cards = "".join(f'<div class="card"><h2>{e(k)}</h2><strong>{e(v)}</strong></div>' for k, v in stats.items())
-        return f'<div class="grid">{cards}</div><section><h2>Последний ручной поиск</h2><pre>{e(scan or "Пока не запускался")}</pre><a href="/search">Открыть поиск</a></section>'
+        labels = {"matches": "Всего оценок", "notified": "Требуют внимания", "filtered": "Отфильтровано", "applications": "Пакеты откликов"}
+        cards = "".join(f'<div class="card"><h2>{e(labels.get(k, k))}</h2><strong>{e(v)}</strong></div>' for k, v in stats.items())
+        state = await latest_scan_state(user.id)
+        summary = state.get("summary") if isinstance(state.get("summary"), dict) else {}
+        title, note = scan_status_label(state)
+        scan = (
+            f'<section><div class="row"><div><h2>{e(title)}</h2><p>{e(note)}</p></div>'
+            f'<div><a href="/search">Запустить поиск</a> · <a href="/diagnostics">Диагностика</a></div></div>'
+            f'<p class="muted">Начато: {e(state.get("started_at") or "—")} · завершено: {e(state.get("finished_at") or "—")}</p></section>'
+        )
+        actions = '<section><h2>Ежедневная работа</h2><p><a href="/jobs?scope=career">Career-first вакансии</a> · <a href="/jobs?scope=relocation">Relocation-first вакансии</a> · <a href="/review">Очередь Review</a> · <a href="/applications">Отклики</a></p></section>'
+        return f'<div class="grid">{cards}</div>{scan}{scan_result_cards(summary) if summary else ""}{scan_profile_cards(summary, searches)}{actions}'
     if page == "search":
         rows = []
         for s in searches:
             cfg = search_config(s.settings)
-            rows.append(f'<div class="card"><h2>{e(s.name)}</h2><p>Стратегия: {e(cfg.get("search_strategy"))}</p><p>Запросы: {e(", ".join(discovery_queries(cfg, profile.target_role)))}</p><p>Страны: {e(", ".join(cfg.get("target_countries") or []) or "не заданы")}</p></div>')
-        state = request.app["scan_state"].get(user.id, "idle")
-        return f'<section><p>Поиск выполняется по всем включённым профилям и их реальным источникам.</p>{form("/action/scan", "Запустить поиск") if state != "running" else "⏳ Поиск выполняется"}<p>Состояние: {e(state)} · <a href="/search">обновить</a></p></section><div class="grid">{"".join(rows)}</div>'
+            scope = "Relocation-first" if s.kind == "relocation" else "Career-first" if s.kind == "career" else s.name
+            queries = discovery_queries(cfg, profile.target_role)
+            disabled = set(cfg.get("disabled_sources") or [])
+            enabled_count = len(SCAN_SOURCES - disabled)
+            countries = list(cfg.get("target_countries") or [])
+            relocation_roles = list(cfg.get("relocation_queries") or [])
+            readiness = "Готов к запуску"
+            if s.kind == "relocation" and (not countries or not relocation_roles):
+                readiness = "Добавь страны и non-IT/IT роли на странице Relocation"
+            rows.append(
+                f'<div class="card"><h2>{e(scope)}</h2><p><strong>{e(readiness)}</strong></p>'
+                f'<p>Роли и запросы: {e(", ".join(queries) or "не заданы")}</p>'
+                f'<p>Страны: {e(", ".join(countries) or "без отдельного ограничения")}</p>'
+                f'<p>Активных источников: {enabled_count} · порог Good: {e(cfg.get("notify_min_score", 65))}</p>'
+                f'<p><a href="/jobs?scope={e(s.kind)}">Результаты</a> · <a href="/sources">Источники</a>'
+                + (' · <a href="/relocation">Роли и страны</a>' if s.kind == "relocation" else ' · <a href="/profiles">Целевая IT-роль</a>')
+                + '</p></div>'
+            )
+        transient = request.app.get("scan_state", {}).get(user.id, "")
+        persisted = await latest_scan_state(user.id)
+        title, note = scan_status_label(persisted)
+        running = transient == "running" or persisted.get("status") == "running"
+        controls = "⏳ Поиск выполняется" if running else form("/action/scan", "Запустить Career-first и Relocation-first поиск")
+        return f'<section><h2>{e("Поиск выполняется" if running else title)}</h2><p>{e(note)}</p>{controls}<p><a href="/search">Обновить состояние</a> · <a href="/diagnostics">Диагностика источников</a></p></section><div class="grid">{"".join(rows)}</div>'
     if page in {"jobs", "review"}:
-        kind = request.query.get("scope", "")
+        kind = str(request.query.get("scope", ""))
+        if kind not in {"", "career", "relocation"}:
+            kind = ""
         selected = next((s for s in searches if s.kind == kind), None)
         if page == "review":
             matches = await repo.review_matches(user.id, 30)
         else:
             threshold = int((selected.settings or {}).get("notify_min_score", 65)) if selected else 65
-            below = request.query.get("below") == "1"
+            below = request.query.get("below") == "1" or request.query.get("status") == "filtered"
             matches = await repo.latest_matches(
                 user.id, 80 if kind == "relocation" else 50,
                 search_profile_id=selected.id if selected else None,
@@ -112,15 +324,21 @@ async def page_content(request: web.Request, user, page: str) -> str:
             )
             if kind == "relocation" and selected:
                 matches = [(match, job) for match, job in matches if relocation_first_allows(job, selected.settings, current_country=user.current_country)]
-        filters = '<p><a href="/jobs">Все от порога</a> · <a href="/jobs?scope=career">Career-first</a> · <a href="/jobs?scope=relocation">Relocation-first</a> · <a href="/jobs?scope=career&amp;below=1">Career ниже порога</a> · <a href="/jobs?scope=relocation&amp;below=1">Relocation ниже порога</a></p>' if page == "jobs" else ""
-        rows = []
-        for match, job in matches:
-            buttons = form("/action/match", "Сохранить", f'<input type="hidden" name="id" value="{match.id}"><input type="hidden" name="status" value="saved">') if match.status not in {"saved", "prepared"} else ""
-            buttons += form("/action/match", "Пропустить", f'<input type="hidden" name="id" value="{match.id}"><input type="hidden" name="status" value="skipped">', secondary=True) if match.status not in {"skipped", "prepared"} else ""
-            buttons += form("/action/prepare", "Подготовить пакет", f'<input type="hidden" name="id" value="{match.id}">')
-            rows.append(f'<section><div class="row"><h2><a href="/job/{job.id}?search={match.search_profile_id}">{e(job.title)} · {e(job.company)}</a></h2><span class="score">{match.total_score}/100</span></div><p>{e(job.city or "")} {e(job.country or "")} · {e(match.status)} · <a href="/job/{job.id}?search={match.search_profile_id}">Источник и evidence</a></p><p>{e(match.reason)}</p>{buttons}</section>')
-        empty = '<section>Нет результатов в выбранном диапазоне. Проверь настройки и /scanstatus в Telegram.</section>'
-        return filters + ("".join(rows) or empty)
+        if kind:
+            allowed_search_ids = {s.id for s in searches if s.kind == kind}
+            matches = [(match, job) for match, job in matches if match.search_profile_id in allowed_search_ids]
+        status = str(request.query.get("status", "")) if page == "jobs" else "notified"
+        if status not in MATCH_FILTERS:
+            status = ""
+        if status:
+            matches = [(match, job) for match, job in matches if match.status == status]
+        needle = " ".join(str(request.query.get("q", ""))[:100].casefold().split())
+        if needle:
+            matches = [(match, job) for match, job in matches if needle in f"{job.title} {job.company}".casefold()]
+        search_by_id = {search.id: search for search in searches}
+        rows = [job_card(match, job, search_by_id.get(match.search_profile_id)) for match, job in matches]
+        empty = '<section><h2>Ничего не найдено</h2><p>Измени фильтры или запусти новый поиск. Технические сбои источников смотри в Diagnostics.</p></section>'
+        return jobs_filter_bar(page, request.query) + ("".join(rows) or empty)
     if page == "profiles":
         facts = await repo.list_facts(profile.id)
         types = "".join(f'<option value="{e(kind)}">{e(kind)}</option>' for kind in ("unknown", "lab", "learning", "commercial"))
@@ -145,7 +363,36 @@ async def page_content(request: web.Request, user, page: str) -> str:
         return upload + add + ("".join(f'<section><h2>#{r.id} · {e(r.name)}</h2><p>{e(r.role)} · {e(r.language)} · {e(r.source)}</p><details><summary>Текст резюме</summary><pre>{e(r.content)}</pre></details></section>' for r in resumes) or '<section>Резюме пока нет.</section>')
     if page == "applications":
         apps = await repo.list_applications(user.id, 50)
-        return "".join(f'<section><h2>#{a.id} · {e((a.vacancy_snapshot or {}).get("title") or a.job_id)}</h2><p>{e(a.status)} · {e(a.source_id)}</p><a href="/application/{a.id}">Открыть пакет и историю</a></section>' for a in apps) or '<section>Подготовленных пакетов пока нет.</section>'
+        selected_status = str(request.query.get("status", ""))
+        known_statuses = sorted(set(APPLICATION_STATUS_LABELS) | {str(item.status) for item in apps})
+        if selected_status not in known_statuses:
+            selected_status = ""
+        needle = " ".join(str(request.query.get("q", ""))[:100].casefold().split())
+        if selected_status:
+            apps = [item for item in apps if item.status == selected_status]
+        if needle:
+            apps = [item for item in apps if needle in f'{(item.vacancy_snapshot or {}).get("title", "")} {(item.vacancy_snapshot or {}).get("company", "")}'.casefold()]
+        options = '<option value="">Все статусы</option>' + "".join(
+            f'<option value="{e(status)}" {"selected" if selected_status == status else ""}>{e(APPLICATION_STATUS_LABELS.get(status, status))}</option>'
+            for status in known_statuses
+        )
+        filters = f'<section><form method="get" action="/applications"><label>Статус <select name="status">{options}</select></label><label>Название или компания <input name="q" type="text" maxlength="100" value="{e(str(request.query.get("q", ""))[:100])}"></label><button>Применить</button></form> <a href="/applications">Сбросить</a></section>'
+        rows = []
+        for item in apps:
+            snapshot = item.vacancy_snapshot if isinstance(item.vacancy_snapshot, dict) else {}
+            title = snapshot.get("title") or item.job_id
+            company = snapshot.get("company") or "Компания не указана"
+            external = safe_link(item.external_url)
+            external_link = f' · <a href="{e(external)}" target="_blank" rel="noopener noreferrer">Внешний отклик</a>' if external else ""
+            created = item.created_at.strftime("%Y-%m-%d") if getattr(item, "created_at", None) else "дата неизвестна"
+            rows.append(
+                f'<section><div class="row"><div><h2>#{item.id} · {e(title)}</h2><p><strong>{e(company)}</strong></p></div>'
+                f'<strong>{e(APPLICATION_STATUS_LABELS.get(item.status, item.status))}</strong></div>'
+                f'<p>{e(item.source_id)} · {e(created)}</p><a href="/application/{item.id}">Пакет, история и ручной статус</a>{external_link}</section>'
+            )
+        return filters + ("".join(rows) or '<section><h2>Пакеты не найдены</h2><p>Подготовь ручной отклик из Jobs или измени фильтры.</p></section>')
+    if page == "diagnostics":
+        return diagnostics_content(await latest_scan_state(user.id))
     raise web.HTTPNotFound()
 
 
