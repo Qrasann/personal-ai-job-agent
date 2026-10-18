@@ -120,3 +120,30 @@ async def test_job_detail_uses_owner_scoped_source_view(monkeypatch):
     response = await gui.job_detail(request)
     assert calls == [(8, 17, 4)]
     assert b"Source posting &amp; evidence" in response.body
+
+
+@pytest.mark.asyncio
+async def test_relocation_below_threshold_keeps_manual_leads_without_domestic_onsite(monkeypatch):
+    calls = []
+    search = SimpleNamespace(id=4, kind="relocation", settings={"notify_min_score": 65})
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2), [search]
+
+    async def fake_latest(user_id, limit, **kwargs):
+        calls.append((user_id, limit, kwargs))
+        match = SimpleNamespace(id=9, status="filtered", total_score=50, reason="geography unknown", search_profile_id=4)
+        return [
+            (match, SimpleNamespace(id=17, title="Warehouse worker", company="A", city="", country="GE")),
+            (match, SimpleNamespace(id=18, title="Domestic onsite", company="B", city="", country="RU")),
+        ]
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "latest_matches", fake_latest)
+    monkeypatch.setattr(gui, "relocation_first_allows", lambda job, _settings, *, current_country: job.country == "GE")
+    request = SimpleNamespace(query={"scope": "relocation", "below": "1"})
+    body = await gui.page_content(request, SimpleNamespace(id=8, current_country="RU"), "jobs")
+    assert calls == [(8, 80, {"search_profile_id": 4, "include_filtered": True, "min_score": 1, "max_score": 64})]
+    assert "Warehouse worker" in body
+    assert "Domestic onsite" not in body
+    assert "geography unknown" in body

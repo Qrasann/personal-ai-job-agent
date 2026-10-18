@@ -15,7 +15,7 @@ from aiogram import Bot
 from app.config import settings
 from app.database import repository as repo
 from app.geo.countries import normalize_country
-from app.search.preferences import discovery_queries, search_config
+from app.search.preferences import discovery_queries, relocation_first_allows, search_config
 from app.services import get_vacancy_details, scan_for_user
 from app.sources.registry import IMPLEMENTED
 from app.telegram.handlers import _prepare_saved_preview, _save_scan_dashboard
@@ -94,15 +94,26 @@ async def page_content(request: web.Request, user, page: str) -> str:
         if page == "review":
             matches = await repo.review_matches(user.id, 30)
         else:
-            matches = await repo.latest_matches(user.id, 50, search_profile_id=selected.id if selected else None)
-        filters = '<p><a href="/jobs">Все</a> · <a href="/jobs?scope=career">Career-first</a> · <a href="/jobs?scope=relocation">Relocation-first</a></p>' if page == "jobs" else ""
+            threshold = int((selected.settings or {}).get("notify_min_score", 65)) if selected else 65
+            below = request.query.get("below") == "1"
+            matches = await repo.latest_matches(
+                user.id, 80 if kind == "relocation" else 50,
+                search_profile_id=selected.id if selected else None,
+                include_filtered=below,
+                min_score=1 if below else threshold,
+                max_score=threshold - 1 if below else None,
+            )
+            if kind == "relocation" and selected:
+                matches = [(match, job) for match, job in matches if relocation_first_allows(job, selected.settings, current_country=user.current_country)]
+        filters = '<p><a href="/jobs">Все от порога</a> · <a href="/jobs?scope=career">Career-first</a> · <a href="/jobs?scope=relocation">Relocation-first</a> · <a href="/jobs?scope=career&amp;below=1">Career ниже порога</a> · <a href="/jobs?scope=relocation&amp;below=1">Relocation ниже порога</a></p>' if page == "jobs" else ""
         rows = []
         for match, job in matches:
             buttons = form("/action/match", "Сохранить", f'<input type="hidden" name="id" value="{match.id}"><input type="hidden" name="status" value="saved">') if match.status not in {"saved", "prepared"} else ""
             buttons += form("/action/match", "Пропустить", f'<input type="hidden" name="id" value="{match.id}"><input type="hidden" name="status" value="skipped">', secondary=True) if match.status not in {"skipped", "prepared"} else ""
             buttons += form("/action/prepare", "Подготовить пакет", f'<input type="hidden" name="id" value="{match.id}">')
             rows.append(f'<section><div class="row"><h2><a href="/job/{job.id}?search={match.search_profile_id}">{e(job.title)} · {e(job.company)}</a></h2><span class="score">{match.total_score}/100</span></div><p>{e(job.city or "")} {e(job.country or "")} · {e(match.status)} · <a href="/job/{job.id}?search={match.search_profile_id}">Источник и evidence</a></p><p>{e(match.reason)}</p>{buttons}</section>')
-        return filters + ("".join(rows) or '<section>Пока нет вакансий. Запусти поиск.</section>')
+        empty = '<section>Нет результатов в выбранном диапазоне. Проверь настройки и /scanstatus в Telegram.</section>'
+        return filters + ("".join(rows) or empty)
     if page == "profiles":
         facts = await repo.list_facts(profile.id)
         return f'<section><h2>{e(profile.name)}</h2><p>Целевая роль: {e(profile.target_role)} · Английский: {e(profile.english_level or "не задан")}</p>{form("/action/profile", "Сохранить роль", f"<input name='role' type='text' maxlength='256' value='{e(profile.target_role)}' required>")}</section><section><h2>Подтверждённые и импортированные факты</h2>' + ("".join(f'<p>#{f.id} · {e(f.category)} · {e(f.experience_type)} · {e(f.value)}</p>' for f in facts) or '<p>Фактов пока нет.</p>') + '</section>'
