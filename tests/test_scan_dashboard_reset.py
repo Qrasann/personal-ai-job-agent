@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.telegram import handlers
+from app.services import ScanAlreadyRunning
 
 
 class Message:
@@ -20,6 +21,22 @@ class Message:
 
     async def edit_text(self, text, **kwargs):
         self.edits.append(text)
+
+
+@pytest.mark.asyncio
+async def test_busy_scan_does_not_replace_other_process_dashboard(monkeypatch):
+    async def busy(*_args, **_kwargs):
+        raise ScanAlreadyRunning
+
+    state_write = AsyncMock()
+    monkeypatch.setattr(handlers, "_ACTIVE_SCAN_TASKS", {})
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "coordinated_scan_for_user", busy)
+    monkeypatch.setattr(handlers.repo, "set_state", state_write)
+    message = Message("/scan")
+    await handlers.scan(message, bot=object())
+    state_write.assert_not_awaited()
+    assert "другом процессе" in message.edits[-1]
 
 
 @pytest.mark.parametrize("outcome", ["completed", "cancelled", "failed"])
@@ -44,7 +61,8 @@ def test_new_scan_does_not_display_previous_run_results(monkeypatch, outcome):
         assert (user_id, key) == (7, "scan_dashboard")
         stored = value
 
-    async def fake_scan(bot, user_id, progress_callback=None, force_refresh=False):
+    async def fake_scan(bot, user_id, progress_callback=None, force_refresh=False, on_start=None):
+        await on_start()
         initial = json.loads(stored)
         assert initial["status"] == "running"
         assert initial["started_at"] != "PREVIOUS START"
@@ -64,7 +82,7 @@ def test_new_scan_does_not_display_previous_run_results(monkeypatch, outcome):
     monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
     monkeypatch.setattr(handlers.repo, "get_state", get_state)
     monkeypatch.setattr(handlers.repo, "set_state", set_state)
-    monkeypatch.setattr(handlers, "scan_for_user", fake_scan)
+    monkeypatch.setattr(handlers, "coordinated_scan_for_user", fake_scan)
 
     async def scenario():
         await handlers.scan(Message("/scan"), bot=object())

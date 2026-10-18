@@ -2878,3 +2878,6 @@ Web CV upload reuses the Telegram-backed extraction, proposal review and atomic 
 ## 2026-10-18 — reproducible local Web GUI service
 
 Added an opt-in Compose overlay for `python -m app.web`, with localhost-only host port, explicit web token and existing PostgreSQL service. Both READMEs link the Web GUI guide. `docker compose config --no-env-resolution` parsed successfully with a dummy token. No runtime container or volume was changed.
+## 2026-10-18 — PostgreSQL scan lease across processes
+
+Scheduled bot scans, manual Telegram `/scan` and Web GUI search now acquire the same per-user transaction-scoped advisory lock. Concurrent attempts skip safely, and a skipped scheduled record cannot hide a completed manual result. Lock release after normal completion and cancellation is covered against isolated PostgreSQL. Full suite passed 1318 before the final dashboard-selection assertion; that assertion and related cases passed in a separate 9-test run. No runtime change.

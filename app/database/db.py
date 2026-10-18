@@ -1,6 +1,7 @@
 from pathlib import Path
+from contextlib import asynccontextmanager
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from app.config import settings
@@ -9,6 +10,24 @@ from app.database.models import Base, SchemaMigration
 
 engine = create_async_engine(settings.database_url, pool_pre_ping=True)
 SessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+SCAN_LOCK_NAMESPACE = 0x4A4F42
+
+
+@asynccontextmanager
+async def user_scan_lease(user_id: int, *, scan_engine=None):
+    """Hold one PostgreSQL transaction lock for a user's scan across processes.
+
+    A process crash or cancelled task closes the transaction and releases the
+    lock. Other repository work uses separate connections while it is held.
+    """
+    target = scan_engine or engine
+    async with target.begin() as conn:
+        acquired = await conn.scalar(
+            text("SELECT pg_try_advisory_xact_lock(:namespace, :user_id)"),
+            {"namespace": SCAN_LOCK_NAMESPACE, "user_id": int(user_id)},
+        )
+        yield bool(acquired)
 
 
 async def init_db() -> None:

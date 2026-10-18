@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 cross-process scan coordination
+
+The branch merged the latest remote v3.5.7 feature baseline at `b75d8f1`; full isolated PostgreSQL suite passed 1314 afterward. GitHub publication of `work/codex-main-20261018` failed on DNS inside sandbox and timed out outside sandbox; no Draft PR exists yet. Current working change adds a PostgreSQL transaction lease around scheduled, Telegram and Web GUI scans, with clear busy states and no overwrite of an active scan dashboard. PostgreSQL lock, cancellation, bot/dashboard and Web regressions passed 68 targeted tests; full isolated suite passed 1318 before the final skipped-dashboard selection assertion, which passed in a 9-test targeted run. The updated Docker image built; compileall, secret-scan and diff check passed. Test DB stopped without volume deletion. Local checkpoint remains; retry publication only when network is available. Runtime remains untouched. Then continue real-link sampling and backup/rollback/smoke gates for GUI deployment.
+
 ## Current handoff — 2026-10-18 local Web GUI launch path
 
 Code checkpoints through `980e5c6` cover the private Web GUI, reviewed CV import and opt-in localhost-only Compose overlay. The base bot Compose service is unchanged. Both README files point to `docs/developer/WEB_GUI.md`; Compose configuration parsed with a dummy token and showed `127.0.0.1:8080` binding. The latest remote v3.5.7 feature baseline is being merged into this branch before Draft PR/CI; repeat the isolated PostgreSQL suite after that merge. No runtime release or production database mutation occurred. Next: coordinate bot/web scans, run browser/PostgreSQL acceptance, inspect real vacancy links and complete backup/rollback/smoke gates before starting this overlay against runtime.

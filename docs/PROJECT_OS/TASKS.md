@@ -2036,3 +2036,6 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — opt-in local Web GUI service
 
 - Add a separate Compose overlay for the Web GUI, bound to localhost with an explicit long token and existing PostgreSQL dependency. Config validation passed with a dummy token. Complete static gates/checkpoint; runtime rollout still waits for backup/compatibility/rollback/smoke gates.
+## 2026-10-18 — coordinated bot/Web scans
+
+- Add a per-user PostgreSQL transaction lease for scheduled, Telegram and Web scans, with explicit busy state and preserving the active scan's dashboard. Full isolated suite passed 1318 before the final skipped-dashboard selection test, which passed in targeted tests; static gates and Docker build passed. Complete local checkpoint. GitHub push/PR is pending network availability; runtime was not changed.

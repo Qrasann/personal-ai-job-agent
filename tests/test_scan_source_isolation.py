@@ -48,7 +48,7 @@ def test_scheduled_scan_continues_after_one_user_fails(monkeypatch, caplog):
             raise RuntimeError("temporary database failure")
         return {"sources": {}}
 
-    monkeypatch.setattr(services, "scan_for_user", scan)
+    monkeypatch.setattr(services, "coordinated_scan_for_user", scan)
     asyncio.run(services.scan_all(object()))
 
     assert seen == [1, 2]
@@ -684,7 +684,7 @@ def test_scheduled_summary_persists_partial_history_per_user(monkeypatch):
     import json
     monkeypatch.setattr(services.repo,'list_active_users',AsyncMock(return_value=[SimpleNamespace(id=7)]))
     summary={'sources':{'remoteok':{'found':2,'partial':True,'diagnostics':[]}}}
-    monkeypatch.setattr(services,'scan_for_user',AsyncMock(return_value=summary))
+    monkeypatch.setattr(services,'coordinated_scan_for_user',AsyncMock(return_value=summary))
     save=AsyncMock()
     monkeypatch.setattr(services.repo,'set_state',save)
     asyncio.run(services.scan_all(object()))
@@ -699,7 +699,7 @@ def test_scheduled_summary_persists_partial_history_per_user(monkeypatch):
 def test_scheduled_history_write_failure_does_not_stop_next_user(monkeypatch,caplog):
     monkeypatch.setattr(services.repo,'list_active_users',AsyncMock(return_value=[SimpleNamespace(id=1),SimpleNamespace(id=2)]))
     scan=AsyncMock(return_value={'sources':{}})
-    monkeypatch.setattr(services,'scan_for_user',scan)
+    monkeypatch.setattr(services,'coordinated_scan_for_user',scan)
     save=AsyncMock(side_effect=[RuntimeError('private database credentials'),None])
     monkeypatch.setattr(services.repo,'set_state',save)
     asyncio.run(services.scan_all(object()))

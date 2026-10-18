@@ -216,6 +216,10 @@ def select_scan_dashboard(manual: dict, scheduled: dict) -> dict:
     scheduled = scheduled if isinstance(scheduled, dict) else {}
     if manual.get("status") == "running":
         return manual
+    if manual and scheduled.get("status") == "skipped":
+        # A scheduled pass skipped because this user's manual/web scan held
+        # the lease. Keep the completed result visible after that scan ends.
+        return manual
     if scheduled and str(scheduled.get("started_at", "")) > str(manual.get("started_at", "")):
         return scheduled
     return manual or scheduled

@@ -97,14 +97,15 @@ async def test_web_rejects_mutation_of_another_users_match(monkeypatch):
 async def test_web_scan_uses_real_scan_service_and_writes_dashboard(monkeypatch):
     calls = []
 
-    async def fake_scan(bot, user_id, *, force_refresh):
+    async def fake_scan(bot, user_id, *, force_refresh, on_start):
+        await on_start()
         calls.append((bot, user_id, force_refresh))
         return {"processed": 2, "qualified": 1, "stretch": 1}
 
     async def fake_dashboard(user_id, **values):
         calls.append((user_id, values))
 
-    monkeypatch.setattr(gui, "scan_for_user", fake_scan)
+    monkeypatch.setattr(gui, "coordinated_scan_for_user", fake_scan)
     monkeypatch.setattr(gui, "_save_scan_dashboard", fake_dashboard)
     app = {"bot": object(), "scan_state": {}}
     await gui.run_scan(app, 5)

@@ -22,7 +22,7 @@ from app.config import settings
 from app.database import repository as repo
 from app.geo.countries import normalize_country
 from app.search.preferences import discovery_queries, relocation_first_allows, search_config
-from app.services import get_vacancy_details, scan_for_user
+from app.services import ScanAlreadyRunning, coordinated_scan_for_user, get_vacancy_details
 from app.sources.registry import IMPLEMENTED
 from app.telegram.handlers import _prepare_saved_preview, _save_scan_dashboard
 from app.telegram.vacancy_view import render_application_export, render_job_details
@@ -152,10 +152,14 @@ async def page_content(request: web.Request, user, page: str) -> str:
 async def run_scan(app: web.Application, user_id: int) -> None:
     app["scan_state"][user_id] = "running"
     try:
-        await _save_scan_dashboard(user_id, reset=True, status="running", stage="Web GUI: поиск запущен")
-        summary = await scan_for_user(app["bot"], user_id, force_refresh=True)
+        summary = await coordinated_scan_for_user(
+            app["bot"], user_id, force_refresh=True,
+            on_start=lambda: _save_scan_dashboard(user_id, reset=True, status="running", stage="Web GUI: поиск запущен"),
+        )
         app["scan_state"][user_id] = f'готово: {summary.get("processed", 0)} обработано, {summary.get("qualified", 0)} Good, {summary.get("stretch", 0)} Stretch'
         await _save_scan_dashboard(user_id, status="completed", stage="Web GUI: поиск завершён", summary=summary)
+    except ScanAlreadyRunning:
+        app["scan_state"][user_id] = "другой поиск уже выполняется"
     except Exception as exc:
         log.warning("web scan failed (%s)", type(exc).__name__)
         app["scan_state"][user_id] = f"ошибка: {type(exc).__name__}"

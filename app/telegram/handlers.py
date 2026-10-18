@@ -32,7 +32,7 @@ from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.matching.language_fit import normalize_cefr
 from app.agents.interview import build_interview_plan
-from app.services import apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, scan_for_user, scan_hh_chats, hh_client
+from app.services import ScanAlreadyRunning, apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, coordinated_scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
 from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
@@ -1111,9 +1111,11 @@ async def scan(message: Message, bot: Bot) -> None:
 
     heartbeat_task = asyncio.create_task(heartbeat())
 
-    try:
+    async def mark_started() -> None:
         await _save_scan_dashboard(user.id, reset=True, status="running", stage=stage, started_at=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
-        summary = await scan_for_user(bot, user.id, progress_callback=update_progress, force_refresh=True)
+
+    try:
+        summary = await coordinated_scan_for_user(bot, user.id, progress_callback=update_progress, force_refresh=True, on_start=mark_started)
         heartbeat_task.cancel()
         try:
             await heartbeat_task
@@ -1138,6 +1140,13 @@ async def scan(message: Message, bot: Bot) -> None:
             + f"\nДубликатов подавлено: {int(summary.get('duplicate', 0))}",
             parse_mode="HTML",
         )
+    except ScanAlreadyRunning:
+        heartbeat_task.cancel()
+        try:
+            await heartbeat_task
+        except asyncio.CancelledError:
+            pass
+        await progress.edit_text("⏳ Поиск уже выполняется в другом процессе. Проверь /scanstatus позже.")
     except asyncio.CancelledError:
         heartbeat_task.cancel()
         try:
