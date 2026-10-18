@@ -1,5 +1,9 @@
 # Roadmap
 
+## Owner priority update — 2026-10-18
+
+The near-term product priority is a usable private Web GUI and real Career-first + Relocation-first vacancy search. The intended path is Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications, backed by the existing PostgreSQL repository and scan service. Preserve Telegram as an independent immediate search surface. The first local web increment implements these routes, owner-only access, manual CV text storage, source/relocation settings, search, source-specific vacancy detail/evidence, review, package preparation and application tracking. It has not passed live source acceptance or release gates. Next: browser CV import with reviewed facts, search concurrency across bot/web processes, end-to-end PostgreSQL/browser tests, real-source yield measurement and gated deployment. Telegram Folder Watcher, interactive Interview Agent, AI Router and international source work remain in scope after this MVP.
+
 ## Unified execution priorities — audited 2026-10-17
 
 Every new user request continues this single Personal AI Job Agent product. Classify the request as merge / extend / conflict / new against existing code and milestones. Preserve past decisions unless explicitly superseded. This section is a priority queue, not an additional release or a statement of production readiness.

@@ -2023,3 +2023,7 @@ remains open. Historical counts below belong to their recorded stages.
   treating a Python mention among language alternatives as an employer's
   individual Python requirement. Preserve truth and review scoring semantics
   before changing approved weights or thresholds.
+## 2026-10-18 — private Web GUI MVP, active
+
+- Implement local owner-only Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications against existing PostgreSQL and scan service; retain human approval before sending. Initial route/action implementation is in `app/web.py`.
+- Isolated PostgreSQL suite passed 1306 before final source-detail addition; targeted Web GUI tests passed 6/6 afterward. Finish static checks, then browser/manual acceptance with real owner data. Follow with reviewed browser CV import, bot/web scan coordination, source yield measurement and gated release. Keep Telegram two-track `/scan` available in parallel. No production mutation yet.

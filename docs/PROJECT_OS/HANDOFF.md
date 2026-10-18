@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 Web GUI MVP
+
+Branch `work/codex-main-20261018` started clean at `34bd4d6c`. Owner moved a usable private Web GUI and real two-track search to P0. `app/web.py` now has owner-only local routes for Dashboard, Search, Jobs, source-specific detail/evidence, Review, Profiles, Sources, Relocation, CV and Applications, real repository actions, CSRF and owner checks, plus the existing `scan_for_user` and package preparation. `requirements.txt` adds explicit aiohttp. Full isolated PostgreSQL suite passed 1306 before the final source-detail route; targeted Web GUI tests passed 6/6 after it. `git diff --check`, compileall and secret-scan passed after the route. Runtime `/mnt/Storage/AI-Job-Bot/repo` was not changed; read-only Docker status showed `repo-app-1` up, but no real source acceptance or application send was performed. Next: browser/PostgreSQL acceptance, browser CV import with reviewed facts and bot/web scan coordination; prepare backup/rollback/smoke gates before runtime change. Existing Telegram `/parallelsearch on`, `/relocationroles`, `/scan` remains the immediate live-search route. Do not confuse offline tests with live yield.
+
 ## Current handoff — 2026-10-17 Telegram Georgia location
 
 Feature includes merged PRs #46–#48 at `a2df2dc`; current branch is `work/telegram-georgia-location`. Red offline fixtures showed `Atlanta, Georgia` and `Savannah, Georgia` parsed as country GE. The narrow parser guard leaves their country unknown while `Tbilisi, Georgia` remains GE. Targeted Telegram suites: 57 passed, 1 skipped; full isolated PostgreSQL suite: 1300 passed. Static gates, local commit, PR/CI and feature merge are next. No live Telegram account access or production change. The two owner proposal files remain untracked. All 21 folder IDs/access remain unverified; owner-controlled local login and 2–3-channel live acceptance are still required.
