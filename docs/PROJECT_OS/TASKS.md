@@ -2027,3 +2027,6 @@ remains open. Historical counts below belong to their recorded stages.
 
 - Implement local owner-only Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications against existing PostgreSQL and scan service; retain human approval before sending. Initial route/action implementation is in `app/web.py`.
 - Isolated PostgreSQL suite passed 1306 before the below-threshold UI addition; targeted Web GUI/search-preference tests passed 52/52 afterward. Finish diff check, then browser/manual acceptance with real owner data. Follow with reviewed browser CV import, bot/web scan coordination, source yield measurement and gated release. Keep Telegram two-track `/scan` available in parallel. No production mutation yet.
+## 2026-10-18 — browser profile facts and package review
+
+- Add owner-scoped manual Candidate Fact entry with explicit evidence and unknown experience default; show frozen application package/history with manual status/export. Targeted Web/application tests passed 14/14. Finish diff check and local checkpoint. PDF/DOCX import with reviewed facts remains the next CV step.

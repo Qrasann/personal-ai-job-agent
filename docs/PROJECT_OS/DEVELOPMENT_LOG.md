@@ -2869,3 +2869,6 @@ Added owner-authenticated local web workspace over existing PostgreSQL and scan 
 ## 2026-10-18 — expose low-score relocation leads for manual review
 
 Read-only runtime aggregates showed zero qualified Relocation-first matches while sources still returned candidates. The engine's technical score is grounded in Candidate Facts, so raising score weights from those aggregates would overstate fit. Web Jobs now offers below-threshold Career/Relocation views, retains filtering reasons and excludes domestic onsite from the Relocation-first view. Targeted Web GUI/search-preference tests passed 52/52. No runtime data or scoring threshold changed.
+## 2026-10-18 — browser Candidate Facts and application package
+
+Profiles now accepts only owner-entered factual statements with evidence and explicit experience type, defaulting to unknown rather than commercial. Applications shows the saved frozen package and status history before any manual status change; export remains available. Owner-scope and missing-evidence regressions were added. No external send or automated claim promotion.

@@ -147,3 +147,67 @@ async def test_relocation_below_threshold_keeps_manual_leads_without_domestic_on
     assert "Warehouse worker" in body
     assert "Domestic onsite" not in body
     assert "geography unknown" in body
+
+
+@pytest.mark.asyncio
+async def test_candidate_fact_requires_owner_evidence(monkeypatch):
+    recorded = []
+
+    async def fake_owner(_request):
+        return SimpleNamespace(id=8)
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=12), []
+
+    async def fake_add(profile_id, value, **kwargs):
+        recorded.append((profile_id, value, kwargs))
+
+    class Request:
+        app = {"csrf": "csrf"}
+        match_info = {"name": "fact"}
+        data = {"csrf": "csrf", "value": "Warehouse work", "experience_type": "commercial", "evidence": ""}
+
+        async def post(self):
+            return self.data
+
+    monkeypatch.setattr(gui, "owner", fake_owner)
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "add_fact", fake_add)
+    request = Request()
+    with pytest.raises(web.HTTPBadRequest):
+        await gui.action(request)
+    assert recorded == []
+    request.data["evidence"] = "Owner-confirmed work record"
+    with pytest.raises(web.HTTPSeeOther):
+        await gui.action(request)
+    assert recorded == [(12, "Warehouse work", {"category": "experience", "experience_type": "commercial", "evidence": "Owner-confirmed work record", "provenance": "web_manual"})]
+
+
+@pytest.mark.asyncio
+async def test_application_detail_denies_another_users_package(monkeypatch):
+    async def fake_owner(_request):
+        return SimpleNamespace(id=8)
+
+    async def fake_application(user_id, app_id):
+        assert (user_id, app_id) == (8, 42)
+        return None
+
+    monkeypatch.setattr(gui, "owner", fake_owner)
+    monkeypatch.setattr(gui.repo, "get_application", fake_application)
+    request = SimpleNamespace(match_info={"id": "42"})
+    with pytest.raises(web.HTTPNotFound):
+        await gui.application_detail(request)
+
+
+@pytest.mark.asyncio
+async def test_candidate_fact_form_defaults_to_unknown_experience(monkeypatch):
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2, name="Main", target_role="SRE", english_level=""), []
+
+    async def no_facts(_profile_id):
+        return []
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "list_facts", no_facts)
+    body = await gui.page_content(SimpleNamespace(query={}), SimpleNamespace(id=1), "profiles")
+    assert body.index('value="unknown"') < body.index('value="commercial"')

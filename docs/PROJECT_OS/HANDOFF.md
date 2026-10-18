@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 profile facts and application review
+
+Previous local checkpoints `56a71d7` and `ba76c4f` built a private nine-stage Web GUI and below-threshold Relocation-first inspection. This working increment adds owner-entered Candidate Facts with required evidence and unknown experience as the form default, plus an owner-scoped Applications detail page showing the frozen package and status history before manual updates/export. Targeted application/Web tests passed 14/14; compileall and secret-scan passed. Final diff check and checkpoint remain. No external application or runtime change. Browser CV PDF/DOCX import, scan coordination, real vacancy sampling and release acceptance remain next.
+
 ## Current handoff — 2026-10-18 below-threshold relocation inspection
 
 Local Web GUI checkpoint `56a71d7` passed 1306 isolated PostgreSQL tests, 6 targeted Web GUI tests, static gates and an isolated Docker build. A read-only aggregate runtime check found the current Relocation-first scan yielded no Good/Stretch, with technical/geography gaps; it did not justify inflating scores. Current working change adds owner-scoped `Jobs → Relocation ниже порога`, including filtered manual leads with reasons and preserving the domestic-onsite exclusion. Targeted Web GUI/search-preference tests passed 52/52; compileall and secret-scan passed. Final diff check and local checkpoint remain. Runtime was not modified. Follow with real link sampling, browser CV fact review, scan coordination and release gates; do not publish private profile or vacancy details.

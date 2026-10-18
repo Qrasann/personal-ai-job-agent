@@ -12,6 +12,7 @@ from urllib.parse import quote, urlsplit
 from aiohttp import web
 from aiogram import Bot
 
+from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES
 from app.config import settings
 from app.database import repository as repo
 from app.geo.countries import normalize_country
@@ -116,7 +117,9 @@ async def page_content(request: web.Request, user, page: str) -> str:
         return filters + ("".join(rows) or empty)
     if page == "profiles":
         facts = await repo.list_facts(profile.id)
-        return f'<section><h2>{e(profile.name)}</h2><p>Целевая роль: {e(profile.target_role)} · Английский: {e(profile.english_level or "не задан")}</p>{form("/action/profile", "Сохранить роль", f"<input name='role' type='text' maxlength='256' value='{e(profile.target_role)}' required>")}</section><section><h2>Подтверждённые и импортированные факты</h2>' + ("".join(f'<p>#{f.id} · {e(f.category)} · {e(f.experience_type)} · {e(f.value)}</p>' for f in facts) or '<p>Фактов пока нет.</p>') + '</section>'
+        types = "".join(f'<option value="{e(kind)}">{e(kind)}</option>' for kind in ("unknown", "lab", "learning", "commercial"))
+        add_fact = form("/action/fact", "Добавить факт", f'<label>Утверждение <textarea name="value" maxlength="2000" required></textarea></label><label>Тип опыта <select name="experience_type">{types}</select></label><label>Основание <input name="evidence" type="text" maxlength="1000" required></label>')
+        return f'<section><h2>{e(profile.name)}</h2><p>Целевая роль: {e(profile.target_role)} · Английский: {e(profile.english_level or "не задан")}</p>{form("/action/profile", "Сохранить роль", f"<input name='role' type='text' maxlength='256' value='{e(profile.target_role)}' required>")}</section><section><h2>Candidate Facts</h2><p>Добавляй только проверенные сведения. Тип commercial указывай лишь для реального оплачиваемого опыта.</p>{add_fact}</section><section><h2>Активные факты</h2>' + ("".join(f'<p>#{f.id} · {e(f.category)} · {e(f.experience_type)} · {e(f.value)}<br><small>{e(f.evidence)}</small></p>' for f in facts) or '<p>Фактов пока нет.</p>') + '</section>'
     if page in {"sources", "relocation"}:
         blocks = []
         for s in searches:
@@ -135,7 +138,7 @@ async def page_content(request: web.Request, user, page: str) -> str:
         return add + ("".join(f'<section><h2>#{r.id} · {e(r.name)}</h2><p>{e(r.role)} · {e(r.language)} · {e(r.source)}</p><details><summary>Текст резюме</summary><pre>{e(r.content)}</pre></details></section>' for r in resumes) or '<section>Резюме пока нет.</section>')
     if page == "applications":
         apps = await repo.list_applications(user.id, 50)
-        return "".join(f'<section><h2>#{a.id} · {e((a.vacancy_snapshot or {}).get("title") or a.job_id)}</h2><p>{e(a.status)} · {e(a.source_id)}</p><a href="/application/{a.id}/export">Экспорт пакета и истории</a>{form("/action/application", "Обновить статус", f"<input type='hidden' name='id' value='{a.id}'><select name='status'>" + "".join(f'<option value="{e(status)}">{e(status)}</option>' for status in sorted(repo.MANUAL_APPLICATION_STATUSES)) + "</select>")}</section>' for a in apps) or '<section>Подготовленных пакетов пока нет.</section>'
+        return "".join(f'<section><h2>#{a.id} · {e((a.vacancy_snapshot or {}).get("title") or a.job_id)}</h2><p>{e(a.status)} · {e(a.source_id)}</p><a href="/application/{a.id}">Открыть пакет и историю</a></section>' for a in apps) or '<section>Подготовленных пакетов пока нет.</section>'
     raise web.HTTPNotFound()
 
 
@@ -190,6 +193,14 @@ async def action(request: web.Request) -> web.StreamResponse:
         if not role or len(role) > 256:
             raise web.HTTPBadRequest(text="Invalid role")
         await repo.set_profile_target_role(profile.id, role)
+        target = "/profiles"
+    elif name == "fact":
+        value = str(data.get("value", "")).strip()
+        evidence = str(data.get("evidence", "")).strip()
+        experience_type = str(data.get("experience_type", ""))
+        if not value or not evidence or len(value) > 2000 or len(evidence) > 1000 or experience_type not in ALLOWED_EXPERIENCE_TYPES:
+            raise web.HTTPBadRequest(text="Invalid candidate fact")
+        await repo.add_fact(profile.id, value, category="experience", experience_type=experience_type, evidence=evidence, provenance="web_manual")
         target = "/profiles"
     elif name == "cv":
         cv_name = str(data.get("name", "")).strip()
@@ -274,6 +285,20 @@ async def export_application(request: web.Request) -> web.Response:
     return web.Response(text=content, content_type="text/plain", charset="utf-8", headers={"Content-Disposition": f'attachment; filename="application-{app_id}.txt"', "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})
 
 
+async def application_detail(request: web.Request) -> web.Response:
+    user = await owner(request)
+    app_id = int(request.match_info["id"])
+    application = await repo.get_application(user.id, app_id)
+    if not application:
+        raise web.HTTPNotFound()
+    events = await repo.application_status_history(user.id, app_id)
+    content = render_application_export(application, events)
+    statuses = "".join(f'<option value="{e(status)}">{e(status)}</option>' for status in sorted(repo.MANUAL_APPLICATION_STATUSES))
+    update = form("/action/application", "Отметить статус вручную", f'<input type="hidden" name="id" value="{app_id}"><select name="status">{statuses}</select>')
+    body = f'<section><p>Статус: {e(application.status)}. Изменение статуса не отправляет заявку.</p>{update}<p><a href="/application/{app_id}/export">Скачать полный пакет</a></p><pre>{e(content[:100_000])}</pre>{"<p>Предпросмотр сокращён; экспорт содержит полный пакет.</p>" if len(content) > 100_000 else ""}</section>'
+    return layout("applications", body.replace("{csrf}", e(request.app["csrf"])))
+
+
 async def job_detail(request: web.Request) -> web.Response:
     user = await owner(request)
     try:
@@ -334,6 +359,7 @@ def create_app(bot: Bot, token: str) -> web.Application:
     app.router.add_get("/{page}", dispatch)
     app.router.add_get("/job/{id:\\d+}", job_detail)
     app.router.add_post("/action/{name}", action)
+    app.router.add_get("/application/{id:\\d+}", application_detail)
     app.router.add_get("/application/{id:\\d+}/export", export_application)
     return app
 
