@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 
 from sqlalchemy import and_, func, or_, select
@@ -641,26 +642,59 @@ async def latest_matches(
     return out
 
 
-async def has_notified_equivalent(user_id: int, job_id: int, title: str, company: str) -> bool:
-    """Avoid notifying the same title/company reposted under another source job id."""
+async def has_notified_equivalent(
+    user_id: int,
+    job_id: int,
+    title: str,
+    company: str,
+    *,
+    match_id: int | None = None,
+) -> bool:
+    """Avoid notifying one canonical job or equivalent repost more than once.
+
+    A canonical Job can have independent Career-first and Relocation-first
+    JobMatch rows. Do not exclude its already-notified rows: the current match
+    is still ``new`` and therefore cannot suppress itself.
+    """
     title_key, company_key = _display_key(title, company)
     if not title_key:
         return False
     async with SessionLocal() as session:
-        rows = await session.execute(
-            select(JobMatch.status, Job.title, Job.company)
+        stmt = (
+            select(JobMatch.id, JobMatch.status, Job.title, Job.company)
             .join(Job, Job.id == JobMatch.job_id)
             .where(
                 JobMatch.user_id == user_id,
-                Job.id != job_id,
-                JobMatch.status.in_(REPOST_SUPPRESS_STATUSES),
+                JobMatch.status.in_(REPOST_SUPPRESS_STATUSES | {"new"}),
             )
-            .order_by(JobMatch.created_at.desc())
+            # Same canonical Job must not fall outside the bounded repost
+            # window even when the user has many newer matches.
+            .order_by((Job.id == job_id).desc(), JobMatch.created_at.desc())
             .limit(200)
         )
-        for status, other_title, other_company in rows.all():
+        if match_id is not None:
+            stmt = stmt.where(JobMatch.id != match_id)
+        rows = await session.execute(stmt)
+        pending_match_ids: list[int] = []
+        for other_match_id, status, other_title, other_company in rows.all():
             if _display_key(other_title, other_company) == (title_key, company_key):
-                return True
+                if status in REPOST_SUPPRESS_STATUSES:
+                    return True
+                pending_match_ids.append(other_match_id)
+        if pending_match_ids:
+            states = await session.scalars(
+                select(RuntimeState.value).where(
+                    RuntimeState.user_id == user_id,
+                    RuntimeState.key.in_([f"jobnotify:{item}" for item in pending_match_ids]),
+                )
+            )
+            for raw in states:
+                try:
+                    state = json.loads(raw)
+                except (TypeError, ValueError):
+                    continue
+                if isinstance(state, dict) and state.get("status") in {"sending", "retry", "sent"}:
+                    return True
     return False
 
 

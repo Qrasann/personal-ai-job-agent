@@ -24,10 +24,11 @@ Job alerts have no Telegram-side idempotency key. A client timeout after server 
 - Telegram succeeds but DB update fails: keep sending until lease expiry, then retry; duplicates possible.
 - Invalid/malformed journal data is not overwritten automatically. Investigate it, do not echo raw provider errors.
 - Row claims are per user and match. Journal growth/retention and multi-instance performance are not yet accepted.
-- The journal is **only for scored job alerts**. Source diagnostics, recruiter chat alerts and channel watcher notifications retain separate existing mechanisms.
+- The job journal is **only for scored job alerts**. Source diagnostics use a separate bounded `source_notice_state.v1` RuntimeState record: chat receives the first `(source, state, codes)` transition, a grouped reminder after six hours of an unchanged failure, and one recovery notice. Every scan retains its complete controlled diagnostics in `/scanstatus`/Diagnostics. A successful permitted HH web fallback records API 403 there without sending a chat warning. Recruiter and channel-watcher notifications remain separate.
+- Independent Career-first and Relocation-first matches for the same canonical Job share the equivalent-alert guard. A prior notified/saved/prepared/applied/skipped match suppresses another alert for that canonical job or normalized title/company repost. A different canonical identity/provider posting remains eligible and is covered by regression tests.
 
 ## Checks and limits
 
-Run isolated PostgreSQL tests, especially tests/test_notification_delivery.py: claim concurrency, lease fencing, retry timing, user isolation, uncertain acknowledgments, and ingestion-to-alert flow. CI also builds Docker and scans secrets.
+Run isolated PostgreSQL tests, especially `tests/test_notification_delivery.py`: claim concurrency, lease fencing, retry timing, user isolation, uncertain acknowledgments, two-profile canonical deduplication, new-vacancy preservation and ingestion-to-alert flow. `tests/test_source_notice_policy.py` covers technical repeat suppression, state/code changes, HH fallback and recovery. CI also builds Docker and scans secrets.
 
 A green CI does not prove live Telegram delivery. Deploy only after explicit production approval and backup. No schema bump from this change. PR #27 (separate Application/job FK migration) remains unmerged and needs independent review.

@@ -1525,3 +1525,24 @@ P0 multi-employer normalization path into the existing pipeline and verify canon
 deduplication against Telegram source identity. Do not alter the three existing
 single-company adapters without regression coverage. No production DB/runtime,
 Telegram account or employer communication changed.
+
+## 2026-10-18 — notification reliability checkpoint
+
+Owner authorized MTProto read-only access for `@devops_jobs_feed`,
+`@itjobsgeorgia` and `@vgrecruitingit` only, with no joins. Local API ID/hash,
+private inventory and session are still absent; do not start/claim live acceptance
+until the owner can enter credentials and login code locally. Never request them
+in chat or stage the private folder directory.
+
+Working reliability change fixes cross-profile duplicate alerts for the same
+canonical Job and adds a separate persisted source-notice state machine. Targeted
+isolated PostgreSQL and source suites pass 79 tests. Full Diagnostics remain per
+scan; Telegram gets state changes, one six-hour grouped repeat and recovery.
+Successful HH API 403 fallback is quiet in chat. Current route uses `happ-xray`;
+the safe probe shows HH TLS succeeds before 403 and Job Bank stalls after TLS.
+This does not prove route causality. Finish static/broader gates, stop only the
+test PostgreSQL container without deleting its volume, commit/publish the focused
+checkpoint, then resume the authorized three-channel pilot and P0 employer pipeline.
+The broader non-integration runner was attempted and again hung after 5%; it was
+interrupted and is not a pass. Do not repeat it as part of this checkpoint unless
+actively diagnosing the separately queued hang.

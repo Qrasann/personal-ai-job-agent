@@ -2108,3 +2108,14 @@ remains open. Historical counts below belong to their recorded stages.
 - [x] Add a bounded read-only official-source verifier. The 2026-10-18 live pass confirmed 14/14 remaining links/provider IDs and removed one stale Emerging Travel Junior DevOps URL instead of treating an indexed result as current.
 - [ ] After the owner chooses 2–3 channels, create the private inventory/login locally, probe only explicitly enabled broadcast channels, then measure real new posts through the common pipeline.
 - [ ] Normalize a small P0 employer subset through the common ingestion/deduplication pipeline and measure Good/Stretch/false-positive yield without changing thresholds. Preserve official source identity so Telegram copies converge.
+
+## 2026-10-18 — Telegram notification reliability from owner logs
+
+- [x] Reproduce one canonical MLOps vacancy qualifying in Career-first and Relocation-first. The prior equivalent query excluded the same Job ID, so both profile matches could notify. Keep one `notified` and mark the other `duplicate`, with one persisted sent journal entry across repeat scan.
+- [x] Prove a different provider ID/canonical employer still sends, preserving at-least-once delivery for genuinely new vacancies.
+- [x] Persist source technical-notice state by source/state/codes. Send the first issue, suppress unchanged 15-minute repeats, emit a grouped six-hour reminder, report code/state changes immediately and recovery once. Keep full scan diagnostics unchanged.
+- [x] Keep successful HH API 403 → permitted web fallback out of chat while retaining `HTTP_403_FORBIDDEN` in Diagnostics. A failed fallback reports the material network loss once; HH cooldown stays quiet.
+- [x] Re-run partial-result, HH cooldown, notification lease/retry/backoff/fencing and recovery regressions against isolated PostgreSQL: 79 passed.
+- [x] Attempt the broader non-integration suite; it again stopped producing progress after 5% and was interrupted without claiming a pass. Keep the already queued pytest-hang investigation separate from this focused fix.
+- [x] Safely inspect the current network route. A priority `happ-xray` tunnel is active; IPv4 TLS currently succeeds to sampled sources, while Job Bank stalls after TLS. Do not infer VPN causality without a controlled owner-side route switch and repeat sample.
+- [ ] Complete the authorized three-channel interactive MTProto login/probe after local API credentials are present. Never paste or commit API hash, login code, folder invite or session.
