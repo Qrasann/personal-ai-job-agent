@@ -2023,3 +2023,22 @@ remains open. Historical counts below belong to their recorded stages.
   treating a Python mention among language alternatives as an employer's
   individual Python requirement. Preserve truth and review scoring semantics
   before changing approved weights or thresholds.
+## 2026-10-18 — private Web GUI MVP, active
+
+- Implement local owner-only Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications against existing PostgreSQL and scan service; retain human approval before sending. Initial route/action implementation is in `app/web.py`.
+- Isolated PostgreSQL suite passed 1306 before the below-threshold UI addition; targeted Web GUI/search-preference tests passed 52/52 afterward. Finish diff check, then browser/manual acceptance with real owner data. Follow with reviewed browser CV import, bot/web scan coordination, source yield measurement and gated release. Keep Telegram two-track `/scan` available in parallel. No production mutation yet.
+## 2026-10-18 — browser profile facts and package review
+
+- Add owner-scoped manual Candidate Fact entry with explicit evidence and unknown experience default; show frozen application package/history with manual status/export. Targeted Web/application tests passed 14/14. Finish diff check and local checkpoint. PDF/DOCX import with reviewed facts remains the next CV step.
+## 2026-10-18 — reviewed browser CV upload
+
+- Reuse the existing safe PDF/DOCX/TXT parser, fact proposal/overlap review and atomic CV+facts persistence in Web GUI. Explicit preview and owner-scoped confirmation are implemented at local checkpoint `03094e5`; full isolated PostgreSQL suite passed 1314/1314 and the updated Docker image built. Follow with cross-process scan coordination, isolated browser/PostgreSQL acceptance and live source value measurement.
+## 2026-10-18 — opt-in local Web GUI service
+
+- Add a separate Compose overlay for the Web GUI, bound to localhost with an explicit long token and existing PostgreSQL dependency. Config validation passed with a dummy token. Complete static gates/checkpoint; runtime rollout still waits for backup/compatibility/rollback/smoke gates.
+## 2026-10-18 — coordinated bot/Web scans
+
+- Add a per-user PostgreSQL transaction lease for scheduled, Telegram and Web scans, with explicit busy state and preserving the active scan's dashboard. Full isolated suite passed 1318 before the final skipped-dashboard selection test, which passed in targeted tests; static gates and Docker build passed. Complete local checkpoint. GitHub push/PR is pending network availability; runtime was not changed.
+## 2026-10-18 — Web GUI PostgreSQL acceptance and rollout prep
+
+- Isolated HTTP/PostgreSQL test passed for all nine routes, owner-scoped status writes, export and cross-owner denial. Runtime/development schema versions read-only matched at 8. Added a concrete backup/restore, private smoke and rollback runbook; actual backup and release gates remain pending. Commit the verified test/docs, then retry Draft PR/CI when GitHub connectivity returns.

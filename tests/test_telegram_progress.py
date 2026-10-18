@@ -184,7 +184,8 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     async def fake_require_user(message):
         return SimpleNamespace(id=7)
 
-    async def fake_scan(bot, user_id, progress_callback=None, force_refresh=False):
+    async def fake_scan(bot, user_id, progress_callback=None, force_refresh=False, on_start=None):
+        await on_start()
         assert user_id == 7
         assert force_refresh is True
         assert progress_callback is not None
@@ -227,7 +228,7 @@ def test_scan_command_shows_progress_then_edits_same_message(monkeypatch):
     )
     monkeypatch.setattr(
         handlers,
-        "scan_for_user",
+        "coordinated_scan_for_user",
         fake_scan,
     )
     monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(return_value="{}"))
@@ -291,7 +292,7 @@ def test_scan_and_status_dense_emoji_diagnostics_fit_telegram(monkeypatch):
 
     monkeypatch.setattr(handlers, "_ACTIVE_SCAN_TASKS", {})
     monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers, "scan_for_user", AsyncMock(return_value=summary))
+    monkeypatch.setattr(handlers, "coordinated_scan_for_user", AsyncMock(return_value=summary))
     monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(side_effect=lambda uid, key, default: stored.get(key, default)))
     monkeypatch.setattr(handlers.repo, "set_state", set_state)
     scan_message, status_message = IncomingMessage("/scan"), IncomingMessage("/scanstatus")
@@ -330,7 +331,7 @@ def test_scan_and_persisted_status_show_quiet_source_skip(monkeypatch, skip_reas
 
     monkeypatch.setattr(handlers, "_ACTIVE_SCAN_TASKS", {})
     monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers, "scan_for_user", AsyncMock(return_value=summary))
+    monkeypatch.setattr(handlers, "coordinated_scan_for_user", AsyncMock(return_value=summary))
     monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(side_effect=lambda *a: stored))
     monkeypatch.setattr(handlers.repo, "set_state", set_state)
 
@@ -368,7 +369,7 @@ def test_scan_and_status_keep_successful_count_for_partial_source(monkeypatch):
     state = json.dumps({"status": "completed", "summary": summary})
     monkeypatch.setattr(handlers, "_ACTIVE_SCAN_TASKS", {})
     monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers, "scan_for_user", AsyncMock(return_value=summary))
+    monkeypatch.setattr(handlers, "coordinated_scan_for_user", AsyncMock(return_value=summary))
     monkeypatch.setattr(handlers.repo, "get_state", AsyncMock(return_value=state))
     monkeypatch.setattr(handlers.repo, "set_state", AsyncMock())
     scan_message = IncomingMessage("/scan")
@@ -483,7 +484,7 @@ def test_dense_partial_scan_fits_telegram_and_keeps_valid_html(monkeypatch):
              for n in range(13)}}
     monkeypatch.setattr(handlers,'_ACTIVE_SCAN_TASKS',{})
     monkeypatch.setattr(handlers,'_require_user',AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers,'scan_for_user',AsyncMock(return_value=summary))
+    monkeypatch.setattr(handlers,'coordinated_scan_for_user',AsyncMock(return_value=summary))
     monkeypatch.setattr(handlers.repo,'get_state',AsyncMock(return_value='{}'))
     monkeypatch.setattr(handlers.repo,'set_state',AsyncMock())
     message=IncomingMessage('/scan')

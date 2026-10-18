@@ -2863,3 +2863,24 @@ Additional fixtures showed the prior Candidate Fit fix missed “network of medi
 ## 2026-10-17 — prevent Greenhouse US-state Georgia from entering GE search
 
 Reproduced “Atlanta, Georgia, USA” being parsed as country GE by the Greenhouse location parser. Explicit US qualifiers now suppress the ambiguous country match; unqualified Tbilisi, Georgia remains supported. Fixtures cover USA/U.S.A./U.S./US/United States forms. Greenhouse/Remotive/relocation tests: 84 passed; full isolated PostgreSQL suite: 1246 passed; test DB stopped; compileall, diff check and secret scan passed. Offline fixtures only; no legal or live-source conclusions. Next: checkpoint/PR and continue Relocation-first/source-quality work.
+## 2026-10-18 — private Web GUI first integrated slice
+
+Added owner-authenticated local web workspace over existing PostgreSQL and scan services. Nine requested navigation stages have real read/write paths; source-specific job detail uses the established evidence renderer. Package preparation remains a saved human-review draft, application status is explicitly manual, and text CV storage does not promote claims to Candidate Facts. Added security regression coverage for explicit owner/token, login/CSRF, escaping/URL checks, cross-owner match mutation, scan dispatch and owner-scoped detail. Full isolated PostgreSQL suite passed 1306 before the final detail addition; targeted Web GUI tests passed 6/6 afterward. No runtime deployment or live vacancy assertion.
+## 2026-10-18 — expose low-score relocation leads for manual review
+
+Read-only runtime aggregates showed zero qualified Relocation-first matches while sources still returned candidates. The engine's technical score is grounded in Candidate Facts, so raising score weights from those aggregates would overstate fit. Web Jobs now offers below-threshold Career/Relocation views, retains filtering reasons and excludes domestic onsite from the Relocation-first view. Targeted Web GUI/search-preference tests passed 52/52. No runtime data or scoring threshold changed.
+## 2026-10-18 — browser Candidate Facts and application package
+
+Profiles now accepts only owner-entered factual statements with evidence and explicit experience type, defaulting to unknown rather than commercial. Applications shows the saved frozen package and status history before any manual status change; export remains available. Owner-scope and missing-evidence regressions were added. No external send or automated claim promotion.
+## 2026-10-18 — reviewed PDF/DOCX/TXT import in Web GUI
+
+Web CV upload reuses the Telegram-backed extraction, proposal review and atomic repository save. Preview is owner-scoped, bounded in memory and expires; file bytes are discarded after extraction. The owner explicitly saves CV-only or selected facts, with overlaps defaulting to KEEP and all imported experience unknown. Full isolated PostgreSQL suite passed 1314/1314, including HTTP multipart and single-use confirmation coverage; updated Docker image built. No runtime or external service change.
+## 2026-10-18 — reproducible local Web GUI service
+
+Added an opt-in Compose overlay for `python -m app.web`, with localhost-only host port, explicit web token and existing PostgreSQL service. Both READMEs link the Web GUI guide. `docker compose config --no-env-resolution` parsed successfully with a dummy token. No runtime container or volume was changed.
+## 2026-10-18 — PostgreSQL scan lease across processes
+
+Scheduled bot scans, manual Telegram `/scan` and Web GUI search now acquire the same per-user transaction-scoped advisory lock. Concurrent attempts skip safely, and a skipped scheduled record cannot hide a completed manual result. Lock release after normal completion and cancellation is covered against isolated PostgreSQL. Full suite passed 1318 before the final dashboard-selection assertion; that assertion and related cases passed in a separate 9-test run. No runtime change.
+## 2026-10-18 — Web GUI HTTP/PostgreSQL acceptance
+
+A full owner-authenticated HTTP walk through all nine GUI stages passed against isolated PostgreSQL. It persisted a saved match and manually reviewed application, exported the frozen package and returned 404 for another owner's package. Read-only schema comparison showed development and runtime both at version 8. Added a rollout/rollback runbook; no production backup, restore, deployment or data change was performed.

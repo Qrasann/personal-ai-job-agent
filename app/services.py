@@ -5,6 +5,7 @@ import html
 import json
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 
 from aiogram import Bot
@@ -14,6 +15,7 @@ from app.agents.llm import make_cover_letter, recruiter_reply
 from app.config import settings
 from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
+from app.database.db import user_scan_lease
 from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
@@ -429,6 +431,22 @@ def _error_text(exc: Exception) -> str:
     return classify_source_error(exc)["code"]
 
 
+class ScanAlreadyRunning(RuntimeError):
+    """A scan for this user holds the shared PostgreSQL lease."""
+
+
+async def coordinated_scan_for_user(
+    bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False,
+    on_start: Callable[[], Awaitable[None]] | None = None,
+) -> dict:
+    async with user_scan_lease(user_id) as acquired:
+        if not acquired:
+            raise ScanAlreadyRunning("A scan is already running for this user")
+        if on_start:
+            await on_start()
+        return await scan_for_user(bot, user_id, progress_callback, force_refresh=force_refresh)
+
+
 async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force_refresh: bool = False) -> dict:
     summary = {"sources": {}, "searches": {}, "processed": 0, "qualified": 0, "stretch": 0, "notified": 0, "filtered": 0, "duplicate": 0}
     async def emit_progress(text: str) -> None:
@@ -716,9 +734,13 @@ async def scan_all(bot: Bot) -> None:
         started = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
         state = {"kind": "scheduled", "started_at": started}
         try:
-            summary = await scan_for_user(bot, user.id)
-            outcome = scan_outcome(summary)
-            state.update(status=outcome, stage="Готово" if outcome == "completed" else "Завершено с неполными результатами", summary=summary)
+            try:
+                summary = await coordinated_scan_for_user(bot, user.id)
+            except ScanAlreadyRunning:
+                state.update(status="skipped", stage="Другой поиск уже выполняется")
+            else:
+                outcome = scan_outcome(summary)
+                state.update(status=outcome, stage="Готово" if outcome == "completed" else "Завершено с неполными результатами", summary=summary)
         except Exception as exc:
             issue = classify_source_error(exc, stage="scan")
             state.update(status="failed", stage=issue["code"], diagnostic=issue)
