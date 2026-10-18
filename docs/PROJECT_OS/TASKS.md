@@ -3,7 +3,7 @@
 - [x] Verify clean dev worktree, fetch origin, confirm PR #50/#51 merged and base focused work on feature `1c12976`.
 - [x] Add all 15 approved decisions to the existing `DECISIONS.md`; align the single root `ROADMAP.md` with current P0/P1/P2 execution order without removing history.
 - [x] Mark implementation/test/owner acceptance/release as separate evidence states. Refresh BRIEF and HANDOFF; retain historical task entries.
-- [ ] Run documentation gates, commit and publish dev branch/PR to feature; verify exact-head CI.
+- [x] Run documentation gates, create checkpoint `d654584`, push dev branch and open Draft PR #52 to feature. Exact-head CI is running; required before marking this queue item complete.
 - [ ] P0-1: isolated Web GUI acceptance (auth, CSRF, owner boundaries, full route sequence); runtime remains untouched.
 - [ ] P0-2: measure useful Career/Relocation yield and diagnose Relocation zero-yield causes with permitted real sources; no silent scoring changes.
 - [ ] Continue onboarding/geography, CV-to-application, voluntary Skill Check/Interview, AI Router/Stack Watch and privacy lifecycle in roadmap order.
