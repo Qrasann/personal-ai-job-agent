@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import html
+import json
 import logging
 import os
 import secrets
@@ -22,14 +23,16 @@ from app.config import settings
 from app.database import repository as repo
 from app.geo.countries import normalize_country
 from app.search.preferences import discovery_queries, relocation_first_allows, search_config
+from app.search.source_summary import render_filter_reason_counts, scan_outcome, select_scan_dashboard
 from app.services import ScanAlreadyRunning, coordinated_scan_for_user, get_vacancy_details
+from app.sources.diagnostics import MESSAGES, legacy_diagnostic
 from app.sources.registry import IMPLEMENTED
 from app.telegram.handlers import _prepare_saved_preview, _save_scan_dashboard
 from app.telegram.vacancy_view import render_application_export, render_job_details
 
 log = logging.getLogger(__name__)
-PAGES = ("dashboard", "search", "jobs", "review", "profiles", "sources", "relocation", "cv", "applications")
-LABELS = ("Dashboard", "Search", "Jobs", "Review", "Profiles", "Sources", "Relocation", "CV", "Applications")
+PAGES = ("dashboard", "search", "jobs", "review", "profiles", "sources", "relocation", "cv", "applications", "diagnostics")
+LABELS = ("Dashboard", "Search", "Jobs", "Review", "Profiles", "Sources", "Relocation", "CV", "Applications", "Diagnostics")
 SCAN_SOURCES = IMPLEMENTED - {"telegram", "jobs_ge"}
 CV_PREVIEW_TTL = 15 * 60
 
@@ -79,15 +82,130 @@ def selected_search(searches, raw: str):
     return next((s for s in searches if str(s.id) == raw), None)
 
 
+def parse_scan_state(value: str) -> dict:
+    try:
+        state = json.loads(value or "{}")
+    except (TypeError, ValueError):
+        return {}
+    return state if isinstance(state, dict) else {}
+
+
+async def latest_scan_state(user_id: int) -> dict:
+    manual = parse_scan_state(await repo.get_state(user_id, "scan_dashboard", "{}"))
+    scheduled = parse_scan_state(await repo.get_state(user_id, "scheduled_scan_dashboard", "{}"))
+    return select_scan_dashboard(manual, scheduled)
+
+
+def scan_status_label(state: dict) -> tuple[str, str]:
+    status = str(state.get("status") or "unknown")
+    summary = state.get("summary") if isinstance(state.get("summary"), dict) else {}
+    if status == "completed" and summary:
+        status = scan_outcome(summary)
+    labels = {
+        "running": ("Поиск выполняется", "Идёт запрос к источникам. Уже обработанные результаты сохраняются."),
+        "completed": ("Поиск завершён", "Результаты готовы к просмотру."),
+        "partial": ("Поиск завершён частично", "Часть источников недоступна, но найденные результаты сохранены."),
+        "failed": ("Поиск не завершён", "Источники не вернули пригодный результат. Подробности доступны в диагностике."),
+        "cancelled": ("Поиск остановлен", "Результаты уже обработанных источников сохранены."),
+        "skipped": ("Поиск пропущен", "Другой поиск для этого профиля уже выполнялся."),
+    }
+    return labels.get(status, ("Поиск ещё не запускался", "Запусти первый поиск на странице Search."))
+
+
+def scan_result_cards(summary: dict) -> str:
+    metrics = (
+        ("Обработано", summary.get("processed", 0)),
+        ("Good", summary.get("qualified", 0)),
+        ("Stretch", summary.get("stretch", 0)),
+        ("Новых", summary.get("notified", 0)),
+    )
+    return '<div class="grid">' + "".join(
+        f'<div class="card"><h2>{label}</h2><strong>{e(int(value or 0))}</strong></div>'
+        for label, value in metrics
+    ) + "</div>"
+
+
+def scan_profile_cards(summary: dict, searches) -> str:
+    search_by_id = {str(search.id): search for search in searches}
+    rows = []
+    for search_id, info in (summary.get("searches") or {}).items():
+        if not isinstance(info, dict):
+            continue
+        search = search_by_id.get(str(search_id))
+        scope = getattr(search, "kind", "")
+        scope_label = "Relocation-first" if scope == "relocation" else "Career-first" if scope == "career" else "Профиль поиска"
+        link_scope = f"?scope={quote(scope)}" if scope in {"career", "relocation"} else ""
+        reasons = render_filter_reason_counts(
+            info.get("preference_exclusion_reasons"), info.get("scoring_exclusion_reasons"), limit=1,
+        )
+        rows.append(
+            f'<div class="card"><h2>{e(info.get("name") or getattr(search, "name", scope_label))}</h2>'
+            f'<p>{e(scope_label)} · обработано {e(int(info.get("processed", 0)))} · '
+            f'<strong>{e(int(info.get("qualified", 0)))} Good</strong> · {e(int(info.get("stretch", 0)))} Stretch</p>'
+            + (f'<p class="muted">Чаще всего исключались: {e(reasons)}</p>' if reasons else "")
+            + f'<a href="/jobs{link_scope}">Открыть результаты</a></div>'
+        )
+    return '<div class="grid">' + "".join(rows) + "</div>" if rows else ""
+
+
+def diagnostics_content(state: dict) -> str:
+    summary = state.get("summary") if isinstance(state.get("summary"), dict) else {}
+    sources = summary.get("sources") if isinstance(summary.get("sources"), dict) else {}
+    title, note = scan_status_label(state)
+    blocks = [
+        f'<section><h2>{e(title)}</h2><p>{e(note)}</p>'
+        f'<p class="muted">Начато: {e(state.get("started_at") or "—")} · завершено: {e(state.get("finished_at") or "—")}</p></section>'
+    ]
+    for source_id, info in sources.items():
+        if not isinstance(info, dict):
+            continue
+        status = str(info.get("status") or "unknown")
+        issues = info.get("diagnostics") if isinstance(info.get("diagnostics"), list) else []
+        if not issues and info.get("error"):
+            issues = [legacy_diagnostic(info.get("error"))]
+        rendered_issues = []
+        for item in issues:
+            if not isinstance(item, dict):
+                continue
+            code = str(item.get("code") or "SOURCE_PROCESSING_FAILED")
+            message = MESSAGES.get(code, MESSAGES["SOURCE_PROCESSING_FAILED"])
+            scope = " / ".join(str(value) for value in item.get("profiles", []) if value)
+            rendered_issues.append(
+                f'<li>{e(message)} <small>[{e(code)}]{" · " + e(scope) if scope else ""}</small></li>'
+            )
+        reasons = render_filter_reason_counts(
+            info.get("preference_exclusion_reasons"), info.get("scoring_exclusion_reasons"), limit=3,
+        )
+        details = (
+            f'<p>Статус: {e(status)} · найдено {e(int(info.get("found", 0)))} · '
+            f'обработано {e(int(info.get("processed", 0)))} · ошибок обработки {e(int(info.get("processing_errors", 0)))}</p>'
+            + (f'<p>Причины исключения: {e(reasons)}</p>' if reasons else "")
+            + (f'<ul>{"".join(rendered_issues)}</ul>' if rendered_issues else '<p class="muted">Технических ошибок не зафиксировано.</p>')
+        )
+        blocks.append(f'<section><h2>{e(info.get("name") or source_id)}</h2>{details}</section>')
+    if not sources:
+        blocks.append('<section>Диагностика появится после первого поиска.</section>')
+    return "".join(blocks)
+
+
 async def page_content(request: web.Request, user, page: str) -> str:
     profile, searches = await profile_and_searches(user)
     if not profile:
         return '<section class="error">Активный профиль не найден. Создай его через Telegram /start.</section>'
     if page == "dashboard":
         stats = await repo.stats(user.id)
-        scan = await repo.get_state(user.id, "scan_dashboard", "")
-        cards = "".join(f'<div class="card"><h2>{e(k)}</h2><strong>{e(v)}</strong></div>' for k, v in stats.items())
-        return f'<div class="grid">{cards}</div><section><h2>Последний ручной поиск</h2><pre>{e(scan or "Пока не запускался")}</pre><a href="/search">Открыть поиск</a></section>'
+        labels = {"matches": "Всего оценок", "notified": "Требуют внимания", "filtered": "Отфильтровано", "applications": "Пакеты откликов"}
+        cards = "".join(f'<div class="card"><h2>{e(labels.get(k, k))}</h2><strong>{e(v)}</strong></div>' for k, v in stats.items())
+        state = await latest_scan_state(user.id)
+        summary = state.get("summary") if isinstance(state.get("summary"), dict) else {}
+        title, note = scan_status_label(state)
+        scan = (
+            f'<section><div class="row"><div><h2>{e(title)}</h2><p>{e(note)}</p></div>'
+            f'<div><a href="/search">Запустить поиск</a> · <a href="/diagnostics">Диагностика</a></div></div>'
+            f'<p class="muted">Начато: {e(state.get("started_at") or "—")} · завершено: {e(state.get("finished_at") or "—")}</p></section>'
+        )
+        actions = '<section><h2>Ежедневная работа</h2><p><a href="/jobs?scope=career">Career-first вакансии</a> · <a href="/jobs?scope=relocation">Relocation-first вакансии</a> · <a href="/review">Очередь Review</a> · <a href="/applications">Отклики</a></p></section>'
+        return f'<div class="grid">{cards}</div>{scan}{scan_result_cards(summary) if summary else ""}{scan_profile_cards(summary, searches)}{actions}'
     if page == "search":
         rows = []
         for s in searches:
@@ -146,6 +264,8 @@ async def page_content(request: web.Request, user, page: str) -> str:
     if page == "applications":
         apps = await repo.list_applications(user.id, 50)
         return "".join(f'<section><h2>#{a.id} · {e((a.vacancy_snapshot or {}).get("title") or a.job_id)}</h2><p>{e(a.status)} · {e(a.source_id)}</p><a href="/application/{a.id}">Открыть пакет и историю</a></section>' for a in apps) or '<section>Подготовленных пакетов пока нет.</section>'
+    if page == "diagnostics":
+        return diagnostics_content(await latest_scan_state(user.id))
     raise web.HTTPNotFound()
 
 

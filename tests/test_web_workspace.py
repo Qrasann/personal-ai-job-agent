@@ -1,6 +1,7 @@
 """Security and workflow boundaries for the private web workspace."""
 
 import io
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -27,6 +28,59 @@ def test_web_escapes_vacancy_text_and_rejects_unsafe_links():
     assert gui.safe_link("javascript:alert(1)") == ""
     assert gui.safe_link("https://user:password@example.org/job") == ""
     assert gui.safe_link("https://example.org/job") == "https://example.org/job"
+
+
+def test_scan_state_parser_rejects_malformed_or_non_object_values():
+    assert gui.parse_scan_state("not-json") == {}
+    assert gui.parse_scan_state("[]") == {}
+    assert gui.parse_scan_state('{"status":"completed"}') == {"status": "completed"}
+
+
+@pytest.mark.asyncio
+async def test_dashboard_is_compact_and_diagnostics_owns_source_errors(monkeypatch):
+    search = SimpleNamespace(id=4, kind="relocation", name="Relocation")
+    summary = {
+        "processed": 12, "qualified": 2, "stretch": 3, "notified": 1,
+        "searches": {"4": {"name": "Relocation", "processed": 7, "qualified": 1, "stretch": 2,
+                             "preference_exclusion_reasons": {"domestic_onsite": 4}}},
+        "sources": {"jobbank": {"name": "Job Bank", "status": "partial", "found": 9,
+                                   "processed": 7, "processing_errors": 1,
+                                   "diagnostics": [{"code": "NETWORK_CONNECT_ERROR", "profiles": ["Relocation"],
+                                                    "message": "raw transport detail must stay hidden"}]}}
+    }
+    state = {"status": "completed", "started_at": "2026-10-18 08:00 UTC",
+             "finished_at": "2026-10-18 08:02 UTC", "summary": summary}
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2), [search]
+
+    async def fake_stats(_user_id):
+        return {"matches": 20, "notified": 5, "filtered": 11, "applications": 2}
+
+    async def fake_state(_user_id, key, _default):
+        return json.dumps(state) if key == "scan_dashboard" else "{}"
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "stats", fake_stats)
+    monkeypatch.setattr(gui.repo, "get_state", fake_state)
+    request = SimpleNamespace(query={})
+    user = SimpleNamespace(id=1)
+
+    dashboard = await gui.page_content(request, user, "dashboard")
+    assert "Поиск завершён частично" in dashboard
+    assert "Обработано</h2><strong>12" in dashboard
+    assert "Good</h2><strong>2" in dashboard
+    assert "/jobs?scope=relocation" in dashboard
+    assert "/diagnostics" in dashboard
+    assert "NETWORK_CONNECT_ERROR" not in dashboard
+    assert "raw transport detail" not in dashboard
+    assert "<pre>" not in dashboard
+
+    diagnostics = await gui.page_content(request, user, "diagnostics")
+    assert "Job Bank" in diagnostics
+    assert "NETWORK_CONNECT_ERROR" in diagnostics
+    assert "Не удалось установить соединение с источником" in diagnostics
+    assert "raw transport detail" not in diagnostics
 
 
 @pytest.mark.asyncio

@@ -2884,3 +2884,7 @@ Scheduled bot scans, manual Telegram `/scan` and Web GUI search now acquire the 
 ## 2026-10-18 — Web GUI HTTP/PostgreSQL acceptance
 
 A full owner-authenticated HTTP walk through all nine GUI stages passed against isolated PostgreSQL. It persisted a saved match and manually reviewed application, exported the frozen package and returned 404 for another owner's package. Read-only schema comparison showed development and runtime both at version 8. Added a rollout/rollback runbook; no production backup, restore, deployment or data change was performed.
+
+## 2026-10-18 — concise Web scan dashboard and diagnostics
+
+Replaced the raw scan-journal dump on Dashboard with persistent user-facing status, four outcome metrics, Career-first/Relocation-first cards and daily workflow links. Added a separate Diagnostics route for sanitized per-source status, controlled error codes and filter reasons; arbitrary stored exception messages remain hidden. Web unit suite passed 15 tests and the combined owner-authenticated HTTP/PostgreSQL Web suites passed 16 tests. Runtime was not changed.

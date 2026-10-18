@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 concise Web scan results
+
+Working tree adds a compact persistent Dashboard summary and separate Diagnostics page on top of checkpoint `9b7356d`. Dashboard shows scan status, processed/Good/Stretch/new totals, Career-first/Relocation-first results and daily workflow links instead of the raw JSON journal. Diagnostics shows sanitized source status, controlled codes and filter reasons without stored raw exception messages. Web unit suite passed 15 tests; combined owner-authenticated HTTP/PostgreSQL Web suites passed 16. The isolated test database is stopped. Finish static gates and checkpoint this increment, then continue Jobs/Review filtering and cards. Runtime remains unchanged.
+
 ## Safe restart checkpoint — 2026-10-18 Web GUI MVP merged
 
 - GUI code on local branch `work/codex-main-20261018` is at `c7ce239`; this restart note is the following documentation-only checkpoint. PR #50 merged into `feature/v3.5.7-international-market-coverage` as `1131bc4`; both pull-request and push CI runs passed Python checks, Docker build and secret scan.

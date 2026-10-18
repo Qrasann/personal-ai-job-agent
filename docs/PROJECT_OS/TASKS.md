@@ -2042,3 +2042,7 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — Web GUI PostgreSQL acceptance and rollout prep
 
 - Isolated HTTP/PostgreSQL test passed for all nine routes, owner-scoped status writes, export and cross-owner denial. Runtime/development schema versions read-only matched at 8. Added a concrete backup/restore, private smoke and rollback runbook; actual backup and release gates remain pending. Commit the verified test/docs, then retry Draft PR/CI when GitHub connectivity returns.
+
+## 2026-10-18 — daily Web dashboard clarity
+
+- Completed: concise persistent scan status and totals on Dashboard, per-profile Career-first/Relocation-first links, daily workflow shortcuts, and a separate sanitized Diagnostics page. Web unit tests passed 15; combined Web HTTP/PostgreSQL tests passed 16. Next: improve Jobs/Review cards and filters for fast save/skip/manual-application work, then perform integrated MVP stabilization.
