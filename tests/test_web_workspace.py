@@ -1,10 +1,12 @@
 """Security and workflow boundaries for the private web workspace."""
 
+import io
 from types import SimpleNamespace
 
 import pytest
-from aiohttp import CookieJar, web
+from aiohttp import CookieJar, FormData, web
 from aiohttp.test_utils import TestClient, TestServer
+from aiohttp.web_request import FileField
 
 from app import web as gui
 
@@ -36,10 +38,15 @@ async def test_web_login_and_csrf_gate(monkeypatch):
         return SimpleNamespace(id=1)
 
     async def fake_profile(_user):
-        return SimpleNamespace(id=7), []
+        return SimpleNamespace(id=7, target_role="SRE"), []
+
+    async def empty(_profile_id):
+        return []
 
     monkeypatch.setattr(gui, "owner", fake_owner)
     monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "list_resumes", empty)
+    monkeypatch.setattr(gui.repo, "list_facts", empty)
     async with TestServer(app) as server, TestClient(server, cookie_jar=CookieJar(unsafe=True)) as client:
         anonymous = await client.get("/jobs", allow_redirects=False)
         assert anonymous.status == 303
@@ -49,6 +56,12 @@ async def test_web_login_and_csrf_gate(monkeypatch):
         assert "HttpOnly" in signed_in.headers["Set-Cookie"]
         forbidden = await client.post("/action/profile", data={"csrf": "wrong", "role": "SRE"}, allow_redirects=False)
         assert forbidden.status == 403
+        upload = FormData()
+        upload.add_field("csrf", app["csrf"])
+        upload.add_field("document", b"Skills\nLinux", filename="cv.txt", content_type="text/plain")
+        preview_redirect = await client.post("/action/cv_upload", data=upload, allow_redirects=False)
+        assert preview_redirect.status == 303
+        assert preview_redirect.headers["Location"].startswith("/cv/preview/")
 
 
 @pytest.mark.asyncio
@@ -211,3 +224,102 @@ async def test_candidate_fact_form_defaults_to_unknown_experience(monkeypatch):
     monkeypatch.setattr(gui.repo, "list_facts", no_facts)
     body = await gui.page_content(SimpleNamespace(query={}), SimpleNamespace(id=1), "profiles")
     assert body.index('value="unknown"') < body.index('value="commercial"')
+
+
+@pytest.mark.asyncio
+async def test_cv_upload_requires_review_then_saves_without_unapproved_facts(monkeypatch):
+    saved = []
+
+    async def fake_owner(_request):
+        return SimpleNamespace(id=8)
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=12, target_role="SRE"), []
+
+    async def empty(_profile_id):
+        return []
+
+    async def fake_save(*args, **kwargs):
+        saved.append((args, kwargs))
+
+    monkeypatch.setattr(gui, "owner", fake_owner)
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "list_resumes", empty)
+    monkeypatch.setattr(gui.repo, "list_facts", empty)
+    monkeypatch.setattr(gui.repo, "add_imported_resume_with_facts", fake_save)
+    app = {"csrf": "csrf", "cv_pending": {}}
+
+    class Request:
+        match_info = {"name": "cv_upload"}
+
+        def __init__(self, data):
+            self.app = app
+            self.data = data
+
+        async def post(self):
+            return self.data
+
+    file = FileField("document", "cv.txt", io.BytesIO(b"Skills\nLinux, Docker"), "text/plain", {})
+    with pytest.raises(web.HTTPSeeOther) as redirect:
+        await gui.action(Request({"csrf": "csrf", "document": file}))
+    assert saved == []
+    token = next(iter(app["cv_pending"]))
+    assert f"/cv/preview/{token}" in redirect.value.location
+    preview = await gui.cv_preview(SimpleNamespace(app=app, match_info={"token": token}))
+    assert b"Linux, Docker" in preview.body
+    request = Request({"csrf": "csrf", "token": token, "mode": "resume"})
+    request.match_info = {"name": "cv_confirm"}
+    with pytest.raises(web.HTTPSeeOther):
+        await gui.action(request)
+    assert saved[0][1]["replacements"] == []
+    assert saved[0][0][6] == []
+    assert token not in app["cv_pending"]
+
+
+@pytest.mark.asyncio
+async def test_cv_preview_is_owner_scoped(monkeypatch):
+    async def fake_owner(_request):
+        return SimpleNamespace(id=2)
+
+    monkeypatch.setattr(gui, "owner", fake_owner)
+    app = {"cv_pending": {"token": {"user_id": 1, "created_at": gui.time.monotonic()}}}
+    with pytest.raises(web.HTTPNotFound):
+        await gui.cv_preview(SimpleNamespace(app=app, match_info={"token": "token"}))
+
+
+@pytest.mark.asyncio
+async def test_cv_fact_confirmation_keeps_unknown_experience_and_is_single_use(monkeypatch):
+    saved = []
+
+    async def fake_owner(_request):
+        return SimpleNamespace(id=8)
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=12), []
+
+    async def fake_save(*args, **kwargs):
+        saved.append((args, kwargs))
+
+    monkeypatch.setattr(gui, "owner", fake_owner)
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "add_imported_resume_with_facts", fake_save)
+    proposal = gui.propose_facts("Skills\nLinux")[0]
+    pending = {"user_id": 8, "profile_id": 12, "created_at": gui.time.monotonic(), "proposals": (proposal,), "overlaps": (), "language": "en", "role": "SRE", "content": "Skills\nLinux", "fingerprint": "hash"}
+    app = {"csrf": "csrf", "cv_pending": {"token": pending}}
+
+    class Request:
+        match_info = {"name": "cv_confirm"}
+
+        async def post(self):
+            return {"csrf": "csrf", "token": "token", "mode": "facts", "choice_0": "add"}
+
+        def __init__(self):
+            self.app = app
+
+    request = Request()
+    with pytest.raises(web.HTTPSeeOther):
+        await gui.action(request)
+    assert saved[0][0][6][0]["value"] == "Linux"
+    assert "experience_type" not in saved[0][0][6][0]
+    with pytest.raises(web.HTTPNotFound):
+        await gui.action(request)

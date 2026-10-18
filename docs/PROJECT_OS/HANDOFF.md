@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 reviewed browser CV import
+
+Local checkpoints `56a71d7`, `ba76c4f` and `fe2259d` cover the nine-stage private Web GUI, below-threshold Relocation-first inspection, manual Candidate Facts and frozen application review. Working change adds PDF/DOCX/TXT upload, a 15-minute owner-scoped bounded preview, per-fact ADD/KEEP/UPDATE selection and explicit CV-only or CV+facts commit through the existing atomic repository path. Uploaded bytes are not retained; proposed facts remain unknown experience. Full isolated PostgreSQL suite passed 1314/1314; updated Docker image built; compileall and secret-scan passed. Final diff check and local checkpoint remain. Runtime was not modified. Next: cross-process scan coordination, real vacancy sampling, isolated browser/PostgreSQL acceptance, then release gates.
+
 ## Current handoff — 2026-10-18 profile facts and application review
 
 Previous local checkpoints `56a71d7` and `ba76c4f` built a private nine-stage Web GUI and below-threshold Relocation-first inspection. This working increment adds owner-entered Candidate Facts with required evidence and unknown experience as the form default, plus an owner-scoped Applications detail page showing the frozen package and status history before manual updates/export. Targeted application/Web tests passed 14/14; compileall and secret-scan passed. Final diff check and checkpoint remain. No external application or runtime change. Browser CV PDF/DOCX import, scan coordination, real vacancy sampling and release acceptance remain next.

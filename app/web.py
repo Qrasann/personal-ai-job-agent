@@ -7,12 +7,17 @@ import html
 import logging
 import os
 import secrets
+import time
+from datetime import date
 from urllib.parse import quote, urlsplit
 
 from aiohttp import web
+from aiohttp.web_request import FileField
 from aiogram import Bot
 
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES
+from app.candidates.import_review import plan_fact_import
+from app.candidates.importer import MAX_DOCUMENT_BYTES, ResumeImportError, extract_resume_text, guess_language, propose_facts, resume_fingerprint, review_proposals
 from app.config import settings
 from app.database import repository as repo
 from app.geo.countries import normalize_country
@@ -26,6 +31,7 @@ log = logging.getLogger(__name__)
 PAGES = ("dashboard", "search", "jobs", "review", "profiles", "sources", "relocation", "cv", "applications")
 LABELS = ("Dashboard", "Search", "Jobs", "Review", "Profiles", "Sources", "Relocation", "CV", "Applications")
 SCAN_SOURCES = IMPLEMENTED - {"telegram", "jobs_ge"}
+CV_PREVIEW_TTL = 15 * 60
 
 
 def e(value: object) -> str:
@@ -134,8 +140,9 @@ async def page_content(request: web.Request, user, page: str) -> str:
         return toggle + ("".join(blocks) or '<section>Профили поиска отсутствуют.</section>')
     if page == "cv":
         resumes = await repo.list_resumes(profile.id)
-        add = '<section><h2>Добавить текст CV</h2><p>Текст сохраняется в профиль; факты из него не подтверждаются автоматически. Для PDF/DOCX и проверки фактов используй Telegram /importcv.</p>' + form("/action/cv", "Сохранить CV", '<label>Название <input name="name" type="text" maxlength="128" required></label><label>Роль <input name="role" type="text" maxlength="256" required></label><label>Язык <select name="language"><option value="en">English</option><option value="ru">Русский</option></select></label><label>Текст CV <textarea name="content" required></textarea></label>') + '</section>'
-        return add + ("".join(f'<section><h2>#{r.id} · {e(r.name)}</h2><p>{e(r.role)} · {e(r.language)} · {e(r.source)}</p><details><summary>Текст резюме</summary><pre>{e(r.content)}</pre></details></section>' for r in resumes) or '<section>Резюме пока нет.</section>')
+        upload = '<section><h2>Импорт PDF, DOCX или TXT</h2><p>До 8 МБ. Сначала покажу извлечённый текст и предложенные факты; сохранение требует отдельного подтверждения.</p><form method="post" action="/action/cv_upload" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{csrf}"><input type="file" name="document" accept=".pdf,.docx,.txt,.text" required><button>Показать предпросмотр</button></form></section>'
+        add = '<section><h2>Добавить текст CV</h2><p>Текст сохраняется в профиль без автоматического подтверждения фактов.</p>' + form("/action/cv", "Сохранить CV", '<label>Название <input name="name" type="text" maxlength="128" required></label><label>Роль <input name="role" type="text" maxlength="256" required></label><label>Язык <select name="language"><option value="en">English</option><option value="ru">Русский</option></select></label><label>Текст CV <textarea name="content" required></textarea></label>') + '</section>'
+        return upload + add + ("".join(f'<section><h2>#{r.id} · {e(r.name)}</h2><p>{e(r.role)} · {e(r.language)} · {e(r.source)}</p><details><summary>Текст резюме</summary><pre>{e(r.content)}</pre></details></section>' for r in resumes) or '<section>Резюме пока нет.</section>')
     if page == "applications":
         apps = await repo.list_applications(user.id, 50)
         return "".join(f'<section><h2>#{a.id} · {e((a.vacancy_snapshot or {}).get("title") or a.job_id)}</h2><p>{e(a.status)} · {e(a.source_id)}</p><a href="/application/{a.id}">Открыть пакет и историю</a></section>' for a in apps) or '<section>Подготовленных пакетов пока нет.</section>'
@@ -153,6 +160,47 @@ async def run_scan(app: web.Application, user_id: int) -> None:
         log.warning("web scan failed (%s)", type(exc).__name__)
         app["scan_state"][user_id] = f"ошибка: {type(exc).__name__}"
         await _save_scan_dashboard(user_id, status="failed", stage=f"Web GUI: {type(exc).__name__}")
+
+
+def pending_cv(app: web.Application, token: str, user_id: int) -> dict | None:
+    now = time.monotonic()
+    for key, value in list(app["cv_pending"].items()):
+        if now - value["created_at"] > CV_PREVIEW_TTL:
+            app["cv_pending"].pop(key, None)
+    pending = app["cv_pending"].get(token)
+    return pending if pending and pending["user_id"] == user_id else None
+
+
+def store_pending_cv(app: web.Application, user_id: int, pending: dict) -> str:
+    pending_cv(app, "", user_id)
+    rows = app["cv_pending"]
+    owned = [(key, item) for key, item in rows.items() if item["user_id"] == user_id]
+    if len(owned) >= 4:
+        rows.pop(min(owned, key=lambda pair: pair[1]["created_at"])[0], None)
+    if len(rows) >= 16:
+        rows.pop(min(rows, key=lambda key: rows[key]["created_at"]), None)
+    token = secrets.token_urlsafe(18)
+    rows[token] = pending
+    return token
+
+
+async def cv_preview(request: web.Request) -> web.Response:
+    user = await owner(request)
+    pending = pending_cv(request.app, request.match_info["token"], user.id)
+    if not pending:
+        raise web.HTTPNotFound(text="CV preview expired")
+    token = request.match_info["token"]
+    overlap = {item.proposal: item for item in pending["overlaps"]}
+    rows = []
+    for index, proposal in enumerate(pending["proposals"]):
+        conflict = overlap.get(proposal)
+        options = ('<option value="keep">Оставить прежний факт</option><option value="add">Добавить отдельно</option><option value="update">Заменить прежний факт</option>' if conflict else '<option value="add">Добавить</option><option value="keep">Не добавлять</option>')
+        existing = f'<br><small>Пересечение с #{conflict.existing_id}: {e(conflict.existing_value)}</small>' if conflict else ""
+        rows.append(f'<label>#{index + 1} · {e(proposal.category)} · {e(proposal.value)}{existing}<br><select name="choice_{index}">{options}</select></label>')
+    text = pending["content"]
+    preview = e(text[:12_000]) + ("\n… Предпросмотр сокращён." if len(text) > 12_000 else "")
+    body = f'<section><h2>Предпросмотр резюме</h2><p>Язык: {e(pending["language"])} · точных повторов фактов пропущено: {pending["duplicates_count"]}. Новые факты сохраняются с типом unknown; коммерческий опыт не выводится из файла автоматически.</p><details><summary>Извлечённый текст</summary><pre>{preview}</pre></details></section><section><h2>Выбор фактов</h2><form method="post" action="/action/cv_confirm"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="token" value="{e(token)}">{"".join(rows) or "<p>Новых предложенных фактов нет.</p>"}<button name="mode" value="resume">Сохранить только CV</button><button name="mode" value="facts">Сохранить CV и выбранные факты</button></form></section>'
+    return layout("cv", body.replace("{csrf}", e(request.app["csrf"])))
 
 
 async def dispatch(request: web.Request) -> web.StreamResponse:
@@ -210,6 +258,48 @@ async def action(request: web.Request) -> web.StreamResponse:
         if not cv_name or not role or not content or len(cv_name) > 128 or len(role) > 256 or len(content) > 100_000 or language not in {"en", "ru"}:
             raise web.HTTPBadRequest(text="Invalid CV")
         await repo.add_resume(profile.id, cv_name, language, role, content, source="manual")
+        target = "/cv"
+    elif name == "cv_upload":
+        document = data.get("document")
+        if not isinstance(document, FileField):
+            raise web.HTTPBadRequest(text="CV file required")
+        payload = document.file.read(MAX_DOCUMENT_BYTES + 1)
+        try:
+            content = extract_resume_text(document.filename or "", payload)
+        except ResumeImportError as exc:
+            target, notice = "/cv", str(exc)
+        else:
+            fingerprint = resume_fingerprint(content)
+            if any(item.external_id == fingerprint for item in await repo.list_resumes(profile.id)):
+                target, notice = "/cv", "Такое резюме уже импортировано"
+            else:
+                review = review_proposals(propose_facts(content), await repo.list_facts(profile.id))
+                pending = {"user_id": user.id, "profile_id": profile.id, "content": content, "fingerprint": fingerprint, "language": guess_language(content), "role": profile.target_role or "", "proposals": review.new, "overlaps": review.overlaps, "duplicates_count": len(review.duplicates), "created_at": time.monotonic()}
+                token = store_pending_cv(request.app, user.id, pending)
+                target, notice = f"/cv/preview/{token}", "Проверь текст и факты перед сохранением"
+    elif name == "cv_confirm":
+        token = str(data.get("token", ""))
+        pending = pending_cv(request.app, token, user.id)
+        if not pending or pending["profile_id"] != profile.id:
+            raise web.HTTPNotFound(text="CV preview expired")
+        mode = str(data.get("mode", ""))
+        if mode not in {"resume", "facts"}:
+            raise web.HTTPBadRequest(text="Invalid CV choice")
+        try:
+            choices = {int(key[7:]): str(value) for key, value in data.items() if key.startswith("choice_")}
+            plan = plan_fact_import(pending["proposals"], pending["overlaps"], choices)
+        except (ValueError, TypeError):
+            raise web.HTTPBadRequest(text="Invalid fact choices") from None
+        if request.app["cv_pending"].pop(token, None) is not pending:
+            raise web.HTTPConflict(text="CV preview already used")
+        facts = [{"category": p.category, "value": p.value, "confidence": p.confidence, "section": p.section} for p in plan.additions] if mode == "facts" else []
+        replacements = [{"existing_id": o.existing_id, "expected_value": o.existing_value, "category": o.proposal.category, "value": o.proposal.value, "confidence": o.proposal.confidence, "section": o.proposal.section} for o in plan.replacements] if mode == "facts" else []
+        try:
+            await repo.add_imported_resume_with_facts(profile.id, f"Imported resume {date.today():%Y-%m-%d}", pending["language"], pending["role"], pending["content"], pending["fingerprint"], facts, replacements=replacements)
+        except repo.ResumeImportExists:
+            notice = "Такое резюме уже импортировано"
+        else:
+            notice = "CV сохранено" + (" с выбранными фактами типа unknown" if mode == "facts" else " без новых фактов")
         target = "/cv"
     elif name in {"sources", "relocation"}:
         selected = selected_search(searches, str(data.get("search", "")))
@@ -347,17 +437,19 @@ async def login(request: web.Request) -> web.Response:
 def create_app(bot: Bot, token: str) -> web.Application:
     if len(token) < 24 or not settings.telegram_admin_chat_id.strip():
         raise ValueError("A long WEB_GUI_TOKEN and TELEGRAM_ADMIN_CHAT_ID are required")
-    app = web.Application(middlewares=[auth], client_max_size=512 * 1024)
+    app = web.Application(middlewares=[auth], client_max_size=9 * 1024 * 1024)
     app["bot"] = bot
     app["token"] = token
     app["session"] = secrets.token_urlsafe(32)
     app["csrf"] = secrets.token_urlsafe(32)
     app["scan_state"] = {}
     app["scan_tasks"] = set()
+    app["cv_pending"] = {}
     app.router.add_route("*", "/login", login)
     app.router.add_get("/", dispatch)
     app.router.add_get("/{page}", dispatch)
     app.router.add_get("/job/{id:\\d+}", job_detail)
+    app.router.add_get("/cv/preview/{token}", cv_preview)
     app.router.add_post("/action/{name}", action)
     app.router.add_get("/application/{id:\\d+}", application_detail)
     app.router.add_get("/application/{id:\\d+}/export", export_application)

@@ -2030,3 +2030,6 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — browser profile facts and package review
 
 - Add owner-scoped manual Candidate Fact entry with explicit evidence and unknown experience default; show frozen application package/history with manual status/export. Targeted Web/application tests passed 14/14. Finish diff check and local checkpoint. PDF/DOCX import with reviewed facts remains the next CV step.
+## 2026-10-18 — reviewed browser CV upload
+
+- Reuse the existing safe PDF/DOCX/TXT parser, fact proposal/overlap review and atomic CV+facts persistence in Web GUI. Explicit preview and owner-scoped confirmation are implemented; full isolated PostgreSQL suite passed 1314/1314 and the updated Docker image built. Complete diff check and local checkpoint. Follow with cross-process scan coordination, isolated browser/PostgreSQL acceptance and live source value measurement.

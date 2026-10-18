@@ -2872,3 +2872,6 @@ Read-only runtime aggregates showed zero qualified Relocation-first matches whil
 ## 2026-10-18 — browser Candidate Facts and application package
 
 Profiles now accepts only owner-entered factual statements with evidence and explicit experience type, defaulting to unknown rather than commercial. Applications shows the saved frozen package and status history before any manual status change; export remains available. Owner-scope and missing-evidence regressions were added. No external send or automated claim promotion.
+## 2026-10-18 — reviewed PDF/DOCX/TXT import in Web GUI
+
+Web CV upload reuses the Telegram-backed extraction, proposal review and atomic repository save. Preview is owner-scoped, bounded in memory and expires; file bytes are discarded after extraction. The owner explicitly saves CV-only or selected facts, with overlaps defaulting to KEEP and all imported experience unknown. Full isolated PostgreSQL suite passed 1314/1314, including HTTP multipart and single-use confirmation coverage; updated Docker image built. No runtime or external service change.
