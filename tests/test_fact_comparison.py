@@ -547,10 +547,14 @@ def test_vacancy_details_keyboard_has_compare_button():
 
     keyboard = vacancy_details_keyboard(24)
 
-    button = keyboard.inline_keyboard[0][0]
+    buttons = [button for row in keyboard.inline_keyboard for button in row]
+    compare = next(button for button in buttons if button.callback_data == "compare:24")
 
-    assert button.text == "🧩 Сравнить с профилем"
-    assert button.callback_data == "compare:24"
+    assert compare.text == "🧩 Сравнить с профилем"
+    assert {button.callback_data for button in buttons if button.callback_data} >= {
+        "jobtab:req:24", "jobtab:desc:24", "jobtab:terms:24",
+        "jobtab:competition:24", "jobtab:source:24", "menu:main",
+    }
 
 
 def test_requirement_importance_separates_sections():

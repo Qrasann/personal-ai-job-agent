@@ -1,5 +1,17 @@
 # Tasks
 
+## 2026-10-19 — Telegram UX & Vacancy Intelligence
+
+- [x] Replace the default `/scanstatus` source dump with one compact Good/Stretch/new/source-health summary; retain sanitized per-source/profile diagnostics behind an inline button and edit the same message.
+- [x] Make `/review` a single decision card with title/employer, location/mode/hiring geography, salary/period, experience, paid-status signal, freshness, Match reason, conservative foreign-hire warning and confirmed-applicant-count state. Keep back/next/save/skip and add Main menu.
+- [x] Make `/job` open with a short summary and safe owner-scoped tabs for Requirements, Description, Hiring terms, Competition and Source; section callbacks edit the existing message and reject malformed payloads.
+- [x] Accept applicant-count display only from persisted `applicant_count_v1` evidence with `kind=applications`, non-negative integer value, source and observation date. Never relabel views as applications; otherwise show `Нет открытых данных`.
+- [x] Reconfirm the dev `DevOps Volunteer` fit-skip/cap regression and make an explicitly volunteer/unpaid review card disclose non-payment. The owner's 88/100 running-bot observation is pre-fix runtime evidence; production was not rescored or changed.
+- [ ] **P1:** add verified adapter-specific applicant-count capture where a permitted source truly exposes it, then optional secondary ordering behind fit/freshness; do not alter Match Score or make count primary.
+- [ ] Add the persistent ReplyKeyboardMarkup control layer, richer matched/missing-skill summary and isolated visual Telegram before/after acceptance. Preserve every ordinary command.
+- [ ] Extend employer/legal evidence with official dated references for candidate citizenship/residence/work-authorization decisions; no automated legal conclusion or candidate-data transfer.
+- [ ] Resume the authorized read-only pilot for exactly `@devops_jobs_feed`, `@itjobsgeorgia` and `@vgrecruitingit` as soon as local API credentials and interactive owner sign-in are present; do not join or read private chats.
+
 ## 2026-10-18 — Search/Relocation-first owner reprioritization
 
 - [x] Preserve DEC-001–015 and record that the new P0/P1/P2 list changes execution order rather than approved requirements.

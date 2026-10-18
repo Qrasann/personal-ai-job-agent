@@ -320,7 +320,12 @@ def _relocation_evidence_lines(evidence: dict) -> list[str]:
             detail = "фрагмент для проверки: “" + html.escape(excerpt[:100]) + "”"
         if key in {"citizenship_or_residence_restriction", "visa_sponsorship", "relocation_assistance", "existing_work_authorization_required"} and excerpt:
             detail += " — “" + html.escape(excerpt[:100]) + "”"
-        source_id = html.escape(str(item.get("source_id") or "unknown")[:40])
+        source_id_text = str(item.get("source_id") or "unknown")[:40]
+        source_url = _safe_http_url(item.get("source_url"))
+        source_id = (
+            f'<a href="{html.escape(source_url, quote=True)}">{html.escape(source_id_text)}</a>'
+            if source_url else html.escape(source_id_text)
+        )
         item_date = html.escape(str(item.get("captured_at") or captured)[:25])
         confidence = html.escape(str(item.get("confidence") or "unknown")[:24])
         lines.append(
@@ -378,39 +383,158 @@ def render_queue_card(
     )
     work_mode = repair_mojibake(str(getattr(job, "work_mode", None) or "не указан"))
 
+    description = clean_html_text(str(getattr(job, "description", "") or ""))
+    experience = extract_experience(description) or "не указан"
+    remote_scope = clean_html_text(str(getattr(job, "remote_scope", "") or ""))
+    published = _published(str(getattr(job, "published_at", "") or "")) or "не указана"
+    title_and_description = f"{title}\n{description}".casefold()
+    unpaid = any(token in title_and_description for token in (
+        "volunteer", "voluntary", "unpaid", "волонтёр", "волонтер", "неоплачиваем",
+    ))
+    paid = "нет — явно волонтёрская/неоплачиваемая" if unpaid else (
+        "зарплата раскрыта" if salary != "не указана" else "не подтверждено источником"
+    )
+    applicants = getattr(job, "applicant_count", None)
+    applicant_text = (
+        str(applicants)
+        if isinstance(applicants, int) and not isinstance(applicants, bool) and applicants >= 0
+        else "Нет открытых данных"
+    )
+
     lines = [
-        f"<b>{html.escape(header)}</b>",
-        f"<b>{html.escape(lane)}</b>",
-        "",
-        f"<b>{html.escape(title)}</b>",
-        html.escape(company or "Компания не указана"),
-        "",
-        f"💰 {html.escape(salary)}",
-        f"📍 {html.escape(location)}",
-        f"🏠 {html.escape(work_mode)}",
-        "",
+        f"<b>{html.escape(header)} · {html.escape(lane)} · {position} из {total}</b>",
+        f"<b>{html.escape(title)}</b> — {html.escape(company or 'Компания не указана')}",
+        f"📍 {html.escape(location)} · 🏠 {html.escape(work_mode)}",
+        f"🌍 Найм: {html.escape(remote_scope or 'география найма не подтверждена')}",
+        f"💰 {html.escape(salary)} · Оплачиваемость: {html.escape(paid)}",
+        f"🕒 Опыт: {html.escape(experience)} · 📅 {html.escape(published)}",
+        f"👥 Отклики: {html.escape(applicant_text)}",
         f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>",
     ]
 
-    components = []
-    for label, attr in (
-        ("Tech", "technical_score"),
-        ("Geo", "geography_score"),
-        ("Salary", "salary_score"),
-        ("Reloc", "relocation_score"),
-    ):
-        value = getattr(match, attr, None)
-        if value is not None:
-            components.append(f"{label} {value}")
-    if components:
-        lines.append("📊 " + " · ".join(components))
-
-    reason = _clip(repair_mojibake(str(getattr(match, "reason", "") or "")), 280)
+    reason = _concise_match_reason(match)
     if reason:
         lines.append(f"💡 {html.escape(reason)}")
-
-    lines.append(f"📌 {position} из {total}")
+    lines.append("🛂 Иностранный найм: только по подтверждённым условиям работодателя; неизвестное не является разрешением.")
     return "\n".join(lines)
+
+
+def _job_card_values(payload: dict) -> dict:
+    job = payload["job"]
+    details = payload.get("details") or {}
+    description = clean_html_text(str(details.get("description") or job.description or ""))
+    return {
+        "job": job,
+        "match": payload["match"],
+        "details": details,
+        "description": description,
+        "title": _clip(repair_mojibake(str(details.get("title") or job.title or "")), 140),
+        "company": _clip(repair_mojibake(str(details.get("company") or job.company or "")), 120),
+        "salary": _salary(job, details, str(payload.get("fallback_salary_text") or "")),
+        "experience": _experience(job, details),
+        "location": _clip(_location(job, details), 160),
+        "work_mode": _clip(_work_mode(job, details), 140),
+        "remote_scope": _clip(_remote_scope(job, details), 220),
+        "published": _published(str(details.get("published_at") or job.published_at or "")),
+        "source": str(payload.get("source") or "unknown").upper(),
+    }
+
+
+def _applicant_count_lines(payload: dict, details: dict) -> list[str]:
+    value = details.get("applicant_count")
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        return ["👥 Отклики: <b>Нет открытых данных</b>", "Просмотры и другие счётчики не считаются откликами."]
+    source = str(details.get("applicant_count_source") or payload.get("source") or "источник")
+    safe_source_url = _safe_http_url(source)
+    source_display = (
+        f'<a href="{html.escape(safe_source_url, quote=True)}">официальная страница</a>'
+        if safe_source_url else html.escape(_clip(source, 120))
+    )
+    observed = str(details.get("applicant_count_observed_at") or payload.get("source_observed_at") or "")
+    suffix = f" · проверено {_published(observed)}" if observed else ""
+    return [f"👥 Подтверждённых откликов: <b>{value}</b>", f"Источник: {source_display}{html.escape(suffix)}"]
+
+
+def _concise_match_reason(match) -> str:
+    raw = repair_mojibake(str(getattr(match, "reason", "") or ""))
+    technical_prefixes = ("режим ", "техника ", "география ", "зарплата ", "релокация ")
+    useful = [
+        part.strip() for part in raw.split(";")
+        if part.strip() and not part.strip().casefold().startswith(technical_prefixes)
+    ]
+    return _clip("; ".join(useful[:2]), 240)
+
+
+def render_job_summary(payload: dict) -> str:
+    value = _job_card_values(payload)
+    match = value["match"]
+    reason = _concise_match_reason(match)
+    lines = [
+        f"🔥 <b>#{value['job'].id} · {html.escape(value['title'])}</b>",
+        html.escape(value["company"] or "Компания не указана"),
+        f"📍 {html.escape(value['location'])} · 🏠 {html.escape(value['work_mode'])}",
+        f"🌍 Найм: {html.escape(value['remote_scope'] or 'география найма не указана')}",
+        f"💰 {html.escape(value['salary'])}",
+        f"🕒 Опыт: {html.escape(value['experience'])}",
+        f"📅 {html.escape(value['published'] or 'дата не указана')}",
+        f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>",
+    ]
+    if reason:
+        lines.append("💡 " + html.escape(reason))
+    lines.extend(_applicant_count_lines(payload, value["details"])[:1])
+    lines.append("Выбери раздел ниже — технические детали не занимают основной экран.")
+    return "\n".join(lines)
+
+
+def render_job_section(payload: dict, section: str) -> str:
+    value = _job_card_values(payload)
+    job, match, details = value["job"], value["match"], value["details"]
+    heading = f"<b>#{job.id} · {html.escape(value['title'])}</b>"
+    if section == "req":
+        lines = [heading, "📌 <b>Требования</b>", f"Опыт: {html.escape(value['experience'])}"]
+        applicant_location = clean_html_text(str(details.get("applicant_location") or ""))
+        lines.append("География кандидата: " + html.escape(applicant_location or value["remote_scope"] or "не указана"))
+        lines.append("Совпадающие и недостающие навыки: кнопка «Сравнить с профилем» на краткой карточке.")
+        return "\n".join(lines)
+    if section == "desc":
+        description = _escape_with_utf16_limit(value["description"], 3200)
+        return "\n".join([heading, "📝 <b>Описание</b>", description or "Описание не предоставлено источником."])
+    if section == "terms":
+        lines = [
+            heading, "💼 <b>Условия найма</b>",
+            f"💰 {html.escape(value['salary'])}",
+            f"📍 {html.escape(value['location'])} · 🏠 {html.escape(value['work_mode'])}",
+            f"🌍 Remote scope: {html.escape(value['remote_scope'] or 'не подтверждён')}",
+        ]
+        lines.extend(_mobility_evidence_lines(job, value["description"]))
+        lines.extend(_relocation_evidence_lines(payload.get("relocation_evidence") or {}))
+        lines.append("Remote worldwide сам по себе не подтверждает право работать из любой страны.")
+        return "\n".join(lines)
+    if section == "competition":
+        lines = [heading, "👥 <b>Конкуренция</b>", *_applicant_count_lines(payload, details)]
+        competition = (getattr(match, "recommendation_scores", None) or {}).get("competition") or {}
+        if competition.get("score") is not None:
+            lines.append(f"Мягкая оценка Job Agent: {competition['score']}/100")
+        evidence = str(competition.get("evidence") or "")
+        if evidence:
+            lines.append("Основание: " + html.escape(_clip(evidence, 300)))
+        return "\n".join(lines)
+    if section == "source":
+        lines = [heading, "🌐 <b>Источник</b>", f"Провайдер: {html.escape(value['source'])}"]
+        source_job_id = str(payload.get("source_job_id") or "").strip()
+        if source_job_id:
+            lines.append("ID у источника: " + html.escape(_clip(source_job_id, 100)))
+        observed = str(payload.get("source_observed_at") or "")
+        if observed:
+            lines.append("Проверено: " + html.escape(_published(observed)))
+        url = _safe_http_url(payload.get("url"))
+        if url:
+            lines.append(f'<a href="{html.escape(url, quote=True)}">Открыть оригинал вакансии</a>')
+        warning = str(payload.get("warning") or "")
+        if warning:
+            lines.append("⚠️ " + html.escape(_clip(warning, 250)))
+        return "\n".join(lines)
+    raise ValueError("Unsupported vacancy section")
 
 def render_jobs_list(
     rows: list[tuple[object, object]],
