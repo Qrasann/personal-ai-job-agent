@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 HH real-yield stabilization
+
+PR #51 already contains the connected Web MVP; working code now also fixes the concrete real-source sample where HH returned teacher/sales titles for `cleaner`. Both HH API and web fallback require a meaningful query token in title, excluding generic role words. Targeted HH suite passed 19; full isolated PostgreSQL suite passed 1327; test DB is stopped. Commit/push code/tests/docs and wait for exact-head CI, then merge to the feature branch. Existing runtime data and services remain unchanged; refreshed yield requires gated deployment and rediscovery.
+
 ## Current handoff — 2026-10-18 real search active, Web PR #51
 
 Draft PR #51 targets the feature branch at code/docs checkpoint `c83ded2`; CI is running. Read-only runtime logs and aggregate state confirm the existing Telegram scheduler completed a real 09:12:07–09:15:56 UTC pass with 11 successful source aggregates and 271 processed vacancies. Career-first: 52 Good, 26 Stretch, 144 scoring-filtered. Relocation-first: 0 Good/Stretch, 49 scoring-filtered and 50 preference exclusions. No new notification was emitted. This confirms active real search but not useful Relocation-first yield. Commit/push this evidence, require exact-head CI, then sample a few current links and continue gated localhost Web rollout. Runtime and production DB were not changed by development actions.

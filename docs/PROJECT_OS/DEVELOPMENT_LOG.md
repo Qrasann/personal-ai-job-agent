@@ -2904,3 +2904,7 @@ The full isolated PostgreSQL suite passed 1325 tests after installing the Git ex
 ## 2026-10-18 — fresh existing-runtime search evidence
 
 A read-only query of the persisted scheduled dashboard confirmed a real 09:12–09:15 UTC pass: 11 source aggregates succeeded; 271 vacancies were processed, with Career-first at 52 Good/26 Stretch/144 filtered and Relocation-first at 0 Good/0 Stretch/49 filtered plus 50 preference exclusions. No new notification was emitted. No runtime command, deployment or database write was performed by this development session.
+
+## 2026-10-18 — HH broad-query noise guard
+
+Real Relocation-first samples showed HH returning an English teacher and sales manager for the `cleaner` web-search query. HH API and fallback results now require title overlap with a meaningful query token after removing generic role words. This retains exact/specific IT and non-IT terms while rejecting broad recommendations. Targeted HH suite passed 19; full isolated PostgreSQL suite passed 1327. Runtime was not changed.

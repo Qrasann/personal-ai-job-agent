@@ -2062,3 +2062,7 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — fresh real search before Web deployment
 
 - Completed read-only acceptance of the existing runtime scheduled pass: 11 successful source aggregates, Career-first 52 Good/26 Stretch, Relocation-first 0 Good/Stretch with 49 scoring and 50 preference exclusions. Next: manually sample a few current links and diagnose relocation yield while keeping unknown evidence and thresholds unchanged; merge PR #51 after exact-head CI before any gated Web rollout.
+
+## 2026-10-18 — HH non-IT query relevance
+
+- Completed: reject HH API/web fallback results whose titles share no meaningful token with the active role query. Regressions cover the observed `cleaner` noise in both transports; HH suite 19 passed and full PostgreSQL suite 1327 passed. Push the exact checkpoint to PR #51 and require green CI. Re-measure only after gated deployment/rediscovery; do not rewrite existing production matches.
