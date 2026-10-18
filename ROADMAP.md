@@ -17,9 +17,9 @@ The complete approved decisions are recorded in `docs/PROJECT_OS/DECISIONS.md`; 
 
 Telegram Folder Watcher, international source coverage, Interview Agent and remaining roadmap work continue in this single canonical plan. No runtime, production database or Docker volume change is authorized by this roadmap update.
 
-## Unified execution priorities — audited 2026-10-17
+## Prior execution priorities — audited 2026-10-17 (historical queue)
 
-Every new user request continues this single Personal AI Job Agent product. Classify the request as merge / extend / conflict / new against existing code and milestones. Preserve past decisions unless explicitly superseded. This section is a priority queue, not an additional release or a statement of production readiness.
+The table below records the queue before owner approval of DEC-001–015. Its priority labels are superseded by the current owner-approved execution order above; retain this table as milestone history and acceptance context. Every new user request continues this single Personal AI Job Agent product: classify it as merge / extend / conflict / new against existing code and milestones, preserving past decisions unless explicitly superseded. This is not a release or a statement of production readiness.
 
 Evidence levels are distinct: implemented in source; tested offline; accepted in owner-authorized live environment; released and observed in production.
 
