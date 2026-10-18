@@ -1,5 +1,15 @@
 ## 2026-10-18 — owner-approved DEC-001–015 consolidated into canonical roadmap
 
+- [x] Fast-forward dev to merged feature `5331294` without a new merge commit; preserve the clean worktree.
+- [x] Launch standalone localhost Web acceptance project with separate PostgreSQL, ports and named volumes; do not load production `.env` or reuse project `repo`.
+- [x] Complete Firefox owner login and ten-page browser traversal plus isolated Candidate Fact/application-status writes and application export-link check.
+- [ ] Owner visual/user acceptance remains open; keep the isolated GUI available until feedback.
+- [x] Run fresh isolated source-backed Career/Relocation quality sample. Normalized-role control: 84 processed; Career 15/0 Good, Relocation 69/9 Good. Treat minimal fixture facts and source network failures as limitations, not owner-fit conclusions.
+- [x] Add regressions for generic EURES `Engineer` leakage and explicit volunteer/unpaid Good false positives; 183 relevant tests and static gates pass.
+- [x] Build exact standalone acceptance images, verify the idempotent one-shot schema/owner initializer, recreate only the isolated Web container with volumes preserved, and repeat authenticated Firefox traversal of all ten pages.
+- [ ] Rerun the complete isolated PostgreSQL suite: the first attempt ended without a final summary after 16%, so it is not a passing gate.
+- [ ] Complete browser inspection of a small external-link sample; Firefox navigation failed for the first four public links, so link validity is not yet accepted.
+
 - [x] Verify clean dev worktree, fetch origin, confirm PR #50/#51 merged and base focused work on feature `1c12976`.
 - [x] Add all 15 approved decisions to the existing `DECISIONS.md`; align the single root `ROADMAP.md` with current P0/P1/P2 execution order without removing history.
 - [x] Mark implementation/test/owner acceptance/release as separate evidence states. Refresh BRIEF and HANDOFF; retain historical task entries.

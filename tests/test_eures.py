@@ -62,6 +62,18 @@ def test_search_query_token_does_not_match_a_longer_unrelated_title_word():
     assert [job.source_job_id for job in result] == ["java"]
 
 
+def test_generic_engineer_token_does_not_admit_unrelated_eures_roles():
+    rows = [
+        search_row(id="devops", title="DevOps Specialist"),
+        search_row(id="data", title="Data Engineer"),
+        search_row(id="manufacturing", title="Manufacturing Quality Engineer"),
+    ]
+
+    result = EuresSource.parse_search({"jvs": rows}, "DevOps Engineer")
+
+    assert [job.source_job_id for job in result] == ["devops"]
+
+
 @pytest.mark.parametrize("value", [True, False])
 def test_boolean_creation_date_remains_unknown(value):
     assert EuresSource._timestamp(value) is None

@@ -31,6 +31,11 @@ class EuresSource(JobSource):
     max_queries = 6
     max_details = 8
     request_retries = 2
+    generic_role_tokens = {
+        "admin", "administrator", "assistant", "engineer", "lead", "manager",
+        "specialist", "staff", "worker", "администратор", "ассистент", "инженер",
+        "менеджер", "работник", "сотрудник", "специалист",
+    }
 
     async def _request_with_retry(self, request, *args, **kwargs):
         """Retry transient transport failures without masking HTTP responses."""
@@ -82,7 +87,8 @@ class EuresSource(JobSource):
     def parse_search(cls, payload: dict, query: str) -> list[NormalizedJob]:
         if not isinstance(payload, dict) or not isinstance(payload.get("jvs"), list):
             raise SourceInvalidResponse("EURES search contract unavailable")
-        tokens = cls._query_tokens(query)
+        query_tokens = set(cls._query_tokens(query))
+        tokens = query_tokens - cls.generic_role_tokens or query_tokens
         jobs = []
         for row in payload["jvs"]:
             if not isinstance(row, dict) or not row.get("id") or not row.get("title"):

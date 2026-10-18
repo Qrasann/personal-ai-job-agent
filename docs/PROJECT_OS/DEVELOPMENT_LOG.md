@@ -2916,3 +2916,11 @@ A read-only query of the persisted scheduled dashboard confirmed a real 09:12–
 ## 2026-10-18 — HH broad-query noise guard
 
 Real Relocation-first samples showed HH returning an English teacher and sales manager for the `cleaner` web-search query. HH API and fallback results now require title overlap with a meaningful query token after removing generic role words. This retains exact/specific IT and non-IT terms while rejecting broad recommendations. Targeted HH suite passed 19; full isolated PostgreSQL suite passed 1327. Runtime was not changed.
+
+## 2026-10-18 — isolated Web browser acceptance and real search quality
+
+- Fast-forwarded the development checkout to feature merge `5331294` and added a standalone acceptance Compose file with isolated PostgreSQL/file volumes and localhost ports.
+- Firefox 158 WebDriver BiDi verified owner login, all ten Web sections, Candidate Fact persistence, a manual application status transition, package detail and export navigation against fixture data.
+- A real isolated control scan with `DevOps Engineer` plus configured IT/non-IT relocation queries processed 84 rows: Career-first 15 (0 Good) and Relocation-first 69 (9 Good). Network failures remained source-specific and visible in Diagnostics. No Telegram notification, application or recruiter message was sent.
+- Manual result sampling exposed generic EURES `Engineer` leakage and an explicit `DevOps Volunteer` Good false positive. EURES now requires a meaningful specific title token when one exists; volunteer/unpaid titles remain visible but are fit-skipped and capped without changing global thresholds.
+- Focused tests passed 65; broader relevant suites passed 183. Compileall, secret scan and diff check passed. Exact acceptance images and the one-shot initializer passed; only the isolated Web container was recreated with volumes preserved, followed by another successful authenticated Firefox traversal of all ten pages. The full PostgreSQL run did not return a final result and is not claimed; external-link Firefox rendering also remains open.
