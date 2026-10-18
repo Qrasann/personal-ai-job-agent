@@ -2888,3 +2888,7 @@ A full owner-authenticated HTTP walk through all nine GUI stages passed against 
 ## 2026-10-18 — concise Web scan dashboard and diagnostics
 
 Replaced the raw scan-journal dump on Dashboard with persistent user-facing status, four outcome metrics, Career-first/Relocation-first cards and daily workflow links. Added a separate Diagnostics route for sanitized per-source status, controlled error codes and filter reasons; arbitrary stored exception messages remain hidden. Web unit suite passed 15 tests and the combined owner-authenticated HTTP/PostgreSQL Web suites passed 16 tests. Runtime was not changed.
+
+## 2026-10-18 — daily Jobs and Review cards
+
+Added GET filters for search direction, match status and title/company plus compact vacancy cards with known location, mode, salary/date and a collapsed score explanation. Below-threshold status automatically includes the below-threshold range. Save, skip and manual package preparation keep existing owner checks and do not submit an application. Web unit suite passed 16 tests; combined HTTP/PostgreSQL Web suites passed 17. Runtime was not changed.

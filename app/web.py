@@ -188,6 +188,65 @@ def diagnostics_content(state: dict) -> str:
     return "".join(blocks)
 
 
+MATCH_FILTERS = {
+    "": "Все статусы",
+    "notified": "Новые Good",
+    "stretch": "Stretch",
+    "saved": "Сохранённые",
+    "prepared": "Пакет подготовлен",
+    "skipped": "Пропущенные",
+    "filtered": "Ниже порога",
+}
+
+
+def jobs_filter_bar(page: str, query) -> str:
+    scope = str(query.get("scope", ""))
+    status = str(query.get("status", ""))
+    needle = str(query.get("q", ""))[:100]
+    below = str(query.get("below", "")) == "1" or status == "filtered"
+    scope_options = "".join(
+        f'<option value="{value}" {"selected" if scope == value else ""}>{label}</option>'
+        for value, label in (("", "Все направления"), ("career", "Career-first"), ("relocation", "Relocation-first"))
+    )
+    status_options = "".join(
+        f'<option value="{value}" {"selected" if status == value else ""}>{label}</option>'
+        for value, label in MATCH_FILTERS.items()
+    )
+    status_field = f'<label>Статус <select name="status">{status_options}</select></label>' if page == "jobs" else ""
+    below_field = '<label><input type="checkbox" name="below" value="1" checked> Показать ниже порога</label>' if below else '<label><input type="checkbox" name="below" value="1"> Показать ниже порога</label>'
+    return (
+        f'<section><form method="get" action="/{page}"><label>Направление <select name="scope">{scope_options}</select></label>'
+        f'{status_field}<label>Название или компания <input name="q" type="text" maxlength="100" value="{e(needle)}"></label>'
+        f'{below_field if page == "jobs" else ""}<button>Применить</button></form> '
+        f'<a href="/{page}">Сбросить</a></section>'
+    )
+
+
+def job_card(match, job, search) -> str:
+    scope = getattr(search, "kind", "")
+    scope_label = "Relocation-first" if scope == "relocation" else "Career-first" if scope == "career" else "Профиль"
+    location = ", ".join(value for value in (getattr(job, "city", None), getattr(job, "country", None)) if value) or "география не указана"
+    metadata = [scope_label, location]
+    if getattr(job, "work_mode", None):
+        metadata.append(str(job.work_mode))
+    if getattr(job, "salary_from", None) is not None or getattr(job, "salary_to", None) is not None:
+        bounds = "–".join(str(value) for value in (getattr(job, "salary_from", None), getattr(job, "salary_to", None)) if value is not None)
+        metadata.append(" ".join(value for value in (bounds, getattr(job, "salary_currency", None), getattr(job, "salary_period", None)) if value))
+    if getattr(job, "published_at", None):
+        metadata.append(f"опубликовано {job.published_at}")
+    fields = f'<input type="hidden" name="id" value="{match.id}">'
+    buttons = form("/action/match", "Сохранить", fields + '<input type="hidden" name="status" value="saved">') if match.status not in {"saved", "prepared"} else ""
+    buttons += form("/action/match", "Пропустить", fields + '<input type="hidden" name="status" value="skipped">', secondary=True) if match.status not in {"skipped", "prepared"} else ""
+    buttons += form("/action/prepare", "Подготовить ручной отклик", fields)
+    return (
+        f'<section><div class="row"><div><h2><a href="/job/{job.id}?search={match.search_profile_id}">{e(job.title)}</a></h2>'
+        f'<p><strong>{e(job.company or "Компания не указана")}</strong></p></div><span class="score">{e(match.total_score)}/100</span></div>'
+        f'<p>{e(" · ".join(metadata))}</p><p>Статус: {e(MATCH_FILTERS.get(match.status, match.status))}</p>'
+        f'<details><summary>Почему такой score</summary><p>{e(match.reason or "Подробное объяснение отсутствует")}</p></details>'
+        f'<p><a href="/job/{job.id}?search={match.search_profile_id}">Карточка источника и relocation evidence</a></p>{buttons}</section>'
+    )
+
+
 async def page_content(request: web.Request, user, page: str) -> str:
     profile, searches = await profile_and_searches(user)
     if not profile:
@@ -214,13 +273,15 @@ async def page_content(request: web.Request, user, page: str) -> str:
         state = request.app["scan_state"].get(user.id, "idle")
         return f'<section><p>Поиск выполняется по всем включённым профилям и их реальным источникам.</p>{form("/action/scan", "Запустить поиск") if state != "running" else "⏳ Поиск выполняется"}<p>Состояние: {e(state)} · <a href="/search">обновить</a></p></section><div class="grid">{"".join(rows)}</div>'
     if page in {"jobs", "review"}:
-        kind = request.query.get("scope", "")
+        kind = str(request.query.get("scope", ""))
+        if kind not in {"", "career", "relocation"}:
+            kind = ""
         selected = next((s for s in searches if s.kind == kind), None)
         if page == "review":
             matches = await repo.review_matches(user.id, 30)
         else:
             threshold = int((selected.settings or {}).get("notify_min_score", 65)) if selected else 65
-            below = request.query.get("below") == "1"
+            below = request.query.get("below") == "1" or request.query.get("status") == "filtered"
             matches = await repo.latest_matches(
                 user.id, 80 if kind == "relocation" else 50,
                 search_profile_id=selected.id if selected else None,
@@ -230,15 +291,21 @@ async def page_content(request: web.Request, user, page: str) -> str:
             )
             if kind == "relocation" and selected:
                 matches = [(match, job) for match, job in matches if relocation_first_allows(job, selected.settings, current_country=user.current_country)]
-        filters = '<p><a href="/jobs">Все от порога</a> · <a href="/jobs?scope=career">Career-first</a> · <a href="/jobs?scope=relocation">Relocation-first</a> · <a href="/jobs?scope=career&amp;below=1">Career ниже порога</a> · <a href="/jobs?scope=relocation&amp;below=1">Relocation ниже порога</a></p>' if page == "jobs" else ""
-        rows = []
-        for match, job in matches:
-            buttons = form("/action/match", "Сохранить", f'<input type="hidden" name="id" value="{match.id}"><input type="hidden" name="status" value="saved">') if match.status not in {"saved", "prepared"} else ""
-            buttons += form("/action/match", "Пропустить", f'<input type="hidden" name="id" value="{match.id}"><input type="hidden" name="status" value="skipped">', secondary=True) if match.status not in {"skipped", "prepared"} else ""
-            buttons += form("/action/prepare", "Подготовить пакет", f'<input type="hidden" name="id" value="{match.id}">')
-            rows.append(f'<section><div class="row"><h2><a href="/job/{job.id}?search={match.search_profile_id}">{e(job.title)} · {e(job.company)}</a></h2><span class="score">{match.total_score}/100</span></div><p>{e(job.city or "")} {e(job.country or "")} · {e(match.status)} · <a href="/job/{job.id}?search={match.search_profile_id}">Источник и evidence</a></p><p>{e(match.reason)}</p>{buttons}</section>')
-        empty = '<section>Нет результатов в выбранном диапазоне. Проверь настройки и /scanstatus в Telegram.</section>'
-        return filters + ("".join(rows) or empty)
+        if kind:
+            allowed_search_ids = {s.id for s in searches if s.kind == kind}
+            matches = [(match, job) for match, job in matches if match.search_profile_id in allowed_search_ids]
+        status = str(request.query.get("status", "")) if page == "jobs" else "notified"
+        if status not in MATCH_FILTERS:
+            status = ""
+        if status:
+            matches = [(match, job) for match, job in matches if match.status == status]
+        needle = " ".join(str(request.query.get("q", ""))[:100].casefold().split())
+        if needle:
+            matches = [(match, job) for match, job in matches if needle in f"{job.title} {job.company}".casefold()]
+        search_by_id = {search.id: search for search in searches}
+        rows = [job_card(match, job, search_by_id.get(match.search_profile_id)) for match, job in matches]
+        empty = '<section><h2>Ничего не найдено</h2><p>Измени фильтры или запусти новый поиск. Технические сбои источников смотри в Diagnostics.</p></section>'
+        return jobs_filter_bar(page, request.query) + ("".join(rows) or empty)
     if page == "profiles":
         facts = await repo.list_facts(profile.id)
         types = "".join(f'<option value="{e(kind)}">{e(kind)}</option>' for kind in ("unknown", "lab", "learning", "commercial"))

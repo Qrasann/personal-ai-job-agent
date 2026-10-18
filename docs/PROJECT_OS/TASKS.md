@@ -2046,3 +2046,7 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — daily Web dashboard clarity
 
 - Completed: concise persistent scan status and totals on Dashboard, per-profile Career-first/Relocation-first links, daily workflow shortcuts, and a separate sanitized Diagnostics page. Web unit tests passed 15; combined Web HTTP/PostgreSQL tests passed 16. Next: improve Jobs/Review cards and filters for fast save/skip/manual-application work, then perform integrated MVP stabilization.
+
+## 2026-10-18 — daily Jobs/Review workflow
+
+- Completed: Career/Relocation, status and title/company filters; compact cards; collapsed score explanation; explicit manual package action. Unit Web tests passed 16 and combined Web HTTP/PostgreSQL tests passed 17. Next: make Search and Applications equally clear for daily use, then run the integrated stabilization gates.

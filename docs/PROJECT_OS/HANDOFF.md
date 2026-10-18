@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 Jobs/Review daily workflow
+
+On top of committed Dashboard/Diagnostics checkpoint `23bcc7b`, the working tree adds Career/Relocation, status and title/company filters to Jobs/Review and compact vacancy cards with known metadata, collapsed scoring reasons and explicit manual package preparation. Save/skip/prepare retain existing owner checks; no external submission path was added. Web unit suite passed 16 tests; combined owner-authenticated HTTP/PostgreSQL Web suites passed 17. The isolated database is stopped. Finish static gates and checkpoint, then continue Search/Application clarity before integrated MVP stabilization. Runtime remains unchanged.
+
 ## Current handoff — 2026-10-18 concise Web scan results
 
 Working tree adds a compact persistent Dashboard summary and separate Diagnostics page on top of checkpoint `9b7356d`. Dashboard shows scan status, processed/Good/Stretch/new totals, Career-first/Relocation-first results and daily workflow links instead of the raw JSON journal. Diagnostics shows sanitized source status, controlled codes and filter reasons without stored raw exception messages. Web unit suite passed 15 tests; combined owner-authenticated HTTP/PostgreSQL Web suites passed 16. The isolated test database is stopped. Finish static gates and checkpoint this increment, then continue Jobs/Review filtering and cards. Runtime remains unchanged.

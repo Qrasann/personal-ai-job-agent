@@ -218,6 +218,40 @@ async def test_relocation_below_threshold_keeps_manual_leads_without_domestic_on
 
 
 @pytest.mark.asyncio
+async def test_jobs_filters_scope_status_and_title_before_rendering_cards(monkeypatch):
+    career = SimpleNamespace(id=3, kind="career", name="Career", settings={"notify_min_score": 65})
+    relocation = SimpleNamespace(id=4, kind="relocation", name="Relocation", settings={"notify_min_score": 65})
+
+    async def fake_profile(_user):
+        return SimpleNamespace(id=2), [career, relocation]
+
+    def match(match_id, search_id, status, score):
+        return SimpleNamespace(id=match_id, search_profile_id=search_id, status=status, total_score=score, reason="Linux fit")
+
+    def job(job_id, title, company):
+        return SimpleNamespace(id=job_id, title=title, company=company, city="", country="", work_mode=None,
+                               salary_from=None, salary_to=None, published_at=None)
+
+    async def fake_latest(*_args, **_kwargs):
+        return [
+            (match(1, 3, "saved", 82), job(10, "Platform Engineer", "Alpha")),
+            (match(2, 3, "notified", 79), job(11, "Platform Engineer", "Beta")),
+            (match(3, 4, "saved", 76), job(12, "Warehouse Specialist", "Gamma")),
+        ]
+
+    monkeypatch.setattr(gui, "profile_and_searches", fake_profile)
+    monkeypatch.setattr(gui.repo, "latest_matches", fake_latest)
+    request = SimpleNamespace(query={"scope": "career", "status": "saved", "q": "platform"})
+    body = await gui.page_content(request, SimpleNamespace(id=8, current_country="RU"), "jobs")
+    assert "Platform Engineer" in body and "Alpha" in body
+    assert "Beta" not in body and "Warehouse Specialist" not in body
+    assert "Подготовить ручной отклик" in body
+    assert "Почему такой score" in body
+    assert 'value="career" selected' in body
+    assert 'value="saved" selected' in body
+
+
+@pytest.mark.asyncio
 async def test_candidate_fact_requires_owner_evidence(monkeypatch):
     recorded = []
 
