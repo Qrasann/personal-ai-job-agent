@@ -8,6 +8,8 @@
 - [x] Add a bounded worldwide request alongside at most three priority-country requests and evaluate returned restrictions against every configured country; keep remote eligibility separate from work-country/right-to-work evidence.
 - [x] Measure the changed adapter with a read-only public probe: 8 unique role-relevant DevOps cards (7 global, 1 Germany-limited), with 1 failed country request. Treat all work authorization, visa and relocation support as unknown pending vacancy/employer evidence.
 - [ ] Continue HH `ConnectError` and per-source usefulness diagnosis; sample false Good/Stretch, noise and suitable exclusions without changing thresholds absent evidence.
+- [x] Record the first per-source baseline from the isolated scan: Himalayas dominant with two identified non-actionable false Goods; Job Bank low but useful for one non-IT role; EURES volume/no Good; RemoteOK and Arbeitnow low/no Good; HH TLS/403 limited; ATS/Georgia yield unavailable after controlled failures.
+- [x] Fit-skip/cap explicit `Expression of Interest Form` titles while retaining them for manual review; do not generalize ordinary interest wording.
 - [ ] Pilot a small owner-authorized Telegram/official-career/ATS source set, then implement button-first Telegram navigation while preserving commands.
 - [ ] Keep Candidate-to-Offer P1 and Skill Check/Interview/AI Router/Stack Watch P2; never send an application or employer message without separate approval.
 

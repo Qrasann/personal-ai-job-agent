@@ -451,6 +451,22 @@ def test_explicit_volunteer_title_stays_visible_but_is_not_good():
     assert result.total_score <= 58
     assert "волонтёрская/неоплачиваемая роль" in result.reason
 
+
+def test_expression_of_interest_form_stays_visible_but_is_not_good():
+    job = Job(
+        fingerprint="sre-interest-form",
+        title="Site Reliability Engineer Expression of Interest Form",
+        company="Example",
+        description="Linux Docker remote worldwide",
+        work_mode="remote",
+    )
+
+    result = score_job(job, _search(), [_fact("Linux", "commercial", fact_id=1)], [])
+
+    assert result.fit == "skip"
+    assert result.total_score <= 58
+    assert "не подтверждённая открытая вакансия" in result.reason
+
 def test_score_job_skips_hard_production_skill_gap_only():
     learning = [_fact("Kubernetes", "learning", fact_id=1)]
     commercial = [_fact("Kubernetes", "commercial", fact_id=2)]
