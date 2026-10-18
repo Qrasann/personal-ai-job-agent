@@ -263,11 +263,32 @@ def test_himalayas_discovery_queries_selected_markets_with_a_bounded_request_cou
     result = asyncio.run(HimalayasSource().discover(context))
 
     assert result == []
-    assert len(calls) == HimalayasSource.max_markets * HimalayasSource.max_queries
+    assert len(calls) == (HimalayasSource.max_markets + 1) * HimalayasSource.max_queries
     assert calls[0][0] == HimalayasSource.endpoint
     assert calls[0][1]["params"] == {"sort": "recent", "page": 1, "q": "DevOps Engineer", "country": "GE"}
     assert calls[1][1]["params"]["country"] == "AM"
+    assert calls[3][1]["params"] == {
+        "sort": "recent", "page": 1, "q": "DevOps Engineer", "worldwide": "true",
+    }
+    assert all(call[1]["params"].get("country") != "FR" for call in calls)
     assert all("ignored fifth query" not in str(kwargs) for _, kwargs in calls)
+
+
+def test_himalayas_global_results_use_every_selected_country_not_only_request_subset():
+    context = SourceContext(
+        user_id=1,
+        target_countries=["GE", "AM", "DE", "FR"],
+        queries=["DevOps Engineer"],
+    )
+
+    jobs = HimalayasSource.parse_payload(
+        {"jobs": [listing("fr", "DevOps Engineer", ["France"])]},
+        context,
+    )
+
+    assert len(jobs) == 1
+    assert jobs[0].country == "FR"
+    assert jobs[0].remote_scope == "France"
 
 
 def test_himalayas_remote_plan_searches_selected_support_for_both_markets(monkeypatch):
@@ -277,8 +298,7 @@ def test_himalayas_remote_plan_searches_selected_support_for_both_markets(monkey
         params = kwargs["params"]
         calls.append(params)
         rows = []
-        if params["q"] == "customer support":
-            market = params["country"]
+        if params["q"] == "customer support" and (market := params.get("country")):
             rows = [listing(f"support-{market}", "Customer Support Representative", [market])]
         return httpx.Response(200, json={"jobs": rows}, request=httpx.Request("GET", url))
 
@@ -292,7 +312,7 @@ def test_himalayas_remote_plan_searches_selected_support_for_both_markets(monkey
     context = SourceContext(user_id=1, current_country="RU", target_countries=["GE", "AM"], queries=selected.copy())
     jobs = asyncio.run(HimalayasSource().discover(context))
 
-    assert len(calls) == 8
+    assert len(calls) == 12
     assert calls[:2] == [
         {"sort": "recent", "page": 1, "q": "customer support", "country": "GE"},
         {"sort": "recent", "page": 1, "q": "customer support", "country": "AM"},

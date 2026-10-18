@@ -1,12 +1,27 @@
 # Roadmap
 
-## Owner priority update — 2026-10-18
+## Current owner execution priorities — 2026-10-18
+
+This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
+
+The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.
+
+1. **P0: Search Quality & Coverage.** Measure real Career-first and Relocation-first results, exclusion causes, false Good/Stretch and noise. Fix evidenced defects with regression tests, continue HH `ConnectError` and other network diagnosis, and evaluate each source by fresh relevant yield rather than HTTP availability.
+2. **P0: Worldwide Relocation.** Keep IT and non-IT discovery distinguishable, retain every configured country and add bounded global discovery through permitted sources. Record dated evidence for work authorization, visa sponsorship, employer and relocation terms; remote work is not evidence of permission to work from an arbitrary country.
+3. **P0: Telegram Job Sources.** Continue owner-selected channels, official career pages and ATS integrations through a small authorized pilot. Measure received, parsed, relevant, duplicate, excluded, Good/Stretch and actionable results before expansion.
+4. **P0: Telegram Button-First UX.** Add `ReplyKeyboardMarkup` and `InlineKeyboardMarkup` navigation on top of the existing bot while preserving ordinary commands. Keep Mini App deferred.
+5. **P1: Candidate-to-Offer.** Improve verifiable Candidate Facts, RU/EN CVs, tailored letters and owner-controlled application preparation/tracking. Never contact an employer without separate approval for the exact vacancy and message.
+6. **P2: Skill Check, Interview Agent, AI Router and AI Stack Watch.** Preserve these approved capabilities and execute them after the higher-priority user outcomes above.
+
+Success is a measurable increase in fresh, relevant and actually accessible vacancies and a safer path toward offers—not commit volume. Production, the running Telegram bot, production PostgreSQL and existing volumes remain out of scope without the required release gates and authorization.
+
+## Prior owner priority update — 2026-10-18 (historical Web MVP order)
 
 The near-term product priority is a usable private Web GUI and real Career-first + Relocation-first vacancy search. The intended path is Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications, backed by the existing PostgreSQL repository and scan service. Preserve Telegram as an independent immediate search surface. The local web MVP implements these routes, owner-only access, manual CV text and Candidate Fact entry, reviewed PDF/DOCX/TXT CV import, source/relocation settings, search, source-specific vacancy detail/evidence, below-threshold manual leads, review, package preparation and application package/history tracking. Dashboard renders concise persistent scan outcomes and per-profile result links; source telemetry and controlled error codes live on Diagnostics. Search shows readiness for Career-first and IT/non-IT Relocation-first profiles. Jobs/Review and Applications provide daily filters, compact cards and explicit manual status/package actions. Bot, scheduler and Web GUI scans use a per-user PostgreSQL lease to avoid overlapping passes. The integrated isolated PostgreSQL suite and validation image pass. A fresh existing-runtime scheduled pass completed across 11 successful sources with useful Career-first yield but no Good/Stretch Relocation-first result. Sampling found HH broad-search noise; API and web fallback now require a meaningful query token in the title, with no threshold/evidence change. Live Web browser acceptance and runtime release remain gated. Current next step: isolated Web owner acceptance, then measure useful Career/Relocation yield and diagnose the zero-yield Relocation slice; runtime rollout requires a separate owner decision. Telegram Folder Watcher, interactive Interview Agent, AI Router and international source work remain in scope after this MVP.
 
-### Owner-approved product requirements and current delivery order (DEC-001–015, 2026-10-18)
+### Owner-approved product requirements and prior delivery order (DEC-001–015, 2026-10-18)
 
-The complete approved decisions are recorded in `docs/PROJECT_OS/DECISIONS.md`; this section is the current execution order, not a replacement for historical milestones below. Approved requirements do not imply implementation, testing, owner acceptance, or release.
+The complete approved decisions are recorded in `docs/PROJECT_OS/DECISIONS.md`; this retained section records the prior execution order and is not a replacement for historical milestones below. The current order is defined above. Approved requirements do not imply implementation, testing, owner acceptance, or release.
 
 1. **P0: private Web owner acceptance in isolated dev/staging.** Exercise authentication, CSRF, owner isolation and Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications → Diagnostics. Keep diagnostics separate from user-facing scan outcomes. Do not claim browser/live acceptance without evidence. Prepare localhost-only rollout, verified backup/restore and rollback instructions; production rollout needs separate authorization.
 2. **P0: useful real search yield.** Keep Career-first and Relocation-first independent; expose Good/Stretch and all other/manual-review results, including low fit and unknown relocation evidence. Diagnose zero-yield relocation by settings, source identity/access, geography, language, professional track and filtering. Prioritize permitted employer ATS/source links and a measured 2–3-channel Telegram pilot; never equate HTTP success with useful jobs.

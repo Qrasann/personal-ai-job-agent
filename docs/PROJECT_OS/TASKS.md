@@ -1,3 +1,16 @@
+# Tasks
+
+## 2026-10-18 — Search/Relocation-first owner reprioritization
+
+- [x] Preserve DEC-001–015 and record that the new P0/P1/P2 list changes execution order rather than approved requirements.
+- [x] Freeze Web GUI redesign/expansion while retaining the MVP, tests and browser-acceptance evidence; allow only critical security/data-correctness fixes. Defer Telegram Mini App.
+- [x] Reproduce the Himalayas worldwide gap: configured target countries removed the global API probe and only the first three countries participated in result filtering.
+- [x] Add a bounded worldwide request alongside at most three priority-country requests and evaluate returned restrictions against every configured country; keep remote eligibility separate from work-country/right-to-work evidence.
+- [x] Measure the changed adapter with a read-only public probe: 8 unique role-relevant DevOps cards (7 global, 1 Germany-limited), with 1 failed country request. Treat all work authorization, visa and relocation support as unknown pending vacancy/employer evidence.
+- [ ] Continue HH `ConnectError` and per-source usefulness diagnosis; sample false Good/Stretch, noise and suitable exclusions without changing thresholds absent evidence.
+- [ ] Pilot a small owner-authorized Telegram/official-career/ATS source set, then implement button-first Telegram navigation while preserving commands.
+- [ ] Keep Candidate-to-Offer P1 and Skill Check/Interview/AI Router/Stack Watch P2; never send an application or employer message without separate approval.
+
 ## 2026-10-18 — owner-approved DEC-001–015 consolidated into canonical roadmap
 
 - [x] Fast-forward dev to merged feature `5331294` without a new merge commit; preserve the clean worktree.
@@ -74,8 +87,6 @@
 - [x] Reproduce missing Armenian/Georgian native-script citizen conditions and retain observed citizenship scope without making a legal conclusion.
 - [x] Relocation evidence tests 29; unit suite 1167 passed / 17 skipped; isolated PostgreSQL 1184 passed; test DB stopped.
 - [ ] Continue independent Candidate Fit/source-quality review using fixtures; live regional hiring eligibility remains unverified.
-
-# Tasks
 
 ## 2026-10-17 — Telegram Career folder watcher
 

@@ -48,6 +48,23 @@ def test_transport_category_ignores_suppressed_context():
     assert transport_failure_category(error) == "unclassified"
 
 
+def test_transport_category_reads_typed_context_suppressed_by_http_stack():
+    core_error_type = type("ConnectError", (Exception,), {"__module__": "httpcore"})
+    stream_error_type = type("EndOfStream", (Exception,), {"__module__": "anyio"})
+    tls_error = ssl.SSLEOFError(8, "private TLS details")
+    stream_error = stream_error_type("private transport details")
+    stream_error.__context__ = tls_error
+    stream_error.__suppress_context__ = True
+    core_error = core_error_type("private URL")
+    core_error.__context__ = stream_error
+    core_error.__suppress_context__ = True
+    wrapped = httpx.ConnectError("private URL")
+    wrapped.__cause__ = core_error
+
+    assert transport_failure_category(wrapped) == "tls"
+    assert services._error_text(wrapped) == "TLS_CONNECTION_FAILED"
+
+
 def test_hh_connection_log_has_safe_category_without_payload(monkeypatch, caplog):
     error = httpx.ConnectError("https://hh.test/?token=private-value")
     error.__cause__ = socket.gaierror(-2, "private-hostname")
