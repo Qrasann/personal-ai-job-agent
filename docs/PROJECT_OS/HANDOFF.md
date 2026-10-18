@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 Web GUI PostgreSQL acceptance and rollout plan
+
+Local code checkpoint `7c4215e` includes per-user scan coordination. New isolated HTTP/PostgreSQL acceptance passes: all nine GUI stages, real owner-scoped match/application status writes, frozen export and denial of another user's package. A read-only runtime check found schema 8, matching development's expected version 8. `docs/developer/WEB_GUI_ROLLOUT.md` now gives backup/restore, compatibility, private smoke and non-destructive rollback gates; none has been performed against runtime yet. GitHub push/PR remains unavailable after DNS and unsandboxed connection timeout, so CI is pending. Finish static checks/local checkpoint for this test/runbook, then retry publication when network returns. No runtime mutation or employer contact.
+
 ## Current handoff — 2026-10-18 cross-process scan coordination
 
 The branch merged the latest remote v3.5.7 feature baseline at `b75d8f1`; full isolated PostgreSQL suite passed 1314 afterward. GitHub publication of `work/codex-main-20261018` failed on DNS inside sandbox and timed out outside sandbox; no Draft PR exists yet. Current working change adds a PostgreSQL transaction lease around scheduled, Telegram and Web GUI scans, with clear busy states and no overwrite of an active scan dashboard. PostgreSQL lock, cancellation, bot/dashboard and Web regressions passed 68 targeted tests; full isolated suite passed 1318 before the final skipped-dashboard selection assertion, which passed in a 9-test targeted run. The updated Docker image built; compileall, secret-scan and diff check passed. Test DB stopped without volume deletion. Local checkpoint remains; retry publication only when network is available. Runtime remains untouched. Then continue real-link sampling and backup/rollback/smoke gates for GUI deployment.

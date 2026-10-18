@@ -2881,3 +2881,6 @@ Added an opt-in Compose overlay for `python -m app.web`, with localhost-only hos
 ## 2026-10-18 — PostgreSQL scan lease across processes
 
 Scheduled bot scans, manual Telegram `/scan` and Web GUI search now acquire the same per-user transaction-scoped advisory lock. Concurrent attempts skip safely, and a skipped scheduled record cannot hide a completed manual result. Lock release after normal completion and cancellation is covered against isolated PostgreSQL. Full suite passed 1318 before the final dashboard-selection assertion; that assertion and related cases passed in a separate 9-test run. No runtime change.
+## 2026-10-18 — Web GUI HTTP/PostgreSQL acceptance
+
+A full owner-authenticated HTTP walk through all nine GUI stages passed against isolated PostgreSQL. It persisted a saved match and manually reviewed application, exported the frozen package and returned 404 for another owner's package. Read-only schema comparison showed development and runtime both at version 8. Added a rollout/rollback runbook; no production backup, restore, deployment or data change was performed.

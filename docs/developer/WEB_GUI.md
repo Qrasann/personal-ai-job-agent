@@ -9,3 +9,5 @@ Dashboard reads owner statistics and the latest scan journal. Search calls the s
 Bot, scheduled and web scans share a PostgreSQL transaction lock for each owner. A second pass reports that a scan is active and does not start another source sweep. Process exit or cancellation releases the lock. This coordination does not change matching thresholds or send applications.
 
 For immediate search through the existing Telegram bot, use `/parallelsearch on`, configure relocation roles with `/relocationroles warehouse, hotel staff` (replace these examples with the owner's actual choices), inspect `/settings` and `/sources`, then use `/scan` and `/scanstatus`. Review results with `/jobs career`, `/jobs relocation`, `/review` and `/applications`. The Telegram bot must already be running and configured; these commands do not establish that any source is reachable or useful.
+
+Production preparation, smoke and rollback are specified in [WEB_GUI_ROLLOUT.md](WEB_GUI_ROLLOUT.md).

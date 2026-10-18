@@ -2039,3 +2039,6 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — coordinated bot/Web scans
 
 - Add a per-user PostgreSQL transaction lease for scheduled, Telegram and Web scans, with explicit busy state and preserving the active scan's dashboard. Full isolated suite passed 1318 before the final skipped-dashboard selection test, which passed in targeted tests; static gates and Docker build passed. Complete local checkpoint. GitHub push/PR is pending network availability; runtime was not changed.
+## 2026-10-18 — Web GUI PostgreSQL acceptance and rollout prep
+
+- Isolated HTTP/PostgreSQL test passed for all nine routes, owner-scoped status writes, export and cross-owner denial. Runtime/development schema versions read-only matched at 8. Added a concrete backup/restore, private smoke and rollback runbook; actual backup and release gates remain pending. Commit the verified test/docs, then retry Draft PR/CI when GitHub connectivity returns.
