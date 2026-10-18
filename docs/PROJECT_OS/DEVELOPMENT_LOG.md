@@ -1,3 +1,7 @@
+## 2026-10-18 — owner-approved product direction consolidated
+
+Verified that the owner-provided DEC-001–015, agreed roadmap, and implementation plan exist outside the repository. Confirmed dev baseline `24480ef` is clean and is an ancestor of the fetched feature merge `1c12976`; started focused branch `work/dec-approved-roadmap-20261018` from feature. Documentation update records all approved decisions without claiming unbuilt features, updates the canonical root roadmap's execution priorities, and refreshes the current brief/task/handoff. No code, runtime, production data, volumes, credentials, or external applications changed. Documentation checks and local checkpoint are pending.
+
 ## 2026-10-17 — Telegram US Georgia city ambiguity
 
 Offline fixtures reproduced `Atlanta, Georgia` and `Savannah, Georgia` being assigned country GE. A narrow explicit US-city cue now conflicts with the bare country name and leaves country unknown, preventing false Georgia-country attribution; `Tbilisi, Georgia` remains GE. Targeted Telegram suites: 57 passed, 1 skipped; full isolated PostgreSQL suite: 1300 passed. No live Telegram/source use or legal conclusion.

@@ -1,5 +1,13 @@
 # Handoff
 
+## Current restart point — approved roadmap documentation checkpoint (2026-10-18)
+
+Working branch `work/dec-approved-roadmap-20261018` is based on current feature `1c12976c25e0c8d3fadb9b132501dc46a482ed4f`; baseline was clean at `24480ef`, which is an ancestor of feature. PR #50 and #51 are merged. The current uncommitted increment consolidates owner-approved DEC-001–015 into the existing decisions log, the single canonical root `ROADMAP.md`, BRIEF, TASKS, HANDOFF and DEVELOPMENT_LOG. Verify the exact diff and documentation gates, create the local checkpoint commit, then push/open a PR against feature and verify CI for its exact HEAD.
+
+After that docs checkpoint, continue P0-1 in isolated dev/staging: test owner login, CSRF and owner isolation through Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications → Diagnostics. Do not change `/mnt/Storage/AI-Job-Bot/repo`, production DB, Telegram bot or Docker volumes; do not send applications. P0-2 follows with evidence-based Career/Relocation yield diagnosis. Runtime browser acceptance remains pending; never report it as passed without evidence. See root `ROADMAP.md`, approved decisions in `DECISIONS.md`, and `docs/developer/WEB_GUI_ROLLOUT.md`.
+
+## Historical handoffs
+
 ## Current handoff — 2026-10-18 HH real-yield stabilization
 
 PR #51 already contains the connected Web MVP; working code now also fixes the concrete real-source sample where HH returned teacher/sales titles for `cleaner`. Both HH API and web fallback require a meaningful query token in title, excluding generic role words. Targeted HH suite passed 19; full isolated PostgreSQL suite passed 1327; test DB is stopped. Commit/push code/tests/docs and wait for exact-head CI, then merge to the feature branch. Existing runtime data and services remain unchanged; refreshed yield requires gated deployment and rediscovery.

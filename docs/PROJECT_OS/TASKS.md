@@ -1,3 +1,13 @@
+## 2026-10-18 — owner-approved DEC-001–015 consolidated into canonical roadmap
+
+- [x] Verify clean dev worktree, fetch origin, confirm PR #50/#51 merged and base focused work on feature `1c12976`.
+- [x] Add all 15 approved decisions to the existing `DECISIONS.md`; align the single root `ROADMAP.md` with current P0/P1/P2 execution order without removing history.
+- [x] Mark implementation/test/owner acceptance/release as separate evidence states. Refresh BRIEF and HANDOFF; retain historical task entries.
+- [ ] Run documentation gates, commit and publish dev branch/PR to feature; verify exact-head CI.
+- [ ] P0-1: isolated Web GUI acceptance (auth, CSRF, owner boundaries, full route sequence); runtime remains untouched.
+- [ ] P0-2: measure useful Career/Relocation yield and diagnose Relocation zero-yield causes with permitted real sources; no silent scoring changes.
+- [ ] Continue onboarding/geography, CV-to-application, voluntary Skill Check/Interview, AI Router/Stack Watch and privacy lifecycle in roadmap order.
+
 ## 2026-10-17 — Russian preferred Candidate Fit wording
 
 - [x] Reproduce `Желательно знание Linux` being classified as required; add narrow skill-local preferred patterns before/after the skill name.
