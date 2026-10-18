@@ -2900,3 +2900,7 @@ Search now presents Career-first and Relocation-first readiness, queries, countr
 ## 2026-10-18 — integrated Web MVP stabilization
 
 The full isolated PostgreSQL suite passed 1325 tests after installing the Git executable required by the secret-scan fixture; the first lightweight-container pass had already reached 1320 passes and only those five environment setup errors. The current source built successfully as `job-agent-web-mvp-validation:local`. The test database was stopped without deleting its volume. Runtime was not changed.
+
+## 2026-10-18 — fresh existing-runtime search evidence
+
+A read-only query of the persisted scheduled dashboard confirmed a real 09:12–09:15 UTC pass: 11 source aggregates succeeded; 271 vacancies were processed, with Career-first at 52 Good/26 Stretch/144 filtered and Relocation-first at 0 Good/0 Stretch/49 filtered plus 50 preference exclusions. No new notification was emitted. No runtime command, deployment or database write was performed by this development session.

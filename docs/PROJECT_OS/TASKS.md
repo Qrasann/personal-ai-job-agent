@@ -2058,3 +2058,7 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — integrated Web MVP stabilization
 
 - Completed: full isolated PostgreSQL suite 1325 passed; current validation Docker image built; test DB stopped without volume deletion. Finish static checks and a local checkpoint, publish exact-commit CI, inspect fresh real Telegram search yield, then continue the already prepared backup/config/rollback/private smoke gates for localhost deployment.
+
+## 2026-10-18 — fresh real search before Web deployment
+
+- Completed read-only acceptance of the existing runtime scheduled pass: 11 successful source aggregates, Career-first 52 Good/26 Stretch, Relocation-first 0 Good/Stretch with 49 scoring and 50 preference exclusions. Next: manually sample a few current links and diagnose relocation yield while keeping unknown evidence and thresholds unchanged; merge PR #51 after exact-head CI before any gated Web rollout.

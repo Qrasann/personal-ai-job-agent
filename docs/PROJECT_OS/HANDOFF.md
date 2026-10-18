@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 real search active, Web PR #51
+
+Draft PR #51 targets the feature branch at code/docs checkpoint `c83ded2`; CI is running. Read-only runtime logs and aggregate state confirm the existing Telegram scheduler completed a real 09:12:07–09:15:56 UTC pass with 11 successful source aggregates and 271 processed vacancies. Career-first: 52 Good, 26 Stretch, 144 scoring-filtered. Relocation-first: 0 Good/Stretch, 49 scoring-filtered and 50 preference exclusions. No new notification was emitted. This confirms active real search but not useful Relocation-first yield. Commit/push this evidence, require exact-head CI, then sample a few current links and continue gated localhost Web rollout. Runtime and production DB were not changed by development actions.
+
 ## Current handoff — 2026-10-18 integrated Web MVP stabilization
 
 The connected daily Web MVP is committed through `e856813`. Full isolated PostgreSQL suite passed 1325 tests; `job-agent-web-mvp-validation:local` built successfully; the test database is stopped without volume deletion. Finish final static checks and checkpoint this documentation, then push the three post-PR-50 MVP commits, open a feature-targeted PR and require exact-commit CI. After publication, use read-only runtime evidence to confirm fresh Telegram Career-first/Relocation-first search activity before gated localhost Web deployment. Runtime remains unchanged.
