@@ -5,12 +5,13 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app import services
 from app.database import notification_delivery as journal
 from app.database import repository as repo
-from app.database.models import Base, JobMatch, RuntimeState
+from app.database.models import Base, JobMatch, JobSourceRef, RuntimeState
 from app.domain.jobs import NormalizedJob
 from app.telegram import handlers
 
@@ -51,7 +52,7 @@ async def _postgres_claim_flow(monkeypatch):
             await conn.run_sync(Base.metadata.create_all)
         user = await repo.create_user("notification-owner-001", "Owner")
         profile = await repo.ensure_default_profile(user.id)
-        searches = await repo.list_search_profiles(profile.id)
+        searches = await repo.configure_parallel_search_profiles(profile.id, enabled=True)
         job, _ = await repo.upsert_job(NormalizedJob(
             source="hh", source_job_id="notification-job-001", title="Linux Engineer",
             company="Test Company", description="Linux",
@@ -145,7 +146,7 @@ async def _postgres_retry_flow(monkeypatch):
             ])
             await session.commit()
         profile = await repo.ensure_default_profile(owner.id)
-        searches = await repo.list_search_profiles(profile.id)
+        searches = await repo.configure_parallel_search_profiles(profile.id, enabled=True)
         job, _ = await repo.upsert_job(NormalizedJob(
             source="remoteok", source_job_id="notification-job-002",
             title="Platform Engineer", company="Company",
@@ -165,6 +166,13 @@ async def _postgres_retry_flow(monkeypatch):
         assert await journal.settle_job_notification(
             user_id=owner.id, match_id=match.id, token=sent["token"],
             delivered=False, now=now + timedelta(seconds=2),
+        )
+        sibling = await repo.save_match(
+            job_id=job.id, user_id=owner.id, profile_id=profile.id,
+            search_profile_id=searches[1].id,
+        )
+        assert await repo.has_notified_equivalent(
+            owner.id, job.id, job.title, job.company, match_id=sibling.id,
         )
         assert await journal.due_job_notifications(
             user_id=owner.id, now=now + timedelta(seconds=61),
@@ -302,10 +310,12 @@ async def _ingestion_delivery_flow(monkeypatch):
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
         owner = await repo.create_user("987001", "Owner")
-        await repo.ensure_default_profile(owner.id)
+        profile = await repo.ensure_default_profile(owner.id)
+        searches = await repo.configure_parallel_search_profiles(profile.id, enabled=True)
         normalized = NormalizedJob(
             source="arbeitnow", source_job_id="unique-posting-802",
-            title="Linux Engineer", company="Employer", description="Linux Bash Docker",
+            title="Инженер по MLOps и инфраструктуре ИИ", company="Employer",
+            description="Linux Bash Docker",
             url="https://example.invalid/job/802",
         )
         first = await services.ingest_and_match(
@@ -318,10 +328,41 @@ async def _ingestion_delivery_flow(monkeypatch):
         assert second["notified"] == 0
         bot.send_message.assert_awaited_once()
         assert bot.send_message.await_args.args[0] == 987001
-        entry = (await journal.recent_job_notification_journal(owner.id))[0]
+        entries = await journal.recent_job_notification_journal(owner.id)
+        assert len(entries) == 1
+        entry = entries[0]
         assert entry["status"] == "sent"
         assert entry["attempts"] == 1
         assert entry["telegram_message_id"] == 803
         assert not await journal.due_job_notifications(user_id=owner.id)
+        async with sessions() as session:
+            matches = list(await session.scalars(
+                select(JobMatch).where(JobMatch.user_id == owner.id).order_by(JobMatch.id)
+            ))
+            refs = list(await session.scalars(select(JobSourceRef)))
+        assert {item.search_profile_id for item in matches} == {item.id for item in searches}
+        assert [item.status for item in matches].count("notified") == 1
+        assert [item.status for item in matches].count("duplicate") == 1
+        assert len({item.job_id for item in matches}) == 1
+        assert [(item.source_id, item.source_job_id) for item in refs] == [
+            ("arbeitnow", "unique-posting-802")
+        ]
+
+        # Suppressing the second profile for one canonical Job must not hide a
+        # genuinely new provider posting with a different canonical identity.
+        fresh = await services.ingest_and_match(
+            bot,
+            NormalizedJob(
+                source="arbeitnow", source_job_id="unique-posting-803",
+                title="Инженер по MLOps и инфраструктуре ИИ",
+                company="Another Employer", description="Linux Bash Docker",
+                url="https://example.invalid/job/803",
+            ),
+            only_user_id=owner.id,
+        )
+        assert fresh["notified"] == 1
+        assert fresh["duplicate"] == 1
+        assert bot.send_message.await_count == 2
+        assert len(await journal.recent_job_notification_journal(owner.id)) == 2
     finally:
         await engine.dispose()

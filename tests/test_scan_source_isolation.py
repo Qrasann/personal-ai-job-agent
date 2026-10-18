@@ -26,6 +26,7 @@ def configure_scan(monkeypatch, sources, priorities=None):
     monkeypatch.setattr(services, "_HH_CONNECT_RETRY_AFTER", 0.0)
     monkeypatch.setattr(services, "_HH_DISCOVERY_LOCK", asyncio.Lock())
     monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
+    monkeypatch.setattr(services.repo, "set_state", AsyncMock())
     monkeypatch.setattr(services, "build_source_plan", lambda *a, **k: [
         SimpleNamespace(source_id=name, implemented=True) for name in sources
     ])
@@ -725,8 +726,9 @@ def test_fallback_observation_does_not_hide_later_connection_timeout(monkeypatch
     assert info['status']=='failed'
     assert info['fallback']==1
     assert {item['code'] for item in info['diagnostics']}=={'HTTP_403_FORBIDDEN','NETWORK_CONNECT_TIMEOUT'}
-    assert alerts.await_count==2
+    assert alerts.await_count==1
     assert any('NETWORK_CONNECT_TIMEOUT' in call.args[2] for call in alerts.await_args_list)
+    assert all('HTTP_403_FORBIDDEN' not in call.args[2] for call in alerts.await_args_list)
     assert 'private fallback URL' not in str(summary)
 
 

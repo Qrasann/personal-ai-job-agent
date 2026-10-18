@@ -42,7 +42,12 @@ from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
 from app.sources.network_errors import TRANSPORT_ERROR_TYPES, transport_failure_category
 from app.search.source_summary import aggregate_source, normalize_attempt, scan_outcome
-from app.sources.diagnostics import classify_source_error, diagnostic, render_source_notice
+from app.sources.diagnostics import classify_source_error, diagnostic
+from app.sources.notice_policy import (
+    STATE_KEY as SOURCE_NOTICE_STATE_KEY,
+    plan_source_notices,
+    render_source_state_notice,
+)
 from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed, vacancy_exclusion_reason
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
@@ -384,7 +389,9 @@ async def ingest_and_match(
             if match.status != "new":
                 continue
 
-            if await repo.has_notified_equivalent(user.id, job.id, job.title, job.company):
+            if await repo.has_notified_equivalent(
+                user.id, job.id, job.title, job.company, match_id=match.id,
+            ):
                 counters["duplicate"] += 1
                 await repo.set_match_status(match.id, "duplicate")
                 continue
@@ -711,21 +718,29 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                         aggregate_source(rebuilt, adapter.source_id, entry["sources"][adapter.source_id])
                 summary["sources"][adapter.source_id] = rebuilt[adapter.source_id]
                 log.error("source summary reconstruction for %s (%s)", adapter.source_id, type(exc).__name__)
-    # One alert per distinct issue in this pass; retain independent observations
-    # in the summary rather than sending one message for every profile or job.
-    for source_id, info in summary["sources"].items():
-        notices = {}
-        for item in info.get("diagnostics", []):
-            if item["action"] == "cooldown" and item["code"] != "TLS_VALIDATION_FAILED":
-                continue
-            key = (item["code"], item["stage"], item["action"], item.get("operation"))
-            notice = notices.setdefault(key, {**item, "profiles": []})
-            notice["profiles"] = list(dict.fromkeys(notice["profiles"] + item.get("profiles", [])))
-        for item in notices.values():
-            try:
-                await notify_chat(bot, user.telegram_chat_id, render_source_notice(item["profiles"], info["name"], item, preserved=bool(info["processed"])), parse_mode=None)
-            except Exception as exc:
-                log.error("source diagnostic notification failed (%s)", type(exc).__name__)
+    # Persist the technical state before Telegram I/O. Detailed per-attempt
+    # diagnostics remain in the scan dashboard; chat receives only transitions
+    # and bounded repeat summaries, never one message per profile/attempt.
+    try:
+        previous_notice_state = await repo.get_state(user.id, SOURCE_NOTICE_STATE_KEY, "")
+        source_notices, next_notice_state = plan_source_notices(
+            summary["sources"], previous_notice_state,
+        )
+        await repo.set_state(user.id, SOURCE_NOTICE_STATE_KEY, next_notice_state)
+    except Exception as exc:
+        source_notices = []
+        log.error("source notification state persistence failed (%s)", type(exc).__name__)
+    for event in source_notices:
+        info = summary["sources"].get(event["source_id"], {})
+        try:
+            await notify_chat(
+                bot,
+                user.telegram_chat_id,
+                render_source_state_notice(event, info),
+                parse_mode=None,
+            )
+        except Exception as exc:
+            log.error("source diagnostic notification failed (%s)", type(exc).__name__)
     return summary
 
 
