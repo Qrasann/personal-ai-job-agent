@@ -1504,3 +1504,24 @@ Never test against userDB or delete volumes. Local commits allowed; approval for
 older06fe88c does not authorize newer watcher production deployment. No automatic
 Codex continuation after session exists. Runtime observations in previous logs
 remain historical; this turn does not change services.
+
+## 2026-10-18 — current watcher handoff
+
+Owner priority is now Telegram Job Channel Watcher, then Employer Career Watcher;
+continued Himalayas/search and broad IT/non-IT relocation refactoring remain queued.
+Web GUI growth stays frozen. Telegram code is ready for an owner-authorized pilot,
+but `~/.local/share/personal-ai-job-agent/telegram-folder` and local API variables
+were absent and the historical 21 labels provide no verified channel identities.
+Ask the owner for 2–3 exact public `@channel`/`t.me` links (or the folder link) and
+explicit permission for interactive local authorization. Do not enable, join or
+read any channel before that confirmation.
+
+Employer checkpoint: `data/employer_watchlist.yaml` contains 12 official employers
+and 14 reviewed openings. Run `.venv/bin/python scripts/employer-career-watch
+validate`, then the opt-in `probe`. The latest live probe confirmed 14/14 exact
+links/provider IDs after removing stale Emerging Travel opening 166. This is current
+link evidence only, not Candidate Fit or legal eligibility. Next implement a small
+P0 multi-employer normalization path into the existing pipeline and verify canonical
+deduplication against Telegram source identity. Do not alter the three existing
+single-company adapters without regression coverage. No production DB/runtime,
+Telegram account or employer communication changed.

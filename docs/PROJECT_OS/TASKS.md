@@ -2099,3 +2099,12 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — HH non-IT query relevance
 
 - Completed: reject HH API/web fallback results whose titles share no meaningful token with the active role query. Regressions cover the observed `cleaner` noise in both transports; HH suite 19 passed and full PostgreSQL suite 1327 passed. Push the exact checkpoint to PR #51 and require green CI. Re-measure only after gated deployment/rediscovery; do not rewrite existing production matches.
+
+## 2026-10-18 — watcher priority correction and employer pilot
+
+- [x] Move Telegram Job Channel Watcher and Employer Career Watcher ahead of further Himalayas optimization and broad IT/non-IT refactoring without removing DEC-001–015 or the queued search/relocation work.
+- [x] Recheck the optional MTProto/Bot API safety boundary and local readiness. Telethon is installed; no private inventory/session/API ID/hash exists; the 21 labels still lack verified identities/access. Wait for owner selection and explicit authorization before login or channel enablement.
+- [x] Add a strictly validated 12-employer official watchlist across custom, Greenhouse, Lever and SmartRecruiters sources, with 14 reviewed openings and unknown eligibility/support evidence.
+- [x] Add a bounded read-only official-source verifier. The 2026-10-18 live pass confirmed 14/14 remaining links/provider IDs and removed one stale Emerging Travel Junior DevOps URL instead of treating an indexed result as current.
+- [ ] After the owner chooses 2–3 channels, create the private inventory/login locally, probe only explicitly enabled broadcast channels, then measure real new posts through the common pipeline.
+- [ ] Normalize a small P0 employer subset through the common ingestion/deduplication pipeline and measure Good/Stretch/false-positive yield without changing thresholds. Preserve official source identity so Telegram copies converge.
