@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    command: python -m app.web
+    env_file:
+      - .env
+    environment:
+      WEB_GUI_HOST: 0.0.0.0
+      WEB_GUI_PORT: 8080
+      WEB_GUI_TOKEN: ${WEB_GUI_TOKEN:?Set a private WEB_GUI_TOKEN of at least 24 characters}
+    ports:
+      - "127.0.0.1:${WEB_GUI_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"

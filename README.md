@@ -68,6 +68,10 @@ when Armenia or Georgia is selected; it does not imply visa sponsorship or
 relocation support. See the [roadmap](ROADMAP.md) and
 [international source review](docs/developer/INTERNATIONAL_SOURCES.md).
 
+## Local Web GUI
+
+The development Web GUI covers Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications over the existing PostgreSQL database. It requires a separate `WEB_GUI_TOKEN`; see the [setup guide](docs/developer/WEB_GUI.md) and `docker-compose.web.yml`. Runtime rollout still requires the release gates. The running Telegram bot can search now with `/parallelsearch on`, `/relocationroles`, `/scan`, and `/scanstatus`.
+
 ## Safety and data handling
 
 - Automated applications and private HeadHunter actions are off.

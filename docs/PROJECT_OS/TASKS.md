@@ -2033,3 +2033,6 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — reviewed browser CV upload
 
 - Reuse the existing safe PDF/DOCX/TXT parser, fact proposal/overlap review and atomic CV+facts persistence in Web GUI. Explicit preview and owner-scoped confirmation are implemented at local checkpoint `03094e5`; full isolated PostgreSQL suite passed 1314/1314 and the updated Docker image built. Follow with cross-process scan coordination, isolated browser/PostgreSQL acceptance and live source value measurement.
+## 2026-10-18 — opt-in local Web GUI service
+
+- Add a separate Compose overlay for the Web GUI, bound to localhost with an explicit long token and existing PostgreSQL dependency. Config validation passed with a dummy token. Complete static gates/checkpoint; runtime rollout still waits for backup/compatibility/rollback/smoke gates.

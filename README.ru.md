@@ -70,6 +70,10 @@ v3.5.7 добавляет Армению в список стран и публ�
 не подтверждает визовую поддержку или помощь с переездом. См. [план развития](ROADMAP.md) и
 [обзор международных источников](docs/developer/INTERNATIONAL_SOURCES.md).
 
+## Локальный Web GUI
+
+Девелоперский Web GUI охватывает Dashboard → Search → Jobs → Review → Profiles → Sources → Relocation → CV → Applications. Он работает с существующей PostgreSQL и требует отдельный `WEB_GUI_TOKEN`; запуск через [инструкцию](docs/developer/WEB_GUI.md) и `docker-compose.web.yml` разрешён только после release gates для runtime. GUI пока не развёрнут. Работающий Telegram-бот позволяет искать уже сейчас: `/parallelsearch on`, настройка `/relocationroles`, затем `/scan` и `/scanstatus`.
+
 ## Безопасность и данные
 
 - Автоматические отклики и приватные действия HeadHunter отключены.

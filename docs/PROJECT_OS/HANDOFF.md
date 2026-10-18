@@ -1,5 +1,9 @@
 # Handoff
 
+## Current handoff — 2026-10-18 local Web GUI launch path
+
+Code checkpoint `03094e5` plus a documentation checkpoint cover the private Web GUI and reviewed CV import. The current working change adds `docker-compose.web.yml` as an opt-in localhost-only web service with a separate private token; the base bot Compose service is unchanged. Both README files point to `docs/developer/WEB_GUI.md`. Compose configuration parsed with a dummy validation token and showed `127.0.0.1:8080` binding. Static gates and local checkpoint remain. No runtime release or production database mutation occurred. Next: coordinate bot/web scans, run browser/PostgreSQL acceptance, inspect real vacancy links and complete backup/rollback/smoke gates before starting this overlay against runtime.
+
 ## Current handoff — 2026-10-18 reviewed browser CV import
 
 Branch `work/codex-main-20261018` has code checkpoint `03094e5`. Earlier checkpoints `56a71d7`, `ba76c4f` and `fe2259d` cover the nine-stage private Web GUI, below-threshold Relocation-first inspection, manual Candidate Facts and frozen application review. The latest code checkpoint adds PDF/DOCX/TXT upload, a 15-minute owner-scoped bounded preview, per-fact ADD/KEEP/UPDATE selection and explicit CV-only or CV+facts commit through the existing atomic repository path. Uploaded bytes are not retained; proposed facts remain unknown experience. Full isolated PostgreSQL suite passed 1314/1314; updated Docker image built; compileall, secret-scan and diff check passed. The test PostgreSQL container was stopped without volume deletion. Runtime was not modified. Next: cross-process scan coordination, real vacancy sampling, isolated browser/PostgreSQL acceptance, then backup/compatibility/rollback/smoke release gates.

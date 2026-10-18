@@ -2875,3 +2875,6 @@ Profiles now accepts only owner-entered factual statements with evidence and exp
 ## 2026-10-18 — reviewed PDF/DOCX/TXT import in Web GUI
 
 Web CV upload reuses the Telegram-backed extraction, proposal review and atomic repository save. Preview is owner-scoped, bounded in memory and expires; file bytes are discarded after extraction. The owner explicitly saves CV-only or selected facts, with overlaps defaulting to KEEP and all imported experience unknown. Full isolated PostgreSQL suite passed 1314/1314, including HTTP multipart and single-use confirmation coverage; updated Docker image built. No runtime or external service change.
+## 2026-10-18 — reproducible local Web GUI service
+
+Added an opt-in Compose overlay for `python -m app.web`, with localhost-only host port, explicit web token and existing PostgreSQL service. Both READMEs link the Web GUI guide. `docker compose config --no-env-resolution` parsed successfully with a dummy token. No runtime container or volume was changed.
