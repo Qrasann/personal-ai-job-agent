@@ -2,7 +2,7 @@
 
 ## Current handoff — 2026-10-18 local Web GUI launch path
 
-Code checkpoint `03094e5` plus a documentation checkpoint cover the private Web GUI and reviewed CV import. The current working change adds `docker-compose.web.yml` as an opt-in localhost-only web service with a separate private token; the base bot Compose service is unchanged. Both README files point to `docs/developer/WEB_GUI.md`. Compose configuration parsed with a dummy validation token and showed `127.0.0.1:8080` binding. Static gates and local checkpoint remain. No runtime release or production database mutation occurred. Next: coordinate bot/web scans, run browser/PostgreSQL acceptance, inspect real vacancy links and complete backup/rollback/smoke gates before starting this overlay against runtime.
+Code checkpoints through `980e5c6` cover the private Web GUI, reviewed CV import and opt-in localhost-only Compose overlay. The base bot Compose service is unchanged. Both README files point to `docs/developer/WEB_GUI.md`; Compose configuration parsed with a dummy token and showed `127.0.0.1:8080` binding. The latest remote v3.5.7 feature baseline is being merged into this branch before Draft PR/CI; repeat the isolated PostgreSQL suite after that merge. No runtime release or production database mutation occurred. Next: coordinate bot/web scans, run browser/PostgreSQL acceptance, inspect real vacancy links and complete backup/rollback/smoke gates before starting this overlay against runtime.
 
 ## Current handoff — 2026-10-18 reviewed browser CV import
 
