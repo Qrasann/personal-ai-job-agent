@@ -111,8 +111,7 @@ class HimalayasSource(JobSource):
         if not isinstance(rows, list):
             raise SourceInvalidResponse("Himalayas Jobs API contract unavailable")
 
-        markets = cls._markets(context)
-        selected_countries = {country for country in markets if country}
+        selected_countries = cls._selected_countries(context)
         jobs: list[NormalizedJob] = []
         for row in rows:
             if not isinstance(row, dict) or not row.get("title"):
@@ -134,7 +133,7 @@ class HimalayasSource(JobSource):
                 for value in restrictions
                 if (normalized := normalize_country(value))
             }
-            matched_countries = [country for country in markets if country in restricted_countries]
+            matched_countries = [country for country in selected_countries if country in restricted_countries]
             if restrictions and not worldwide and not matched_countries:
                 # Keep the source's country limits authoritative. An unknown
                 # region such as EMEA is not assumed to include the user's
@@ -202,16 +201,25 @@ class HimalayasSource(JobSource):
         return jobs
 
     @staticmethod
-    def _markets(context: SourceContext) -> list[str | None]:
+    def _selected_countries(context: SourceContext) -> list[str]:
         target_countries = list(dict.fromkeys(
             country
             for value in (context.target_countries or [])
             if (country := normalize_country(str(value or "")))
         ))
         if target_countries:
-            return target_countries[: HimalayasSource.max_markets]
+            return target_countries
         current = normalize_country(str(context.current_country or ""))
-        return [current] if current else [None]
+        return [current] if current else []
+
+    @classmethod
+    def _markets(cls, context: SourceContext) -> list[str | None]:
+        # Country probes improve relevance for the highest-priority markets,
+        # while the additional worldwide probe prevents a configured country
+        # list from hiding genuinely global remote roles. Parsing still checks
+        # restrictions against every selected country, not only this bounded
+        # request subset.
+        return [*cls._selected_countries(context)[: cls.max_markets], None]
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
         self.partial_failures = 0

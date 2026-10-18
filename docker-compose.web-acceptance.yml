@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: jobagent_web_acceptance
+      POSTGRES_USER: jobagent_web_acceptance
+      POSTGRES_PASSWORD: jobagent_web_acceptance
+    ports:
+      - "127.0.0.1:${WEB_GUI_ACCEPTANCE_DB_PORT:-55433}:5432"
+    volumes:
+      - web_acceptance_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobagent_web_acceptance -d jobagent_web_acceptance"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    restart: "no"
+
+  init:
+    build: .
+    command:
+      - python
+      - -c
+      - |
+        import asyncio
+        from app.config import settings
+        from app.database.db import init_db
+        from app.database import repository as repo
+
+        async def main():
+            await init_db()
+            owner_id = settings.telegram_admin_chat_id
+            owner = await repo.get_user_by_chat(owner_id)
+            if owner is None:
+                owner = await repo.create_user(owner_id, "Acceptance Owner")
+            await repo.ensure_default_profile(owner.id)
+
+        asyncio.run(main())
+    environment:
+      DATABASE_URL: postgresql+asyncpg://jobagent_web_acceptance:jobagent_web_acceptance@postgres:5432/jobagent_web_acceptance
+      STORAGE_PATH: /app/storage
+      TELEGRAM_ADMIN_CHAT_ID: ${WEB_GUI_ACCEPTANCE_OWNER:-web-acceptance-owner}
+    volumes:
+      - web_acceptance_files:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build: .
+    command: python -m app.web
+    environment:
+      DATABASE_URL: postgresql+asyncpg://jobagent_web_acceptance:jobagent_web_acceptance@postgres:5432/jobagent_web_acceptance
+      STORAGE_PATH: /app/storage
+      TELEGRAM_ADMIN_CHAT_ID: ${WEB_GUI_ACCEPTANCE_OWNER:-web-acceptance-owner}
+      TELEGRAM_BOT_TOKEN: ${WEB_GUI_ACCEPTANCE_BOT_TOKEN:?Set an isolated syntactically valid bot token; never use the production token}
+      WEB_GUI_HOST: 0.0.0.0
+      WEB_GUI_PORT: 8080
+      WEB_GUI_TOKEN: ${WEB_GUI_TOKEN:?Set a private WEB_GUI_TOKEN of at least 24 characters}
+    ports:
+      - "127.0.0.1:${WEB_GUI_ACCEPTANCE_PORT:-18080}:8080"
+    volumes:
+      - web_acceptance_files:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    restart: "no"
+
+volumes:
+  web_acceptance_pg:
+  web_acceptance_files:

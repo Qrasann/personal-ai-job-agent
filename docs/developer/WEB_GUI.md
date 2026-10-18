@@ -11,3 +11,20 @@ Bot, scheduled and web scans share a PostgreSQL transaction lock for each owner.
 For immediate search through the existing Telegram bot, use `/parallelsearch on`, configure relocation roles with `/relocationroles warehouse, hotel staff` (replace these examples with the owner's actual choices), inspect `/settings` and `/sources`, then use `/scan` and `/scanstatus`. Review results with `/jobs career`, `/jobs relocation`, `/review` and `/applications`. The Telegram bot must already be running and configured; these commands do not establish that any source is reachable or useful.
 
 Production preparation, smoke and rollback are specified in [WEB_GUI_ROLLOUT.md](WEB_GUI_ROLLOUT.md).
+
+## Isolated owner acceptance
+
+`docker-compose.web-acceptance.yml` is a standalone development stack. Use a
+project name other than `repo`; its PostgreSQL database, database volume, file
+volume and localhost ports are independent from the production-style stack.
+It deliberately does not load `.env`. Supply a non-production, syntactically
+valid Telegram bot token because `aiogram.Bot` validates its shape at startup;
+the token must not belong to the running bot. The one-shot `init` service creates
+the fresh schema and acceptance owner before `web` starts. The default browser address is
+`http://127.0.0.1:18080/login` and the default PostgreSQL inspection port is
+`127.0.0.1:55433`.
+
+Never combine this file with `docker-compose.yml`, and never use project name
+`repo` for acceptance. The stack is suitable for browser workflow and source
+quality checks, but a dummy Telegram token means notification delivery is not
+part of this acceptance run.

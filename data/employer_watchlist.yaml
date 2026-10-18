@@ -1,0 +1,274 @@
+schema_version: 1
+verified_at: "2026-10-18"
+evidence_policy: >-
+  An opening is listed only after its provider ID and public URL were observed on
+  the employer's official career page or public ATS API. Remote scope never
+  proves work authorization, visa sponsorship, or relocation support.
+
+employers:
+  - id: emerging-travel-group
+    name: Emerging Travel Group
+    enabled: true
+    priority: P0
+    ats: custom
+    identifier: emergingtravel
+    careers_url: https://www.emergingtravel.com/career/positions/
+    allowed_hosts: [www.emergingtravel.com]
+    markets: [AM, GE, TH, VN]
+    tracks: [technical-support, relocation-it, relocation-non-it]
+    openings:
+      - provider_id: "167"
+        title: Technical Support Specialist
+        location: Georgia · remote
+        url: https://www.emergingtravel.com/career/positions/167/
+        suitability: high
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: canonical
+    name: Canonical
+    enabled: true
+    priority: P0
+    ats: greenhouse
+    identifier: canonical
+    careers_url: https://canonical.com/careers
+    api_url: https://boards-api.greenhouse.io/v1/boards/canonical/jobs
+    allowed_hosts: [canonical.com, job-boards.greenhouse.io]
+    markets: [WORLDWIDE]
+    tracks: [linux, infrastructure, technical-support, security, relocation-it]
+    openings:
+      - provider_id: "6448444"
+        title: Associate Linux Support Engineer
+        location: Home based · worldwide
+        url: https://job-boards.greenhouse.io/canonical/jobs/6448444
+        suitability: high
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+      - provider_id: "5370815"
+        title: Junior Linux Kernel Engineer - Ubuntu
+        location: Home based · worldwide
+        url: https://job-boards.greenhouse.io/canonical/jobs/5370815
+        suitability: medium
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: nebius
+    name: Nebius
+    enabled: true
+    priority: P0
+    ats: greenhouse
+    identifier: nebius
+    careers_url: https://careers.nebius.com/
+    api_url: https://boards-api.greenhouse.io/v1/boards/nebius/jobs
+    allowed_hosts: [careers.nebius.com]
+    markets: [CZ, NL, EU]
+    tracks: [sre, infrastructure, security, relocation-it]
+    openings:
+      - provider_id: "4967085101"
+        title: Site Reliability Engineer - Early Talent
+        location: Amsterdam, Netherlands
+        url: https://careers.nebius.com/?gh_jid=4967085101
+        suitability: high
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: xsolla
+    name: Xsolla
+    enabled: true
+    priority: P0
+    ats: lever
+    identifier: xsolla
+    careers_url: https://xsolla.com/careers
+    api_url: https://api.lever.co/v0/postings/xsolla
+    allowed_hosts: [xsolla.com, jobs.lever.co]
+    markets: [AZ]
+    tracks: [devops, infrastructure, security, relocation-it]
+    openings:
+      - provider_id: fe6a2e57-3aa8-4226-93f0-1264e815507e
+        title: Operations Engineer
+        location: Baku, Azerbaijan
+        url: https://jobs.lever.co/xsolla/fe6a2e57-3aa8-4226-93f0-1264e815507e
+        suitability: high
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+      - provider_id: bb31106d-1fae-4847-84cc-231743cfd42c
+        title: Platform Engineer
+        location: Baku, Azerbaijan
+        url: https://jobs.lever.co/xsolla/bb31106d-1fae-4847-84cc-231743cfd42c
+        suitability: medium
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: sporty-group
+    name: Sporty Group
+    enabled: true
+    priority: P1
+    ats: greenhouse
+    identifier: sportygroup
+    careers_url: https://job-boards.eu.greenhouse.io/sportygroup/
+    api_url: https://boards-api.greenhouse.io/v1/boards/sportygroup/jobs
+    allowed_hosts: [job-boards.eu.greenhouse.io]
+    markets: [EMEA, WORLDWIDE]
+    tracks: [sre, infrastructure, security, relocation-it]
+    openings:
+      - provider_id: "4923404101"
+        title: Site Reliability Engineer
+        location: EMEA · remote
+        url: https://job-boards.eu.greenhouse.io/sportygroup/jobs/4923404101
+        suitability: medium
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: justmarkets
+    name: JustMarkets
+    enabled: true
+    priority: P1
+    ats: greenhouse
+    identifier: justmarkets
+    careers_url: https://job-boards.eu.greenhouse.io/justmarkets/
+    api_url: https://boards-api.greenhouse.io/v1/boards/justmarkets/jobs
+    allowed_hosts: [job-boards.eu.greenhouse.io]
+    markets: [EU]
+    tracks: [security, infrastructure, relocation-it]
+    openings:
+      - provider_id: "4924784101"
+        title: Endpoint Security Engineer
+        location: Europe · remote
+        url: https://job-boards.eu.greenhouse.io/justmarkets/jobs/4924784101
+        suitability: medium
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: rocket-factory-augsburg
+    name: Rocket Factory Augsburg
+    enabled: true
+    priority: P1
+    ats: greenhouse
+    identifier: rocketfactoryaugsburgag
+    careers_url: https://job-boards.eu.greenhouse.io/rocketfactoryaugsburgag/
+    api_url: https://boards-api.greenhouse.io/v1/boards/rocketfactoryaugsburgag/jobs
+    allowed_hosts: [job-boards.eu.greenhouse.io]
+    markets: [DE]
+    tracks: [linux, infrastructure, networking, relocation-it]
+    openings:
+      - provider_id: "5008410101"
+        title: Network & Infrastructure Engineer
+        location: Augsburg, Germany
+        url: https://job-boards.eu.greenhouse.io/rocketfactoryaugsburgag/jobs/5008410101
+        suitability: medium
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: devexperts
+    name: Devexperts
+    enabled: true
+    priority: P1
+    ats: smartrecruiters
+    identifier: Devexperts
+    careers_url: https://jobs.smartrecruiters.com/Devexperts
+    api_url: https://api.smartrecruiters.com/v1/companies/Devexperts/postings
+    allowed_hosts: [jobs.smartrecruiters.com]
+    markets: [BG]
+    tracks: [sre, infrastructure, relocation-it]
+    openings:
+      - provider_id: "744000156001489"
+        title: Site Reliability Engineer (SRE)
+        location: Sofia, Bulgaria
+        url: https://jobs.smartrecruiters.com/Devexperts/744000156001489-site-reliability-engineer-sre-
+        suitability: medium
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: focal-systems
+    name: Focal Systems
+    enabled: true
+    priority: P2
+    ats: greenhouse
+    identifier: focalsystems
+    careers_url: https://job-boards.greenhouse.io/focalsystems/
+    api_url: https://boards-api.greenhouse.io/v1/boards/focalsystems/jobs
+    allowed_hosts: [job-boards.greenhouse.io]
+    markets: [PL, EU]
+    tracks: [infrastructure, relocation-it]
+    openings:
+      - provider_id: "6116777004"
+        title: Infrastructure Engineer
+        location: Poland / Europe · remote
+        url: https://job-boards.greenhouse.io/focalsystems/jobs/6116777004
+        suitability: low
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: orkes
+    name: Orkes
+    enabled: true
+    priority: P2
+    ats: greenhouse
+    identifier: orkes
+    careers_url: https://job-boards.greenhouse.io/orkes/
+    api_url: https://boards-api.greenhouse.io/v1/boards/orkes/jobs
+    allowed_hosts: [job-boards.greenhouse.io]
+    markets: [AU, EMEA]
+    tracks: [sre, infrastructure, relocation-it]
+    openings:
+      - provider_id: "5221481008"
+        title: Site Reliability Engineer
+        location: Australia / Middle Europe · remote
+        url: https://job-boards.greenhouse.io/orkes/jobs/5221481008
+        suitability: low
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: collectly
+    name: Collectly
+    enabled: true
+    priority: P2
+    ats: lever
+    identifier: CollectlyInc
+    careers_url: https://jobs.lever.co/CollectlyInc
+    api_url: https://api.lever.co/v0/postings/CollectlyInc
+    allowed_hosts: [jobs.lever.co]
+    markets: [REMOTE_GMT_MINUS_7_TO_PLUS_4]
+    tracks: [devops, security, infrastructure]
+    openings:
+      - provider_id: 3240d98f-b916-46d4-a89e-3ae4aa988338
+        title: Senior DevOps / DevSecOps Engineer
+        location: Remote · GMT-7 to GMT+4
+        url: https://jobs.lever.co/CollectlyInc/3240d98f-b916-46d4-a89e-3ae4aa988338
+        suitability: low
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
+  - id: auros
+    name: Auros
+    enabled: true
+    priority: P2
+    ats: greenhouse
+    identifier: aurosglobal
+    careers_url: https://job-boards.greenhouse.io/aurosglobal/
+    api_url: https://boards-api.greenhouse.io/v1/boards/aurosglobal/jobs
+    allowed_hosts: [job-boards.greenhouse.io]
+    markets: [ASIA, OCEANIA, EU]
+    tracks: [devops, security, infrastructure]
+    openings:
+      - provider_id: "4696822005"
+        title: Senior DevOps Engineer
+        location: Asia / Oceania · remote
+        url: https://job-boards.greenhouse.io/aurosglobal/jobs/4696822005
+        suitability: low
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown

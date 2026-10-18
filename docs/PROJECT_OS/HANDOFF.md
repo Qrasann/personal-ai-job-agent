@@ -1,12 +1,20 @@
 # Handoff
 
-## Current restart point — approved roadmap documentation checkpoint (2026-10-18)
+## Current restart point — Search Quality & Worldwide Relocation (2026-10-18)
 
-Working branch `work/dec-approved-roadmap-20261018` is based on current feature `1c12976c25e0c8d3fadb9b132501dc46a482ed4f`; baseline was clean at `24480ef`, an ancestor of feature. PR #50/#51 are merged. The owner-approved DEC docs checkpoint is `d654584`, pushed in Draft PR #52. Exact-head CI for `d654584` completed successfully: Python checks, secret scan and Docker build passed (run #399). Follow-up evidence/docs are local and need a fresh exact-head CI after push. Follow-up documentation commits are local only because GitHub TLS requests are timing out; the remote branch still points to `d654584`.
+The owner froze further Web GUI redesign and feature work. Preserve the existing MVP, its tests and its Firefox acceptance evidence; only critical security/data-correctness fixes may touch it. DEC-001–015 remain approved, while the current order is Search Quality & Coverage, Worldwide Relocation, Telegram source pilot and button-first Telegram UX (P0), Candidate-to-Offer (P1), then Skill Check/Interview/AI Router/Stack Watch (P2). Telegram Mini App is deferred.
 
-P0-1 isolated HTTP smoke was run against the dev source mounted into the local validation image and an isolated tmpfs PostgreSQL test DB: invalid login did not authenticate, anonymous Dashboard redirected to login (303), owner login redirected successfully (303), all ten pages (Dashboard, Search, Jobs, Review, Profiles, Sources, Relocation, CV, Applications, Diagnostics) returned 200, and a mutation without CSRF returned 403. The test DB was stopped without volume deletion. This is HTTP route/security evidence, not visual browser acceptance; foreign-owner route isolation remains covered by `tests/test_web_workspace_postgres.py` and exact-head CI has not been rechecked. Local pytest could not run because this checkout has no `.venv` and system Python has no pytest.
+Branch `work/web-acceptance-quality-20261018` started this stage clean at `8434014`; roadmap/worldwide/TLS checkpoint `e9e0f08` is committed. Himalayas previously made no global request when target countries existed and considered only the first three countries while parsing restrictions. Code now keeps at most three country probes, adds one worldwide probe per bounded query, and matches returned restrictions against all configured countries. A read-only public probe returned 8 unique relevant DevOps cards: 7 through the global discovery request (including one with a regional residence limit) and 1 Germany-limited result; one country request failed. Visa, relocation support and right-to-work remain unknown. HH probing resolved IPv4 DNS but repeatedly exposed `ssl.SSLEOFError` below `ConnectError`, while another attempt reached HTTP 403. The safe typed-cause classifier now reports this as `TLS_CONNECTION_FAILED`; cooldown behavior is unchanged. Relevant suites passed 201 and the combined source/HH isolation suite passed 142. A complete 1331-test PostgreSQL run again stopped returning output around the first HH private-scope test, so it is not claimed as passed; the separate tmpfs test DB was stopped without deleting any volume.
 
-Next: restore GitHub connectivity, push all local follow-up documentation commits, and verify CI on the updated exact PR head. Then run/confirm owner-isolation PostgreSQL route coverage. P0-2 still needs a permitted fresh source-backed yield sample; latest available historical runtime pass had 271 processed, Career 52 Good/26 Stretch and Relocation 0 Good/Stretch (49 scoring-filtered, 50 preference-excluded). Do not infer refreshed yield from that snapshot. Runtime browser acceptance, deployment and external applications remain out of scope; runtime, production DB, Telegram bot, and Docker volumes were not changed. Continue from root `ROADMAP.md`, approved `DECISIONS.md`, and `docs/developer/WEB_GUI_ROLLOUT.md`.
+Read-only acceptance aggregates give the first source usefulness baseline. Himalayas dominates current candidate yield; Job Bank contributes one qualifying non-IT warehouse role from 12; EURES has volume but no Good after role filtering; RemoteOK/Arbeitnow are low-volume with no Good; HH and multiple ATS/Georgia endpoints remain network/access-limited. Sampling the qualifying titles exposed `Site Reliability Engineer Expression of Interest Form` as a second non-actionable false Good beside the already-fixed volunteer role. Working scoring code retains this exact title class for manual review but fit-skips and caps it at 58; targeted scoring suites pass 79. Finish static gates and checkpoint, then inspect the remaining Himalayas Good set and suitable exclusions before expanding sources. Do not change production, the running Telegram bot, production PostgreSQL or any existing volume; do not send applications or messages.
+
+## Current restart point — isolated Web acceptance and source quality (2026-10-18)
+
+Dev was clean and fast-forwarded to merged feature commit `5331294` (PR #52). A standalone `jobagent-web-accept-20261018` Compose project is running on localhost port 18080 with its own PostgreSQL on 55433 and its own named database/file volumes; it does not load `.env` or reuse project `repo`. Firefox 158 WebDriver BiDi completed owner login, all ten pages (Dashboard, Search, Jobs, Review, Profiles, Sources, Relocation, CV, Applications, Diagnostics), a Candidate Fact write, manual application-status write, detail and export-link checks. This is real browser evidence against fixture data, not production acceptance. The owner still needs to complete visual/user acceptance. Keep the stack available until the owner responds; do not remove its volumes.
+
+The owner also launched a permitted source-backed scan in this isolated stack. After normalizing the acceptance profile role from compound `DevOps / SRE` to `DevOps Engineer`, the control pass processed 84: Career-first 15, all scoring-filtered; Relocation-first 69, with 9 Good and 60 filtered. Source totals were Himalayas 34 (partial, 8 Good), EURES 30, Job Bank 12 (1 Good), RemoteOK 6 and Arbeitnow 2; several ATS/HR.ge requests had controlled network failures. The minimal acceptance profile has no real owner commercial-history facts, so Career score yield is not a valid measure of owner fit. Manual sampling found EURES generic `Engineer` leakage and a Himalayas `DevOps Volunteer` Good false positive. Working code now removes generic EURES query tokens when a specific token exists and keeps explicit volunteer/unpaid titles visible but fit-skipped/capped at 58. It does not change thresholds or infer relocation support.
+
+Verification: focused regressions 65 passed; broader EURES/RemoteOK/Himalayas/discovery/diagnostics/scoring suites 183 passed; compileall, secret scan and diff check passed. Exact acceptance `init`/`web` images built, the idempotent one-shot schema/owner initializer passed, and only the isolated Web container was recreated with database/file volumes preserved. Firefox then repeated authenticated traversal of all ten pages successfully; existing browser sessions need to log in again after that restart. A full PostgreSQL run started on separate tmpfs project `jobagent-dev-tests-20261018` but its runner ended without a final pytest summary after 16%, so it must not be claimed as passed; the test DB was stopped without volume deletion. External public vacancy pages also failed to render through the automation browser, so stored source cards were sampled but external link validity remains open. Next: finish owner visual acceptance, rerun the complete isolated PostgreSQL gate, then publish the quality fixes and continue link sampling/zero-yield diagnosis. Production runtime, Telegram bot, PostgreSQL and volumes were untouched; no application or message was sent.
 
 ## Historical handoffs
 
@@ -1496,3 +1504,24 @@ Never test against userDB or delete volumes. Local commits allowed; approval for
 older06fe88c does not authorize newer watcher production deployment. No automatic
 Codex continuation after session exists. Runtime observations in previous logs
 remain historical; this turn does not change services.
+
+## 2026-10-18 — current watcher handoff
+
+Owner priority is now Telegram Job Channel Watcher, then Employer Career Watcher;
+continued Himalayas/search and broad IT/non-IT relocation refactoring remain queued.
+Web GUI growth stays frozen. Telegram code is ready for an owner-authorized pilot,
+but `~/.local/share/personal-ai-job-agent/telegram-folder` and local API variables
+were absent and the historical 21 labels provide no verified channel identities.
+Ask the owner for 2–3 exact public `@channel`/`t.me` links (or the folder link) and
+explicit permission for interactive local authorization. Do not enable, join or
+read any channel before that confirmation.
+
+Employer checkpoint: `data/employer_watchlist.yaml` contains 12 official employers
+and 14 reviewed openings. Run `.venv/bin/python scripts/employer-career-watch
+validate`, then the opt-in `probe`. The latest live probe confirmed 14/14 exact
+links/provider IDs after removing stale Emerging Travel opening 166. This is current
+link evidence only, not Candidate Fit or legal eligibility. Next implement a small
+P0 multi-employer normalization path into the existing pipeline and verify canonical
+deduplication against Telegram source identity. Do not alter the three existing
+single-company adapters without regression coverage. No production DB/runtime,
+Telegram account or employer communication changed.

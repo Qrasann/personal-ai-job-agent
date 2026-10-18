@@ -243,6 +243,23 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _non_actionable_role_reason(job: Job) -> str | None:
+    """Keep explicit non-openings and unpaid roles out of automatic Good results."""
+    title = (job.title or "").casefold()
+    unpaid_patterns = (
+        r"\bvolunteer\b",
+        r"\bvoluntary\b",
+        r"\bunpaid\b",
+        r"\bволонт[её]р",
+        r"\bнеоплачиваем",
+    )
+    if any(re.search(pattern, title) for pattern in unpaid_patterns):
+        return "волонтёрская/неоплачиваемая роль"
+    if re.search(r"\bexpression of interest(?: form)?\b", title):
+        return "форма предварительного интереса, не подтверждённая открытая вакансия"
+    return None
+
+
 def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...]) -> str:
     rank = {"missing": 0, "learning": 1, "unknown": 2, "lab": 3, "commercial": 4}
     best = "missing"
@@ -420,6 +437,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
         fit = "skip"
+    non_actionable_role_reason = _non_actionable_role_reason(job)
+    if non_actionable_role_reason:
+        fit = "skip"
     experience_fit, experience_reason = _experience_fit(job, facts)
     if experience_fit == "stretch" and fit == "good":
         fit = "stretch"
@@ -519,6 +539,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     elif experience_fit == "stretch" and seniority is None:
         total = min(total, 72)
 
+    if non_actionable_role_reason:
+        total = min(total, 58)
+
 
     # In rule-only fallback mode, obvious senior roles must not slip above the
     # normal notification threshold merely because geography/salary look good.
@@ -542,6 +565,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
+    if non_actionable_role_reason:
+        bits.append(non_actionable_role_reason)
     if experience_reason:
         bits.append(experience_reason)
     if management_gap:

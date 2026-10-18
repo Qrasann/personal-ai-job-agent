@@ -1,4 +1,29 @@
+# Tasks
+
+## 2026-10-18 — Search/Relocation-first owner reprioritization
+
+- [x] Preserve DEC-001–015 and record that the new P0/P1/P2 list changes execution order rather than approved requirements.
+- [x] Freeze Web GUI redesign/expansion while retaining the MVP, tests and browser-acceptance evidence; allow only critical security/data-correctness fixes. Defer Telegram Mini App.
+- [x] Reproduce the Himalayas worldwide gap: configured target countries removed the global API probe and only the first three countries participated in result filtering.
+- [x] Add a bounded worldwide request alongside at most three priority-country requests and evaluate returned restrictions against every configured country; keep remote eligibility separate from work-country/right-to-work evidence.
+- [x] Measure the changed adapter with a read-only public probe: 8 unique role-relevant DevOps cards (7 global, 1 Germany-limited), with 1 failed country request. Treat all work authorization, visa and relocation support as unknown pending vacancy/employer evidence.
+- [ ] Continue HH `ConnectError` and per-source usefulness diagnosis; sample false Good/Stretch, noise and suitable exclusions without changing thresholds absent evidence.
+- [x] Record the first per-source baseline from the isolated scan: Himalayas dominant with two identified non-actionable false Goods; Job Bank low but useful for one non-IT role; EURES volume/no Good; RemoteOK and Arbeitnow low/no Good; HH TLS/403 limited; ATS/Georgia yield unavailable after controlled failures.
+- [x] Fit-skip/cap explicit `Expression of Interest Form` titles while retaining them for manual review; do not generalize ordinary interest wording.
+- [ ] Pilot a small owner-authorized Telegram/official-career/ATS source set, then implement button-first Telegram navigation while preserving commands.
+- [ ] Keep Candidate-to-Offer P1 and Skill Check/Interview/AI Router/Stack Watch P2; never send an application or employer message without separate approval.
+
 ## 2026-10-18 — owner-approved DEC-001–015 consolidated into canonical roadmap
+
+- [x] Fast-forward dev to merged feature `5331294` without a new merge commit; preserve the clean worktree.
+- [x] Launch standalone localhost Web acceptance project with separate PostgreSQL, ports and named volumes; do not load production `.env` or reuse project `repo`.
+- [x] Complete Firefox owner login and ten-page browser traversal plus isolated Candidate Fact/application-status writes and application export-link check.
+- [ ] Owner visual/user acceptance remains open; keep the isolated GUI available until feedback.
+- [x] Run fresh isolated source-backed Career/Relocation quality sample. Normalized-role control: 84 processed; Career 15/0 Good, Relocation 69/9 Good. Treat minimal fixture facts and source network failures as limitations, not owner-fit conclusions.
+- [x] Add regressions for generic EURES `Engineer` leakage and explicit volunteer/unpaid Good false positives; 183 relevant tests and static gates pass.
+- [x] Build exact standalone acceptance images, verify the idempotent one-shot schema/owner initializer, recreate only the isolated Web container with volumes preserved, and repeat authenticated Firefox traversal of all ten pages.
+- [ ] Rerun the complete isolated PostgreSQL suite: the first attempt ended without a final summary after 16%, so it is not a passing gate.
+- [ ] Complete browser inspection of a small external-link sample; Firefox navigation failed for the first four public links, so link validity is not yet accepted.
 
 - [x] Verify clean dev worktree, fetch origin, confirm PR #50/#51 merged and base focused work on feature `1c12976`.
 - [x] Add all 15 approved decisions to the existing `DECISIONS.md`; align the single root `ROADMAP.md` with current P0/P1/P2 execution order without removing history.
@@ -64,8 +89,6 @@
 - [x] Reproduce missing Armenian/Georgian native-script citizen conditions and retain observed citizenship scope without making a legal conclusion.
 - [x] Relocation evidence tests 29; unit suite 1167 passed / 17 skipped; isolated PostgreSQL 1184 passed; test DB stopped.
 - [ ] Continue independent Candidate Fit/source-quality review using fixtures; live regional hiring eligibility remains unverified.
-
-# Tasks
 
 ## 2026-10-17 — Telegram Career folder watcher
 
@@ -2076,3 +2099,12 @@ remains open. Historical counts below belong to their recorded stages.
 ## 2026-10-18 — HH non-IT query relevance
 
 - Completed: reject HH API/web fallback results whose titles share no meaningful token with the active role query. Regressions cover the observed `cleaner` noise in both transports; HH suite 19 passed and full PostgreSQL suite 1327 passed. Push the exact checkpoint to PR #51 and require green CI. Re-measure only after gated deployment/rediscovery; do not rewrite existing production matches.
+
+## 2026-10-18 — watcher priority correction and employer pilot
+
+- [x] Move Telegram Job Channel Watcher and Employer Career Watcher ahead of further Himalayas optimization and broad IT/non-IT refactoring without removing DEC-001–015 or the queued search/relocation work.
+- [x] Recheck the optional MTProto/Bot API safety boundary and local readiness. Telethon is installed; no private inventory/session/API ID/hash exists; the 21 labels still lack verified identities/access. Wait for owner selection and explicit authorization before login or channel enablement.
+- [x] Add a strictly validated 12-employer official watchlist across custom, Greenhouse, Lever and SmartRecruiters sources, with 14 reviewed openings and unknown eligibility/support evidence.
+- [x] Add a bounded read-only official-source verifier. The 2026-10-18 live pass confirmed 14/14 remaining links/provider IDs and removed one stale Emerging Travel Junior DevOps URL instead of treating an indexed result as current.
+- [ ] After the owner chooses 2–3 channels, create the private inventory/login locally, probe only explicitly enabled broadcast channels, then measure real new posts through the common pipeline.
+- [ ] Normalize a small P0 employer subset through the common ingestion/deduplication pipeline and measure Good/Stretch/false-positive yield without changing thresholds. Preserve official source identity so Telegram copies converge.
