@@ -1,5 +1,15 @@
 # Handoff
 
+## Current restart point — approved roadmap documentation checkpoint (2026-10-18)
+
+Working branch `work/dec-approved-roadmap-20261018` is based on current feature `1c12976c25e0c8d3fadb9b132501dc46a482ed4f`; baseline was clean at `24480ef`, an ancestor of feature. PR #50/#51 are merged. The owner-approved DEC docs checkpoint is `d654584`, pushed in Draft PR #52. Exact-head CI for `d654584` completed successfully: Python checks, secret scan and Docker build passed (run #399). Follow-up evidence/docs are local and need a fresh exact-head CI after push. Follow-up documentation commits are local only because GitHub TLS requests are timing out; the remote branch still points to `d654584`.
+
+P0-1 isolated HTTP smoke was run against the dev source mounted into the local validation image and an isolated tmpfs PostgreSQL test DB: invalid login did not authenticate, anonymous Dashboard redirected to login (303), owner login redirected successfully (303), all ten pages (Dashboard, Search, Jobs, Review, Profiles, Sources, Relocation, CV, Applications, Diagnostics) returned 200, and a mutation without CSRF returned 403. The test DB was stopped without volume deletion. This is HTTP route/security evidence, not visual browser acceptance; foreign-owner route isolation remains covered by `tests/test_web_workspace_postgres.py` and exact-head CI has not been rechecked. Local pytest could not run because this checkout has no `.venv` and system Python has no pytest.
+
+Next: restore GitHub connectivity, push all local follow-up documentation commits, and verify CI on the updated exact PR head. Then run/confirm owner-isolation PostgreSQL route coverage. P0-2 still needs a permitted fresh source-backed yield sample; latest available historical runtime pass had 271 processed, Career 52 Good/26 Stretch and Relocation 0 Good/Stretch (49 scoring-filtered, 50 preference-excluded). Do not infer refreshed yield from that snapshot. Runtime browser acceptance, deployment and external applications remain out of scope; runtime, production DB, Telegram bot, and Docker volumes were not changed. Continue from root `ROADMAP.md`, approved `DECISIONS.md`, and `docs/developer/WEB_GUI_ROLLOUT.md`.
+
+## Historical handoffs
+
 ## Current handoff — 2026-10-18 HH real-yield stabilization
 
 PR #51 already contains the connected Web MVP; working code now also fixes the concrete real-source sample where HH returned teacher/sales titles for `cleaner`. Both HH API and web fallback require a meaningful query token in title, excluding generic role words. Targeted HH suite passed 19; full isolated PostgreSQL suite passed 1327; test DB is stopped. Commit/push code/tests/docs and wait for exact-head CI, then merge to the feature branch. Existing runtime data and services remain unchanged; refreshed yield requires gated deployment and rediscovery.

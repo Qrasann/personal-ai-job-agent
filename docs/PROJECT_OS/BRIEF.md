@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## Owner-approved roadmap and active checkpoint (2026-10-18)
+- DEC-001–015 are owner-approved requirements; implementation status is tracked separately in the canonical `ROADMAP.md` and `docs/PROJECT_OS/DECISIONS.md`. In particular, approved is not implemented, tested, owner accepted, or released.
+- Current P0: isolated Web owner-acceptance path and measurable Career-first/Relocation-first usefulness, including zero-yield diagnosis. Runtime deployment and all external applications remain unauthorized in this task. See current `docs/PROJECT_OS/HANDOFF.md` and `docs/developer/WEB_GUI_ROLLOUT.md`.
+- Current dev work starts from feature checkpoint `1c12976`; preserve existing GUI, Telegram Folder Watcher, international coverage and Candidate Fit work. DEC-001–015 implementation beyond evidenced existing behavior is pending.
+
 ## Current Web GUI priority (2026-10-18)
 - Owner reprioritized a private Web GUI and real Career-first/Relocation-first search ahead of later v4.x productization. `app/web.py` adds a local owner-scoped workspace across Dashboard, Search, Jobs, Review, Profiles, Sources, Relocation, CV and Applications using the existing repository and scan service. Jobs includes below-threshold manual leads while retaining reasons and excluding domestic onsite from Relocation-first. Profiles accepts owner-confirmed Candidate Facts with evidence; CV previews PDF/DOCX/TXT and explicit fact choices; Applications displays frozen package/history. It is an implementation increment, not deployed or live accepted. See `docs/developer/WEB_GUI.md` and the current HANDOFF.
 - Existing Telegram `/parallelsearch on`, `/relocationroles`, `/scan`, `/scanstatus` already support immediate two-track search when the running bot has access and configured sources. No runtime changes or live vacancy claims were made here.

@@ -1,3 +1,11 @@
+## 2026-10-18 — isolated Web route/security smoke
+
+Using `job-agent-web-mvp-validation:local` with the development `app/` mounted read-only and only the isolated tmpfs PostgreSQL service, exercised the actual aiohttp process over localhost. Invalid login did not authenticate; anonymous Dashboard redirected (303); owner login redirected (303); all ten workspace pages returned 200; mutation without CSRF was rejected (403). Test DB stopped without removing volumes. This is HTTP route evidence, not visual browser acceptance or fresh real-vacancy evidence. Local pytest is unavailable (`.venv` and pytest module absent); GitHub CI on pushed docs checkpoint `d654584` completed successfully on run #399: Python checks, secret scan, and Docker build all passed. Follow-up handoff/documentation commits are local pending network recovery; PR #52 still points to `d654584`. No runtime/production/Telegram/volumes were changed.
+
+## 2026-10-18 — owner-approved product direction consolidated
+
+Verified that the owner-provided DEC-001–015, agreed roadmap, and implementation plan exist outside the repository. Confirmed dev baseline `24480ef` is clean and is an ancestor of the fetched feature merge `1c12976`; started focused branch `work/dec-approved-roadmap-20261018` from feature. Documentation update records all approved decisions without claiming unbuilt features, updates the canonical root roadmap's execution priorities, and refreshes the current brief/task/handoff. No code, runtime, production data, volumes, credentials, or external applications changed. `git diff --check` and `scripts/secret-scan.sh` passed; local checkpoint `d654584` is pushed in Draft PR #52 to feature. Exact-head CI is running. No code or runtime behavior changed in this docs increment.
+
 ## 2026-10-17 — Telegram US Georgia city ambiguity
 
 Offline fixtures reproduced `Atlanta, Georgia` and `Savannah, Georgia` being assigned country GE. A narrow explicit US-city cue now conflicts with the bare country name and leaves country unknown, preventing false Georgia-country attribution; `Tbilisi, Georgia` remains GE. Targeted Telegram suites: 57 passed, 1 skipped; full isolated PostgreSQL suite: 1300 passed. No live Telegram/source use or legal conclusion.
