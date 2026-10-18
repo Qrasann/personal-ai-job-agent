@@ -3,7 +3,7 @@
 - [x] Verify clean dev worktree, fetch origin, confirm PR #50/#51 merged and base focused work on feature `1c12976`.
 - [x] Add all 15 approved decisions to the existing `DECISIONS.md`; align the single root `ROADMAP.md` with current P0/P1/P2 execution order without removing history.
 - [x] Mark implementation/test/owner acceptance/release as separate evidence states. Refresh BRIEF and HANDOFF; retain historical task entries.
-- [x] Run documentation gates, create checkpoint `d654584`, push dev branch and open Draft PR #52 to feature. Secret scan passed; Python/Docker CI was in progress at last query. Local follow-up handoff/docs commits await push because GitHub TLS is timing out; remote branch remains at `d654584`.
+- [x] Run documentation gates, create checkpoint `d654584`, push dev branch and open Draft PR #52 to feature. Exact-head CI passed on `d654584` (Python, secret scan, Docker). Local follow-up evidence/docs still await push for updated exact-head CI; remote branch remains at `d654584`.
 - [x] P0-1 isolated HTTP smoke: invalid/owner login, anonymous redirect, all ten pages return 200, missing-CSRF mutation denied (403) against disposable tmpfs PostgreSQL. Not visual browser acceptance; foreign-owner PostgreSQL test and exact CI result still need confirmation. Local pytest unavailable.
 - [ ] P0-2: refresh source-backed Career/Relocation yield and diagnose zero-yield causes with permitted sources; historical counts remain historical and no score thresholds changed.
 - [ ] Continue onboarding/geography, CV-to-application, voluntary Skill Check/Interview, AI Router/Stack Watch and privacy lifecycle in roadmap order.
