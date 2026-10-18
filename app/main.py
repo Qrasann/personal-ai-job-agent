@@ -10,7 +10,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.candidates.bootstrap import bootstrap_user
 from app.config import settings
 from app.database.db import init_db
-from app.services import scan_all, scan_hh_chats
+from app.services import scan_all, scan_hh_chats, retry_job_notifications
+from app.sources.telegram_watch import retry_telegram_watch
 from app.telegram.handlers import router
 from app.telegram.settings_handlers import router as settings_router
 
@@ -19,6 +20,36 @@ logger = logging.getLogger(__name__)
 
 TELEGRAM_RETRY_INITIAL_SECONDS = 5.0
 TELEGRAM_RETRY_MAX_SECONDS = 60.0
+STARTUP_SCAN_MISFIRE_GRACE_SECONDS = 300
+
+
+def _schedule_jobs(scheduler: AsyncIOScheduler, bot: Bot) -> None:
+    scheduler.add_job(
+        scan_all,
+        "interval",
+        minutes=settings.search_interval_minutes,
+        args=[bot],
+        max_instances=1,
+        coalesce=True,
+        next_run_time=datetime.now(),
+        misfire_grace_time=STARTUP_SCAN_MISFIRE_GRACE_SECONDS,
+    )
+    scheduler.add_job(retry_telegram_watch, "interval", minutes=1, args=[bot],
+                      id="telegram_watch_retry", max_instances=1, coalesce=True)
+    scheduler.add_job(
+        retry_job_notifications, "interval", minutes=1, args=[bot],
+        id="job_alert_retry", max_instances=1, coalesce=True,
+        next_run_time=datetime.now(),
+    )
+    if settings.hh_private_api_enabled and settings.hh_access_token:
+        scheduler.add_job(
+            scan_hh_chats,
+            "interval",
+            minutes=settings.hh_chat_interval_minutes,
+            args=[bot],
+            max_instances=1,
+            coalesce=True,
+        )
 
 
 async def wait_for_telegram(
@@ -48,8 +79,8 @@ async def wait_for_telegram(
         except TelegramNetworkError as exc:
             attempts += 1
             logger.warning(
-                "Telegram API unavailable: %s; retrying in %.0fs",
-                exc,
+                "Telegram API unavailable (%s); retrying in %.0fs",
+                type(exc).__name__,
                 delay,
             )
             await sleep(delay)
@@ -71,9 +102,7 @@ async def main() -> None:
     dp.include_router(router)
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(scan_all, "interval", minutes=settings.search_interval_minutes, args=[bot], max_instances=1, coalesce=True, next_run_time=datetime.now())
-    if settings.hh_private_api_enabled and settings.hh_access_token:
-        scheduler.add_job(scan_hh_chats, "interval", minutes=settings.hh_chat_interval_minutes, args=[bot], max_instances=1, coalesce=True)
+    _schedule_jobs(scheduler, bot)
 
     try:
         await wait_for_telegram(bot)

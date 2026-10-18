@@ -1,123 +1,959 @@
 # Current State
 
-## Latest state
-- Stable GitHub `main` contains source version v3.5.6; PRs #15 and #16 are
-  merged. Deployed application code is `170ed4e`; later commits in PR #16
-  updated documentation. Merge CI run `38135649948` passed.
-- `README.md` and `README.ru.md` now provide English and Russian entry points
-  on `main`. The merged feature branch is inactive; start future implementation
-  work from `main` on a new v3.5.7 feature branch.
-- Latest formal GitHub Release/tag: v3.5.6, pointing to release commit
-  `50afdab`. Changelog entries v3.5.2–v3.5.5 are cumulative milestones
-  included in the release. Main CI run `38138941745` passed.
-- Bilingual GitHub Release: https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- local Compose project `repo` runs source/runtime 3.5.6; app is polling and
-  PostgreSQL is healthy.
-- the startup dual-profile scan completed successfully after the latest update.
-  Arbeitnow, EURES, and HR.ge requests returned HTTP 200; no JOBS.GE request or
-  source failure appeared. Existing named PostgreSQL/storage volumes remain
-  attached.
-- Owner's later Telegram scan confirmed Arbeitnow retry recovery after a
-  `ReadTimeout` (retry returned HTTP 200). Supplied logs show EURES, HR.ge, Job
-  Bank, and HH requests succeeding; the Telegram update took 162.7 seconds.
-  `/scanstatus` attributes 99.5 seconds to Job Bank, 17.1 to Arbeitnow, 14.5
-  to EURES, 13.0 to HR.ge, 7.6 to HH, and 1.5 to Remote OK.
-- Owner confirmed `/sources` marks JOBS.GE paused after HTTP 410. The completed
-  scan returned HH 209, Remote OK 3, Arbeitnow 2, Job Bank 12, EURES 16, and
-  HR.ge 2. Later log tail shows scheduled `scan_all` completed and Telegram
-  updates were handled within 117–677 ms, with no errors in the excerpt.
-- Owner completed the final Telegram release checks: `/import` rejected ZIP,
-  recognized duplicate resumes and saved TXT resume #6 after confirmation
-  (zero facts proposed); `/job 580` rendered Recommendation v2 and left
-  unsupported dimensions unknown. The supplied latest log tail shows
-  `scan_all` completed successfully at 12:12:59 UTC.
-- local Compose project `repo`: app polling as `@roma_job_agent_bot`; PostgreSQL
-  healthy; original `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes
-  preserved.
-- Telegram `/salary` supports current, desired and minimum values by currency;
-  minimum remains connected to scoring.
-- Telegram `/blacklist` supports case-insensitive add/remove/clear across active
-  Career-first and Relocation-first profiles.
-- latest full PostgreSQL-backed suite: 233 passed, 67.67% branch coverage
-  (55% gate).
-- PR #16 push/PR checks `38135381779` and `38135384930` passed; merge commit
-  CI run `38135649948` passed.
-- Public competition-data audit found no per-vacancy applicant counts in the
-  connected public feeds; employer-only counts remain unknown in this app.
-- v3.5.3 Fast Scan & Scan Dashboard: source discovery is bounded to three
-  concurrent adapters; manual scans persist status/timings in `runtime_state`
-  and expose `/scanstatus` and `/cancel`.
+## 2026-10-17 — Telegram US Georgia city ambiguity
 
-## Stable baseline
-- GitHub `main` and the cumulative formal release: v3.5.6; tag target
-  `50afdab`.
-- PR #15 merge commit: `062eb253bdf8435782e5fcca6cfb1257b271ea86`.
-- PR #16 merge commit: `874b37255e3bb223d2b49d83027f15b48acfe7c4`.
+Two offline fixtures showed `Location: Atlanta, Georgia` and `Savannah, Georgia` being assigned country GE, which could enter Georgia-country relocation searches. The parser now leaves country unknown when these explicit US Georgia city patterns conflict with the bare country name; `Tbilisi, Georgia` still resolves GE. This is location classification only and does not infer work authorization. Targeted Telegram suites: 57 passed, 1 skipped; full isolated PostgreSQL suite: 1300 passed. No live channel access or production change.
 
-## Active development
-- `main` is the stable source; PR #16 is merged. v3.5.6 is the latest formal
-  tag/release and includes the untagged v3.5.2–v3.5.5 milestones. The next
-  implementation work starts on a new feature branch from `main` for v3.5.7.
-- Job Bank is the measured latency bottleneck at 99.5 seconds. Preserve its
-  five-second request pacing while evaluating any optimization.
+## 2026-10-17 — expose Telegram channel quality counters
 
-## Implemented on active branch
-- enable/disable implemented job sources;
-- per-source priority;
-- multi-country selection and country priority;
-- current city + selected cities + other cities + other countries + worldwide scope;
-- relocation / visa / work permit / relocation package / immigration support policies;
-- policies: any, prefer, require, exclude;
-- generic pre-filter and processing priority before matching;
-- button-driven Telegram Search Control Center;
-- backward-compatible storage in SearchProfile.settings;
-- unit tests for the preference engine.
-- explicit `career_first`, `relocation_first` and `balanced` strategies;
-- separate career and relocation discovery query lists, combined only in balanced mode;
-- conservative relocation ordering: evidence raises priority, missing evidence remains unknown;
-- Telegram strategy selector and `/relocationroles` command.
-- opt-in `/parallelsearch on|off|status` for independent Career-first and Relocation-first SearchProfiles;
-- per-profile discovery, filtering, ordering, counters and matching in one scan;
-- idempotent profile creation that preserves legacy profile IDs and saved relocation settings.
-- strategy-aligned role scoring, so Relocation-first vacancies are evaluated against `relocation_queries` rather than the career role list.
-- public Arbeitnow Germany discovery with English-to-German aliases for configured broad roles and conservative visa/relocation evidence extraction.
-- public Job Bank Canada international TFW discovery with separate eligibility,
-  LMIA status and explicit support evidence; Canada country selection.
-- public EURES discovery restricted to employer-flagged cross-border vacancies;
-  its recruitment flag never implies visa or relocation support.
+The watcher persisted filtered and duplicate assessment counts but `/channels` hid both. Its header also described Bot API as the only automatic path after the optional local folder client was added. The dashboard now shows received/processed, possible vacancies, non-vacancies, Good/Stretch, filtering, duplicate assessments, notifications, replays and errors with truthful intake options. The two regression assertions failed before the fix; full offline unit suite: 1277 passed, 21 isolated PostgreSQL tests skipped. No DB or live Telegram action.
 
-## Verified in the current development environment
-- Parent feature baseline: 166 passed with isolated PostgreSQL 16, 62.57% branch coverage.
-- Previous dual-mode suite: 173 passed with isolated PostgreSQL 16, 62.84% branch coverage.
-- Full parallel-profile suite: 175 passed with isolated PostgreSQL 16, 63.22% branch coverage.
-- Strategy-aligned scoring suite: 176 passed with isolated PostgreSQL 16.
-- Python compilation, `git diff --check` and repository-history secret scan passed.
-- Local manual Telegram smoke test passed for v3.5.2 startup, schema 2/2, parallel profile activation and dual-profile `/scan`.
-- Job Bank source-stage verification and publication are recorded in
-  DEVELOPMENT_LOG.md and HANDOFF.md.
-- Job Bank source-stage full suite: 191 passed against isolated PostgreSQL 16,
-  64.16% branch coverage (55% gate).
-- Local Compose `repo` was rebuilt from the source-stage worktree; both profiles
-  remained active and the startup scan including Job Bank completed successfully.
-- Current fast-scan startup completed successfully at 21:04:51 UTC on 2026-10-10;
-  public HH web fallback, RemoteOK, Arbeitnow, Job Bank searches and Job Bank
-  detail fetches returned successfully. GitHub CI run 105 passed.
-- Owner-provided real-chat smoke test confirmed `/salary`, `/blacklist`,
-  `/scanstatus`, `/cancel`, `/import` prompt, `/version` (3.5.6, schema 4/4,
-  migration OK), and `/status` (ACTIVE). Later acceptance covered a TXT resume
-  import and Recommendation v2 vacancy details; see the latest state above.
-- EURES now requests identity-encoded responses. A direct live check showed
-  compressed response reads failing while identity encoding returned a complete
-  50-result response. The first post-update scan showed successful EURES search
-  and detail requests; continue monitoring subsequent runs.
-- The updated `/targets` applies markets to all active profiles by default and
-  supports explicit `career`/`relocation` scope. `/sources` lists plans per
-  active profile. Owner has confirmed Relocation-first targets GE and reported
-  a live scan; the follow-up pauses JOBS.GE after HTTP 410 and retries one
-  transient Arbeitnow transport failure. A subsequent owner Telegram log
-  confirms retry recovery; exact source timings remain pending `/scanstatus`.
-- The owner has completed the Telegram acceptance required for cumulative
-  release v3.5.6; no v3.5.7 source or runtime change has been made yet.
+## 2026-10-17 — explicit candidate posts excluded from folder yield
 
-## Merge rule
-main remains the stable source until full CI and manual Telegram smoke tests pass.
+Offline regressions reproduced four false vacancy candidates with first-line `#OpenToWork`, `#ищуработу`, `Резюме:` and `Resume:`. The narrow header filter now counts them as non-vacancy posts without ingestion; a job post that asks applicants to send a résumé later remains eligible. Full isolated PostgreSQL suite: 1298 passed. PR #46's folder intake is merged at feature `486819d`; this follow-up is local on `work/telegram-folder-post-quality`. No live posts were inspected.
+
+## 2026-10-17 — optional Telegram folder preview and selected-channel intake
+
+Owner-provided local 21-chat manifest and handoff were inspected: they contain display labels but no verified chat IDs, usernames, types or access. The optional local Telethon client previews the folder through the official read-only method, writes a private disabled-by-default inventory and polls only explicitly enabled broadcast IDs with account-wide updates disabled, after rechecking current folder identity; a private cursor supports bounded catch-up after restart. It does not join, send from the user account, read private chats or scan posts preceding its first-run cursor. The existing watcher now preserves Telegram publication dates through retry, skips explicit candidate/ad headers, validates public usernames and reports per-channel possible-vacancy and rejection counters. Live access and false-positive yield are unverified. Isolated PostgreSQL full suite: 1294 passed after scoped polling; the added publication-date persistence regression passed separately (1). No production or user login.
+
+## 2026-10-17 — Recruiter work-eligibility questions require human review
+
+Reproduced five questions about visa sponsorship, legal work authorization, citizenship, Russian work permits and Russian citizenship receiving `requires_human=False` when the model requested no review. Explicit English/Russian sensitive markers now override the model and require human review. Recruiter tests: 15 passed; full unit suite: 1257 passed/21 skipped; compileall, diff check and secret scan passed. No outbound message sent. Feature is `0a50a29`; current fix is local on `work/recruiter-eligibility-human-review`.
+
+## 2026-10-17 — Application Package Telegram delivery retry integration
+
+Added an offline PostgreSQL handler+repository integration path: `/prepare` saves an Application, its Telegram edit fails, then retry returns the saved package without replacing its content or adding a duplicate. Targeted isolated PostgreSQL file: 2 passed; full unit suite 1252 passed/21 skipped; CI green. No application is sent. Merged in PR #43 at feature `0a50a29`.
+
+## 2026-10-17 — source publication-age telemetry
+
+Source diagnostics previously reported only whether a publication-date field was populated. Added age buckets for timezone-aware source timestamps: ≤7 days, 8–30 days, >30 days, and unknown (including missing, timezone-naive, malformed, or future timestamps). This is source-quality telemetry only; it never filters a listing or calls an old posting closed. Targeted suites 104 passed; full unit 1252 passed/20 skipped; CI green. Merged in PR #42 at feature `f6e354b`.
+
+## 2026-10-17 — Candidate Fit negated requirement variants
+
+Probes showed contractions (`isn't required`), “not a hard requirement/must-have”, and “no previous Linux experience is necessary” still became required. Added narrow normalization for `isn't` and direct variants; all 11 explicit non-requirement fixtures now classify unknown. Prior positive-after-`but`/`and` regression remains required. Full unit suite 1241 passed/20 skipped; CI green. Merged in PR #41 at feature `543057f`.
+
+## 2026-10-17 — Greenhouse Georgia postal-code state marker
+
+After PR #38 handled explicit US country qualifiers, fixtures reproduced `Atlanta, Georgia, GA`, `Georgia (GA)`, and `GA, Georgia` still entering GE searches. Greenhouse now treats explicit Georgia+GA as US-state ambiguity and leaves country unknown; `Tbilisi, Georgia (GE)` remains GE. Greenhouse + Remotive tests: 52 passed; full unit 1234 passed/20 skipped; CI passed. No database or live-source change. Merged in PR #40 at feature `d618dc8`.
+
+## 2026-10-17 — Candidate Fit non-requirement wording
+
+Reproduced four false hard requirements: “Linux is not a requirement”, “not essential”, “not a prerequisite”, and “No Linux background needed”. Direct negations now remain unknown; positive clauses after “but” or “and” remain required. Fact-comparison suite: 60 passed; combined suites 101 passed; full unit suite 1231 passed/20 skipped; CI green. Merged in PR #39 at feature `c73a38f`. No score-weight, schema, or live-data change.
+
+## 2026-10-17 — disambiguate Georgia (US state) in Greenhouse locations
+
+Greenhouse's location parser treated any `Georgia` substring as the country code GE. A US-state listing such as “Atlanta, Georgia, USA” therefore entered a Georgia-targeted search. Explicit US qualifiers (USA, U.S.A., U.S., US, United States, United States of America) now leave country unknown and exclude the listing from the GE market; unqualified “Tbilisi, Georgia” remains GE. Regression was red before the fix. Greenhouse/Remotive/relocation suites: 84 passed; full isolated PostgreSQL suite: 1246 passed; test DB stopped; compileall, diff check and secret scan passed. No live source or schema changes. Feature is synced at `1e66216`; follow-up is local on `work/greenhouse-georgia-state-disambiguation`.
+
+## 2026-10-17 — exclude medical-professional networks from technical Candidate Fit
+
+Follow-up fixtures reproduced `network of medical professionals` and `network of physicians and nurses` being treated as required technical Networking skills. The narrow organizational-network exclusion now covers medical professionals, physicians, doctors and nurses, alongside the previously tested institutional types. Network routing and firewall requirements remain recognized. Fact-comparison/technical-score tests: 91 passed; full isolated PostgreSQL suite: 1240 passed; DB stopped; compileall, diff check and secret scan passed. No score changes. Integrated by PR #37 at feature commit `1e66216` after CI passed.
+
+## 2026-10-17 — separate EURES detail request budget from search result coverage
+
+`max_details=8` was applied before returning results, so a source search that had already collected additional valid EURES cards silently discarded them. The adapter now keeps all validated cards from its bounded query/page requests while fetching details for at most the first eight; un-enriched cards retain search-level fields and the official portal fallback. Regression was red with five cards and a two-detail limit: the old code returned only two; the fix returns all five with exactly two detail requests. EURES tests: 27 passed; full isolated PostgreSQL suite: 1238 passed; DB stopped; compileall, diff check and secret scan passed. No additional network calls or schema changes. Branch `work/eures-search-card-coverage` is based on feature `52aeb1c`.
+
+## 2026-10-17 — avoid classifying healthcare organizations as technical networks
+
+Candidate Fit's broad `network` alias classified “a nationwide network of clinics and hospitals” as a required Networking skill in a non-technical healthcare vacancy. Added a narrow exclusion for organizational networks (clinics, hospitals, care/healthcare providers, schools, universities, pharmacies); explicit network routing and firewall requirements still match. Regression was red before the fix. Fact-comparison/technical-score tests: 89 passed; full isolated PostgreSQL suite: 1237 passed; test DB stopped; compileall, diff check and secret scan passed. No scoring changes. Integrated by PR #35 at feature commit `52aeb1c` after all CI checks passed. Follow-up adds medical-professional, physician, doctor and nurse network variants.
+
+## 2026-10-17 — preserve valid EURES search cards after detail failures
+
+EURES returned a valid employer-flagged search card with title/description and official portal URL, but a failing detail request caused the adapter to discard it. When all detail requests failed, it raised and returned no search results. The adapter now uses successful detail responses where available and falls back to each already-validated search card for failed details, preserving source attribution and the official portal link. Existing `partial_failures` and typed detail diagnostics remain active. Red regressions cover one failed detail among successes and all detail requests failing. EURES tests: 26 passed; full isolated PostgreSQL suite: 1235 passed; test DB stopped; compileall, diff check and secret scan passed. No schema or live-source changes. Integrated by PR #34 at feature commit `fe05acf` after all CI checks passed. PR #36 subsequently separated the eight-detail HTTP budget from returned-card coverage; all validated cards from bounded search pages are retained.
+
+## 2026-10-17 — preserve work-authorization restriction over worldwide boilerplate
+
+A posting saying “Applicants must already be authorized to work in Canada. Work from anywhere.” was classified remote-eligible because the worldwide phrase overrode a country-specific authorization prerequisite. `analyze_job_signals` now treats an explicit existing work-authorization requirement like other remote scope restrictions and leaves eligibility `uncertain`; this avoids both a false “yes” and an unsupported rejection. Regression was red before the fix. Relocation/source suites: 149 passed; full unit suite without PostgreSQL: 1214 passed, 20 skipped. No persistence/schema change. Integrated in PR #33 at feature commit `abe9d35`; all CI checks passed.
+
+## 2026-10-17 — make concurrent resume import confirmation idempotent
+
+Two confirmations for the same uploaded resume could pass the Telegram precheck concurrently and persist duplicate resume/fact rows. The repository now locks the candidate profile and checks the imported source/fingerprint inside the same transaction before applying facts. The loser gets the existing resume ID; Telegram reports the already-imported item and clears its stale preview. Targeted Telegram/repository tests: 28 passed; full isolated PostgreSQL suite: 1233 passed; compileall, diff check and secret scan passed. No schema or production change. Current feature base: `0a35f9e`; current branch: `work/candidate-import-idempotency`. Next: checkpoint/PR and CI, then a distinct offline Source Intelligence or Relocation-first issue.
+
+## 2026-10-17 — cool down HH after connection timeouts
+
+Regression reproduced HH `ConnectTimeout` being retried for every enabled search profile in one scan because `_discover_hh` only started its backoff for `ConnectError`. HH discovery now applies the existing bounded 15-minute cooldown to both connection error classes. The first timeout remains visible as `NETWORK_CONNECT_TIMEOUT`; a later profile is skipped without a duplicate connection, while unrelated sources continue. Existing ConnectError and TLS-diagnostic behavior remains covered. Targeted tests: 3 passed; full isolated PostgreSQL suite: 1231 passed; compileall, diff check and secret scan passed. No live HH request or production change.
+
+## 2026-10-17 — compare common Russian technical transliterations in Candidate Fit
+
+Red regressions reproduced three common Russian vacancy spellings (`Линукса`, `Докера`, `Кубернетесом`) disappearing from canonical requirement extraction, so matching Candidate Facts could not be credited. Linux, Docker and Kubernetes now include only those tested Russian forms/inflections as aliases; canonical skill names and scoring weights remain unchanged. A model-level regression asserts only Application history uses `RESTRICT`, while JobSourceRef retains `CASCADE`. Focused fact-comparison/model-foundation tests: 63 passed; full isolated PostgreSQL suite: 1230 passed. Compileall, diff check and secret scan passed. No schema change in this follow-on.
+
+## 2026-10-17 — make Application Package retries idempotent and preserve audit history
+
+Reproduced two integration gaps identified while reviewing PR #31 and PR #27. New `/prepare` packages now persist an internal match marker in their frozen vacancy snapshot. Repository lookup reuses the same package across Telegram delivery retries and after manual status progression; the existing `JobMatch` row lock serializes concurrent retries, so only one draft and one initial status event are created. Legacy snapshots without the marker cannot be mapped safely to a match. Schema v8 changes `applications.job_id` to `ON DELETE RESTRICT`; a v7-to-v8 isolated PostgreSQL test proves attempted job deletion leaves the application, snapshot and status history intact. Targeted tests: 58 passed. Full isolated PostgreSQL suite: 1226 passed. Compileall, diff check and secret scan passed. No production DB, deployment, GitHub or employer actions. Next: integrate and publish only after branch/PR compatibility review; then continue Source Intelligence/Candidate Fit.
+
+## 2026-10-17 — avoid wildlife false positive for ELK
+
+The bare lowercase word `elk` previously matched the ELK logging stack, potentially adding a false technical requirement to non-IT relocation vacancies. Matching now retains explicit ELK Stack/component forms and uppercase `ELK`, but not lowercase wildlife usage. Fact-comparison tests 43 passed; full unit suite 1180 passed / 17 skipped; isolated PostgreSQL suite 1197 passed. No score weights changed.
+
+## 2026-10-17 — distinguish contact networks from technical Networking
+
+`network of industry contacts` was parsed as the Networking skill and could lower fit. Explicit business/contact-network phrases are now excluded; technical networking and firewall terms still match. Coverage includes industry contacts, professional contacts and stakeholder networking. Focused fit suites 74 passed; full unit suite 1182 passed / 17 skipped; isolated PostgreSQL 1199 passed. Scoring weights and thresholds unchanged.
+
+## 2026-10-17 — avoid double-counting Docker Compose in Candidate Fit
+
+A `Docker Compose` mention matched both Docker and Docker Compose, inflating the required-skill denominator and breaking compound OR groups. The extractor suppresses the embedded Docker token unless Docker is separately mentioned; explicit standalone Docker remains. Fit tests 71 passed; full unit suite 1178 passed / 17 skipped; isolated PostgreSQL 1195 passed. No weights or thresholds changed.
+
+## 2026-10-17 — Remotive Georgia country disambiguation
+
+Remotive location parsing previously read `Georgia, USA` as both GE and US, allowing a US-state-only listing to pass a GE target filter. Explicit US qualifiers (USA, U.S.A., U.S., United States) now suppress the ambiguous GE alias; unqualified `Georgia` remains GE. Remotive tests 13 passed; full unit suite 1175 passed / 17 skipped; isolated PostgreSQL suite 1192 passed. The source parser is offline-tested; US is not a selectable target in the current country catalog, so no US-market search support is claimed.
+
+## 2026-10-17 — require explicit citizenship restriction wording
+
+Neutral references to citizens in vacancy text were incorrectly captured as a hiring restriction. Citizenship terms now require explicit limiting language (for example `citizens only` or equivalent native-script forms); neutral mentions remain unknown. Existing US, Armenian and Georgian explicit forms still pass. Relocation evidence tests 32 passed; full unit suite 1170 passed / 17 skipped; isolated PostgreSQL suite 1187 passed. Test DB stopped; fixtures only.
+
+## 2026-10-17 — Armenian/Georgian citizenship evidence
+
+Relocation Evidence previously missed explicit Armenian and Georgian native-script citizen wording. The extractor now preserves these as source text with `citizenship` scope; it does not infer legal eligibility, residence, or permission to work. Targeted evidence tests: 29 passed; full unit suite: 1167 passed, 17 skipped; full isolated PostgreSQL suite: 1184 passed. Test DB stopped. Offline fixtures only.
+
+## 2026-10-17 — Armenian/Georgian native language cues
+
+Relocation Evidence now classifies narrow native-script Armenian and Georgian words for required, preferred and explicit negative language conditions. Negative phrases remain unspecified rather than becoming false hard requirements. The lexical cues are recorded as descriptive evidence only. Relocation evidence tests: 27 passed; full isolated PostgreSQL suite: 1182 passed. No candidate proficiency, legal eligibility or work permission is inferred.
+
+## 2026-10-17 — Armenian and Georgian language evidence
+
+Relocation evidence now recognizes Armenian and Georgian language mentions in English names, Russian adjectives and native scripts, normalizing them to canonical language names. Clear English/Russian required/preferred cues retain their status; native text without a supported cue stays unspecified. Relocation evidence tests: 21 passed; full isolated PostgreSQL suite: 1176 passed. No legal eligibility or language proficiency is inferred.
+
+## 2026-10-17 — EURES application-link validation
+
+EURES no longer persists untrusted application instructions containing unsafe schemes, credentials, malformed authorities/ports or URLs too long for the Telegram link renderer. A rejected link leaves the known official EURES portal destination intact, so the vacancy remains accessible. EURES/vacancy-link tests: 69 passed; full isolated PostgreSQL suite: 1170 passed. No link was fetched or opened.
+
+## 2026-10-17 — safe source URL rendering
+
+Telegram vacancy details previously emitted any stored URL as an HTML link. A shared bounded HTTP(S) validator now rejects unsafe schemes, protocol-relative URLs, userinfo, malformed authorities and oversized/control-character values in vacancy details, source attribution lists and `/prepare` preview. Link/rendering suites: 112 passed; full isolated PostgreSQL suite: 1164 passed; added unsafe-link regressions: 6 passed. External links remain user-opened; no network navigation or employer action occurs.
+
+## 2026-10-17 — EURES boolean timestamp validation
+
+EURES `creationDate` values `true`/`false` previously passed Python's numeric type check and became publication timestamps in 1970. They now remain unknown; valid numeric epoch milliseconds continue to normalize to UTC. EURES tests: 21 passed; full isolated PostgreSQL suite: 1161 passed. Offline fixtures only.
+
+## 2026-10-17 — EURES optional metadata isolation
+
+Malformed non-object `locationMap` or `employer` metadata no longer raises while parsing a valid EURES search listing. Country/employer remain unknown when their optional blocks are malformed, and sibling listings survive. EURES tests: 19 passed; full isolated PostgreSQL suite: 1159 passed. This is fixture-based parser verification, not a live EURES check.
+
+## 2026-10-17 — EURES query token boundaries
+
+EURES title relevance no longer lets a query token match the middle of a different word (`Java` versus `JavaScript`). It still accepts whole meaningful tokens and punctuation-bearing skill tokens, and retains the adapter's existing any-token behavior. Regression reproduced before the fix. EURES tests: 18 passed; full isolated PostgreSQL suite: 1158 passed. No network calls, scoring changes or schema changes.
+
+## 2026-10-17 — precise GitLab CI Candidate Fit
+
+Candidate Fit no longer treats generic GitLab repository/project mentions as GitLab CI experience. Explicit CI/CD, pipeline or runner context still matches, including reversed “CI/CD based on GitLab” wording. This prevents irrelevant candidate facts from creating a required technical fit score. Focused Candidate Fit/scoring/resume/interview tests: 101 passed; full isolated PostgreSQL suite: 1157 passed. No scoring weights or thresholds changed.
+
+## 2026-10-17 — source first-seen provenance
+
+Vacancy details now label the stable source-reference `first_seen_at` as discovery time instead of using relocation evidence `captured_at`, which refreshes each scan and could make an old posting look newly discovered. Naive database timestamps are exposed as explicit UTC; evidence capture time remains separate. Targeted tests: 49 passed; isolated PostgreSQL suite: 1154 passed. No schema or live-source changes.
+
+## 2026-10-17 — local search-quality increments
+
+Current branch `work/v357-rejection-diagnostics` adds per-profile/source rejection reasons, RemoteOK/fallback whole-term role matching (including QA/HR/Go/C# and system/systems), specific CV role selection, explicit RemoteOK/Arbeitnow location limits such as `Germany only`, UTF-16-safe scan summaries, malformed optional tag/salary/date isolation, safe and bounded Himalayas application-link/provider-ID validation and bounded unconfirmed resume-import previews. Latest offline increments cover `/prepare` delivery failure UX, atomic Application tracking history, protection against replacing a canonical fingerprint with blank geography, explicit OpenTelemetry Candidate Fit matching, and concurrent cross-source canonical deduplication with both source refs retained. Synthetic regressions also cover lost/irrelevant roles, lost scope, message overruns, parser failures and bounded preview memory. Plain office/global labels remain unknown; no legal eligibility is inferred. Full isolated PostgreSQL suite: 1154 passed. Live usefulness remains unverified; PR #31 stays separate and unmerged. Use BRIEF/HANDOFF for current work; older entries below are dated evidence.
+
+## 2026-10-15 — score exact incoming source posting
+
+Ingestion scoring and notification use the normalized snapshot of the exact source ID/provider posting ID being processed. HH full-detail prefilter uses that exact provider ID. This avoids cross-source canonical fields and links in a new observation. Full isolated PostgreSQL 1017 passed.
+
+## 2026-10-15 — align Interview Agent with skill alternatives
+
+Explicit required/preferred skill OR groups now yield one labelled practice exercise. The selected option is deterministic and prefers the strongest saved Candidate Fact; the plan does not imply every alternative is mandatory. Full isolated PostgreSQL 1016 passed.
+
+## 2026-10-15 — enforce Telegram UTF-16 budget in package preview
+
+`/prepare` preview budgets Telegram UTF-16 units, including emoji and escaped links. Very long escaped URLs point the owner to `/job`; the saved package keeps its exact URL and letter. Red regression and full isolated PostgreSQL 1014 passed.
+
+## 2026-10-15 — actionable employer questions from unknown mobility evidence
+
+Vacancy cards turn unknown source-scoped mobility conditions into at most three concrete employer questions, with a count of remaining unknown topics. Confirmed conditions are not re-asked. No legal eligibility inference. Full isolated PostgreSQL 1012 passed.
+
+## 2026-10-15 — keep package preparation available on model failure
+
+`/prepare` can use the local fact-grounded cover-letter fallback when the model call fails or yields no text, instead of aborting package preparation. Focused 34 and full isolated PostgreSQL 1009 passed. No automatic application submission.
+
+## 2026-10-15 — ground fallback application drafts in active facts
+
+The fallback cover letter uses only active, nondeleted Candidate Facts; without them it asks to discuss the role without claiming relevant experience. LLM candidate-fact payloads use the same active/deleted filter. Focused 32; full isolated PostgreSQL 1007 passed. Owner review remains required.
+
+## 2026-10-15 — bind HH full-detail cache to its source posting
+
+New HH detail caches carry a digest of the normalized source posting. Changed source cards preserve older cache data but do not overlay it on review or package drafting; HH detail view refetches on the next read. Concurrent refresh cannot save fetched details under a mismatched posting digest. Legacy caches without an anchor retain prior behavior. Full isolated PostgreSQL: 1004 passed.
+
+## 2026-10-15 — keep manual posting link visible in package preview
+
+The `/prepare` preview always reserves space for the selected source/posting ID and validated vacancy link, even when skill checklist lines are shortened. Invalid links still show a manual-search warning. Focused 58; full isolated PostgreSQL 1002 passed.
+
+## 2026-10-15 — show selected source observation on vacancy cards
+
+The detail card discloses the selected provider posting ID and evidence-capture time separately from source publication time when those fields are recorded. This is ingestion provenance, not current availability. Focused 58; full isolated PostgreSQL 1001 passed.
+
+## 2026-10-15 — align experience fit and seniority gating
+
+Senior-level title policy is unchanged. Numerical high-experience gating now uses required years from the Candidate Fit parser, so a preferred 5+ band cannot cause a skip. The prior 3–4-year stretch boundary remains. Synthetic regression was red before; full isolated PostgreSQL: 1000 passed.
+
+## 2026-10-15 — freeze selected provider posting identity in packages
+
+New Application Package vacancy snapshots retain the selected source ID and provider posting ID alongside the already frozen text, URL and relocation evidence. Exports disclose missing identity for older packages. The HH private path now drafts from its source-specific posting text. Focused tests: 67 passed; full isolated PostgreSQL suite passed. No live applications were sent.
+
+## 2026-10-15 — source-specific posting snapshot for review and preparation
+
+Each newly ingested or refreshed `JobSourceRef` now stores its own normalized posting fields beside evidence and verified detail cache. Vacancy details, Candidate Fit review and `/prepare` use the selected source's title, description and structured fields; already cached full HH details take precedence for drafting. A synthetic cross-source regression reproduced a Jobs.ge package using an HR.ge description before the change. PostgreSQL regression confirms same-source refresh updates its own snapshot and a second source keeps separate text. Existing refs without a normalized snapshot retain the canonical fallback until rediscovery. Full isolated PostgreSQL: 996 passed.
+
+
+## 2026-10-15 — align Application Package with displayed source
+
+`/prepare` and vacancy details now use one source-reference preference order. A synthetic shared Job with `hr_ge` and `jobs_ge` previously displayed one source but prepared the other source's URL and mobility evidence; the regression now keeps the package source aligned with the detail view. This selects a deterministic review source, not a claim about which feed originally created the match. Focused package/detail tests: 38 passed; full isolated PostgreSQL: 994 passed.
+
+
+## 2026-10-15 — keep Arbeitnow remote location unconfirmed
+
+Arbeitnow no longer assigns Germany as the work country or a city to every remote posting. Its free-form `location` is retained as `source_location`; Relocation Evidence keeps the work country unknown for a synthetic remote “Worldwide” fixture. Onsite source behavior is unchanged. Focused adapter/evidence/preferences tests: 63 passed; full isolated PostgreSQL: 993 passed.
+
+
+## 2026-10-15 — recognize explicit “provide no housing” refusals
+
+Relocation Evidence now treats “We provide no housing” and “We offer no accommodation” as explicit refusals. A regression showed these phrases were previously marked as provision because the positive verb rule matched across `no`. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed.
+
+
+## 2026-10-15 — distinguish housing denial from an information offer
+
+Relocation Evidence now recognizes explicit employer verb-first refusals such as “We do not provide housing” and “We cannot offer accommodation”. It no longer reads “housing details are provided” as accommodation provision, and a refusal to provide housing details remains unknown. Synthetic regression reproduced the previous false offer. Focused evidence/detail tests: 50 passed; full isolated PostgreSQL: 992 passed.
+
+
+## 2026-10-15 — preserve conflicting housing evidence
+
+Relocation Evidence now marks contradictory explicit housing provision/refusal statements as `unknown` with `conflicting_text` confidence and both source excerpts. A single explicit provision or refusal keeps its prior classification. Synthetic regression reproduced the previous false refusal. Focused evidence/detail tests: 49 passed; full isolated PostgreSQL: 991 passed.
+
+
+## 2026-10-15 — keep RemoteOK free-form location out of country claims
+
+RemoteOK's free-form `location` is no longer persisted as normalized `country`: labels such as “Worldwide” or an office location do not establish the employee's work country or hiring eligibility. The original text is retained as `source_location`, so Relocation Evidence shows it as an excerpt while the country value remains unknown. Remote scope remains unspecified. Focused source/location tests: 54 passed; full isolated PostgreSQL: 990 passed.
+
+
+## 2026-10-15 — keep preferred experience out of hard fit threshold
+
+Candidate Fit now ignores explicitly preferred/desirable years when deriving the minimum required experience. When a required minimum is also stated, only required/unlabelled bands determine the threshold; a preferred-only band does not create a mandatory years-of-experience gap. Regression reproduced a 3-year minimum plus 5 years preferred being misread as 5. Focused fit/resume tests: 60 passed; full isolated PostgreSQL: 990 passed.
+
+
+## 2026-10-15 — Russian start timing
+
+Explicit “Выход на работу по договорённости” is retained as negotiable timing; “Начать можно сразу” is immediate. This is source description only. Full isolated PostgreSQL: 988 passed.
+
+
+## 2026-10-15 — Russian housing evidence
+
+Explicit Russian accommodation provision/refusal is now recognized and
+excerpted; an unsupported mention remains unknown. Full isolated PostgreSQL:
+988 passed.
+
+## 2026-10-15 — bound evidence-rich Telegram vacancy details
+
+Detail cards enforce a 3900 UTF-16-unit budget; only the long description is
+trimmed so evidence, score and source link remain visible. Full isolated
+PostgreSQL: 988 passed.
+
+## 2026-10-15 — short non-required skill statement
+
+Candidate Fit now keeps “No Kubernetes required” as unknown rather than
+required under a Requirements heading. Focused tests: 67; isolated PostgreSQL:
+987 passed.
+
+## 2026-10-15 — skill-local preferred markers
+
+Candidate Fit recognizes a narrow per-skill plus/preferred phrase inside a
+Requirements heading and does not promote that skill to required. Unrelated
+mandatory skills remain required. Focused tests: 66; isolated PostgreSQL: 986.
+
+## 2026-10-15 — disclose missing evidence in legacy packages
+
+Package previews and exports identify when a historical record lacks a
+structured mobility evidence snapshot. They do not imply that current evidence
+was captured at preparation time. Focused tests: 12; full isolated PostgreSQL:
+984 passed.
+
+## 2026-10-15 — source evidence refresh and package snapshot regression
+
+PostgreSQL regression checks that repeat discovery refreshes source-specific
+location evidence without rewriting the evidence already stored in an
+Application Package. Targeted isolated DB test: 1 passed; prior full suite:
+984 passed.
+
+## 2026-10-15 — explicit non-required skills
+
+Candidate Fit does not promote supported “no experience with this skill
+required” / “skill is not required” wording to mandatory status only because it
+appears under Requirements. Other skills keep their own classification.
+Focused tests: 64; isolated PostgreSQL: 984 passed.
+
+## 2026-10-15 — German relocation evidence fixture
+
+Synthetic German wording now exercises residence, prior work authorization,
+housing, language preference and start timing. A word-boundary regression
+prevents `Deutschland` from being interpreted as `Deutsch`. Focused tests: 87;
+isolated PostgreSQL: 982 passed.
+
+## 2026-10-15 — conservative support-component ambiguity
+
+Visa and relocation evidence now stays unknown if per-component parsing
+conflicts with a sentence-level result, preventing a refusal for one benefit
+from being applied to another. The legacy scoring parser remains unchanged.
+Focused tests: 46; isolated PostgreSQL: 981 passed.
+
+## 2026-10-15 — start-timing evidence kinds
+
+The exact start-timing text remains stored; a conservative classification now
+labels immediate, relative, stated date, notice period or negotiable phrases.
+It does not compare against candidate availability. Focused tests: 44; isolated
+PostgreSQL: 979 passed.
+
+## 2026-10-15 — multiple per-language observations
+
+One source posting can now preserve separate English, German, French, Russian,
+Spanish, Dutch, Italian, Polish, Portuguese and Arabic observations, with
+required/preferred/unspecified state, excerpt and separate English CEFR where
+explicit. Conflicting explicit states remain marked as conflicting. Focused
+tests: 47; isolated PostgreSQL: 978 passed.
+
+## 2026-10-15 — explicit prior-authorization negative evidence
+
+The evidence packet now distinguishes an explicit statement that existing
+work authorization is not required from a missing condition; contradictory
+source statements remain unknown and carry a conflict label. Focused tests:
+82; isolated PostgreSQL: 977 passed.
+
+## 2026-10-15 — immutable mobility evidence in prepared packages
+
+Application Package vacancy snapshots now include a deep copy of the selected
+source's Relocation Evidence. Package export reads that immutable JSON snapshot
+after later source refreshes; the preview identifies its capture time. HH
+application snapshots use the same path. No migration. Focused tests: 20; repeat
+refresh PostgreSQL regression: 1 passed; full isolated PostgreSQL: 976 passed.
+
+## 2026-10-15 — preserve source work-location excerpt
+
+When the source adapter provides `source_location` or `source_country`, the
+work-country evidence retains and displays that exact bounded field alongside
+the normalized country value. Otherwise it falls back to the source country
+code. Focused tests: 41; isolated PostgreSQL: 975 passed.
+
+## 2026-10-15 — separate citizenship from residence scope
+
+Restriction evidence now classifies explicit source text as citizenship,
+residence/location, both, or unspecified. The detail card preserves the quote
+and source provenance and labels it as posting text, not a legal determination.
+Focused tests: 41; isolated PostgreSQL suite: 975 passed.
+
+## 2026-10-15 — classify housing and language evidence
+
+Housing is `true`/`false` only when a source explicitly says it is provided or
+not provided; other mentions remain unknown. Language conditions now retain
+required/preferred/unspecified interpretation, with English CEFR level stored
+separately. Detail cards render the interpretation and excerpt. Ambiguous
+language text remains observed, not a requirement. Focused suite: 84; isolated
+PostgreSQL: 974 passed.
+
+## 2026-10-15 — source-scoped Relocation Evidence v1
+
+`upsert_job` now saves `relocation_evidence_v1` beside each source reference,
+including source provenance, capture time, excerpt and bounded confidence for
+the eight relocation/hiring signals. Structured source country is labeled as
+reported by the source; support/prerequisite statements remain separate from
+personal eligibility. Housing/language/start text is marked observed rather
+than treated as a promise/requirement. Unknowns remain unknown. Details display
+the evidence alongside existing mobility summary; scoring and Candidate Facts
+are unchanged. Synthetic fixtures only; full isolated PostgreSQL: 973 passed.
+
+## 2026-10-15 — isolate recruiter instructions from message content
+
+Recruiter replies now separate developer instructions from untrusted JSON
+context, question and Candidate Facts. Existing sensitive-topic human review
+and default-OFF auto-reply policy remain. Focused tests: 16 passed; full
+isolated PostgreSQL: 969 passed.
+
+## 2026-10-15 — isolate cover-letter instructions from vacancy content
+
+Cover-letter model calls now use separate developer instructions and
+JSON-encoded data fields. Embedded vacancy/resume/fact instructions are
+explicitly untrusted, and candidate claims must be grounded in Candidate Facts.
+This does not replace human review. Focused LLM tests: 5 passed; full isolated
+PostgreSQL: 968 passed.
+
+## 2026-10-15 — add OpenShift to Fit and Interview practice
+
+OpenShift is now separately recognized by Candidate Fit, including its Red Hat
+name. Interview practice includes a rollout scenario with safe SCC/RBAC
+guidance. Focused fit/interview tests: 87 passed; full isolated PostgreSQL:
+967 passed.
+
+## 2026-10-15 — preserve timezone evidence in vacancy dates
+
+Detail cards convert aware publication timestamps to UTC and mark them `UTC`;
+date-only values stay date-only, and naive timestamps disclose that their
+timezone is unknown. Focused tests: 68 passed; full isolated PostgreSQL: 964
+passed.
+
+## 2026-10-15 — nested Candidate Fit alternatives
+
+Explicit nested flat `or/или` chains inside a parenthesized choice now form
+one alternative group alongside independent requirements; scoring and resume
+coverage share it. Ambiguous mixed `and/и` chains and repeated mentions remain
+ungrouped. Focused tests: 79 passed.
+
+## 2026-10-15 — refresh repeated source postings safely
+
+An existing `(source_id, source_job_id)` now refreshes nonempty vacancy fields
+and source raw values. Missing values do not erase earlier evidence, verified
+HH detail cache survives, and source identity/first-seen metadata is retained.
+Saved application snapshots remain immutable. PostgreSQL advisory and row
+locks serialize concurrent upserts; cross-source canonical dedup remains in
+place, and identity changes do not overwrite another Job's fingerprint. Two
+new PostgreSQL regressions added; full isolated suite: 957 passed.
+
+## 2026-10-15 — do not infer a salary period in match scoring
+
+Salary score comparison now requires an explicit supported period when a
+monthly profile minimum is configured. Missing or unrecognized periods remain
+visible for review and score neutrally instead of being treated as monthly.
+Focused salary/score tests: 61 passed.
+
+## 2026-10-15 — disclose unrecognized requirements in package review
+
+When no technical skills or alternatives are recognized, the Application
+Package now explicitly says so and prompts a manual review of the full vacancy.
+The existing no-discrepancy statement remains limited to recognized skills.
+Focused package tests: 20 passed.
+
+## 2026-10-15 — scoped `/prepare` command
+
+`/prepare <vacancy_id> [career|relocation]` now saves the same reviewable
+Application Package as the existing preparation button. A scoped lookup is
+limited to the user's active search profile; invalid scope, unavailable
+profile or unmatched vacancy does not create a package. Errors are sanitized
+and point to `/applications` because a saved draft may exist after a partial
+failure. Focused handler tests: 31 passed; full isolated PostgreSQL: 953 passed.
+
+## 2026-10-15 — mobility evidence in package review
+
+Prepared packages now show the existing visa/relocation/work-permit evidence
+and prior-authorization requirement, with unknowns and personal-eligibility
+limits preserved. Preview HTML is bounded to 3700 characters, keeps the mobility
+block, and points to full CV review when details are omitted. Malformed,
+credential-bearing and overlong URLs do not break previews or become truncated
+links. Focused tests: 116; full isolated PostgreSQL: 948 passed.
+
+## 2026-10-15 — source yield before preference filters
+
+Per-source attempts now retain received-result and preference-exclusion counts.
+The dashboard distinguishes an empty source from results removed by settings,
+separately from scoring filters and processing errors. Counts cover adapter
+results per profile/attempt (including cache reuse), not unique global jobs.
+Focused source/preferences tests: 91; isolated PostgreSQL: 943 passed.
+
+## 2026-10-15 — serialize manual application status changes
+
+A deterministic isolated PostgreSQL regression reproduced duplicate status
+events from simultaneous identical updates. A row lock now serializes the
+status check and append for the owning application. Focused DB/handler tests:
+32 passed; full isolated PostgreSQL: 941 passed. No schema migration.
+
+## 2026-10-15 — immutable vacancy snapshot in Application Package
+
+Schema v7 adds an additive vacancy snapshot: title, company, original stored
+description and source vacancy URL. Prepared and HH packages capture it beside
+the CV/letter; export no longer queries the mutable Job. Provider/application
+URLs remain separate. Old rows disclose missing snapshots without backfilling
+current data as historical fact. Focused package/migration tests: 64 passed;
+full isolated PostgreSQL: 940 passed, including v4-to-v7 upgrade/idempotency
+and export after later Job edits. Production schema remains untouched.
+
+## 2026-10-15 — nonoverlapping Candidate Fit alternatives
+
+Pure OR expressions such as `Linux or (Docker or Kubernetes)` now produce
+one alternative group. Previously the inner group was counted twice, lowering
+Linux-only coverage and showing a spurious missing group in resume review.
+Three regressions failed before the fix. Focused fit/score/resume: 70 passed;
+full isolated PostgreSQL: 936 passed.
+
+## 2026-10-15 — normalize Arbeitnow epoch publication dates
+
+Arbeitnow numeric `created_at` values now use the shared timestamp parser and
+render as UTC ISO dates. Invalid values stay unknown. This does not infer
+freshness or change match behavior. Focused tests: 46; isolated PostgreSQL:
+933 passed.
+
+## 2026-10-15 — clarify application status provenance in exports
+
+Application text exports now identify status as locally recorded and say that
+employer/provider receipt is not independently verified. The existing manual
+status and history workflow is unchanged. Focused package/handler tests: 40;
+isolated PostgreSQL suite: 929 passed.
+
+## 2026-10-15 — normalize Remotive publication timestamps
+
+Timezone-aware Remotive RSS RFC 2822 and API ISO dates are normalized to UTC
+ISO before persistence/display. Malformed or timezone-less dates remain
+unknown. Focused Remotive tests: 8; isolated PostgreSQL: 929 passed. This is
+date normalization only and makes no vacancy freshness or hiring-status claim.
+
+## 2026-10-15 — isolated parenthesized skill alternatives
+
+Explicit parenthesized `or/или` choices can now coexist with an independent
+skill in the same requirement clause. Slash alternatives, repeated skills
+outside the parentheses, and responsibility-only mentions remain ungrouped.
+Focused tests: 67; full isolated PostgreSQL: 928.
+
+## 2026-10-15 — keep extra alternative CV claims reviewable
+
+Alternative-group comparison now shows unsupported extra CV options even when
+another option correctly satisfies the group in both sources. Focused tests:
+63 passed; isolated PostgreSQL suite: 923 passed.
+
+## 2026-10-15 — recruiter sensitive-context fallback
+
+Sensitive salary, identity-document, availability and similar topics in any
+provided recruiter context now force a human response; English `passport` is
+recognized. String `"false"` from valid JSON no longer relies on Python
+truthiness. Focused tests: 13; isolated PostgreSQL: 921 passed.
+
+## 2026-10-15 — preserve alternatives in resume comparison
+
+Resume/Application Package checks now retain explicit OR groups: they only
+count as confirmed if the same option is present in the selected CV and
+Candidate Facts. Mismatched CV/fact options remain reviewable. Focused suite:
+61 passed; isolated PostgreSQL: 917 passed.
+
+## 2026-10-15 — tighten salary-period text boundary
+
+The display-only salary-period parser accepts an explicit unit immediately
+after the currency-bearing value. It ignores unrelated time references in
+surrounding description text. Focused tests: 83; isolated PostgreSQL: 914.
+
+## 2026-10-15 — Interview Agent IaC/cloud/observability exercises
+
+Interview practice now has curated templates for Terraform, Ansible, AWS,
+Grafana and Helm. They favor safe, reversible troubleshooting and make no
+candidate evaluation. Focused tests: 31 passed; isolated PostgreSQL: 913.
+
+## 2026-10-15 — source publication-date field coverage
+
+Source summaries report nonempty publication-date-field coverage as a
+provided/total count. Missing fields remain visible in the denominator. This
+does not parse validity, measure age or change filtering. Focused tests: 55;
+full isolated PostgreSQL: 912 passed.
+
+## 2026-10-15 — display explicit salary period evidence
+
+Vacancy salary display now shows explicit nearby periods such as monthly,
+weekly, hourly or annual. Structured period fields take precedence. Missing or
+ambiguous periods stay unknown, and filtering/scoring are unchanged. Focused
+suite: 82 passed; isolated PostgreSQL suite: 910 passed.
+
+## 2026-10-15 — application export audit trail
+
+Application text exports now include the recorded status timeline. The handler
+retrieves events through the same user-scoped repository function as the
+history command; tests verify export content and ownership lookup. Focused
+suite: 35 passed; full isolated PostgreSQL: 905 passed.
+
+## 2026-10-15 — recruiter draft failure fallback
+
+If recruiter-reply generation fails, the HH inbox scan stores an empty draft
+and alerts the owner to reply manually. If explicitly enabled auto-reply fails
+to send, the owner gets the grounded draft and a manual-fallback notice. Error
+payloads are not logged; auto-reply defaults OFF. Focused suite: 9 passed; full
+isolated PostgreSQL suite: 905 passed.
+
+## 2026-10-15 — legacy application migration verification
+
+Isolated PostgreSQL now verifies v5/v6 upgrades starting from v4 with a
+preexisting application row. Migration adds snapshot columns and seeds one
+history event from the recorded status/creation time; it does not fabricate
+earlier transitions. Full isolated PostgreSQL suite: 903 passed.
+
+## 2026-10-15 — disclose unknown salary-period behavior
+
+`/salary`, its strict on/off response and `/settings` now state that a missing
+or unsupported period is not compared and remains visible. Focused command and
+filter tests: 41 passed; full isolated PostgreSQL suite: 902 passed.
+
+## 2026-10-15 — strict salary filter requires a known period
+
+An OFF-by-default strict floor now leaves structured salary values with no
+recognized period eligible for review instead of assuming monthly. Explicit
+monthly/yearly periods still compare against the monthly profile minimum.
+Focused salary/scoring suite: 66 passed; full isolated PostgreSQL: 902 passed.
+
+## 2026-10-15 — Interview Agent DNS/TLS/security coverage
+
+Candidate Fact comparison now recognizes DNS, TLS and explicit Security
+Operations terms; the interview planner has corresponding exercises for
+resolver/cache diagnosis, certificate chain/SNI checks and safe incident
+response/evidence preservation. Focused tests: 52 passed; isolated PostgreSQL
+full suite: 901 passed. Broader security vocabulary is intentionally not inferred.
+
+## 2026-10-15 — Interview Agent troubleshooting practice
+
+`/interview <vacancy_id> [career|relocation]` returns up to five deterministic
+troubleshooting exercises for recognized vacancy skills, ordered required then
+preferred and labeled with the candidate's stored Candidate Fact type. Curated
+topics include Linux, Docker, Kubernetes, Nginx, Networking, PostgreSQL, CI/CD
+and Prometheus. No API/model call, answer grading or interview prediction.
+Focused tests: 29 passed; isolated PostgreSQL full suite: 900 passed.
+
+## 2026-10-15 — resume snapshot and explicit package export
+
+Schema v6 adds local resume-text snapshot and optional external HH resume ID to
+Application. Prepared and HH application records retain the selected local
+text and the external ID used for HH. `/application <id> export` sends the
+snapshot, saved cover letter and vacancy metadata only after user-scoped lookup
+and explicit command. Legacy rows without a snapshot are labeled accurately.
+Focused migration/export suite: 44 passed; full isolated PostgreSQL: 896 passed.
+This is extracted text, not an original-format PDF/DOCX export.
+
+## 2026-10-15 — append-only application status history
+
+Schema v5 adds `application_status_events`. Saving a prepared draft and each
+actual manual status change append a timestamped event. `/application <id>
+history` checks ownership before listing the timeline; no-op status repeats do
+not create an event. PostgreSQL integration covers migration, chronology,
+ownership and repeated updates. Full isolated suite: 892 passed; focused set: 40
+passed.
+
+## 2026-10-15 — persisted draft versions and manual application status
+
+Selecting “Prepare response” stores the cover-letter text, resume ID, source
+URL, timestamp and `prepared` status as a new row in the existing applications
+table. `/applications` lists the user's records and `/application <id> <status>`
+sets only an allowlisted manual status after user-scoped ownership lookup. A
+prepared or submitted status does not trigger any external action. PostgreSQL
+integration covers snapshot persistence, owner isolation and status changes;
+full isolated suite: 890 passed. No schema migration was required.
+
+## 2026-10-15 — reviewed application package preview
+
+Existing `/prepare` now includes the selected saved resume, grounded draft
+cover letter, recognized vacancy skill comparison against Candidate Facts/CV,
+and an HTTP(S)-only vacancy link. It highlights unconfirmed CV-only terms and
+requirements unsupported by either source. Output is bounded and explicitly a
+manual preview; it does not submit or save application status. Focused tests:
+28 passed; isolated PostgreSQL: 888 passed. Export, exact sent version and
+application tracking remain open.
+
+## 2026-10-15 — read-only vacancy-to-resume diff
+
+`/resumediff <vacancy_id> [resume_id]` compares recognized requirements with
+the selected saved resume and active Candidate Facts. It identifies CV/fact
+overlap and gaps in either direction without generating or changing CV text.
+Resume selection is restricted to the authorized match profile. Also fixed
+undefined diagnostic handling in `/job`, `/compare` and the compare callback.
+Focused suites: 47 passed; isolated PostgreSQL full suite: 884 passed. Manual
+Telegram acceptance remains open.
+
+## 2026-10-15 — Candidate Fact traceability in vacancy comparison
+
+`/compare` now shows the ID and provenance of the strongest Candidate Fact
+behind each matched skill, plus existing `/facts` and `/fact` correction paths.
+Provenance text is HTML-escaped; unmatched/missing skills are not given a
+fabricated fact reference. Scoring is unchanged. Focused comparison tests: 23
+passed; isolated PostgreSQL full suite: 879 passed.
+
+## 2026-10-15 — opt-in strict salary floor
+
+Implemented locally: strict structured salary filtering is OFF by default and
+only rejects comparable monthly/yearly values whose upper bound is below the
+minimum. Missing salary and unsupported currency/period remain eligible.
+/salary strict on|off applies to both active search tracks. Focused 52 and full
+isolated PostgreSQL 873 passed; compileall, diff-check and secret scan passed.
+
+## 2026-10-15 — line-wrapped alternative requirement
+
+The v3.6 Candidate + Vacancy Fit parser now groups an explicit isolated
+two-skill `or/или` choice when the connector wraps across adjacent lines.
+Repeated skills remain independent; additional independent skills remain
+separate. Focused 43 and full isolated PostgreSQL 869 passed. Nested and
+general multi-line requirement groups remain partial.
+
+## 2026-10-14 — v3.6 language and relocation evidence increment
+
+IMPLEMENTED locally: explicit English CEFR extraction/comparison, user-managed
+`/english`, truthful fresh-profile bootstrap, and separate vacancy-card mobility
+evidence. Language evidence does not alter scores. General fluency wording and
+ambiguous CEFR ranges stay unknown. Visa/relocation/work-permit statements and
+existing authorization requirements remain distinct and do not establish the
+candidate's legal eligibility. Intermediate isolated PostgreSQL suites passed
+at 863 and 865; production runtime and existing profile data are unchanged.
+
+
+## 2026-10-14 — current model routing and fit regression
+
+Session records confirm Main `gpt-6-sol/medium` and one read-only Scout turn
+`gpt-6-luna/low`; Deep was not used. Scout's Greenhouse redirect suspicion was
+false because the installed HTTPX client does not follow redirects by default.
+Scout used 83,803 total tokens (56,576 cached input); the inherited history
+made this small delegation costly, so net limit savings are not established.
+AGENTS now matches actual Main and requires isolated context for justified
+narrow Scout work. No models were switched. Required alternatives followed by
+another sentence on one line now remain grouped; focused 55 and full isolated
+PostgreSQL 856 passed. A further boundary fix keeps preferred alternatives
+separate when one skill is independently required; latest focused 56 and full
+isolated PostgreSQL 857 passed. Local runtime and production DB unchanged.
+
+
+## 2026-10-14 — isolated database and v3.6 alternative choice
+
+The separate `job-agent-tests` tmpfs PostgreSQL suite passed: 851 baseline,
+then 855 with four new regressions. An explicit isolated required or preferred
+`or/или` pair is now one scoring choice; Candidate Fact statuses remain visible.
+Complex clauses still need a richer requirement model. Compileall, diff and
+secret scan passed. Git HEAD and local production runtime are unchanged.
+Local Codex CLI 0.162.1 config defaults Main to `gpt-6-sol/medium`;
+`job_scout` is `gpt-6-luna/low`, `job_deep_review` is `gpt-6.1-sol/high`.
+No active-session model switch or measured token/quota saving was verified.
+
+
+## 2026-10-14 — verified local fit follow-up
+
+The continuing workflow is recorded in `AGENTS.md`. Candidate + Vacancy Fit
+remains PARTIAL: explicit adjacent headings in flattened vacancy text now keep
+preferred skills optional, and a clearly qualified Devexperts language example
+remains unknown instead of an individual Python must-have. These corrections
+preserve the existing 85/15 structured score and do not change the 65-point
+search threshold. General alternative groups are still PLANNED. Full local
+suite 847 passed / 4 skipped; compileall, diff and secret scan passed. The
+isolated PostgreSQL suite and authorized runtime acceptance have not run;
+Git HEAD and deployed runtime are unchanged.
+
+## 2026-10-14 — verified local observability/reliability checkpoint
+
+IMPLEMENTED locally: uniform multi-profile source ledger; typed Russian safe
+network/HTTP/schema/internal diagnostics; bounded, singly escaped HTML scan
+views; per-pass issue grouping; persisted latest scheduled dashboard isolated
+from manual state. Known HH outage cooldown remains quiet in notifications,
+with diagnostics in the dashboard; certificate verification failures are
+reported. Fallback history cannot hide a later connection failure.
+Eight additional adapters mark explicit contract violations as response errors;
+Arbeitnow/RemoteOK reject missing expected list shape. Himalayas and selected
+ATS partial collection is visible, including source-budget expiry. Job Bank
+retains verified detail results after HTTP/schema failures and stops 403/429;
+existing pacing/cache limits remain. Real retries counted for HH, EURES,
+Job Bank, Arbeitnow, SmartRecruiters; cache hits add no new retry count.
+Source cache retains diagnostics/partial observations; processing failures have
+independent attempt IDs. EURES reused collection failures are counted once.
+Lightweight secret guard checks staged, worktree and history; synthetic tests
+verify values never print. Progress exceptions and old failed scan stages are
+sanitized. No actual credential exposure is asserted.
+844 unit passed/4skipped; targeted 125, adapter-contract 152, telemetry 109/54 and
+secret-guard 5 passed. compileall/diff/secret checks passed. PostgreSQL and live
+Telegram/network acceptance remain BLOCKED; runtime/VERSION/Git HEAD unchanged.
+Broader Relocation-first product utility and Candidate Fact DB acceptance remain
+PARTIAL; scoring thresholds and eligibility/salary evidence were not changed.
+
+HH failed connection probes and unattempted cooldown skips have distinct
+failed/skipped counters; three regressions reproduced the prior miscount.
+
+## 2026-10-14 — latest local candidate
+
+Candidate Fact ADD/UPDATE/KEEP and safe network-cause diagnostics are locally
+implemented. Final unit suite: 785 passed / 4 skipped; compileall/diff/history
+secret checks passed. New PostgreSQL UPDATE/rollback/isolation paths remain
+unverified because sandbox socket access is denied. HEAD is still d7a68d8,
+53 ahead; .git remains read-only and nothing is staged. No runtime update.
+
+## 2026-10-14 — Candidate Fact conflict review candidate
+
+Per-overlap ADD/UPDATE/KEEP UI and deterministic import planner are implemented
+locally. UPDATE retains the prior row inactive and creates an unknown fact with
+replacement provenance; stale or foreign target rows are rejected. No migration.
+769 unit/behavior tests passed, 4 skipped. New PostgreSQL regression paths were
+not executed because socket creation is sandbox-denied. Checkpoint remains
+uncommitted at d7a68d8 (53 ahead); git dry-run confirms .git is read-only.
+
+## 2026-10-14 — final local verification
+
+HEAD remains d7a68d8, branch feature/v3.5.7-international-market-coverage, 53 ahead.
+Own pending atomic-import, EURES metrics and HH manual-owner changes remain
+uncommitted because `.git/index.lock` cannot be created (read-only filesystem).
+Source counters now preserve earlier processing errors and deduplicate actual
+EURES discovery observations. Final unit suite: 750 passed / 4 skipped;
+compileall/diff/history-secret checks pass. Isolated DB socket access is denied.
+
+## 2026-10-14 — checked local candidate
+
+Resume lookup failures now preserve the retry preview. Manual HH reply setup
+requires the owner and stale non-owner pending state is cancelled. Unit suite:
+748 passed / 4 skipped. Isolated DB revalidation is environment-blocked before
+connection; no production inspection or change occurred in this stage.
+
+## 2026-10-14 — EURES partial-failure visibility
+
+EURES now counts query/detail HTTP, transport and parse failures when preserving
+other results. Counts survive the discovery cache and profile aggregation and
+appear in manual scan completion and `/scanstatus`. Tests confirm cached results
+do not double-count failures across Career-first and Relocation-first profiles.
+No scoring or source retry policy changed.
+
+## 2026-10-14 — atomic resume import persistence
+
+Imported resume content and selected proposed Candidate Facts now share one
+PostgreSQL transaction. A failed transaction rolls back both; the one-time
+preview token is restored for retry. Unit handler tests and isolated PostgreSQL
+rollback/retry integration checks pass. No production data was accessed.
+Per-conflict ADD/UPDATE/KEEP review remains open.
+
+## 2026-10-14 — network log hygiene
+
+Telegram startup retry and HH chat polling no longer print exception payloads
+to application logs. They retain error classes for diagnosis; retry and
+authorization behavior is unchanged.
+
+## 2026-10-14 — dependency floors
+
+`requirements.txt` now requires pypdf >=6.20.1 and python-multipart >=0.0.31.
+The local test venv has the patched pypdf 6.20.1; production image was not
+rebuilt. Broad dependency ranges remain a supply-chain reproducibility issue.
+
+## 2026-10-14 — EURES partial responses
+
+The adapter now preserves verified results after a single search/detail HTTP
+error or malformed response and logs the failure class/status. Total search
+or detail failure remains visible as a source error. No live endpoint probe or
+runtime update was made for this change.
+
+## 2026-10-14 — Job Bank performance candidate
+
+Adjacent runtime scans requested the same twelve Job Bank detail IDs, with
+roughly 55 seconds between first and last detail response due to permitted
+five-second pacing. Local branch now keeps a one-hour, 256-entry in-memory
+detail cache, only for IDs still present in a fresh listing. Explicit manual
+refresh bypasses it. No post-change runtime timing is available until an
+authorized update; the cache resets on restart.
+
+## 2026-10-14 — Georgia detail URL boundary
+
+HR.ge and JOBS.GE detail fetches now require HTTPS on the source's own host,
+without alternate ports or URL credentials. Listing HTML cannot redirect the
+adapter's direct detail request to another host. Live source behavior still
+requires authorized runtime verification; JOBS.GE remains paused.
+
+## 2026-10-14 — resume import callback replay
+
+Import preview tokens are now one-time claims before resume persistence operations.
+Concurrent duplicate callbacks cannot both write the resume. A transient
+failure after the claim requires a new preview; transaction-level recovery of
+partially written resume/facts is not yet implemented.
+
+## 2026-10-14 — reliability and security follow-up
+
+Local branch now isolates scheduled scans by user. Telegram user routes require
+private chats; Bot API channel-post ingestion remains enabled for the selected
+watcher. A global HH applicant token is restricted to the configured owner
+profile at the service boundary. Transport exception messages and HH API error
+bodies are no longer exposed in source alerts. Per-vacancy processing failures
+now preserve later results and mark the source partial. These changes have local tests;
+production runtime and external service behavior have not been revalidated.
+
+## Night development checkpoint — 2026-10-14
+
+Root roadmap reconciled with implementation and complete original product
+intent; proposed v3.5.8/v3.5.9 numbering does not change active 3.5.7 source.
+Watcher handles a failed pause/profile/retry-state lookup for one subscriber
+without blocking later users (four regression cases).
+Real channel access and deployment acceptance remain pending. Source and
+runtime status recorded in older sections below is historical unless checked
+again; see latest `HANDOFF.md` and `DEVELOPMENT_LOG.md`.
+
+## Verified watcher checkpoint — cb1ba4a
+
+All three watcher stages committed: a6d67fa,3dffc39,cb1ba4a. Full716 unit/4
+skipped,720PostgreSQL; compileall/secret/diff passed. Separate Docker image
+89380b6088b3 built and Python3.12 watcher import/compile/parser/scheduler smoke
+passed without networking. No production/update/publication performed.
+Actual next gate: select channels and establish Bot API access, then separately
+approve runtime deployment and validate /channels, incoming post/replay/retry
+and both profile results. Edited/history collection remains unimplemented.
+Two new untracked owner proposal files appeared during work; preserved, not
+committed/applied. Their headers explicitly label proposed roadmap numbering;
+no VERSION or current task change inferred from embedded instructions. Next
+documentation review should reconcile proposals against current720 tests,
+not their historical429-test snapshot. No implementation edits remain.
+
+## 2026-10-14 — Telegram watcher persistent retries
+
+Failed deliveries persist in RuntimeState queue (max100 per user); retry job
+every minute handles max5 posts, /channels retry scoped to invoking user. Off,
+paused and source-disabled users stay protected. Existing queued entries never
+evicted for overflow; overflow separately counted. Success/seen replay clears
+queue; failures rotate; malformed entries preserved/logged. Real PostgreSQL
+integration now verifies queue recovery after reload, real dual-profile matching
+and replay suppression. Latest716unit/4skipped,720PostgreSQL; safety checks pass.
+Stage1 a6d67fa and stage2 3dffc39 complete; current stage local/undeployed.
+No schema/score change. Next separate Docker check then owner-approved runtime
+and real selected-channel acceptance; edits/history are not claimed.
+
+## Telegram watcher stage 2 — 2026-10-14
+
+Labeled role/company/location/work-mode fields now parse conservatively; generic
+headers/hashtags no longer hide the role. Narrative office mentions do not assign
+country; ambiguous multi-country and Georgia/USA locations stay unknown.
+Forwarded channel posts/captions preserve original public URL and numeric source
+identity, sharing a serialized durable replay guard with automatic delivery.
+Private/hidden forwards get no invented public link. No schema/score change.
+Targeted51/1skipped; full unit710/4skipped, PostgreSQL714; safety checks passed.
+Stage1 a6d67fa complete; next bounded persistent failed-post retry queue.
+Production unchanged; Bot API access/history limitations still apply.
+
+## Telegram watcher stage 1 — 2026-10-14
+
+Implemented /channels subscriptions (add/on/off/remove, career/relocation/both),
+Bot API post/caption routing for selected users only, persistent statistics and
+SeenMessage replay suppression. Both profiles use existing scoring/persistence;
+pause/source-disable respected. Alias subscriptions union scopes. No migration,
+production change, account login/history scraping or external application.
+Unit698/4skipped, PostgreSQL702; watcher targeted23 including real PostgreSQL
+reload and dual-profile matches. Compileall/secret/diff passed. Help entry added;
+see developer/TELEGRAM_WATCH for access/transaction/retry limitations.
+Next safe stage: labeled role/company/location parsing and forwarded-channel
+provenance; then edited-post/retry handling. Deployment approval remains separate.
+
+Verified implementation06fe88c; separate Docker imagea80ee8bdf948 built,
+Python3.12 compile/import/evidence smoke passed without networking. Latest676
+unit/679PostgreSQL and safety checks passed. Owner deployment approval requested
+for06fe88c, answer pending. Earlier11c07cc request is superseded; no runtime
+update or publication performed. Actual following HEAD is docs-only.
+
+## 2026-10-14 — Direct employer visa predicates
+
+Shared evidence now handles employer sponsor-visa verb phrases, including
+plural, can/will and explicit refusal. Conditional/advice/non-employer claims
+remain unknown. Refusal wins over offers in either order, also in Telegram.
+84 targeted tests; full unit676/3 skipped, PostgreSQL679; compileall/secret/diff
+passed. No formulas, thresholds, migration or deployment. Prior stage02635d7
+complete. Compact BRIEF/HANDOFF now replaces duplicate current snapshots;
+original text remains Git history/DEVELOPMENT_LOG. Next mandatory gate: approved
+runtime/Telegram acceptance; independent AM feed discovery stays open.
+
+
+## Latest stage — 2026-10-14: Greenhouse evidence
+
+Greenhouse uses shared tri-state support classification, so advice, conditional
+support and prerequisites no longer become employer sponsorship offers.
+Existing source snippets are retained only when consistent with the classified
+value. Hybrid wins over mixed hybrid/remote labels; explicit remote locations
+are preserved as bounded remote_scope. No new filters, weights or thresholds.
+Validated 665 unit / 3 skipped, PostgreSQL 668, compileall/secret/diff passed.
+Local implementation follows e4644b3; no deployment/publication. Next safe task:
+shared explicit sponsor-visa verb phrases and refusal precedence. Mandatory
+v3.5.7 runtime/Telegram acceptance remains pending; see HANDOFF.
+
+
+Candidate 11c07cc also passed a separate Docker build (image8fc8cddae7d6)
+and Python3.12 import/compile/evidence smoke in a network-disabled ephemeral
+container. Repo runtime/volumes unchanged. Owner update approval requested for
+11c07cc; unanswered at this checkpoint. Any following checkpoint is docs-only.
+
+## Current checkpoint — 2026-10-14
+
+Source 3.5.7, feature/v3.5.7-international-market-coverage. Previous six stages
+remain complete. New stages: af1ff56 (source salary display and remote limit
+precedence), 76b5661 (Telegram unknown/negative support and explicit salary
+units), then malformed numeric salary bounds (obtain final HEAD from Git).
+Latest complete candidate: 658 unit passed / 3 skipped, isolated PostgreSQL
+661 passed; compileall, secret scan and git diff --check passed.
+No scoring formula/weight/65-threshold changes or schema migrations.
+
+See BRIEF/HANDOFF for implementation limits and pending deployment/acceptance.
+Next: approved runtime validation; independent Armenian employer-feed research
+remains open. Historical counts below belong to their recorded stages.

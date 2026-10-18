@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from sqlalchemy import func, select
+import json
+from datetime import datetime, timezone
+
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.database.db import SessionLocal
 from app.database.models import (
     Application,
+    ApplicationStatusEvent,
     CandidateFact,
     CandidateProfile,
     Job,
@@ -18,9 +22,27 @@ from app.database.models import (
     User,
 )
 from app.domain.jobs import NormalizedJob
+from app.domain.relocation_evidence import build_relocation_evidence
+from app.domain.source_posting import posting_snapshot_digest, snapshot_source_posting
 from app.candidates.fact_types import normalize_experience_type
 
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
+PREPARED_MATCH_SNAPSHOT_KEY = "_prepared_match_id"
+MANUAL_APPLICATION_STATUSES = frozenset({
+    "reviewed", "submitted", "interview", "offer", "rejected", "withdrawn",
+})
+
+
+class FactUpdateConflict(ValueError):
+    """An import UPDATE no longer matches the reviewed active fact."""
+
+
+class ResumeImportExists(ValueError):
+    """The same resume fingerprint was already stored for this profile."""
+
+    def __init__(self, resume_id: int):
+        self.resume_id = resume_id
+        super().__init__("Такое резюме уже импортировано.")
 
 
 async def get_user_by_chat(chat_id: int | str) -> User | None:
@@ -37,12 +59,23 @@ async def create_user(chat_id: int | str, display_name: str = "") -> User:
         return item
 
 
-async def ensure_default_profile(user_id: int, *, profile_name: str = "Main", target_role: str = "DevOps Engineer") -> CandidateProfile:
+async def ensure_default_profile(
+    user_id: int,
+    *,
+    profile_name: str = "Main",
+    target_role: str = "DevOps Engineer",
+    english_level: str = "",
+) -> CandidateProfile:
     async with SessionLocal() as session:
         existing = await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True), CandidateProfile.deleted_at.is_(None)))
         if existing:
             return existing
-        profile = CandidateProfile(user_id=user_id, name=profile_name, target_role=target_role, english_level="B2")
+        profile = CandidateProfile(
+            user_id=user_id,
+            name=profile_name,
+            target_role=target_role,
+            english_level=english_level,
+        )
         session.add(profile)
         await session.flush()
         search = SearchProfile(profile_id=profile.id, name="Employment", kind="employment", settings={})
@@ -55,6 +88,16 @@ async def ensure_default_profile(user_id: int, *, profile_name: str = "Main", ta
 async def active_profile(user_id: int) -> CandidateProfile | None:
     async with SessionLocal() as session:
         return await session.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id, CandidateProfile.active.is_(True), CandidateProfile.deleted_at.is_(None)).order_by(CandidateProfile.id))
+
+
+async def get_profile(profile_id: int) -> CandidateProfile | None:
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(CandidateProfile).where(
+                CandidateProfile.id == profile_id,
+                CandidateProfile.deleted_at.is_(None),
+            )
+        )
 
 
 async def list_profiles(user_id: int) -> list[CandidateProfile]:
@@ -109,6 +152,79 @@ async def add_resume(profile_id: int, name: str, language: str, role: str, conte
         await session.commit()
         await session.refresh(item)
         return item
+
+
+async def add_imported_resume_with_facts(
+    profile_id: int,
+    name: str,
+    language: str,
+    role: str,
+    content: str,
+    external_id: str,
+    facts: list[dict],
+    *,
+    replacements: list[dict] | None = None,
+) -> ResumeProfile:
+    """Persist the resume, additions and reviewed replacements atomically."""
+    replacements = replacements or []
+    replacement_ids = [item["existing_id"] for item in replacements]
+    if len(replacement_ids) != len(set(replacement_ids)):
+        raise FactUpdateConflict("Для одного факта выбери только один UPDATE.")
+    async with SessionLocal() as session:
+        # Serialize imports for one candidate profile. The UI's duplicate
+        # precheck is not a concurrency boundary: two previews can confirm at
+        # once, so recheck the fingerprint under this transaction lock.
+        profile = await session.scalar(
+            select(CandidateProfile).where(CandidateProfile.id == profile_id).with_for_update()
+        )
+        if profile is None:
+            raise ValueError("Профиль кандидата не найден.")
+        duplicate = await session.scalar(
+            select(ResumeProfile).where(
+                ResumeProfile.profile_id == profile_id,
+                ResumeProfile.source == "imported",
+                ResumeProfile.external_id == external_id,
+            ).limit(1)
+        )
+        if duplicate is not None:
+            raise ResumeImportExists(duplicate.id)
+        for replacement in sorted(replacements, key=lambda item: item["existing_id"]):
+            existing = await session.scalar(
+                select(CandidateFact).where(
+                    CandidateFact.id == replacement["existing_id"],
+                    CandidateFact.profile_id == profile_id,
+                    CandidateFact.active.is_(True), CandidateFact.deleted_at.is_(None),
+                ).with_for_update()
+            )
+            if existing is None or existing.value != replacement["expected_value"]:
+                raise FactUpdateConflict("Факт изменился после предпросмотра. Выбери KEEP или загрузи резюме заново.")
+            # Retain the old value and its evidence; imported replacement claims
+            # are new unknown facts, never inherited commercial experience.
+            existing.active = False
+        resume = ResumeProfile(
+            profile_id=profile_id, name=name, language=language, role=role,
+            content=content, source="imported", external_id=external_id,
+        )
+        session.add(resume)
+        await session.flush()
+        for fact in [*facts, *replacements]:
+            evidence = f"resume_import section={fact['section']}; confidence={fact['confidence']:.2f}"
+            if "existing_id" in fact:
+                evidence += f"; replaces_fact_id={fact['existing_id']}"
+            session.add(CandidateFact(
+                profile_id=profile_id,
+                category=fact["category"],
+                key=fact["category"],
+                value=fact["value"],
+                experience_type="unknown",
+                commercial=False,
+                confidence=max(0.0, min(1.0, float(fact["confidence"]))),
+                provenance="resume_import",
+                evidence=evidence,
+            ))
+        await session.commit()
+        await session.refresh(resume)
+        return resume
 
 
 async def list_resumes(profile_id: int) -> list[ResumeProfile]:
@@ -183,13 +299,63 @@ async def set_user_country(user_id: int, code: str | None) -> None:
 
 async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
     async with SessionLocal() as session:
-        source_ref = await session.scalar(select(JobSourceRef).where(JobSourceRef.source_id == job.source, JobSourceRef.source_job_id == job.source_job_id))
-        if source_ref:
-            existing = await session.get(Job, source_ref.job_id)
-            return existing, False
-
+        incoming_raw = dict(job.raw or {})
+        incoming_raw["normalized_posting_v1"] = snapshot_source_posting(job)
+        incoming_raw["relocation_evidence_v1"] = build_relocation_evidence(
+            job, captured_at=datetime.now(timezone.utc)
+        )
         fingerprint = job.canonical_fingerprint()
-        existing = await session.scalar(select(Job).where(Job.fingerprint == fingerprint))
+        # Serialize the two natural-key decisions (provider identity and
+        # cross-provider fingerprint) before reading either row. Sorting keeps
+        # lock acquisition order stable when both keys overlap across workers.
+        lock_keys = sorted((
+            f"source:{job.source}:{job.source_job_id}",
+            f"fingerprint:{fingerprint}",
+        ))
+        for lock_key in lock_keys:
+            await session.execute(
+                select(func.pg_advisory_xact_lock(func.hashtextextended(lock_key, 0)))
+            )
+
+        source_ref = await session.scalar(
+            select(JobSourceRef)
+            .where(JobSourceRef.source_id == job.source, JobSourceRef.source_job_id == job.source_job_id)
+            .with_for_update()
+        )
+        if source_ref:
+            existing = await session.scalar(
+                select(Job).where(Job.id == source_ref.job_id).with_for_update()
+            )
+            if existing:
+                _refresh_job_from_source(existing, job)
+                # A fully specified new identity can improve later cross-source
+                # deduplication. Keep the old fingerprint when the normalized
+                # identity is incomplete or already belongs to another Job;
+                # reassignment/merging would require reconciling its matches.
+                if _has_complete_identity(job):
+                    collision = await session.scalar(
+                        select(Job)
+                        .where(Job.fingerprint == fingerprint, Job.id != existing.id)
+                    )
+                    if not collision:
+                        existing.fingerprint = fingerprint
+                old_raw = dict(source_ref.raw or {})
+                cached_details = old_raw.get("details_cache_v1")
+                if isinstance(cached_details, dict):
+                    incoming_raw["details_cache_v1"] = cached_details
+                cache_digest = old_raw.get("details_cache_posting_digest_v1")
+                if isinstance(cache_digest, str):
+                    incoming_raw["details_cache_posting_digest_v1"] = cache_digest
+                source_ref.raw = incoming_raw
+                if job.url:
+                    source_ref.url = str(job.url)[:100000]
+                await session.commit()
+                await session.refresh(existing)
+                return existing, False
+
+        existing = await session.scalar(
+            select(Job).where(Job.fingerprint == fingerprint).with_for_update()
+        )
         created = False
         if not existing:
             existing = Job(
@@ -212,18 +378,72 @@ async def upsert_job(job: NormalizedJob) -> tuple[Job, bool]:
             session.add(existing)
             await session.flush()
             created = True
-        session.add(JobSourceRef(job_id=existing.id, source_id=job.source, source_job_id=job.source_job_id, url=job.url, raw=job.raw))
+        session.add(JobSourceRef(job_id=existing.id, source_id=job.source, source_job_id=job.source_job_id, url=job.url, raw=incoming_raw))
         await session.commit()
         await session.refresh(existing)
         return existing, created
 
 
-async def source_ref(job_id: int, source_id: str | None = None) -> JobSourceRef | None:
+def _refresh_job_from_source(existing: Job, incoming: NormalizedJob) -> None:
+    """Apply known nonempty source fields without erasing other-source evidence."""
+    string_limits = {
+        "title": 512, "company": 512, "description": 100000,
+        "country": 128, "city": 256, "work_mode": 64,
+        "remote_scope": 128, "salary_currency": 16,
+        "salary_period": 32, "published_at": 64,
+    }
+    for field, limit in string_limits.items():
+        value = getattr(incoming, field)
+        if value is not None and str(value).strip():
+            setattr(existing, field, str(value)[:limit])
+    for field in ("relocation", "visa_sponsorship", "salary_from", "salary_to"):
+        value = getattr(incoming, field)
+        if value is not None:
+            setattr(existing, field, value)
+
+
+def _has_complete_identity(job: NormalizedJob) -> bool:
+    return bool(
+        job.title.strip()
+        and (job.company.strip() or job.description.strip())
+        and bool((job.country or "").strip())
+        and bool((job.city or "").strip())
+    )
+
+
+async def source_ref(
+    job_id: int, source_id: str | None = None, *, source_job_id: str | None = None
+) -> JobSourceRef | None:
     async with SessionLocal() as session:
         stmt = select(JobSourceRef).where(JobSourceRef.job_id == job_id)
         if source_id:
             stmt = stmt.where(JobSourceRef.source_id == source_id)
-        return await session.scalar(stmt.order_by(JobSourceRef.id))
+        if source_job_id is not None:
+            stmt = stmt.where(JobSourceRef.source_job_id == source_job_id)
+        refs = list((await session.scalars(stmt.order_by(JobSourceRef.id))).all())
+        if not refs:
+            return None
+        if source_job_id is not None or len(refs) == 1:
+            return refs[0]
+        return max(refs, key=_source_ref_observation_order)
+
+
+def _source_ref_observation_order(ref: JobSourceRef) -> tuple[int, float, int]:
+    """Prefer the freshest source snapshot, while keeping legacy refs stable."""
+    raw = ref.raw if isinstance(ref.raw, dict) else {}
+    evidence = raw.get("relocation_evidence_v1")
+    captured_at = evidence.get("captured_at") if isinstance(evidence, dict) else None
+    if isinstance(captured_at, str):
+        try:
+            observed = datetime.fromisoformat(captured_at)
+            if observed.tzinfo is None:
+                observed = observed.replace(tzinfo=timezone.utc)
+            return (1, observed.astimezone(timezone.utc).timestamp(), ref.id)
+        except (ValueError, OverflowError, OSError):
+            pass
+    # Old refs have no observation timestamp. Preserve the previous first-ref
+    # behavior for them instead of inventing a recency from the row ID.
+    return (0, 0.0, -ref.id)
 
 
 async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
@@ -233,6 +453,32 @@ async def update_source_ref_raw(ref_id: int, raw: dict) -> None:
             return
         item.raw = dict(raw or {})
         await session.commit()
+
+
+async def save_source_ref_detail_cache(
+    ref_id: int, details: dict, *, expected_posting_digest: str | None = None
+) -> bool:
+    """Save verified details only for the expected posting; signal rejected writes."""
+    async with SessionLocal() as session:
+        item = await session.scalar(
+            select(JobSourceRef).where(JobSourceRef.id == ref_id).with_for_update()
+        )
+        if not item:
+            return False
+        raw = dict(item.raw or {})
+        current_digest = posting_snapshot_digest(raw.get("normalized_posting_v1"))
+        if expected_posting_digest is not None and expected_posting_digest != current_digest:
+            # A card refresh raced the network fetch. Do not label fetched
+            # details as verified against a snapshot we did not request.
+            return False
+        raw["details_cache_v1"] = dict(details or {})
+        if current_digest:
+            raw["details_cache_posting_digest_v1"] = current_digest
+        else:
+            raw.pop("details_cache_posting_digest_v1", None)
+        item.raw = raw
+        await session.commit()
+        return True
 
 
 async def save_match(**kwargs) -> JobMatch:
@@ -359,20 +605,28 @@ async def latest_matches(
     *,
     include_filtered: bool = False,
     min_score: int | None = None,
+    max_score: int | None = None,
+    search_profile_id: int | None = None,
 ) -> list[tuple[JobMatch, Job]]:
-    """Latest useful matches, suppressing stale low-score rows and reposts in UI."""
+    """Highest-scoring useful matches, with recent matches first on score ties."""
     async with SessionLocal() as session:
         stmt = (
             select(JobMatch, Job)
             .join(Job, Job.id == JobMatch.job_id)
             .where(JobMatch.user_id == user_id)
-            .order_by(JobMatch.created_at.desc())
+            .order_by(JobMatch.total_score.desc(), JobMatch.created_at.desc())
             .limit(max(limit * 8, 40))
         )
-        if not include_filtered:
+        if include_filtered:
+            stmt = stmt.where(JobMatch.status != "duplicate")
+        else:
             stmt = stmt.where(JobMatch.status.notin_(["filtered", "duplicate"]))
         if min_score is not None:
             stmt = stmt.where(JobMatch.total_score >= int(min_score))
+        if max_score is not None:
+            stmt = stmt.where(JobMatch.total_score <= int(max_score))
+        if search_profile_id is not None:
+            stmt = stmt.where(JobMatch.search_profile_id == search_profile_id)
         rows = list((await session.execute(stmt)).all())
 
     out: list[tuple[JobMatch, Job]] = []
@@ -388,26 +642,59 @@ async def latest_matches(
     return out
 
 
-async def has_notified_equivalent(user_id: int, job_id: int, title: str, company: str) -> bool:
-    """Avoid notifying the same title/company reposted under another source job id."""
+async def has_notified_equivalent(
+    user_id: int,
+    job_id: int,
+    title: str,
+    company: str,
+    *,
+    match_id: int | None = None,
+) -> bool:
+    """Avoid notifying one canonical job or equivalent repost more than once.
+
+    A canonical Job can have independent Career-first and Relocation-first
+    JobMatch rows. Do not exclude its already-notified rows: the current match
+    is still ``new`` and therefore cannot suppress itself.
+    """
     title_key, company_key = _display_key(title, company)
     if not title_key:
         return False
     async with SessionLocal() as session:
-        rows = await session.execute(
-            select(JobMatch.status, Job.title, Job.company)
+        stmt = (
+            select(JobMatch.id, JobMatch.status, Job.title, Job.company)
             .join(Job, Job.id == JobMatch.job_id)
             .where(
                 JobMatch.user_id == user_id,
-                Job.id != job_id,
-                JobMatch.status.in_(REPOST_SUPPRESS_STATUSES),
+                JobMatch.status.in_(REPOST_SUPPRESS_STATUSES | {"new"}),
             )
-            .order_by(JobMatch.created_at.desc())
+            # Same canonical Job must not fall outside the bounded repost
+            # window even when the user has many newer matches.
+            .order_by((Job.id == job_id).desc(), JobMatch.created_at.desc())
             .limit(200)
         )
-        for status, other_title, other_company in rows.all():
+        if match_id is not None:
+            stmt = stmt.where(JobMatch.id != match_id)
+        rows = await session.execute(stmt)
+        pending_match_ids: list[int] = []
+        for other_match_id, status, other_title, other_company in rows.all():
             if _display_key(other_title, other_company) == (title_key, company_key):
-                return True
+                if status in REPOST_SUPPRESS_STATUSES:
+                    return True
+                pending_match_ids.append(other_match_id)
+        if pending_match_ids:
+            states = await session.scalars(
+                select(RuntimeState.value).where(
+                    RuntimeState.user_id == user_id,
+                    RuntimeState.key.in_([f"jobnotify:{item}" for item in pending_match_ids]),
+                )
+            )
+            for raw in states:
+                try:
+                    state = json.loads(raw)
+                except (TypeError, ValueError):
+                    continue
+                if isinstance(state, dict) and state.get("status") in {"sending", "retry", "sent"}:
+                    return True
     return False
 
 
@@ -423,9 +710,238 @@ async def save_application(**kwargs) -> Application:
     async with SessionLocal() as session:
         item = Application(**kwargs)
         session.add(item)
+        await session.flush()
+        session.add(ApplicationStatusEvent(
+            application_id=item.id,
+            user_id=item.user_id,
+            status=item.status,
+        ))
         await session.commit()
         await session.refresh(item)
         return item
+
+
+async def prepared_application_for_match(match_id: int, user_id: int) -> Application | None:
+    """Find a package previously created for this exact owner-scoped match."""
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.vacancy_snapshot[PREPARED_MATCH_SNAPSHOT_KEY].astext == str(match_id),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+
+
+async def save_prepared_application(
+    match_id: int, user_id: int, **kwargs,
+) -> tuple[Application, bool]:
+    """Atomically save one package per owner-scoped match; return (item, created).
+
+    Locking the match row serializes duplicate attempts without adding a schema
+    constraint. The immutable marker remains on the Application snapshot as the
+    package advances through reviewed/submitted tracking statuses.
+    """
+    async with SessionLocal() as session:
+        match = await session.scalar(
+            select(JobMatch).where(
+                JobMatch.id == match_id, JobMatch.user_id == user_id,
+            ).with_for_update()
+        )
+        if match is None or match.job_id != kwargs.get("job_id"):
+            raise ValueError("Match не найден для этого пользователя и вакансии")
+        existing = await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.vacancy_snapshot[PREPARED_MATCH_SNAPSHOT_KEY].astext == str(match_id),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+        if existing is not None:
+            return existing, False
+        snapshot = dict(kwargs.pop("vacancy_snapshot", {}) or {})
+        snapshot[PREPARED_MATCH_SNAPSHOT_KEY] = match_id
+        kwargs["vacancy_snapshot"] = snapshot
+        item = Application(user_id=user_id, status="prepared", **kwargs)
+        session.add(item)
+        await session.flush()
+        session.add(ApplicationStatusEvent(
+            application_id=item.id, user_id=user_id, status="prepared",
+        ))
+        match.status = "prepared"
+        await session.commit()
+        await session.refresh(item)
+        return item, True
+
+
+
+
+async def reserve_hh_application(
+    *, user_id: int, job_id: int, source_job_id: str, **snapshot_kwargs
+) -> Application:
+    """Record a non-retryable attempt before any external HH side effect.
+
+    Serialize all HH claims for an owner through the user row lock. Check both
+    canonical job id and provider posting id across independent search profiles
+    and changed fingerprints. Existing prepared drafts are not submissions.
+    """
+    async with SessionLocal() as session:
+        owner = await session.scalar(
+            select(User).where(
+                User.id == user_id, User.is_active.is_(True), User.deleted_at.is_(None)
+            ).with_for_update()
+        )
+        if not owner:
+            raise RuntimeError("HH owner не найден или отключён")
+        # A user may have prepared and explicitly reviewed an unsent draft.
+        # Permit that workflow only when the history proves it began as a draft
+        # and contains no attempted/submitted outcome.
+        had_draft = select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == Application.id,
+            ApplicationStatusEvent.status == "prepared",
+        ).exists()
+        had_outbound_status = select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == Application.id,
+            ApplicationStatusEvent.status.notin_(("prepared", "reviewed")),
+        ).exists()
+        safe_reviewed_draft = and_(
+            Application.status == "reviewed", had_draft, ~had_outbound_status,
+        )
+        duplicate = await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.source_id == "hh",
+                ~or_(Application.status == "prepared", safe_reviewed_draft),
+                or_(
+                    Application.job_id == job_id,
+                    Application.vacancy_snapshot["source_job_id"].astext == source_job_id,
+                ),
+            ).order_by(Application.created_at.desc(), Application.id.desc()).limit(1)
+        )
+        if duplicate:
+            raise RuntimeError(
+                f"Повторный HH-отклик заблокирован: запись #{duplicate.id}, "
+                f"статус {duplicate.status}. Проверь /applications и кабинет HH; "
+                "не отправляй повторно без ручной сверки."
+            )
+        item = Application(
+            user_id=user_id, job_id=job_id, source_id="hh",
+            status="sending", **snapshot_kwargs,
+        )
+        session.add(item)
+        await session.flush()
+        session.add(ApplicationStatusEvent(
+            application_id=item.id, user_id=user_id, status="sending",
+        ))
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
+async def finish_hh_application(
+    *, user_id: int, application_id: int, match_id: int,
+    status: str, source_application_id: str | None = None,
+    external_url: str | None = None,
+) -> None:
+    """Record the provider outcome, history and confirmed match in one transaction.
+
+    Unknown results remain in a blocking state. Never assume a failed response
+    means HH did not receive the application.
+    """
+    status = status if status in {"sent", "external"} else "unknown"
+    async with SessionLocal() as session:
+        item = await session.scalar(
+            select(Application).where(
+                Application.id == application_id,
+                Application.user_id == user_id,
+                Application.source_id == "hh",
+            ).with_for_update()
+        )
+        if not item or item.status != "sending":
+            raise RuntimeError("HH-попытка отсутствует или уже обработана")
+        if status == "sent":
+            match = await session.scalar(
+                select(JobMatch).where(
+                    JobMatch.id == match_id,
+                    JobMatch.user_id == user_id,
+                    JobMatch.job_id == item.job_id,
+                ).with_for_update()
+            )
+            if not match:
+                raise RuntimeError("Исходный HH match отсутствует; проверь кабинет HH")
+            match.status = "applied"
+        item.status = status
+        item.source_application_id = source_application_id if status == "sent" else None
+        item.external_url = external_url
+        session.add(ApplicationStatusEvent(
+            application_id=item.id, user_id=user_id, status=status,
+        ))
+        await session.commit()
+
+
+async def list_applications(user_id: int, limit: int = 20) -> list[Application]:
+    async with SessionLocal() as session:
+        rows = await session.scalars(
+            select(Application)
+            .where(Application.user_id == user_id)
+            .order_by(Application.created_at.desc(), Application.id.desc())
+            .limit(max(1, min(int(limit), 100)))
+        )
+        return list(rows)
+
+
+async def get_application(user_id: int, application_id: int) -> Application | None:
+    async with SessionLocal() as session:
+        return await session.scalar(
+            select(Application).where(
+                Application.user_id == user_id,
+                Application.id == application_id,
+            )
+        )
+
+
+async def set_application_status(user_id: int, application_id: int, status: str) -> bool:
+    if status not in MANUAL_APPLICATION_STATUSES:
+        return False
+    async with SessionLocal() as session:
+        # Serialize the status check and event append for this application.
+        item = await session.scalar(
+            select(Application).where(
+                Application.id == application_id,
+                Application.user_id == user_id,
+            ).with_for_update()
+        )
+        if not item:
+            return False
+        if item.status == status:
+            return True
+        item.status = status
+        session.add(ApplicationStatusEvent(
+            application_id=item.id,
+            user_id=item.user_id,
+            status=status,
+        ))
+        await session.commit()
+        return True
+
+
+async def application_status_history(user_id: int, application_id: int) -> list[ApplicationStatusEvent] | None:
+    async with SessionLocal() as session:
+        application = await session.scalar(
+            select(Application.id).where(
+                Application.id == application_id,
+                Application.user_id == user_id,
+            )
+        )
+        if application is None:
+            return None
+        rows = await session.scalars(
+            select(ApplicationStatusEvent)
+            .where(
+                ApplicationStatusEvent.application_id == application_id,
+                ApplicationStatusEvent.user_id == user_id,
+            )
+            .order_by(ApplicationStatusEvent.id)
+        )
+        return list(rows)
 
 
 async def message_seen(user_id: int, message_id: str, source: str) -> bool:
@@ -491,13 +1007,18 @@ async def get_match(match_id: int) -> JobMatch | None:
         return await session.get(JobMatch, match_id)
 
 
-async def get_match_for_user_job(user_id: int, job_id: int) -> JobMatch | None:
+async def get_match_for_user_job(
+    user_id: int, job_id: int, *, search_profile_id: int | None = None
+) -> JobMatch | None:
     async with SessionLocal() as session:
-        return await session.scalar(
+        stmt = (
             select(JobMatch)
             .where(JobMatch.user_id == user_id, JobMatch.job_id == job_id)
             .order_by(JobMatch.created_at.desc())
         )
+        if search_profile_id is not None:
+            stmt = stmt.where(JobMatch.search_profile_id == search_profile_id)
+        return await session.scalar(stmt)
 
 
 async def get_resume(resume_id: int) -> ResumeProfile | None:
@@ -546,4 +1067,12 @@ async def set_profile_target_role(profile_id: int, role: str) -> None:
         item = await session.get(CandidateProfile, profile_id)
         if item:
             item.target_role = role
+            await session.commit()
+
+
+async def set_profile_english_level(profile_id: int, level: str) -> None:
+    async with SessionLocal() as session:
+        item = await session.get(CandidateProfile, profile_id)
+        if item and item.deleted_at is None:
+            item.english_level = level
             await session.commit()

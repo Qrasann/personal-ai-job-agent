@@ -28,14 +28,14 @@ def job_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def jobs_keyboard(rows) -> InlineKeyboardMarkup:
-    buttons = [
-        InlineKeyboardButton(
+def jobs_keyboard(rows, *, search_profile_id: int | None = None) -> InlineKeyboardMarkup:
+    buttons = []
+    for match, job in rows:
+        scope_id = search_profile_id if search_profile_id is not None else getattr(match, "search_profile_id", None)
+        buttons.append(InlineKeyboardButton(
             text=f"📋 #{job.id}",
-            callback_data=f"details:{job.id}",
-        )
-        for match, job in rows
-    ]
+            callback_data=f"details:{job.id}" + (f":{scope_id}" if scope_id is not None else ""),
+        ))
     return InlineKeyboardMarkup(
         inline_keyboard=[buttons[i:i + 2] for i in range(0, len(buttons), 2)]
     )
@@ -49,17 +49,45 @@ def recruiter_keyboard(chat_id: str, message_id: str) -> InlineKeyboardMarkup:
     ])
 
 
-def vacancy_details_keyboard(job_id: int) -> InlineKeyboardMarkup:
+def vacancy_details_keyboard(job_id: int, *, search_profile_id: int | None = None) -> InlineKeyboardMarkup:
+    suffix = f":{search_profile_id}" if search_profile_id is not None else ""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="🧩 Сравнить с профилем",
-                    callback_data=f"compare:{job_id}",
-                )
-            ]
+                InlineKeyboardButton(text="📌 Требования", callback_data=f"jobtab:req:{job_id}{suffix}"),
+                InlineKeyboardButton(text="📝 Описание", callback_data=f"jobtab:desc:{job_id}{suffix}"),
+            ],
+            [
+                InlineKeyboardButton(text="💼 Условия найма", callback_data=f"jobtab:terms:{job_id}{suffix}"),
+                InlineKeyboardButton(text="👥 Конкуренция", callback_data=f"jobtab:competition:{job_id}{suffix}"),
+            ],
+            [InlineKeyboardButton(text="🌐 Источник", callback_data=f"jobtab:source:{job_id}{suffix}")],
+            [InlineKeyboardButton(text="🧩 Сравнить с профилем", callback_data=f"compare:{job_id}{suffix}")],
+            [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
         ]
     )
+
+
+def vacancy_section_keyboard(job_id: int, *, search_profile_id: int | None = None) -> InlineKeyboardMarkup:
+    suffix = f":{search_profile_id}" if search_profile_id is not None else ""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅ Назад", callback_data=f"jobtab:summary:{job_id}{suffix}")],
+        [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
+    ])
+
+
+def scan_status_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📋 Детали источников", callback_data="scanstatus:details")],
+        [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
+    ])
+
+
+def scan_status_details_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅ К сводке", callback_data="scanstatus:summary")],
+        [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
+    ])
 
 
 def review_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
@@ -74,6 +102,7 @@ def review_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="⬅ Назад", callback_data=f"review_prev:{match_id}"),
                 InlineKeyboardButton(text="➡ Следующая", callback_data=f"review_next:{match_id}"),
             ],
+            [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
         ]
     )
 

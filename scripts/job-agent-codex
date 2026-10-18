@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Invoke through one of the ~/.local/bin/{main,fast,deep,agents} symlinks.
+# Specialist runs are ephemeral and read-only; only Main owns implementation.
+job_agent_script_path="$(readlink -f "${BASH_SOURCE[0]}")"
+job_agent_repo="$(cd "$(dirname "$job_agent_script_path")/.." && pwd)"
+job_agent_command="$(basename "$0")"
+job_agent_main_id="01a13763-4d60-7461-bdcb-5d6f2076d0bb"
+
+if [[ "${1:-}" == "--dry-run" ]]; then
+    case "$job_agent_command" in
+        main) printf 'main: codex resume %s; existing session; configured model gpt-6-sol/medium\n' "$job_agent_main_id" ;;
+        fast) printf 'fast: codex exec --ephemeral; job_scout model gpt-6-luna/low; read-only\n' ;;
+        deep) printf 'deep: codex exec --ephemeral; job_deep_review model gpt-6.1-sol/high; read-only\n' ;;
+        agents) printf 'agents: codex agents; command center; no task started\n' ;;
+        *) printf 'Unknown launcher: %s\n' "$job_agent_command" >&2; exit 2 ;;
+    esac
+    exit 0
+fi
+
+case "$job_agent_command" in
+    main)
+        if (($#)); then
+            exec codex resume "$job_agent_main_id" -C "$job_agent_repo" "$*"
+        fi
+        exec codex resume "$job_agent_main_id" -C "$job_agent_repo"
+        ;;
+    agents)
+        exec codex agents --cd "$job_agent_repo" "$@"
+        ;;
+    fast|deep)
+        if (($# == 0)); then
+            printf 'Usage: %s "bounded read-only question"\n' "$job_agent_command" >&2
+            exit 2
+        fi
+        if [[ "$job_agent_command" == fast ]]; then
+            job_agent_role=job_scout
+            job_agent_instructions='Read-only Scout for Main. Answer only this narrow research question with file/test evidence and uncertainty. Do not edit, publish, deploy, or start other agents.'
+        else
+            job_agent_role=job_deep_review
+            job_agent_instructions='Read-only Deep reviewer for Main. Analyze this difficult security, architecture, or debugging question with concrete evidence and risks. Do not edit, publish, deploy, or start other agents.'
+        fi
+        job_agent_role_config="${CODEX_HOME:-$HOME/.codex}/agents/${job_agent_role}.toml"
+        job_agent_role_values="$(python3 - "$job_agent_role_config" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], "rb") as source:
+    config = tomllib.load(source)
+for key in ("model", "model_reasoning_effort", "sandbox_mode"):
+    print(config[key])
+PY
+)"
+        mapfile -t job_agent_fields <<< "$job_agent_role_values"
+        job_agent_model="${job_agent_fields[0]}"
+        job_agent_effort="${job_agent_fields[1]}"
+        job_agent_sandbox="${job_agent_fields[2]}"
+        if [[ "$job_agent_sandbox" != read-only ]]; then
+            printf '%s must remain read-only\n' "$job_agent_role" >&2
+            exit 2
+        fi
+        job_agent_prompt="${job_agent_instructions}"$'\n\nTask from Main: '"$*"
+        exec codex exec --ephemeral -C "$job_agent_repo" \
+            --model "$job_agent_model" \
+            -c "model_reasoning_effort=\"$job_agent_effort\"" \
+            --sandbox read-only \
+            "$job_agent_prompt"
+        ;;
+    *)
+        printf 'Run through main, fast, deep, or agents\n' >&2
+        exit 2
+        ;;
+esac

@@ -1,207 +1,95 @@
-# Codex Brief
+# Personal AI Job Agent — active brief (2026-10-17)
 
-Last updated: 2026-10-11 (Europe/Moscow)
+## Current owner priority — search, relocation and offers (2026-10-18)
+- Standing execution mode is MAXIMUM TOKEN ECONOMY: one Main agent by default, targeted context/tests first, Fast/Deep only when total delegation cost is justified, and no repeated unchanged full-suite hang. This optimizes token/context use, never required safety or quality gates; account quotas are not claimed unless directly exposed.
+- Telegram UX & Vacancy Intelligence is now an explicit P0 alongside (not ahead of) the two watcher deliverables. The first dev slice makes `/scanstatus`, `/review` and `/job` compact with owner-scoped inline tabs/edit-in-place and keeps detailed diagnostics/provenance behind buttons. Applicant counts render only from persisted, dated `kind=applications` evidence; views are rejected and absence is shown as `Нет открытых данных`. ReplyKeyboard, adapter collection, soft secondary ordering, richer skill summaries and isolated visual Telegram acceptance remain open.
+- Further Web GUI redesign and feature growth are frozen. Preserve the existing MVP, tests and browser evidence; touch it only for critical security or data correctness. Telegram Mini App is deferred. This changes execution order, not DEC-001–015 or other product requirements.
+- The latest P0 order is: Telegram Job Channel Watcher, Employer Career Watcher, then continued Search Quality, Worldwide Relocation and button-first Telegram UX. This moves the two watcher increments ahead of further Himalayas optimization and broad IT/non-IT refactoring without cancelling those tasks. Candidate-to-Offer remains P1; Skill Check, Interview Agent, AI Router and Stack Watch remain P2.
+- Telegram readiness is code-verified and the owner has now authorized a read-only pilot for exactly `@devops_jobs_feed`, `@itjobsgeorgia` and `@vgrecruitingit`, without joining. Telethon is installed, while the private inventory/session and local API ID/hash remain absent; interactive owner-entered authorization is therefore pending. The historical 21-channel manifest contains labels only, not verified IDs, usernames, peer types or access. No channel has been joined or read in this checkpoint.
+- A P0 notification-reliability regression found the repeated-vacancy cause: the equivalent-alert query excluded all prior matches sharing the same canonical Job ID, allowing Career-first and Relocation-first matches to notify separately. It now suppresses the second profile match while preserving distinct canonical/provider vacancies. Source technical notices persist per `(source, state, codes)`: first change, six-hour repeat summary and one recovery; identical 15-minute repeats are quiet. Successful HH 403 web fallback remains detailed in Diagnostics but is not a chat alert.
+- Current-route diagnostics observed a metric-1 `happ-xray` tunnel and no process proxy variables. IPv4 TLS completed for HH, RemoteOK, EURES, Job Bank and Greenhouse; HH returned 403 after TLS, RemoteOK/Greenhouse 200, EURES HEAD 500, and Job Bank completed TLS but timed out before HTTP bytes at 20 seconds. IPv6 name resolution failed for the two sampled hosts. This is a current-route observation, not proof that the tunnel caused historical EOF/ConnectError; a controlled owner-side before/after route comparison remains required.
+- The initial read-only Employer Career Watcher catalog validates 12 official employers and 14 exact current openings across a custom career site, Greenhouse, Lever and SmartRecruiters. One stale Emerging Travel Junior DevOps URL was removed after the official page stopped resolving; the remaining 14/14 provider IDs/links passed the 2026-10-18 probe. Suitability is recorded separately from counts, and work authorization, visa sponsorship and relocation remain unknown.
+- The immediate engineering checkpoint closes a Himalayas coverage gap: configured countries previously suppressed its global query and parsing considered only the first three requested markets. The working change adds one bounded worldwide probe per query and validates restrictions against every configured country. A read-only public probe returned 8 unique DevOps cards: 7 from global discovery and 1 Germany-limited result; one country request failed. These are real source cards, not verified eligibility, sponsorship or offers.
+- HH diagnosis now reproduces an intermittent IPv4 TLS handshake abort (`ssl.SSLEOFError`) wrapped as `ConnectError`, alongside attempts that reach HTTP 403. Typed httpcore/anyio causes are now classified as `TLS_CONNECTION_FAILED` without exposing payloads; HH cooldown and source isolation remain unchanged.
+- Current isolated source usefulness baseline: Himalayas supplies nearly all Good candidates but includes non-opening noise; Job Bank supplies low volume with one relevant non-IT result; EURES has volume but no Good in this profile after generic-title cleanup; RemoteOK and Arbeitnow are low-volume/no-Good; HH is transport/access-limited; several ATS/Georgia sources failed cleanly and have no measured yield. A stored Himalayas `Expression of Interest Form` false Good now remains visible but is fit-skipped/capped like explicit volunteer work.
+- Production, the running Telegram bot, production PostgreSQL and existing volumes remain untouched. No application or employer message is authorized.
 
-## Mission
+## Owner-approved roadmap and active checkpoint (2026-10-18)
+- DEC-001–015 are owner-approved requirements; implementation status is tracked separately in the canonical `ROADMAP.md` and `docs/PROJECT_OS/DECISIONS.md`. In particular, approved is not implemented, tested, owner accepted, or released.
+- Prior P0 Web owner-acceptance work is preserved as completed evidence; current P0 is measurable Career-first/Relocation-first usefulness and worldwide coverage. Runtime deployment and all external applications remain unauthorized. See current `docs/PROJECT_OS/HANDOFF.md`.
+- Current dev is synchronized to feature merge `5331294`; preserve existing GUI, Telegram Folder Watcher, international coverage and Candidate Fit work. DEC-001–015 implementation beyond evidenced existing behavior is pending.
 
-Continue the existing Personal AI Job Agent. Maintain two independent tracks:
+## Preserved Web GUI MVP evidence (frozen 2026-10-18)
+- An isolated acceptance Compose project now runs the Web GUI on localhost port 18080 with separate PostgreSQL/file volumes and no production `.env`. Firefox 158 completed real login, all ten pages, an owner fact write, manual application-status write and package detail/export navigation. Owner visual acceptance is still pending; production remains untouched.
+- A fresh isolated normalized-role scan processed 84 public source rows: Career-first 15 with 0 Good (minimal fixture facts), Relocation-first 69 with 9 Good. Manual sampling found generic EURES `Engineer` leakage and a volunteer Good false positive. Working regressions require meaningful EURES title tokens and fit-skip/cap explicit volunteer/unpaid titles; 183 relevant tests and static gates pass. External public link rendering and the complete PostgreSQL gate remain open.
+- Owner reprioritized a private Web GUI and real Career-first/Relocation-first search ahead of later v4.x productization. `app/web.py` adds a local owner-scoped workspace across Dashboard, Search, Jobs, Review, Profiles, Sources, Relocation, CV and Applications using the existing repository and scan service. Jobs includes below-threshold manual leads while retaining reasons and excluding domestic onsite from Relocation-first. Profiles accepts owner-confirmed Candidate Facts with evidence; CV previews PDF/DOCX/TXT and explicit fact choices; Applications displays frozen package/history. It is an implementation increment, not deployed or live accepted. See `docs/developer/WEB_GUI.md` and the current HANDOFF.
+- Existing Telegram `/parallelsearch on`, `/relocationroles`, `/scan`, `/scanstatus` already support immediate two-track search when the running bot has access and configured sources. No runtime changes or live vacancy claims were made here.
+- The development branch now coordinates bot, scheduled and Web GUI scans with a per-user PostgreSQL transaction lock. A concurrent pass is skipped without replacing the active scan's dashboard. This is offline verified only; it is not deployed to runtime.
+- Dashboard now converts the persisted scan journal into concise totals, Career-first/Relocation-first result cards and daily workflow links. Sanitized source health, error codes and filter reasons are isolated on Diagnostics; raw transport messages are not rendered. The Web unit and owner-authenticated PostgreSQL route suites pass, but runtime browser acceptance remains pending.
+- Jobs and Review now filter by Career-first/Relocation-first, status and title/company, and render compact cards with location, work mode, salary/date when known, status and a collapsed score explanation. Save/skip remain owner-scoped; package creation is labelled as a manual application step and does not submit externally.
+- Search now explains readiness for both directions, including target countries, active sources and IT/non-IT relocation queries, while using the persisted scan result after process restart. Applications supports status/title/company filtering, concise frozen-package cards and safe external links; manual status changes remain inside package detail.
+- Integrated MVP stabilization passed 1325 isolated PostgreSQL tests and built `job-agent-web-mvp-validation:local`. Static checks remain part of the publication checkpoint. This is source/test evidence only; Web runtime and production data were not changed.
+- Read-only runtime evidence confirms a fresh scheduled search from 09:12:07–09:15:56 UTC: all 11 source aggregates reported success; 271 vacancies were processed. Career-first produced 52 Good, 26 Stretch and 144 filtered. Relocation-first processed 49 with 0 Good/Stretch and 49 scoring-filtered, while 50 more were excluded by preferences. No new notification was emitted. The existing Telegram runtime performed this search; the Web build is still undeployed.
+- A real-link sample found HH returning unrelated teacher/sales titles for the non-IT `cleaner` query. HH API and public web fallback discovery now keep a result only when its title shares a meaningful query token; generic worker/staff/engineer words cannot admit a result alone. Targeted HH suite passed 19 and the full isolated PostgreSQL suite passed 1327. Existing runtime rows remain until rediscovery after a gated update.
 
-1. **Career-first** — DevOps / Infrastructure / SRE growth.
-2. **Relocation-first** — any legal, verifiable work that can enable a realistic move; career fit is secondary.
+## Current Telegram folder increment (2026-10-17)
+- PRs #46–#48 merged; feature is at `a2df2dc`. Current branch `work/telegram-georgia-location` fixes a Telegram location ambiguity. Optional local MTProto folder preview and selected broadcast-only polling reuse the watcher; account-wide updates are disabled and private cursors support bounded restart catch-up. No folder join, user-account send, production change or live login. All 21 manifest IDs/usernames/access remain unverified.
+- Telegram post date survives ingestion/retry; explicit CV/advertising/candidate headers are skipped, unknown salary remains unknown. `/channels` shows received/processed, possible vacancies, Good/Stretch, duplicate assessments, filtering and errors. Telegram `Atlanta/Savannah, Georgia` must not be labeled country GE. See `docs/developer/TELEGRAM_WATCH.md`.
+- Current isolated PostgreSQL suite: 1300 passed. Live acceptance needs owner-controlled credentials and interactive local authorization, then 2–3 verified channels. Never publish folder invite/session.
 
-Never restart the project from scratch. Unknown visa, salary, citizenship, housing, or relocation facts remain unknown; never convert missing evidence into `false` or a positive claim.
+## Historical GitHub snapshot after PR #44
+- Stable main VERSION=3.5.6; development feature VERSION=3.5.7 at 8b33ee5 on 2026-10-17. PR #18 is Draft/open to main.
+- PRs #38–#44 merged after CI; the last user-reported offline suite is 1257 passed, 21 skipped. These tests are not proof of current production behavior.
+- 28 superseded remote branches were deleted; 9 retained; branches with unique histories require separate review before deletion.
+- Offline-implemented modules include job discovery, source snapshots/deduplication, independent Career-first and Relocation-first, Candidate Facts/CV comparison, review, idempotent preparation, application history, recruiter human-review gates and curated interview exercises.
+- Telegram Channel Watcher supports selected Bot API channel posts and manual forwarding, but user-selected channel IDs/permissions and live automatic ingestion are not yet verified.
+- Live source usefulness, HH network root cause, Telegram acceptance and release backup/migration/rollback/smoke gates remain unverified. Do not infer a production deployment.
+- Current priorities and acceptance criteria are the Unified execution priorities section of root ROADMAP.md. Protect local untracked files, CVs, secrets and other private context. Check live Git status/PR state before work.
 
-## Current runtime
+## Product scope
+The personal flow is: discover → normalize/dedupe → fit/score → user review → grounded resume/cover letter package → explicit owner approval → application tracking → interview practice. Maintain independent **Career-first** (DevOps/Linux/Infrastructure/SRE) and **Relocation-first** (lawful international employment, including non-IT roles) search profiles. Never invent candidate experience, remote hiring eligibility, visa sponsorship, housing, salary period or employer promises. Unknown evidence remains unknown. Preserve selected provider/source-posting identity and snapshots in review and application packages.
 
-- Source/runtime: `v3.5.6`, database schema `4/4`.
-- GitHub `main` contains source version `3.5.6`; PR #15 and PR #16 are merged.
-  The deployed application code is `170ed4e`; PR #16's later commits only
-  updated documentation. The merge is recorded at
-  https://github.com/Qrasann/personal-ai-job-agent/pull/16.
-- Branch map: `main` is the stable source and the local checkout. The
-  `feature/v3.5.6-eures-identity-market-targets` branch is merged and inactive;
-  `feature/v3.5.2-dual-search-modes` is an older remote branch and is not active.
-  Start new implementation work from `main` on a fresh v3.5.7 feature branch.
-- Release map: `VERSION=3.5.6` and the latest formal GitHub tag/Release are
-  v3.5.6. Changelog entries v3.5.2–v3.5.5 are cumulative milestones included
-  in that release; do not backfill intermediate tags.
-- GitHub CI passed for merge commit `874b372` (run `38135649948`); the PR #16
-  push and PR checks also passed (runs `38135381779` and `38135384930`).
-- The cumulative v3.5.6 tag points to release commit `50afdab`; main CI run
-  `38138941745` passed. The bilingual release is published at
-  https://github.com/Qrasann/personal-ai-job-agent/releases/tag/v3.5.6.
-- Local release directory: `~/job-agent-release-v352`.
-- Docker Compose project: `repo`.
-- Career-first and Relocation-first SearchProfiles are enabled independently.
-- Working sources include HH public fallback, RemoteOK, Arbeitnow, Job Bank Canada, EURES, HR.ge, and configured Telegram ingestion. JOBS.GE is temporarily paused after its configured endpoint returned HTTP 410.
-- Auto-apply and HH private actions remain off.
+## What is implemented (source + CI, not live acceptance)
+- Core bot, per-user profiles, PostgreSQL, source adapters, scan controls, Telegram /jobs, /review, /prepare and manual application status/history/export.
+- `/prepare` renders a reviewable preview before persistence, then saves the draft, status event and match status in one owner-scoped PostgreSQL transaction. Failed rendering or transaction leaves no partial draft. New packages carry an internal match marker in the immutable vacancy snapshot; retries reuse the same package even after it advances to `reviewed`, and match-row locking serializes concurrent retries. Legacy packages without this marker cannot be reliably associated with a match.
+- Source-specific posting snapshots and HH cache digest/race guards. The current source observation is used for scoring, review and preparation; stale HH network/cache responses are not treated as verified.
+- Source identity refresh rejects blank country/city values as an incomplete canonical identity, preventing a same-provider refresh from replacing an established cross-source fingerprint with one computed from empty geography. PostgreSQL regression verified the prior location and fingerprint remain stable.
+- Source and per-profile dashboards distinguish settings exclusion from scoring rejection. They count deterministic settings causes plus structured scoring factors: hard fit rules, caps/risks, and the largest weighted technical/geography/salary/relocation deficit. Unknown evidence remains reviewable and no score threshold changed.
+- Scan source/profile sections budget UTF-16 units and preserve HTML entities, including emoji-heavy profile names. Offline `/scan` → `/scanstatus` verifies bounded messages and untruncated saved diagnostic history.
+- RemoteOK role filtering retains short terms such as QA/HR/Go/C# and matches whole title/tag terms, preventing generic-role leakage and Java/JavaScript collisions. Offline fixtures verified; real feed yield remains unmeasured.
+- Fallback role scoring uses the same whole terms and retains a small explicit short-role vocabulary (QA/HR/Go/C/C#/IT/UI/UX); arbitrary short fragments retain the minimum-length policy. Career/Relocation queries stay independent; structured skill scoring, weights and thresholds are unchanged.
+- CV selection retains these short terms in resume role/content matching, distinguishes Java/JavaScript and the narrow system/systems title variant. Specific role terms outrank shared generic words. Saved CV text and Candidate Facts remain unchanged; choosing a CV does not boost the vacancy match score.
+- Candidate Fit's explicit infrastructure vocabulary now recognizes OpenTelemetry/Open Telemetry as one skill; the ambiguous acronym `OTel` alone is not enough to infer it. Targeted extraction/score tests and full isolated PostgreSQL suite passed (1144).
+- RemoteOK/Arbeitnow discard malformed optional tag containers/items safely; RemoteOK accepts only finite positive integral salaries within PostgreSQL integer range and timezone-aware publish dates. Invalid optional metadata remains unknown and does not drop the vacancy.
+- Himalayas ingestion rejects application links with embedded credentials, nonstandard/malformed ports, non-HTTPS schemes, oversized URL values or unapproved hosts before they are saved into source snapshots.
+- Himalayas provider IDs remain unchanged when they fit the `source_job_id` database limit; oversized GUID/URL fallback values use stable hashes so valid listings do not fail persistence.
+- Resume import previews now expire after 15 minutes and are bounded to 8 per user / 64 total, limiting memory retained by unconfirmed CV text. Eviction removes only the oldest in-memory preview; persisted resumes/facts are unaffected.
+- `/prepare` delivery failures after durable save direct the owner to `/applications`; retrying a newly created package reuses the same record. Offline tests cover command/callback delivery failure, re-entry after status change, and concurrent retries.
+- RemoteOK/Arbeitnow retain explicit known-geography `only` labels as remote scope and source evidence, so worldwide boilerplate cannot erase them. Plain office/global labels remain unknown; no inferred citizenship, residence, visa or work authorization. Existing records need rediscovery to acquire the new scope.
+- Remotive `candidate_required_location` remains remote eligibility scope and market-filter identity, not physical work-country evidence. Unknown visa sponsorship, relocation support and work authorization remain unknown.
+- Remotive recognizes clearly delimited uppercase ISO country codes as candidate location scope (including GE); lowercase common words are not treated as codes.
+- `Georgia, GA` is treated as the US state (not GE or Gabon/GA); US is not currently an enabled Remotive search market, so only the misclassification/exclusion is verified locally.
+- Himalayas `locationRestrictions` are candidate remote eligibility, not work-country evidence; absent a separate source country they remain unknown.
+- Candidate Fit classifies direct Russian `желательно` skill wording as preferred in tested noun/skill orders; broader language phrasing remains partial.
+- HH owner-only submission now persists a `sending` reservation **before** the external API call. A concurrent, previously attempted or ambiguous submission blocks automatic repeat. Confirmed `sent`, external handoff and unknown states are distinguished in database/history/UI. A prepared or reviewed-but-never-sent draft is not considered a submission. No live HH sending was done.
+- Recruiter auto-reply defaults OFF; invalid/nonfinite confidence requires human review. HH callback errors redact unexpected provider/DB payloads and validate IDs.
+- Auto-apply has **no implementation** despite legacy `AUTO_APPLY` config: /status now explicitly discloses that it never submits automatically. Do not enable it.
+- Telegram job alerts now use a durable per-match retry journal in the feature branch. Lost Telegram confirmation can yield duplicate alerts; this is the approved policy, not a zero-duplicate promise. /delivery shows delivery metadata, not vacancy text.
+- Candidate Fit recognizes tested Russian inflections/transliterations for Linux, Docker and Kubernetes, mapping them to canonical skills without changing scoring weights. Focused fact-comparison/model-foundation tests: 63 passed; full isolated PostgreSQL suite: 1230 passed.
+- HH connection timeout shares the existing bounded per-scan cooldown with ConnectError, preventing repeated timeout attempts across enabled profiles while retaining the first safe diagnostic. Full isolated suite after this local follow-up: 1231 passed; publication/CI rerun pending.
+- Initial deterministic interview exercises, conservative relocation evidence classification, Candidate Facts/CV comparisons and LLM drafting with safe factual fallback exist, but broader fit, eligibility, workflow and runtime quality remain partial.
 
-## Recently completed
+## Next practical work (ordered)
+1. Preserve correctness and user trust: review HH reservation/ambiguous response behavior, status/history/export; no provider-side exactly-once guarantees without HH idempotency or reconciliation. Run isolated PostgreSQL fault-injection and manual UX acceptance, never live apply without explicit user approval.
+2. Telegram delivery: owner chose at-least-once semantics (duplicates acceptable, missed opportunities not). PR #28 merged: durable per-match RuntimeState journal, PostgreSQL-fenced claims, immutable alert payload, retry worker and /delivery. PR #30 merged malformed-journal isolation. Earlier PR #28 isolated PostgreSQL tests and CI passed; this documentation review did not rerun tests or verify PR #30 CI. Live Telegram acceptance and deployment are still pending. Follow [delivery protocol](../developer/NOTIFICATION_DELIVERY.md).
+3. v8 changes `Application.job_id` to `ON DELETE RESTRICT` so vacancy cleanup cannot cascade-delete the application audit trail. Isolated v7→v8 PostgreSQL upgrade and preservation tests pass. Production rollout still requires a verified backup, migration-duration/lock review, rollback plan and smoke tests.
+4. Complete 2–4 more meaningful offline end-to-end PostgreSQL scenarios: the first now covers cross-source selection, technical score, review/saved, stored package export and multiuser denial. Grounded `/prepare` handler, failure injection and further tracking paths remain. Do not optimize the number of passing tests.
+5. Continue canonical ROADMAP milestones, particularly verified Source Intelligence + practical Relocation-first utility, v3.6 Candidate Fit, v3.7 Application Package, v3.8 Recruiter, v3.9 Interview; later AI Router/Web UI. Measure useful real vacancies and maintain source permission/legal uncertainty.
+6. Live Telegram/channel/HH-source acceptance requires owner-approved test environment and source permissions. Do not infer live readiness from unit tests or CI.
 
-- Added bounded retries for EURES transport failures, including raw
-  `ssl.SSLError`, and made source alerts report HTTP status / exception type.
-- Added `/parallelsearch on|off|status` and `/relocationroles`.
-- Each profile now discovers, scores, stores, and reports results independently.
-- Fixed concurrent `JobMatch` inserts with an atomic PostgreSQL upsert.
-- Fixed Relocation-first scoring to use `relocation_queries`.
-- Added public Arbeitnow Germany discovery with conservative evidence handling.
-- Stopped inferring salary from arbitrary description numbers.
-- Added safe tracked-branch updates through `./job-agent update`.
-- Added Job Bank Canada discovery with separate international eligibility, LMIA, and support evidence.
-- Added bounded EURES discovery using the employer cross-border recruitment flag without treating it as visa sponsorship.
-- Added explicit Telegram resume import for PDF/DOCX/TXT, plus fact confidence/provenance and overlap review.
-- Added persisted Recommendation v2 component breakdown with unknown values
-  left unset and displayed in vacancy details.
-- Added `/salary`, `/blacklist`, `/scanstatus`, `/cancel`, bounded concurrent discovery, source timings, and persistent manual-scan state.
-- Set EURES `Accept-Encoding: identity` after reproducing TLS body-read failure
-  with the default compressed response and reading the complete 50-result JSON
-  with identity encoding.
-- Updated `/targets` to configure all active search profiles by default, with
-  explicit `career` and `relocation` scope; `/sources` now shows each profile's
-  configured source plan.
-- Bounded JOBS.GE and HR.ge detail fetching to six listings per source, with
-  conservative pacing and timeouts; tightened role matching and require an
-  explicit currency plus monthly period before HR.ge salary enters scoring.
-  Partial detail results survive individual request failures; total failure is
-  reported to the scan. Scheduled Georgia discovery now uses a six-hour cache;
-  manual `/scan` still forces a refresh.
-- Processed the owner’s live Georgia scan: EURES returned 16, HR.ge returned 2,
-  JOBS.GE returned HTTP 410, and Arbeitnow emitted a transient ReadTimeout.
-  The candidate pauses JOBS.GE with its reason visible in `/sources` and adds
-  one bounded retry for Arbeitnow transport failures.
-- Replaced the mixed-language README with English and Russian entry points,
-  aligned changelog headings, refreshed the roadmap, and documented current
-  Armenia/Georgia source-access constraints.
-- Confirmed the Armenian Unified Social Service lists e-work.am and
-  workforall.am as vacancy platforms. Their public search pages timed out;
-  API/access terms are unverified, and official registration rules do not yet
-  establish pre-move foreign-candidate access.
-- Audited public applicant-count signals; connected feeds do not expose reliable candidate-side competition counts.
-- Merged release PR #15 and candidate PR #16 into GitHub `main`; CI passed and
-  the owner supplied real-chat smoke checks for core commands and the updated
-  source plan/scan.
-- Owner completed release acceptance in Telegram: the unsupported ZIP was
-  rejected, duplicate resumes were detected, TXT resume #6 was saved through
-  the confirmation flow with zero proposed facts, and `/job 580` displayed
-  Recommendation v2 with unsupported signals as `н/д`.
-- Published the cumulative v3.5.6 GitHub release after Telegram acceptance of
-  TXT resume import and Recommendation v2 vacancy details.
-
-## Verified
-
-- Latest full PostgreSQL-backed suite: `233 passed`, 67.67% branch coverage
-  (rerun on 2026-10-11; 55% gate).
-- Georgia adapter regressions: `5 passed`; a scheduled-cache regression also
-  passes. Compilation and `git diff --check` passed. The six-detail cap,
-  per-request timeout, inter-request delay, partial-failure behavior and salary
-  evidence rules are covered.
-- Source-resilience targeted tests: `20 passed`; the full suite includes the
-  Arbeitnow retry and source-availability cases.
-- Targeted EURES, Job Bank and source-error regressions: `25 passed`.
-- GitHub Actions passed for PR #16 and merge commit `874b372` (main run
-  `38135649948`).
-- Commit `496c920` and its release are on `main` at merge commit `062eb25`;
-  Compose reports source/runtime
-  3.5.6, PostgreSQL healthy, schema 4/4, and the bot polling. Mount inspection
-  confirms the existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
-  volumes remain attached. Startup scan began on HH public fallback, Arbeitnow
-  and RemoteOK; no startup errors were present in the inspected log tail.
-- Application commit `170ed4e` was merged to `main` through PR #16 and remains
-  applied to Compose project `repo`. Runtime is 3.5.6; app is up and PostgreSQL
-  is healthy. The startup scan completed successfully. Both Arbeitnow requests,
-  EURES searches/details, and HR.ge listing/detail requests returned HTTP 200;
-  no JOBS.GE request or source error appeared. Named
-  `repo_jobagent_v3_pg` and `repo_jobagent_v3_files` volumes remain attached.
-- Owner's follow-up Telegram scan exercised the deployed Arbeitnow retry:
-  Relocation-first received a `ReadTimeout`, the single retry returned HTTP
-  200, and the supplied log excerpt shows EURES, HR.ge, Job Bank, and HH
-  requests succeeding. JOBS.GE was not requested. Telegram handled the update
-  in 162.7 seconds. The later `/scanstatus` attributed 99.5 seconds to Job
-  Bank, 17.1 to Arbeitnow, 14.5 to EURES, 13.0 to HR.ge, 7.6 to HH, and 1.5
-  to RemoteOK. Job Bank's five-second request pacing remains in place.
-- EURES now preserves partial results when only some requests fail. Existing PostgreSQL and storage volumes remain attached.
-- Polling, schema check, scheduled/manual dual-profile scans, and concurrent scan protection passed locally.
-- GitHub PRs #15 and #16 are merged. PR #16 added EURES/market/source
-  reliability and bilingual documentation; its push/PR CI and the merge-commit
-  CI passed.
-- Owner-provided Telegram smoke test on 2026-10-11 confirmed `/salary`,
-  `/blacklist`, `/scanstatus`, `/cancel`, `/import` prompt, `/version` and
-  `/status`. The earlier scan completed with an EURES error while other sources
-  returned results. The owner later completed the `/import` and Recommendation
-  v2 checks described above.
-- After the safe update, the 2026-10-11 startup scan completed successfully.
-  EURES search and detail requests returned HTTP 200 without SSL retry/error
-  logs. Continue monitoring subsequent scheduled scans; one successful run
-  does not establish the underlying TLS cause.
-- Runtime status after update: source/runtime `3.5.6`, app polling, PostgreSQL
-  healthy. The existing `repo_jobagent_v3_pg` and `repo_jobagent_v3_files`
-  volumes remain attached.
-- Owner confirmed `/sources` marks JOBS.GE temporarily paused after HTTP 410
-  and shared `/scanstatus`: the GE scan completed from 09:47:54 to 09:50:36
-  UTC. EURES returned 16 vacancies, HR.ge 2, Job Bank 12, Arbeitnow 2, HH 209,
-  and Remote OK 3. A later app-log tail shows `scan_all` completed and Telegram
-  updates were handled in 117–677 ms; no errors appear in that excerpt.
-
-## Current priority
-
-Continue the v3.5.7 International Market Coverage stage: verify a permitted
-Armenian public feed or request authorization, validate practical Georgia
-results, and keep visa/work eligibility evidence separate. Monitor EURES
-transport and measure Job Bank latency without weakening its five-second
-request pacing. The cumulative v3.5.6 release gate is closed after the owner's
-Telegram acceptance.
-
-## Open limitations
-
-- Source coverage remains the main Relocation-first bottleneck, especially Armenia and low-barrier legal work.
-- Georgia adapters run only when `GE` is selected for a search profile.
-  JOBS.GE's configured homepage returned HTTP 410 and is paused; HR.ge returned
-  two live vacancies in the owner’s scan. Its robots file allows `/` and links
-  a large sitemap, but recurring reuse permission remains unverified. Armenia
-  has no catalog entry or connected local source yet.
-- Armenia has two government-listed vacancy platforms (e-work.am and
-  workforall.am), but their public pages timed out and no API/access terms were
-  verified. Request a permitted feed and confirm foreign-candidate access;
-  Staff.am prohibits automated scraping without permission, while Job.am
-  restricts unauthorized reuse and redistribution. See
-  `docs/developer/INTERNATIONAL_SOURCES.md`.
-- Arbeitnow may contain no low-barrier role matches. A later owner-provided
-  Telegram scan confirmed the deployed single retry recovered from a
-  `ReadTimeout` with HTTP 200. Continue monitoring future runs.
-- The latest `/scanstatus` reports Job Bank at 99.5 seconds of a 162-second
-  scan. Its five-second request pacing is intentional; any optimization must
-  preserve the public crawl interval and be measured in a fresh Telegram scan.
-- HH is mostly domestic and can return `403`; public fallback is expected, CAPTCHA must not be bypassed.
-- EURES returned 16 vacancies in the owner-provided follow-up scan, with no SSL
-  error reported for that run. Monitor additional scheduled runs; do not claim
-  the transport cause is permanently resolved yet.
-- The EURES cross-border flag is not proof of visa sponsorship, relocation support, or third-country work authorization.
-- Public applicant counts are unavailable in the connected candidate-facing feeds and remain unknown.
-- Dedicated Career Score and Relocation Score, affordability calculation, migration knowledge base, and application tracker are later phases—not completed features.
-- Full remote control of the user's Arch machine exists only in a Codex CLI session started on that machine; cloud Codex cannot access `/home/roma`.
-
-## Update protocol
-
-After every completed stage, update this file—not the entire original long prompt:
-
-1. change `Last updated`;
-2. move delivered work into **Recently completed**;
-3. replace verification counts/results with evidence from the latest run;
-4. keep only unresolved items in **Open limitations**;
-5. set exactly one practical **Current priority**;
-6. add detailed chronology to `DEVELOPMENT_LOG.md` and durable follow-up items to `TASKS.md`.
-
-Do not put secrets, exact passport data, private employment details, or other sensitive candidate information in this public repository.
-
-## Compact startup request
-
-```text
-Read AGENTS.md and docs/PROJECT_OS/BRIEF.md first. Then inspect git status,
-the latest commits, and only the detailed PROJECT_OS documents relevant to the
-current priority. Verify claims against the code; do not restart or broadly
-rewrite the project. Preserve .env, Docker volumes, the database, and dirty
-user work. Continue the Current priority with tests. After a completed stage,
-update BRIEF.md, DEVELOPMENT_LOG.md, TASKS.md, and HANDOFF.md with verified
-facts. Report what changed, checks run, remaining limitations, and the exact
-safe local deployment command.
-```
+## Engineering boundaries
+- Before work inspect `git status -sb`, branch/HEAD, GitHub PRs and `ROADMAP.md`. Prefer the short current brief and only relevant sections of the historical HANDOFF/TASKS files.
+- Isolated test DB only: `docker compose -f docker-compose.test.yml up -d postgres-test`; `JOB_AGENT_TEST_DATABASE_URL=postgresql+asyncpg://jobagent_test:jobagent_test@127.0.0.1:55432/jobagent_test .venv/bin/pytest -q`.
+- Other gates: `git diff --check`, `bash scripts/secret-scan.sh`, Python compilation, GitHub CI + Docker build.
+- Owner granted standing authorization on 2026-10-17 for safe feature publication, PR/CI, feature integration and gated releases/deployment. Production still requires verified backup, schema/config compatibility, rollback and smoke-test readiness. Never mutate production DB/volumes before those gates; do not force-push, bypass CI, alter `main`, or send real applications/recruiter messages without approval of the specific vacancy and text. Avoid destructive git cleanup.
+- Historical checkpoint logs are evidence of past work, not proof of current production behavior. Keep a short current handoff rather than adding dozens of repeating checkpoint headings.

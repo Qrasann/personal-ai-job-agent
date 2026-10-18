@@ -6,6 +6,19 @@ countries:
     currencies: [CAD]
     local_sources: []
     query_languages: [en, fr]
+  AM:
+    name: Armenia
+    aliases: [Armenia, Армения, Հայաստան]
+    languages: [hy, en, ru]
+    currencies: [AMD, EUR, USD]
+    local_sources: []
+    manual_sources:
+      - {id: ita_jobs_manual, name: ITA Jobs · Armenia IT, url: "https://jobs.ita.am/", scope: "Armenia IT · manual", availability_note: "публичный каталог IT Association of Armenia; отдельный job API не заявлен"}
+      - {id: staff_am_manual, name: Staff.am, url: "https://staff.am/jobs/devops-infrastructure", scope: "Armenia · manual", availability_note: "условия запрещают автоматический сбор без письменного разрешения"}
+      - {id: job_am_manual, name: Job.am, url: "https://job.am/jobs", scope: "Armenia · manual", availability_note: "автоматизированное повторное использование не подключено"}
+      - {id: careercenter_am_manual, name: CareerCenter.am, url: "https://careercenter.am/en/jobs", scope: "Armenia · manual", availability_note: "условия требуют письменного согласия для копирования или распространения"}
+      - {id: emerging_travel_manual, name: Emerging Travel Group · Junior DevOps, url: "https://www.emergingtravel.com/career/positions/166/", scope: "Armenia/Georgia · remote · manual", availability_note: "официальная карьерная страница; текущая Junior DevOps вакансия требует 1.5+ года коммерческого опыта, 6+ месяцев Kubernetes и английский B1+"}
+    query_languages: [en, ru, hy]
   AT: {name: Austria, aliases: [Austria, Österreich, Австрия], languages: [de], currencies: [EUR], local_sources: [], query_languages: [en, de]}
   BE: {name: Belgium, aliases: [Belgium, België, Belgique, Бельгия], languages: [nl, fr, de], currencies: [EUR], local_sources: [], query_languages: [en, nl, fr, de]}
   BG: {name: Bulgaria, aliases: [Bulgaria, България, Болгария], languages: [bg], currencies: [EUR], local_sources: [], query_languages: [en, bg]}
@@ -43,6 +56,12 @@ countries:
     local_sources:
       - {id: jobs_ge, name: JOBS.GE, url: "https://jobs.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true, available: false, availability_note: "временно приостановлен: сайт вернул HTTP 410 Gone"}
       - {id: hr_ge, name: HR.ge, url: "https://www.hr.ge/en/", transport: public_web, capability: discovery, enabled_by_default: true}
+      - {id: smartrecruiters, name: SmartRecruiters · Devexperts, url: "https://jobs.smartrecruiters.com/Devexperts", transport: public_api, capability: discovery, enabled_by_default: true}
+    manual_sources:
+      - {id: ss_ge_manual, name: jobs.ss.ge · Georgia, url: "https://jobs.ss.ge/en/l/vacancies", scope: "Georgia · manual", availability_note: "broad local vacancies including entry-level work; no public job API or automated-reuse permission verified"}
+      - {id: findjobs_ge_manual, name: Findjobs.ge · Georgia, url: "https://findjobs.ge/en/", scope: "Georgia · manual", availability_note: "AI assistants welcome; recurring extraction of substantial data requires written permission"}
+      - {id: leverx_manual, name: LeverX Careers · Georgia, url: "https://career.leverx.com/vacancies", scope: "Georgia · manual", availability_note: "no public job API verified; current postings include English B2+ roles"}
+      - {id: emerging_travel_manual, name: Emerging Travel Group · Junior DevOps, url: "https://www.emergingtravel.com/career/positions/166/", scope: "Armenia/Georgia · remote · manual", availability_note: "официальная карьерная страница; текущая Junior DevOps вакансия требует 1.5+ года коммерческого опыта, 6+ месяцев Kubernetes и английский B1+"}
     query_languages: [en, ru, ka]
 
   MD:
@@ -87,7 +106,9 @@ international_sources:
   - {id: jobbank, name: Job Bank Canada, scope: canada, transport: public_web, capability: discovery}
   - {id: eures, name: EURES, scope: eures, transport: public_api, capability: discovery}
   - {id: remoteok, name: Remote OK, scope: remote, transport: api, capability: discovery}
+  - {id: himalayas, name: Himalayas Remote Jobs, scope: remote, transport: public_api, capability: discovery}
+  - {id: remotive, name: Remotive Remote Jobs, scope: remote · DevOps/Sysadmin, transport: public_api, capability: discovery}
   - {id: arbeitnow, name: Arbeitnow, scope: germany, transport: public_api, capability: discovery}
-  - {id: lever, name: Lever company career pages, scope: global, transport: public_api, capability: discovery}
-  - {id: greenhouse, name: Greenhouse company career pages, scope: global, transport: public_api, capability: discovery}
+  - {id: lever, name: Lever · Collectly (remote GMT-7 to GMT+4), scope: remote · selected AM/GE, countries: [AM, GE], transport: public_api, capability: discovery}
+  - {id: greenhouse, name: Greenhouse · Lineate, scope: Armenia/Georgia, countries: [AM, GE], transport: public_api, capability: discovery}
   - {id: telegram, name: Telegram vacancy channels, scope: configured_channels, transport: bot_api, capability: discovery}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import re
 
 from bs4 import BeautifulSoup
@@ -29,7 +30,10 @@ def repair_mojibake(value: str) -> str:
 
 
 def clean_html_text(value: str) -> str:
-    text = repair_mojibake(value or "")
+    # Some public job-board APIs return HTML content with tags escaped as
+    # entities (for example, ``&lt;p&gt;``). Decode entities before stripping
+    # markup so Telegram details show readable text instead of the source HTML.
+    text = html.unescape(repair_mojibake(value or ""))
     if "<" in text and ">" in text:
         text = BeautifulSoup(text, "html.parser").get_text("\n", strip=True)
     lines = [" ".join(line.split()) for line in text.splitlines()]
@@ -68,12 +72,32 @@ def parse_salary_text(value: str) -> tuple[int | None, int | None, str | None]:
     return nums[0], None, currency
 
 
+def salary_period_from_text(value: str) -> str | None:
+    """Read an explicitly stated period near a currency-bearing salary value."""
+    text = repair_mojibake(value or "").replace("\u202f", " ").replace("\xa0", " ")
+    match = _SALARY_FRAGMENT_RE.search(text)
+    if not match:
+        return None
+    # Only accept the unit immediately after the currency-bearing amount.
+    # A broad surrounding window can mistake unrelated text (for example,
+    # "review in one month") for the salary period.
+    suffix = text[match.end():match.end() + 36].casefold()
+    patterns = (
+        ("annual", r"^[\s,:()/-]*(?:per\s+year|per\s+annum|yearly|annually|annual|year)\b|^[\s,:()/-]*(?:в|за)\s+год|^[\s,:()/-]*(?:ежегодно|годовой)"),
+        ("monthly", r"^[\s,:()/-]*(?:per\s+month|monthly|month)\b|^[\s,:()/-]*(?:в|за)\s+месяц|^[\s,:()/-]*ежемесячно"),
+        ("weekly", r"^[\s,:()/-]*(?:per\s+week|weekly|week)\b|^[\s,:()/-]*(?:в|за)\s+неделю|^[\s,:()/-]*еженедельно"),
+        ("hourly", r"^[\s,:()/-]*(?:per\s+hour|hourly|hour)\b|^[\s,:()/-]*(?:в|за)\s+час|^[\s,:()/-]*почасово"),
+    )
+    return next((period for period, pattern in patterns if re.search(pattern, suffix)), None)
+
+
 def format_salary(
     salary_from: int | None,
     salary_to: int | None,
     currency: str | None,
     *,
     fallback_text: str = "",
+    period: str | None = None,
 ) -> str:
     low = salary_from if salary_from and salary_from > 0 else None
     high = salary_to if salary_to and salary_to > 0 else None
@@ -106,18 +130,35 @@ def format_salary(
 
     suffix = f" {symbol}" if symbol else ""
     if low and high:
-        return f"{money(low)}–{money(high)}{suffix}"
-    if low:
-        return f"от {money(low)}{suffix}"
-    if high:
-        return f"до {money(high)}{suffix}"
-    return "не указана"
+        formatted = f"{money(low)}–{money(high)}{suffix}"
+    elif low:
+        formatted = f"от {money(low)}{suffix}"
+    elif high:
+        formatted = f"до {money(high)}{suffix}"
+    else:
+        return "не указана"
+
+    display_period = period or salary_period_from_text(fallback_text)
+    period_suffix = {
+        "hourly": "в час",
+        "weekly": "в неделю",
+        "fortnightly": "за 2 недели",
+        "monthly": "в месяц",
+        "annual": "в год",
+        "per-year": "в год",
+        "yearly": "в год",
+        "per-month": "в месяц",
+        "per-week": "в неделю",
+        "per-hour": "в час",
+    }.get((display_period or "").strip().casefold())
+    return f"{formatted} {period_suffix}" if period_suffix else formatted
 
 
 def extract_experience(value: str) -> str:
     text = clean_html_text(value)
     patterns = (
         r"(?:опыт(?:\s+работы)?\s*[:—-]?\s*)(без опыта|не требуется|\d+\s*[–—-]\s*\d+\s*(?:года|год|лет)|от\s+\d+\s*(?:года|лет)|более\s+\d+\s*лет)",
+        r"\b((?:minimum(?:\s+of)?|at least)\s+\d+\s+years?)\b",
         r"\b(\d+\+?\s*(?:years?|yrs?)\s+(?:of\s+)?experience)\b",
         r"\b(experience\s*[:—-]?\s*\d+\s*[–—-]\s*\d+\s*(?:years?|yrs?))\b",
     )

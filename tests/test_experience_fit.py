@@ -61,3 +61,117 @@ def test_required_experience_uses_strictest_explicit_requirement():
     )
 
     assert _required_experience_years(job) == 3
+
+def test_minimum_experience_wording_extracts_years_from_qualification_sections():
+    job = Job(
+        fingerprint="experience-minimum-qualifications",
+        title="Infrastructure Engineer",
+        company="ACME",
+        description=(
+            "Necessary Qualifications:\n"
+            "Minimum 3 years of hands-on Linux system administration experience.\n"
+            "Minimum 2 years of hands-on AWS production experience."
+        ),
+        country="GE",
+    )
+
+    assert _required_experience_years(job) == 3
+    result = score_job(
+        job,
+        _search(),
+        [
+            CandidateFact(
+                profile_id=1,
+                value="2 years of Linux system administration",
+                experience_type="commercial",
+            )
+        ],
+        [],
+    )
+    assert result.fit == "stretch"
+    assert "требуется 3+" in result.reason
+
+
+def test_preferred_experience_band_does_not_raise_required_fit_threshold():
+    job = Job(
+        fingerprint="experience-preferred-band",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Minimum 3 years of production experience required. 5 years of experience preferred.",
+        country="DE",
+    )
+
+    assert _required_experience_years(job) == 3
+    result = score_job(
+        job,
+        _search(),
+        [CandidateFact(
+            profile_id=1,
+            value="2 years of commercial DevOps experience",
+            experience_type="commercial",
+        )],
+        [],
+    )
+    assert result.fit == "stretch"
+    assert "требуется 3+" in result.reason
+
+
+def test_preferred_only_experience_band_is_not_a_required_minimum():
+    job = Job(
+        fingerprint="experience-preferred-only",
+        title="DevOps Engineer",
+        company="ACME",
+        description="5 years of experience preferred.",
+        country="DE",
+    )
+
+    assert _required_experience_years(job) is None
+
+
+def test_preferred_five_plus_years_does_not_trigger_high_experience_skip():
+    job = Job(
+        fingerprint="experience-preferred-five-plus",
+        title="DevOps Engineer",
+        company="ACME",
+        description="Minimum 3 years of experience required. 5+ years of experience preferred.",
+        country="RU",
+    )
+    facts = [CandidateFact(
+        profile_id=1,
+        value="2 years of commercial DevOps experience",
+        experience_type="commercial",
+    )]
+
+    result = score_job(job, _search(), facts, [])
+
+    assert _required_experience_years(job) == 3
+    assert result.fit == "stretch"
+    assert "высокого опыта" not in result.reason
+
+
+def test_preferred_only_five_plus_years_keeps_good_fit():
+    job = Job(
+        fingerprint="experience-only-preferred-five-plus",
+        title="DevOps Engineer",
+        company="ACME",
+        description="5+ years of experience preferred.",
+        country="RU",
+    )
+
+    assert _required_experience_years(job) is None
+    assert score_job(job, _search(), [], []).fit == "good"
+
+
+def test_more_than_five_years_required_keeps_high_experience_restriction():
+    job = Job(
+        fingerprint="experience-more-than-five",
+        title="DevOps Engineer",
+        company="ACME",
+        description="More than 5 years of experience required.",
+        country="RU",
+    )
+
+    assert _required_experience_years(job) == 5
+    result = score_job(job, _search(), [], [])
+    assert result.fit == "skip"
+    assert "высокого опыта" in result.reason

@@ -41,12 +41,21 @@ def test_review_card_shows_rich_match_context():
     assert "Тверь" in text
     assert "Гибрид" in text
     assert "82/100" in text
-    assert "Tech 86" in text
-    assert "Geo 95" in text
-    assert "Salary 72" in text
-    assert "Reloc 50" in text
+    assert "Отклики: Нет открытых данных" in text
+    assert "Иностранный найм" in text
+    assert "Tech 86" not in text
     assert "совпадения: linux, docker, nginx" in text
     assert "2 из 7" in text
+
+
+def test_review_card_flags_explicit_volunteer_work_as_unpaid():
+    job = _job()
+    job.title = "Makerble DevOps Volunteer"
+    job.description = "This is an unpaid volunteer opportunity."
+
+    text = _render_review_card(_match(), job, 1, 1)
+
+    assert "Оплачиваемость: нет — явно волонтёрская/неоплачиваемая" in text
 
 
 def test_queue_cards_use_truthful_lane_labels():

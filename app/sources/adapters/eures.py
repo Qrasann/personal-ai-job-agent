@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.job_text import clean_html_text
+from app.sources.diagnostics import classify_source_error, SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
 log = logging.getLogger(__name__)
@@ -30,6 +31,11 @@ class EuresSource(JobSource):
     max_queries = 6
     max_details = 8
     request_retries = 2
+    generic_role_tokens = {
+        "admin", "administrator", "assistant", "engineer", "lead", "manager",
+        "specialist", "staff", "worker", "администратор", "ассистент", "инженер",
+        "менеджер", "работник", "сотрудник", "специалист",
+    }
 
     async def _request_with_retry(self, request, *args, **kwargs):
         """Retry transient transport failures without masking HTTP responses."""
@@ -45,6 +51,7 @@ class EuresSource(JobSource):
                     "EURES transport failure (%s); retry %s/%s",
                     type(exc).__name__, attempt + 1, self.request_retries,
                 )
+                self.retry_count = getattr(self, "retry_count", 0) + 1
                 await asyncio.sleep(0.5 * (2 ** attempt))
 
     @staticmethod
@@ -78,27 +85,40 @@ class EuresSource(JobSource):
 
     @classmethod
     def parse_search(cls, payload: dict, query: str) -> list[NormalizedJob]:
-        if not isinstance(payload.get("jvs"), list):
-            raise ValueError("EURES search contract unavailable")
-        tokens = cls._query_tokens(query)
+        if not isinstance(payload, dict) or not isinstance(payload.get("jvs"), list):
+            raise SourceInvalidResponse("EURES search contract unavailable")
+        query_tokens = set(cls._query_tokens(query))
+        tokens = query_tokens - cls.generic_role_tokens or query_tokens
         jobs = []
         for row in payload["jvs"]:
             if not isinstance(row, dict) or not row.get("id") or not row.get("title"):
                 continue
             # The endpoint can return broad/fuzzy matches. Require a meaningful
-            # query token in the title so unrelated vacancies do not leak in.
+            # whole query token in the title so fuzzy substring matches do
+            # not let e.g. Java return JavaScript roles.
             title = str(row["title"])
-            if tokens and not any(token in title.casefold() for token in tokens):
+            title_folded = title.casefold()
+            if tokens and not any(
+                re.search(rf"(?<!\w){re.escape(token)}(?!\w)", title_folded)
+                for token in tokens
+            ):
                 continue
             if row.get("euresFlag") is not True:
                 continue
-            location_map = row.get("locationMap") or {}
+            location_map = row.get("locationMap")
+            if not isinstance(location_map, dict):
+                # Location and employer blocks are optional search metadata.
+                # A malformed block must not discard valid sibling listings.
+                location_map = {}
             country = next(iter(location_map), None)
+            employer = row.get("employer")
+            if not isinstance(employer, dict):
+                employer = {}
             jobs.append(NormalizedJob(
                 source=cls.source_id,
                 source_job_id=str(row["id"]),
                 title=title,
-                company=str((row.get("employer") or {}).get("name") or ""),
+                company=str(employer.get("name") or ""),
                 description=clean_html_text(str(row.get("description") or "")),
                 url=cls.portal_url,
                 country=str(country).upper() if country else None,
@@ -116,26 +136,62 @@ class EuresSource(JobSource):
 
     @staticmethod
     def _timestamp(value) -> str | None:
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             return None
         try:
             return datetime.fromtimestamp(value / 1000, tz=timezone.utc).isoformat()
         except (OverflowError, OSError, ValueError):
             return None
 
+    @staticmethod
+    def _safe_application_url(value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        target = value.strip()
+        # Match Telegram's clickable-link budget so a stored application URL
+        # is not silently hidden later by the vacancy renderer.
+        if not target or len(target) > 600 or any(ord(char) < 33 or ord(char) == 127 for char in target):
+            return None
+        try:
+            parsed = urlparse(target)
+            parsed.port  # Validate malformed/out-of-range port syntax.
+        except ValueError:
+            return None
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            return None
+        return target
+
     @classmethod
     def enrich(cls, job: NormalizedJob, payload: dict) -> NormalizedJob:
-        profiles = payload.get("jvProfiles") or {}
+        if not isinstance(payload, dict) or not isinstance(payload.get("jvProfiles"), dict):
+            raise SourceInvalidResponse("EURES detail contract unavailable")
+        profiles = payload["jvProfiles"]
         profile = profiles.get("en") or next(iter(profiles.values()), {})
         if not isinstance(profile, dict) or not profile:
-            raise ValueError("EURES detail contract unavailable")
+            raise SourceInvalidResponse("EURES detail contract unavailable")
         job.title = str(profile.get("title") or job.title)
         job.description = clean_html_text(str(profile.get("description") or job.description))
         locations = profile.get("locations") or []
         if locations and isinstance(locations[0], dict):
             location = locations[0]
             job.country = str(location.get("countryCode") or job.country or "").upper() or None
-            job.city = str(location.get("cityName") or "").strip() or None
+            raw_city = str(location.get("cityName") or "")
+            normalized_city = re.sub(r"\s+", " ", raw_city).strip()
+            # EURES sometimes pads the location with long whitespace blocks.
+            # Normalize them before saving to the bounded city column. If the
+            # remaining value is still too long to be a useful city label, keep
+            # it as source evidence and leave city unknown.
+            if normalized_city and len(normalized_city) <= 256:
+                job.city = normalized_city
+            else:
+                job.city = None
+                if raw_city:
+                    job.raw["location_text"] = raw_city
         job.company = str((profile.get("employer") or {}).get("name") or job.company)
 
         # Preserve a verified, source-provided application destination when one
@@ -146,8 +202,9 @@ class EuresSource(JobSource):
             soup = BeautifulSoup(str(instruction), "html.parser")
             for anchor in soup.select("a[href]"):
                 target = str(anchor.get("href") or "")
-                if urlparse(target).scheme == "https" and urlparse(target).netloc:
-                    job.url = target
+                safe_target = cls._safe_application_url(target)
+                if safe_target:
+                    job.url = safe_target
                     break
             if job.url != cls.portal_url:
                 break
@@ -166,6 +223,9 @@ class EuresSource(JobSource):
         return job
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.partial_failures = 0
+        self.retry_count = 0
+        self.discovery_diagnostics = []
         queries = list(dict.fromkeys(str(q).strip() for q in (context.queries or []) if str(q).strip()))
         if not queries:
             return []
@@ -178,7 +238,7 @@ class EuresSource(JobSource):
             "Accept-Encoding": "identity",
         }
         found: dict[str, NormalizedJob] = {}
-        transport_errors: list[Exception] = []
+        source_errors: list[Exception] = []
         async with httpx.AsyncClient(timeout=25, follow_redirects=True, headers=headers) as client:
             successful_searches = 0
             for index, query in enumerate(queries[: self.max_queries], start=1):
@@ -186,30 +246,39 @@ class EuresSource(JobSource):
                     response = await self._request_with_retry(
                         client.post, self.search_endpoint, json=self.request_payload(query)
                     )
-                except (httpx.TransportError, ssl.SSLError) as exc:
-                    transport_errors.append(exc)
+                    parsed = self.parse_search(response.json(), query)
+                except (httpx.HTTPError, ssl.SSLError, ValueError, TypeError, KeyError, AttributeError) as exc:
+                    source_errors.append(exc)
+                    self.discovery_diagnostics.append({**classify_source_error(exc, action="continue_partial"), "operation": "search_request"})
+                    self.partial_failures += 1
                     log.warning(
-                        "EURES search %s failed after retries (%s); continuing",
-                        index, type(exc).__name__,
+                        "EURES search %s failed (%s); continuing",
+                        index, f"HTTP {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__,
                     )
                     continue
                 successful_searches += 1
-                for job in self.parse_search(response.json(), query):
+                for job in parsed:
                     found.setdefault(job.source_job_id, job)
-            if successful_searches == 0 and transport_errors:
-                raise transport_errors[-1]
-            enriched = []
-            for job in list(found.values())[: self.max_details]:
+            if successful_searches == 0 and source_errors:
+                raise source_errors[-1]
+            candidates = list(found.values())
+            detail_candidates = candidates[: self.max_details]
+            enriched_by_id: dict[str, NormalizedJob] = {}
+            for job in detail_candidates:
                 try:
                     response = await self._request_with_retry(client.get, job.raw["evidence_url"])
-                except (httpx.TransportError, ssl.SSLError) as exc:
-                    transport_errors.append(exc)
+                    enriched_job = self.enrich(job, response.json())
+                except (httpx.HTTPError, ssl.SSLError, ValueError, TypeError, KeyError, AttributeError) as exc:
+                    self.discovery_diagnostics.append({**classify_source_error(exc, action="continue_partial"), "operation": "detail_request"})
+                    self.partial_failures += 1
                     log.warning(
-                        "EURES detail request failed after retries (%s); skipping vacancy",
-                        type(exc).__name__,
+                        "EURES detail request failed (%s); retaining search summary",
+                        f"HTTP {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__,
                     )
                     continue
-                enriched.append(self.enrich(job, response.json()))
-            if not enriched and transport_errors:
-                raise transport_errors[-1]
-            return enriched
+                enriched_by_id[job.source_job_id] = enriched_job
+            # Search cards already contain the employer's cross-border marker,
+            # title, description and official portal fallback. A failed detail
+            # lookup must mark the collection partial, not erase that valid
+            # search evidence (including when every detail request fails).
+            return [enriched_by_id.get(job.source_job_id, job) for job in candidates]

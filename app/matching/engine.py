@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
+from app.domain.role_text import role_tokens
 from app.matching.technical_score import score_technical_v2
 from app.matching.recommendation import build_recommendation_breakdown
 from app.search.preferences import discovery_queries
@@ -35,24 +36,17 @@ _RESUME_GENERIC_TOKENS = {
     "опыт", "работа", "года", "лет",
 }
 
+# Other short fragments retain the previous minimum-length policy.
+_SHORT_ROLE_TERMS = frozenset({"qa", "hr", "go", "c", "c#", "it", "ui", "ux"})
+
+
+def _matching_role_tokens(text: str) -> set[str]:
+    return {token for token in role_tokens(text) if len(token) >= 3 or token in _SHORT_ROLE_TERMS}
+
 
 def _resume_content_overlap(job: Job, resume: ResumeProfile) -> int:
-    job_tokens = {
-        token
-        for token in re.findall(
-            r"[a-zа-яё0-9+#.-]+",
-            f"{job.title} {job.description}".casefold(),
-        )
-        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
-    }
-    resume_tokens = {
-        token
-        for token in re.findall(
-            r"[a-zа-яё0-9+#.-]+",
-            str(resume.content or "").casefold(),
-        )
-        if len(token) >= 3 and token not in _RESUME_GENERIC_TOKENS
-    }
+    job_tokens = _matching_role_tokens(f"{job.title} {job.description}") - _RESUME_GENERIC_TOKENS
+    resume_tokens = _matching_role_tokens(str(resume.content or "")) - _RESUME_GENERIC_TOKENS
     return len(job_tokens & resume_tokens)
 
 def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
@@ -64,12 +58,12 @@ def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
     if not available:
         return None
 
-    hay = f"{job.title} {job.description}".casefold()
+    job_tokens = _matching_role_tokens(f"{job.title} {job.description}")
     ranked: list[tuple[int, int]] = []
     for resume in available:
         score = 0
-        for token in re.findall(r"[a-zа-яё0-9+#.-]+", resume.role.casefold()):
-            if len(token) >= 3 and token in hay:
+        for token in _matching_role_tokens(resume.role) - _RESUME_GENERIC_TOKENS:
+            if token in job_tokens:
                 score += 5
 
         score += min(10, _resume_content_overlap(job, resume))
@@ -137,15 +131,52 @@ def _required_experience_years(job: Job) -> int | None:
         r"(?:опыт|стаж)[^0-9\n]{0,30}(\d+)\s*[–—-]\s*\d+\s*(?:лет|года|год)",
         r"\b(\d+)\s*[–—-]\s*\d+\s*years?\b",
         r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(\d+)\+?\s*(?:лет|года|год)",
-        r"(?:at least|minimum of)\s+(\d+)\s+years?",
+        r"(?:at least|minimum(?:\s+of)?)\s+(\d+)\s+years?",
+        r"(?:more than|over)\s+(\d+)\s+years?",
+        r"(?:более|свыше)\s+(\d+)\s*(?:лет|года|год)",
         r"\b(\d+)\+?\s+years?(?:\s+of)?\s+experience\b",
+        r"\b(\d+)\+\s+years?\b",
+        r"\b(\d+)[–—-]\d+\s*(?:лет|года|год)\b",
     )
-    values = [
-        int(match.group(1))
-        for pattern in patterns
-        for match in re.finditer(pattern, text)
-    ]
-    return max(values) if values else None
+    preferred_markers = re.compile(
+        r"\b(?:preferred|desirable|desired|nice[- ]to[- ]have|bonus|plus)\b|"
+        r"\b(?:желательно|приветствуется|будет плюсом|будет преимуществом)\b"
+    )
+    required_markers = re.compile(
+        r"\b(?:required|must have|minimum(?: of)?|at least)\b|"
+        r"\b(?:обязател\w*|не менее|от)\b"
+    )
+    required_values: list[int] = []
+    for pattern in patterns:
+        for match in re.finditer(pattern, text):
+            start, end = match.span(1)
+            previous_boundary = max(
+                (text.rfind(boundary, 0, start) for boundary in ".;!?\n"),
+                default=-1,
+            )
+            next_boundaries = [
+                position for boundary in ".;!?\n"
+                if (position := text.find(boundary, end)) >= 0
+            ]
+            context_start = max(previous_boundary + 1, start - 60)
+            context_end = min(min(next_boundaries, default=len(text)), end + 60)
+            nearby = text[context_start:context_end]
+
+            def marker_distance(marker: re.Match[str]) -> int:
+                marker_start = context_start + marker.start()
+                marker_end = context_start + marker.end()
+                return start - marker_end if marker_end <= start else marker_start - end if marker_start >= end else 0
+
+            preferred = [marker_distance(item) for item in preferred_markers.finditer(nearby)]
+            required = [marker_distance(item) for item in required_markers.finditer(nearby)]
+            # An explicitly preferred experience band must not become the
+            # minimum used for candidate fit. Unlabelled years retain the
+            # established conservative behavior.
+            if preferred and (not required or min(preferred) < min(required)):
+                continue
+            required_values.append(int(match.group(1)))
+
+    return max(required_values) if required_values else None
 
 def _experience_fit(job: Job, facts: list[CandidateFact]) -> tuple[str | None, str | None]:
     candidate = _candidate_commercial_years(facts)
@@ -176,7 +207,11 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
         r"\bsenior\b",
         r"\blead\b",
         r"\bprincipal\b",
-        r"\bstaff\b",
+        # Staff is an engineering level only when it qualifies a technical
+        # role. Lower-barrier titles such as "hotel staff" mean employees,
+        # not senior engineers, and must retain their normal fit evaluation.
+        r"\bstaff(?:[\s-]+level)?[\s:/-]+(?:[\w+#./-]+\s+){0,4}(?:engineer|developer|scientist|researcher|programmer|devops|sre)\b",
+        r"\b(?:engineer|developer|scientist|researcher|programmer|devops|sre)[\s,(/:\-–—]+staff\b",
         r"\bhead\b",
         r"\barchitect\b",
         r"\bстарш(?:ий|ая|ее)\b",
@@ -186,13 +221,10 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     if any(re.search(pattern, title) for pattern in hard_patterns):
         return "senior", "senior/lead уровень в названии"
 
-    very_high_experience = (
-        r"(?:опыт|стаж)[^0-9\n]{0,30}(?:от\s*)?(?:5|6|7|8|9|10)\+?\s*(?:лет|года)",
-        r"(?:5|6|7|8|9|10)\+\s*years?",
-        r"(?:more than|at least)\s+(?:5|6|7|8|9|10)\s+years?",
-        r"более\s+(?:5|6)\s+лет",
-    )
-    if any(re.search(pattern, text) for pattern in very_high_experience):
+    # Use the same required-year extraction as candidate experience fit. A
+    # preferred 5+ year band must not override an actual three-year minimum.
+    required_years = _required_experience_years(job)
+    if required_years is not None and required_years >= 5:
         return "high_experience", "требование 5+ лет/высокого опыта"
 
     stretch_experience = (
@@ -200,14 +232,32 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
         r"(?:3|4)\+\s*years?",
         r"(?:at least)\s+(?:3|4)\s+years?",
         # HH commonly exposes the broad platform band "3–6 лет" on cards.
-        # Treat it as a stretch, not as an explicit 5+ requirement.
         r"(?:опыт[^\n]{0,30})?3[–—-]6\s*лет",
         r"3[–—-]6\s*years?",
     )
-    if any(re.search(pattern, text) for pattern in stretch_experience):
+    if required_years is not None and required_years >= 3 and any(
+        re.search(pattern, text) for pattern in stretch_experience
+    ):
         return "stretch", "требуется около 3–4 лет опыта"
 
     return None, None
+
+
+def _non_actionable_role_reason(job: Job) -> str | None:
+    """Keep explicit non-openings and unpaid roles out of automatic Good results."""
+    title = (job.title or "").casefold()
+    unpaid_patterns = (
+        r"\bvolunteer\b",
+        r"\bvoluntary\b",
+        r"\bunpaid\b",
+        r"\bволонт[её]р",
+        r"\bнеоплачиваем",
+    )
+    if any(re.search(pattern, title) for pattern in unpaid_patterns):
+        return "волонтёрская/неоплачиваемая роль"
+    if re.search(r"\bexpression of interest(?: form)?\b", title):
+        return "форма предварительного интереса, не подтверждённая открытая вакансия"
+    return None
 
 
 def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...]) -> str:
@@ -359,7 +409,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     preferred_hits = [x for x in preferred if x in hay and x in fact_text]
     strong_hits = [x for x in strong if x in hay and x in fact_text]
 
-    title_hay = job.title.casefold()
+    title_tokens = role_tokens(job.title)
     query_hits: list[str] = []
     generic_role_tokens = {
         "engineer", "administrator", "admin", "specialist", "developer",
@@ -367,10 +417,10 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     }
     role_queries = [query.casefold() for query in discovery_queries(settings)]
     for query in role_queries:
-        all_tokens = [x for x in re.findall(r"[a-zа-я0-9+#.-]+", query) if len(x) >= 3]
-        meaningful = [x for x in all_tokens if x not in generic_role_tokens]
+        all_tokens = _matching_role_tokens(query)
+        meaningful = all_tokens - generic_role_tokens
         tokens = meaningful or all_tokens
-        if tokens and all(token in title_hay for token in tokens):
+        if tokens and tokens <= title_tokens:
             query_hits.append(query)
 
     technical = min(100, 40 + min(25, len(query_hits) * 20) + len(preferred_hits) * 6 + len(strong_hits) * 7)
@@ -386,6 +436,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     if seniority == "stretch":
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
+        fit = "skip"
+    non_actionable_role_reason = _non_actionable_role_reason(job)
+    if non_actionable_role_reason:
         fit = "skip"
     experience_fit, experience_reason = _experience_fit(job, facts)
     if experience_fit == "stretch" and fit == "good":
@@ -447,7 +500,17 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         salary = 58 if not (job.salary_from or job.salary_to) else 72
     else:
         observed = job.salary_to or job.salary_from or 0
-        salary = 100 if observed >= int(minimum) else max(0, int(observed / int(minimum) * 100)) if minimum else 60
+        period = str(getattr(job, "salary_period", None) or "").strip().casefold()
+        if period in {"annual", "yearly", "per-year"}:
+            # Profile minimums are monthly. Preserve the source's annual
+            # amount in storage/display and compare its monthly equivalent.
+            observed /= 12
+        if period not in {"monthly", "per-month", "annual", "yearly", "per-year"}:
+            # Hourly/weekly pay needs contracted hours or weeks; do not
+            # invent those to claim that a monthly minimum has been met.
+            salary = 58
+        else:
+            salary = 100 if observed >= int(minimum) else max(0, int(observed / int(minimum) * 100)) if minimum else 60
 
     relocation_enabled = "relocation" in enabled
     if signals.relocation_blocked:
@@ -476,6 +539,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     elif experience_fit == "stretch" and seniority is None:
         total = min(total, 72)
 
+    if non_actionable_role_reason:
+        total = min(total, 58)
+
 
     # In rule-only fallback mode, obvious senior roles must not slip above the
     # normal notification threshold merely because geography/salary look good.
@@ -499,6 +565,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
+    if non_actionable_role_reason:
+        bits.append(non_actionable_role_reason)
     if experience_reason:
         bits.append(experience_reason)
     if management_gap:
@@ -518,6 +586,6 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append(signals.relocation_reason)
     recommendation_scores = build_recommendation_breakdown(
         job, facts, signals, technical_score=technical, salary_score=salary,
-        relocation_score=relocation, fit=fit,
+        relocation_score=relocation, fit=fit, technical_text=technical_text,
     )
     return MatchResult(technical, geography, salary, relocation, max(0, min(100, total)), "; ".join(bits), chosen_resume, track, fit, recommendation_scores)

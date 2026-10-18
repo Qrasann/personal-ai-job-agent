@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.database.models import CandidateFact, Job
+from app.domain.job_text import clean_html_text
 from app.matching.engine import score_job
 from app.database.models import SearchProfile
 
@@ -55,3 +56,57 @@ def test_negated_growth_and_fast_start_phrases_are_not_positive_evidence():
 
     assert result.recommendation_scores["growth"]["score"] is None
     assert result.recommendation_scores["fast_exit"]["score"] is None
+
+
+def test_interview_risk_uses_singular_necessary_qualification_in_encoded_html():
+    job = Job(
+        fingerprint="rec-necessary-qualifications",
+        title="Infrastructure Engineer",
+        company="Example",
+        description=(
+            "&lt;h3&gt;Necessary Qualification:&lt;/h3&gt;"
+            "&lt;ul&gt;"
+            "&lt;li&gt;Minimum 3 years of Linux system administration experience.&lt;/li&gt;"
+            "&lt;li&gt;Minimum 2 years of AWS production experience.&lt;/li&gt;"
+            "&lt;/ul&gt;"
+            "&lt;h3&gt;Preferred:&lt;/h3&gt;&lt;p&gt;Terraform.&lt;/p&gt;"
+        ),
+        country="GE",
+    )
+    facts = [CandidateFact(profile_id=1, value="Linux", experience_type="commercial")]
+
+    result = score_job(
+        job, _search(), facts, [], technical_text=clean_html_text(job.description)
+    )
+
+    assert result.recommendation_scores["interview_risk"]["score"] is not None
+    assert result.technical_score == 42
+    assert result.recommendation_scores["interview_risk"]["score"] == 58
+    assert "индекс тех. риска: 100 − покрытие обязательных тех. требований" in result.recommendation_scores["interview_risk"]["evidence"]
+
+
+def test_himalayas_style_required_heading_produces_technical_only_interview_signal():
+    job = Job(
+        fingerprint="rec-himalayas-requirements",
+        title="Associate Linux Support Engineer",
+        company="Canonical",
+        description=(
+            "What we are looking for in you\n"
+            "Experience with Linux troubleshooting\n"
+            "Knowledge of Bash and networking\n"
+            "Nice-to-have skills\nKubernetes"
+        ),
+        country="",
+        work_mode="remote",
+    )
+    facts = [
+        CandidateFact(profile_id=1, value="Commercial Linux system administration"),
+        CandidateFact(profile_id=1, value="Bash scripting", experience_type="commercial"),
+    ]
+
+    result = score_job(job, _search(), facts, [])
+
+    assert result.recommendation_scores["interview_risk"]["score"] == 55
+    assert result.recommendation_scores["interview_risk"]["evidence"] == (
+        "индекс тех. риска: 100 − покрытие обязательных тех. требований; fit=good"
+    )

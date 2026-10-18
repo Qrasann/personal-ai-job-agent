@@ -33,7 +33,7 @@ def test_matching_uses_candidate_facts_and_excludes_gambling():
         CandidateFact(profile_id=1, value="Practical Linux and Docker experience"),
         CandidateFact(profile_id=1, value="Configured Nginx reverse proxy"),
     ]
-    good = Job(fingerprint="g", title="DevOps Engineer", company="ACME", description="Linux Docker Nginx", work_mode="remote", salary_from=2000, salary_currency="USD")
+    good = Job(fingerprint="g", title="DevOps Engineer", company="ACME", description="Linux Docker Nginx", work_mode="remote", salary_from=2000, salary_currency="USD", salary_period="monthly")
     bad = Job(fingerprint="b", title="DevOps Engineer", company="Casino", description="gambling platform Linux Docker")
     assert score_job(good, search, facts, []).total_score >= 70
     assert score_job(bad, search, facts, []).total_score == 0
@@ -66,7 +66,7 @@ def test_relocation_first_scores_its_own_role_queries():
 
 
 def test_telegram_parser_extracts_remote_and_salary():
-    job = parse_telegram_job("DevOps Engineer\nRemote worldwide\n$3000-4500\nDocker Kubernetes", source_ref="test")
+    job = parse_telegram_job("DevOps Engineer\nRemote worldwide\nUSD 3000-4500 per month\nDocker Kubernetes", source_ref="test")
     assert job.work_mode == "remote"
     assert job.salary_from == 3000
     assert job.salary_to == 4500
