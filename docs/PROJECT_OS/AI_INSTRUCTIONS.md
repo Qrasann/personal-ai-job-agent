@@ -83,6 +83,9 @@ and repeated permission requests for safe local edits and isolated tests.
 
 ### Models and token economy
 
+- **MAXIMUM TOKEN ECONOMY is the standing owner mode.** Optimize repeated work,
+  context size and model/delegation choice without weakening correctness, security,
+  migrations, release gates or risk-proportionate testing.
 - Main does ordinary tasks itself. Fast is only for truly cheap/isolated research or
   tests when total delegation overhead is justified; Deep only for risky architecture,
   intricate concurrency/security/debugging when strong reasoning is worth it.
@@ -97,6 +100,14 @@ and repeated permission requests for safe local edits and isolated tests.
 - Minimize redundant file reads, long status chatter, unnecessary agents and repeated
   whole-suite runs when no relevant change occurred; never economize by skipping
   necessary tests or security gates.
+- Start with `AGENTS.md`, the compact current HANDOFF/BRIEF and narrowly relevant code;
+  load roadmap history only when the task needs it. Run focused tests first and expand
+  by risk. The full pytest suite has a known intermittent stall: bound diagnostic runs
+  and do not repeat an unchanged hanging command as if repetition were evidence.
+- Keep one coherent checkpoint per logical increment: task, changed files, tests,
+  commit, open questions and next step. Compact or hand off before context becomes
+  wasteful. Codex must not claim it can read account quota or change the active Main
+  model unless the current environment exposes and verifies that capability.
 
 ### Owner-facing checkpoints
 

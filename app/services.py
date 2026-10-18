@@ -885,6 +885,16 @@ async def get_vacancy_details(
         details["source_salary_text"] = source_salary_text[:2000]
     if isinstance(raw.get("availability"), dict):
         details["availability"] = dict(raw["availability"])
+    applicant_count = raw.get("applicant_count_v1")
+    if isinstance(applicant_count, dict):
+        value = applicant_count.get("value")
+        kind = applicant_count.get("kind")
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0 and kind == "applications":
+            details["applicant_count"] = value
+            details["applicant_count_source"] = str(
+                applicant_count.get("source_url") or applicant_count.get("source_id") or (ref.source_id if ref else "")
+            )[:600]
+            details["applicant_count_observed_at"] = str(applicant_count.get("observed_at") or "")[:40]
     if ref and ref.source_id == "himalayas":
         timezone_restrictions = raw.get("timezone_restrictions")
         if isinstance(timezone_restrictions, list):

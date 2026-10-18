@@ -246,7 +246,7 @@ def test_details_callback_forwards_the_profile_that_produced_the_score(monkeypat
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
     details = AsyncMock(return_value={"job": SimpleNamespace(id=25)})
     monkeypatch.setattr(handlers, "get_vacancy_details", details)
-    monkeypatch.setattr(handlers, "render_job_details", lambda payload: "Scoped card")
+    monkeypatch.setattr(handlers, "render_job_summary", lambda payload: "Scoped card")
     callback = SimpleNamespace(
         data="details:25:4", answer=AsyncMock(),
         message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=AsyncMock()),
@@ -257,14 +257,21 @@ def test_details_callback_forwards_the_profile_that_produced_the_score(monkeypat
     details.assert_awaited_once_with(7, 25, search_profile_id=4)
     assert callback.message.answer.await_args.args[0] == "Scoped card"
     keyboard = callback.message.answer.await_args.kwargs["reply_markup"]
-    assert keyboard.inline_keyboard[0][0].callback_data == "compare:25:4"
+    callbacks = {
+        button.callback_data
+        for row in keyboard.inline_keyboard
+        for button in row
+        if button.callback_data
+    }
+    assert "jobtab:req:25:4" in callbacks
+    assert "compare:25:4" in callbacks
 
 
 def test_job_command_forwards_explicit_relocation_profile(monkeypatch):
     _mock_profiles(monkeypatch)
     details = AsyncMock(return_value={"job": SimpleNamespace(id=25)})
     monkeypatch.setattr(handlers, "get_vacancy_details", details)
-    monkeypatch.setattr(handlers, "render_job_details", lambda payload: "Scoped card")
+    monkeypatch.setattr(handlers, "render_job_summary", lambda payload: "Scoped card")
     progress = SimpleNamespace(edit_text=AsyncMock())
     message = SimpleNamespace(text="/job 25 relocation", answer=AsyncMock(return_value=progress))
 

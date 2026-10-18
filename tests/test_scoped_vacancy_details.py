@@ -61,6 +61,30 @@ def test_details_use_selected_source_posting_for_text_and_rescore(monkeypatch):
     assert canonical.description == "HR-only Linux"
 
 
+@pytest.mark.parametrize("evidence, expected", [
+    ({"kind": "applications", "value": 17, "source_id": "ats", "observed_at": "2026-10-18T09:00:00+00:00"}, 17),
+    ({"kind": "views", "value": 170}, None),
+    ({"kind": "applications", "value": True}, None),
+    ({"kind": "applications", "value": -1}, None),
+])
+def test_details_only_expose_persisted_confirmed_application_counts(monkeypatch, evidence, expected):
+    match = SimpleNamespace(profile_id=2, search_profile_id=4, total_score=54)
+    job = SimpleNamespace(id=25, description="Linux")
+    ref = SimpleNamespace(
+        source_id="greenhouse", source_job_id="42", url="https://careers.example/jobs/42",
+        first_seen_at=datetime(2026, 10, 18, 9, 0), raw={"applicant_count_v1": evidence},
+    )
+    monkeypatch.setattr(services.repo, "get_match_for_user_job", AsyncMock(return_value=match))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=job))
+    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=ref))
+    monkeypatch.setattr(services, "refresh_match_score", AsyncMock(return_value=match))
+    monkeypatch.setattr(services.repo, "list_search_profiles", AsyncMock(return_value=[]))
+
+    payload = asyncio.run(services.get_vacancy_details(7, 25))
+
+    assert payload["details"].get("applicant_count") == expected
+
+
 def test_details_do_not_fall_back_when_user_has_no_match_in_requested_profile(monkeypatch):
     lookup = AsyncMock(return_value=None)
     monkeypatch.setattr(services.repo, "get_match_for_user_job", lookup)

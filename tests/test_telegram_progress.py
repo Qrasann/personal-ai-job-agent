@@ -160,7 +160,7 @@ def test_job_command_shows_progress_then_edits_same_message(monkeypatch):
     )
     monkeypatch.setattr(
         handlers,
-        "render_job_details",
+        "render_job_summary",
         lambda payload: "FINAL JOB",
     )
     monkeypatch.setattr(
@@ -271,7 +271,10 @@ def test_scan_status_renders_persisted_source_timing(monkeypatch):
     rendered = message.answers[0][0]
     assert "completed" in rendered
     assert "2026-10-11 10:01 UTC" in rendered
-    assert "jobbank: готово · 2 вакансий (12.0 с)" in rendered
+    assert "Источники: ✅ 1 · ⚠️ 0 · ❌ 0 · ⏸ 0" in rendered
+    assert "jobbank: готово" not in rendered
+    keyboard = message.answers[0][1]["reply_markup"]
+    assert keyboard.inline_keyboard[0][0].callback_data == "scanstatus:details"
 
 
 def test_scan_and_status_dense_emoji_diagnostics_fit_telegram(monkeypatch):
@@ -302,13 +305,20 @@ def test_scan_and_status_dense_emoji_diagnostics_fit_telegram(monkeypatch):
         await handlers.scan_status(status_message)
 
     asyncio.run(scenario())
-    for rendered, kwargs in (scan_message.progress.edits[-1], status_message.answers[0]):
+    rendered, kwargs = scan_message.progress.edits[-1]
+    assert len(rendered.encode("utf-16-le")) // 2 <= 4096
+    assert kwargs["parse_mode"] == "HTML"
+    ElementTree.fromstring("<root>" + rendered + "</root>")
+    assert "NETWORK_CONNECT_TIMEOUT" in rendered
+    assert "Профили поиска" in rendered
+    assert "🚀" in rendered
+    compact, compact_kwargs = status_message.answers[0]
+    for rendered, kwargs in ((compact, compact_kwargs),):
         assert len(rendered.encode("utf-16-le")) // 2 <= 4096
         assert kwargs["parse_mode"] == "HTML"
         ElementTree.fromstring("<root>" + rendered + "</root>")
-        assert "NETWORK_CONNECT_TIMEOUT" in rendered
-        assert "Профили поиска" in rendered
-        assert "🚀" in rendered
+        assert "Источники: ✅ 0 · ⚠️ 12 · ❌ 0 · ⏸ 0" in rendered
+        assert "NETWORK_CONNECT_TIMEOUT" not in rendered
     # Display truncation must not lose the diagnostic history.
     assert json.loads(stored["scan_dashboard"])["summary"] == summary
 
@@ -346,13 +356,14 @@ def test_scan_and_persisted_status_show_quiet_source_skip(monkeypatch, skip_reas
 
     completed = scan_message.progress.edits[-1][0]
     persisted = status_message.answers[0][0]
-    for rendered in (completed, persisted):
-        assert "• hh: пропущен" in rendered
-        assert "hh: 0" not in rendered
-        assert skip_reason not in rendered
-        assert "• jobbank: ошибка" in rendered
+    assert "• hh: пропущен" in completed
+    assert "hh: 0" not in completed
+    assert skip_reason not in completed
+    assert "• jobbank: ошибка" in completed
+    assert "Источники: ✅ 1 · ⚠️ 0 · ❌ 1 · ⏸ 1" in persisted
+    assert skip_reason not in persisted
     assert "remoteok: готово · 0 вакансий (1.0 с)" in completed
-    assert "remoteok: готово · 0 вакансий (1.0 с)" in persisted
+    assert "remoteok: готово" not in persisted
     assert json.loads(stored)["summary"] == summary
     assert len(scan_message.answers) == 1
     assert handlers._ACTIVE_SCAN_TASKS == {}
@@ -384,15 +395,14 @@ def test_scan_and_status_keep_successful_count_for_partial_source(monkeypatch):
     completed = scan_message.progress.edits[-1][0]
     persisted = status_message.answers[0][0]
     assert "hh: частично · 4 вакансий (1.0 с)" in completed
-    assert "hh: частично · 4 вакансий (1.0 с)" in persisted
+    assert "Источники: ✅ 1 · ⚠️ 2 · ❌ 0 · ⏸ 0" in persisted
     assert "eures: частично · 3 вакансий (2.5 с) · сбои: 2" in completed
-    assert "eures: частично · 3 вакансий (2.5 с) · сбои: 2" in persisted
+    assert "eures: частично" not in persisted
     assert "remoteok: готово · 2 вакансий (0.0 с) · кэш" in completed
-    assert "remoteok: готово · 2 вакансий (0.0 с)" in persisted
-    for rendered in (completed, persisted):
-        assert rendered.count("частично") == 2
-        assert "hh: ошибка" not in rendered
-        assert "hh: пропущен" not in rendered
+    assert "remoteok: готово" not in persisted
+    assert completed.count("частично") == 2
+    assert "hh: ошибка" not in completed
+    assert "hh: пропущен" not in completed
 
 
 def test_scanstatus_shows_failure_count_when_all_eures_requests_fail(monkeypatch):
@@ -405,7 +415,7 @@ def test_scanstatus_shows_failure_count_when_all_eures_requests_fail(monkeypatch
 
     asyncio.run(handlers.scan_status(message))
 
-    assert "eures: ошибка · 0 вакансий (2.5 с) · сбои: 6" in message.answers[0][0]
+    assert "Источники: ✅ 0 · ⚠️ 0 · ❌ 1 · ⏸ 0" in message.answers[0][0]
 
 
 def test_cancel_stops_only_the_active_manual_scan(monkeypatch):
@@ -444,13 +454,16 @@ def test_scanstatus_selects_latest_without_overwriting_active_manual(monkeypatch
     message=IncomingMessage('/scanstatus')
     asyncio.run(handlers.scan_status(message))
     text=message.answers[0][0]
-    assert f'Этап: {expected}' in text
+    detail = handlers._scan_status_details(scheduled if expected == 'scheduled' else manual)
+    assert f'Этап: {expected}' in detail
     if expected=='scheduled':
-        assert 'Плановое сканирование' in text
-        assert 'NETWORK_CONNECT_TIMEOUT' in text
-        assert 'Relocation-first' in text
-    else:
+        assert 'Плановый поиск' in text
         assert 'NETWORK_CONNECT_TIMEOUT' not in text
+        assert 'NETWORK_CONNECT_TIMEOUT' in detail
+        assert 'Relocation-first' in detail
+    else:
+        assert 'Плановый поиск' not in text
+        assert 'NETWORK_CONNECT_TIMEOUT' not in detail
 
 
 def test_scanstatus_source_names_are_escaped_once_and_legacy_errors_are_safe(monkeypatch):
@@ -459,7 +472,8 @@ def test_scanstatus_source_names_are_escaped_once_and_legacy_errors_are_safe(mon
     monkeypatch.setattr(handlers.repo,'get_state',AsyncMock(side_effect=lambda user,key,*args:json.dumps(state) if key=='scan_dashboard' else '{}'))
     message=IncomingMessage('/scanstatus')
     asyncio.run(handlers.scan_status(message))
-    text,options=message.answers[0]
+    text=handlers._scan_status_details(state)
+    options=message.answers[0][1]
     assert 'HH &lt;API&gt; &amp; public' in text
     assert '&amp;lt;' not in text
     assert '&#x27;found' not in text
@@ -505,5 +519,8 @@ def test_scanstatus_sanitizes_legacy_failed_stage(monkeypatch):
     monkeypatch.setattr(handlers.repo,'get_state',AsyncMock(side_effect=lambda user,key,*args:json.dumps(state) if key=='scan_dashboard' else '{}'))
     message=IncomingMessage('/scanstatus')
     asyncio.run(handlers.scan_status(message))
-    assert 'private-value' not in message.answers[0][0]
-    assert 'SOURCE_PROCESSING_FAILED' in message.answers[0][0]
+    compact = message.answers[0][0]
+    detail = handlers._scan_status_details(state)
+    assert 'private-value' not in compact
+    assert 'private-value' not in detail
+    assert 'SOURCE_PROCESSING_FAILED' in detail

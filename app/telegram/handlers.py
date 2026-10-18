@@ -35,10 +35,10 @@ from app.agents.interview import build_interview_plan
 from app.services import ScanAlreadyRunning, apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, coordinated_scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_details, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_details, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
-from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, stretch_keyboard, vacancy_details_keyboard
+from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import relocation_first_allows, source_enabled
 from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
@@ -1175,23 +1175,54 @@ async def scan(message: Message, bot: Bot) -> None:
             _ACTIVE_SCAN_TASKS.pop(user.id, None)
 
 
-@router.message(Command("scanstatus"))
-async def scan_status(message: Message) -> None:
-    user = await _require_user(message)
-    if not user:
-        return
+async def _scan_dashboard_for_user(user_id: int) -> dict:
     try:
-        state = json.loads(await repo.get_state(user.id, "scan_dashboard", "{}"))
+        state = json.loads(await repo.get_state(user_id, "scan_dashboard", "{}"))
     except (TypeError, ValueError):
         state = {}
     try:
-        scheduled = json.loads(await repo.get_state(user.id, "scheduled_scan_dashboard", "{}"))
+        scheduled = json.loads(await repo.get_state(user_id, "scheduled_scan_dashboard", "{}"))
     except (TypeError, ValueError):
         scheduled = {}
-    state = select_scan_dashboard(state, scheduled)
-    if not state:
-        await message.answer("Истории сканирования пока нет. Запусти /scan.")
-        return
+    return select_scan_dashboard(state, scheduled)
+
+
+def _scan_status_summary(state: dict) -> str:
+    summary = state.get("summary") or {}
+    sources = summary.get("sources") or {}
+    health = {"success": 0, "partial": 0, "failed": 0, "skipped": 0}
+    for info in sources.values():
+        status = info.get("status")
+        if status not in health:
+            status = "failed" if info.get("error") else "skipped" if info.get("skipped") else "partial" if info.get("partial") else "success"
+        health[status] += 1
+    status = str(state.get("status", "неизвестно"))
+    if status == "completed" and summary:
+        status = scan_outcome(summary)
+    title = "Плановый поиск" if state.get("kind") == "scheduled" else "Поиск"
+    lines = [f"📊 <b>{title}: {html.escape(status)}</b>"]
+    if sources:
+        lines.append(
+            f"Источники: ✅ {health['success']} · ⚠️ {health['partial']} · "
+            f"❌ {health['failed']} · ⏸ {health['skipped']}"
+        )
+    lines.append(
+        f"🟢 Good: {int(summary.get('qualified', 0))} · "
+        f"🟡 Stretch: {int(summary.get('stretch', 0))} · "
+        f"📨 Новых: {int(summary.get('notified', 0))}"
+    )
+    lines.append(f"Обработано: {int(summary.get('processed', 0))}")
+    if state.get("status") == "running":
+        lines.append("Этап: " + html.escape(str(state.get("stage") or "выполняется")[:120]))
+    else:
+        finished = str(state.get("finished_at") or "")
+        if finished:
+            lines.append("Завершено: " + html.escape(finished[:40]))
+    return "\n".join(lines)
+
+
+def _scan_status_details(state: dict) -> str:
+    state = dict(state)
     if state.get("status") == "failed":
         state["stage"] = legacy_diagnostic(state.get("stage"))["code"]
     summary = state.get("summary") or {}
@@ -1199,15 +1230,30 @@ async def scan_status(message: Message) -> None:
         state["status"] = scan_outcome(summary)
     sources = render_source_dashboard(summary.get("sources") or {})
     profiles = _render_search_profiles(summary.get("searches") or {})
-    await message.answer(
+    return (
         ("📊 Плановое сканирование: <b>" if state.get("kind") == "scheduled" else "📊 Сканирование: <b>")
         + f"{html.escape(str(state.get('status', 'неизвестно')))}</b>\n"
         f"Начато: {html.escape(str(state.get('started_at', '—')))}\n"
         f"Завершено: {html.escape(str(state.get('finished_at', '—')))}\n"
         f"Этап: {html.escape(str(state.get('stage', '—')))}\n"
         + (sources if sources else "Источники ещё не завершили поиск.")
-        + ("\n\n<b>Профили поиска</b>\n" + profiles if profiles else ""),
+        + ("\n\n<b>Профили поиска</b>\n" + profiles if profiles else "")
+    )
+
+
+@router.message(Command("scanstatus"))
+async def scan_status(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    state = await _scan_dashboard_for_user(user.id)
+    if not state:
+        await message.answer("Истории сканирования пока нет. Запусти /scan.")
+        return
+    await message.answer(
+        _scan_status_summary(state),
         parse_mode="HTML",
+        reply_markup=scan_status_keyboard(),
     )
 
 def _pick_next_review(rows, current_match_id: int):
@@ -1440,7 +1486,7 @@ async def job_details(message: Message) -> None:
         if selected_id is not None:
             search_filter = {"search_profile_id": selected_id}
         await progress.edit_text(
-            render_job_details(payload),
+            render_job_summary(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
             reply_markup=vacancy_details_keyboard(
@@ -1950,13 +1996,96 @@ async def details_callback(callback: CallbackQuery) -> None:
         if selected_id is not None:
             search_filter = {"search_profile_id": selected_id}
         await callback.message.answer(
-            render_job_details(payload),
+            render_job_summary(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
             reply_markup=vacancy_details_keyboard(payload["job"].id, **search_filter),
         )
     except Exception as exc:
-        await callback.message.answer(f"⚠️ {html.escape(str(exc))}", parse_mode="HTML")
+        issue = classify_source_error(exc, stage="detail_request")
+        await callback.message.answer(
+            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}", parse_mode="HTML"
+        )
+
+
+def _jobtab_identifiers(data: str) -> tuple[str, int, int | None] | None:
+    parts = data.split(":")
+    if len(parts) not in {3, 4} or parts[0] != "jobtab":
+        return None
+    section = parts[1]
+    if section not in {"summary", "req", "desc", "terms", "competition", "source"}:
+        return None
+    if not all(value.isdigit() for value in parts[2:]):
+        return None
+    return section, int(parts[2]), int(parts[3]) if len(parts) == 4 else None
+
+
+@router.callback_query(F.data.startswith("jobtab:"))
+async def jobtab_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    identifiers = _jobtab_identifiers(callback.data)
+    if identifiers is None:
+        await callback.answer("Некорректная кнопка вакансии", show_alert=True)
+        return
+    section, job_id, search_profile_id = identifiers
+    try:
+        search_filter = {"search_profile_id": search_profile_id} if search_profile_id is not None else {}
+        payload = await get_vacancy_details(user.id, job_id, **search_filter)
+        selected_id = getattr(payload.get("match"), "search_profile_id", None)
+        if selected_id is not None:
+            search_profile_id = selected_id
+        text = render_job_summary(payload) if section == "summary" else render_job_section(payload, section)
+        keyboard = (
+            vacancy_details_keyboard(job_id, search_profile_id=search_profile_id)
+            if section == "summary"
+            else vacancy_section_keyboard(job_id, search_profile_id=search_profile_id)
+        )
+        await callback.message.edit_text(
+            text, parse_mode="HTML", disable_web_page_preview=True, reply_markup=keyboard
+        )
+        await callback.answer()
+    except Exception as exc:
+        issue = classify_source_error(exc, stage="detail_request")
+        await callback.answer(f"{issue['message']} ({issue['code']})", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("scanstatus:"))
+async def scan_status_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    mode = callback.data.split(":", 1)[1]
+    if mode not in {"summary", "details"}:
+        await callback.answer("Некорректная кнопка", show_alert=True)
+        return
+    state = await _scan_dashboard_for_user(user.id)
+    if not state:
+        await callback.answer("Истории поиска пока нет", show_alert=True)
+        return
+    await callback.message.edit_text(
+        _scan_status_details(state) if mode == "details" else _scan_status_summary(state),
+        parse_mode="HTML",
+        reply_markup=scan_status_details_keyboard() if mode == "details" else scan_status_keyboard(),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "menu:main")
+async def main_menu_callback(callback: CallbackQuery) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    if not user:
+        return
+    await callback.message.edit_text(
+        "🤖 <b>Главное меню</b>\n"
+        "/scan — новый поиск · /scanstatus — состояние\n"
+        "/review — Good · /stretch — Stretch · /saved — сохранённые\n"
+        "/jobs career — Career-first · /jobs relocation — Relocation-first\n"
+        "/help — все команды",
+        parse_mode="HTML",
+    )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("compare:"))
