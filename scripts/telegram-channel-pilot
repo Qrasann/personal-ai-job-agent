@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Analyze a bounded private Telegram sample without database or notifications."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app.sources.telegram_pilot import analyze_sample, load_private_sample
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--sample",
+        type=Path,
+        default=Path.home() / ".local/share/personal-ai-job-agent/telegram-folder/pilot-sample.json",
+    )
+    parser.add_argument("--profile", type=Path, default=Path("data/profile.yaml"))
+    args = parser.parse_args()
+    print(json.dumps(analyze_sample(load_private_sample(args.sample), args.profile), ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()

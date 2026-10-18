@@ -1,4 +1,5 @@
 import asyncio
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -6,7 +7,7 @@ import pytest
 
 from app.sources.telegram_folder_user import (
     folder_inventory, folder_slug, load_cursors, load_local_config,
-    poll_channel, save_cursors, selected_channels,
+    poll_channel, sampled_posts, save_cursors, save_private_json, selected_channels,
 )
 
 
@@ -123,3 +124,29 @@ def test_poll_failure_does_not_advance_cursor_past_failed_post():
             await poll_channel(FakeClient(), "approved", 100, accept)
 
     asyncio.run(run())
+
+
+def test_sampled_posts_keep_only_bounded_public_channel_evidence():
+    messages = [
+        SimpleNamespace(id=12, raw_text="Vacancy two", date=datetime(2026, 10, 18, 12, tzinfo=UTC)),
+        SimpleNamespace(id=11, raw_text="Vacancy one", date=datetime(2026, 10, 18, 11)),
+        SimpleNamespace(id=10, raw_text="", date=datetime(2026, 10, 18, 10, tzinfo=UTC)),
+    ]
+
+    rows = sampled_posts(messages, chat_id=-100123, username="jobs_feed")
+
+    assert [row["message_id"] for row in rows] == [11, 12]
+    assert rows[0]["published_at"].endswith("+00:00")
+    assert rows[1]["url"] == "https://t.me/jobs_feed/12"
+    assert {key for key in rows[0]} == {
+        "channel_id", "username", "message_id", "text", "published_at", "url",
+    }
+
+
+def test_private_sample_write_is_atomic_and_mode_0600(tmp_path: Path):
+    path = tmp_path / "pilot-sample.json"
+
+    save_private_json(path, {"schema": 1, "posts": []})
+
+    assert path.stat().st_mode & 0o077 == 0
+    assert path.read_text(encoding="utf-8") == '{"schema": 1, "posts": []}'

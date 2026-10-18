@@ -19,7 +19,17 @@ Review the inventory locally, select only accessible broadcast channels by
 setting `enabled: true` and a `career`, `relocation` or `both` scope. Supergroups
 and peers no longer joined are excluded. Run `.venv/bin/python
 scripts/telegram-folder-watch probe` to check read access to enabled IDs without
-printing post text. Then run `watch` only after configuring the existing bot
+printing post text. For an owner-approved bounded pilot, run `.venv/bin/python
+scripts/telegram-folder-watch sample`: it reads at most 20 latest posts per enabled
+broadcast channel (configurable from 1 to 50 with `TELEGRAM_PILOT_POST_LIMIT`),
+writes only the required post fields to private `pilot-sample.json` with mode 0600,
+and does not change cursors, join chats, send messages or connect to the bot database.
+Analyze that private file with `.venv/bin/python scripts/telegram-channel-pilot`.
+The analyzer uses the shared Telegram normalizer, canonical fingerprint and matching
+engine with the tracked `data/profile.yaml`; it performs no network, database or bot
+operation. Treat its Good/Stretch counts as a reproducible pilot-profile measurement,
+not as evidence of work authorization or a read of the production candidate database.
+Then run `watch` only after configuring the existing bot
 database and owner ID. The runner rechecks the folder preview and current IDs,
 disables account-wide updates, and polls **only** selected broadcast peers every
 five minutes (two seconds between requests, up to 20 newer posts per channel

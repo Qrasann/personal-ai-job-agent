@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.sources.telegram_folder_user import (
     folder_inventory, folder_slug, load_cursors, load_local_config,
-    poll_channel, save_cursors, selected_channels,
+    poll_channel, sampled_posts, save_cursors, save_private_json, selected_channels,
 )
 
 log = logging.getLogger("telegram_folder_watch")
@@ -100,6 +100,26 @@ async def _run(command: str) -> None:
                         print(f"{chat_id}: unavailable ({type(exc).__name__})")
                     await asyncio.sleep(2)
                 return
+            if command == "sample":
+                raw_limit = os.getenv("TELEGRAM_PILOT_POST_LIMIT", "20")
+                if not raw_limit.isdecimal() or not 1 <= int(raw_limit) <= 50:
+                    raise RuntimeError("TELEGRAM_PILOT_POST_LIMIT must be 1..50")
+                rows = []
+                for chat_id, peer in peers.items():
+                    messages = await client.get_messages(peer, limit=int(raw_limit))
+                    rows.extend(sampled_posts(
+                        messages,
+                        chat_id=chat_id,
+                        username=selected[chat_id].get("username"),
+                    ))
+                    await asyncio.sleep(2)
+                sample_path = directory / "pilot-sample.json"
+                save_private_json(sample_path, {"schema": 1, "posts": rows})
+                print(
+                    f"Saved {len(rows)} posts from {len(peers)} enabled broadcast channels "
+                    f"to private file {sample_path}; cursors unchanged"
+                )
+                return
 
             from aiogram import Bot
             from app.config import settings
@@ -150,7 +170,7 @@ async def _run(command: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("inspect", "probe", "watch"))
+    parser.add_argument("command", choices=("inspect", "probe", "sample", "watch"))
     args = parser.parse_args()
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
     asyncio.run(_run(args.command))
