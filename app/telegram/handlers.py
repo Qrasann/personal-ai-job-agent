@@ -1206,6 +1206,8 @@ def _scan_status_summary(state: dict) -> str:
             f"Источники: ✅ {health['success']} · ⚠️ {health['partial']} · "
             f"❌ {health['failed']} · ⏸ {health['skipped']}"
         )
+    elif state.get("status") == "running":
+        lines.append("Источники ещё не завершили поиск.")
     lines.append(
         f"🟢 Good: {int(summary.get('qualified', 0))} · "
         f"🟡 Stretch: {int(summary.get('stretch', 0))} · "

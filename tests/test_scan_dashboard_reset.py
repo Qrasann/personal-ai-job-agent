@@ -100,7 +100,8 @@ def test_new_scan_does_not_display_previous_run_results(monkeypatch, outcome):
     assert "999" not in "\n".join(observed)
     assert "Источники ещё не завершили поиск." in observed[0]
     if outcome == "completed":
-        assert "hh: готово · 2 вакансий (1.0 с)" in observed[-1]
+        assert "Источники: ✅ 1 · ⚠️ 0 · ❌ 0 · ⏸ 0" in observed[-1]
+        assert "hh: готово" not in observed[-1]
     else:
         assert "summary" not in state
     assert handlers._ACTIVE_SCAN_TASKS == {}
