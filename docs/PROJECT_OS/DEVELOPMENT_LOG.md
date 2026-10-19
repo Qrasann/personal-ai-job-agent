@@ -1,3 +1,7 @@
+## 2026-10-19 — Job Bank location intelligence
+
+Job Bank's source itself verifies Canada, but its search cards combine locality and province code (for example `Toronto (ON)`). Normalize only single-locality labels paired with a recognized Canadian province/territory; preserve the exact source string and provenance. Remote, multiple/various location and ambiguous multi-city labels keep city unknown. Targeted Job Bank suite: 36 passed. No network/live source request or data write.
+
 ## 2026-10-19 — owner employer preference policy
 
 Replaced the previous industry-wide betting/gambling ban with central exact-employer and structured-category ALLOW/WARN/BLOCK decisions, wired into shared matching and the legacy scoring adapter. Added exact Alabuga/Voentorg identities, defaults for Russian military/defense, verified direct-war and direct-government tags, and all-profile `/employerpolicy` overrides. Betting/casino and civilian state-owned companies remain eligible; crypto/Web3 warns into Stretch unless the user explicitly allows the employer/category. Legacy stored sector blacklist terms no longer suppress jobs. Expanded matching/review/notification suites: 227 passed, 3 skipped; exact-head CI pending. Runtime and production settings untouched.

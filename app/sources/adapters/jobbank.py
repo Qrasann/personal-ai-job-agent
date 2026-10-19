@@ -17,6 +17,21 @@ _REQUEST_LOCK = asyncio.Lock()
 _LAST_REQUEST_STARTED: float | None = None
 _DETAIL_CACHE: dict[str, tuple[float, str]] = {}
 logger = logging.getLogger(__name__)
+_CA_PROVINCES = frozenset({"AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"})
+
+
+def _jobbank_city(value: str) -> tuple[str | None, str | None]:
+    """Resolve only a single Canadian locality followed by a known province code."""
+    location = re.sub(r"^Location\s+", "", value.strip(), flags=re.I)
+    if not location or re.search(r"\b(?:remote|multiple locations|various locations|across canada|canada wide)\b", location, re.I):
+        return None, None
+    match = re.fullmatch(r"(.+?)\s*(?:\(([A-Z]{2})\)|,\s*([A-Z]{2}))", location, re.I)
+    if not match or (match.group(2) or match.group(3)).upper() not in _CA_PROVINCES:
+        return None, None
+    city = match.group(1).strip(" ,")
+    if not city or re.search(r"[/|;&]", city) or re.search(r"\b(?:and|or|plus)\b", city, re.I):
+        return None, None
+    return city, "jobbank_city_province_code"
 
 
 def _monotonic() -> float:
@@ -80,15 +95,18 @@ class JobBankSource(JobSource):
             def value(selector):
                 node = card.select_one(selector)
                 return node.get_text(" ", strip=True) if node else ""
+            source_location = value(".location").strip()
+            city, location_resolution = _jobbank_city(source_location)
             jobs.append(NormalizedJob(
                 source=cls.source_id, source_job_id=match[1],
                 title=title.get_text(" ", strip=True), company=value(".business"),
-                country="CA", city=value(".location").removeprefix("Location ") or None,
+                country="CA", city=city,
                 url=f"{cls.origin}/jobsearch/jobpostingtfw/{match[1]}",
                 published_at=value(".date") or None,
                 # Preserve decimal CAD/hour rates without feeding the legacy
                 # integer/USD salary fallback or inventing monthly amounts.
-                raw={"lmia_status": value(".jobLMIAflag"), "source_salary_text": value(".salary")},
+                raw={"lmia_status": value(".jobLMIAflag"), "source_salary_text": value(".salary"),
+                     "source_location": source_location, "location_resolution": location_resolution},
             ))
         return jobs
 

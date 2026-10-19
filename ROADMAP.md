@@ -10,6 +10,8 @@ The employer blacklist decision now replaces the prior default betting/gambling 
 
 Dev implementation note (2026-10-19): shared match scoring now ignores legacy sector terms, reads exact employer/category preferences, blocks the configured exact Alabuga/Voentorg identities and structured blocked categories, and sends WARN decisions to manual Stretch review. `/employerpolicy` updates category or exact-employer choices across all of the user's search profiles. Existing production settings remain untouched. Matching/review/notification regressions: 227 passed, 3 skipped; checkpoint and exact-head CI are pending.
 
+Job Location Intelligence increment (2026-10-19): Job Bank's Canada-only source supports country=CA; city resolution now requires one locality plus a recognized Canadian province/territory code. Remote, multiple and ambiguous labels retain city unknown. Targeted suite: 36 passed.
+
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
 
 The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.

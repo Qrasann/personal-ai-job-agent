@@ -40,6 +40,7 @@
 - [ ] Run the bounded read-only sample for exactly `@devops_jobs_feed`, `@itjobsgeorgia`, `@vgrecruitingit` and analyze results when local API ID/hash are available; never write to production DB or notify.
 - [ ] Manual-start service policy is out of scope under the current owner boundary; do not change system services unless the owner separately authorizes it. Preserve `jobbot` manual start/status/logs.
 - [ ] Extend Job Location Intelligence to other trusted source formats and country/city evidence with regressions.
+- [x] Job Bank country is grounded in the Canada-only source; resolve single-city + province-code labels and keep remote/multiple/ambiguous labels city-unknown. Tests: 36 passed.
 - [ ] Continue International Hiring Eligibility evidence handling without legal conclusions; verified official references and separate citizenship/residence/work-authorization/sponsorship fields remain open.
 - [x] Recognize explicit candidate-scoped existing-work-authorization prerequisites and preserve the source excerpt; distinguish negated “not only” prose.
 - [x] Expand Employer Career Watch with Betsson's verified current public Greenhouse DevOps opening; preserve unknown hiring/support evidence.

@@ -42,10 +42,27 @@ def test_search_strips_session_and_preserves_explicit_salary():
     assert item.url == "https://www.jobbank.gc.ca/jobsearch/jobpostingtfw/123"
     assert item.source_job_id == "123"
     assert item.country == "CA"
-    assert item.city == "Toronto (ON)"
+    assert item.city == "Toronto"
+    assert item.raw["source_location"] == "Location Toronto (ON)"
+    assert item.raw["location_resolution"] == "jobbank_city_province_code"
     assert item.raw["source_salary_text"] == "Salary $20.50 hourly"
     assert "salary_text" not in item.raw
     assert item.salary_from is None
+
+
+@pytest.mark.parametrize("location", ["Remote", "Multiple locations (ON)", "Various locations", "Toronto and Montreal (ON)"])
+def test_search_keeps_ambiguous_or_remote_jobbank_location_city_unknown(location):
+    html = SEARCH.replace("Location Toronto (ON)", location)
+    item = JobBankSource.parse_search(html)[0]
+    assert item.country == "CA"
+    assert item.city is None
+    assert item.raw["location_resolution"] is None
+
+
+@pytest.mark.parametrize("location,expected", [("Ottawa, ON", "Ottawa"), ("Vancouver (BC)", "Vancouver"), ("St. John's (NL)", "St. John's")])
+def test_search_resolves_single_city_with_official_province_code(location, expected):
+    item = JobBankSource.parse_search(SEARCH.replace("Location Toronto (ON)", f"Location {location}"))[0]
+    assert item.city == expected
 
 
 def test_lmia_request_is_not_sponsorship_or_work_permit_support():
