@@ -19,7 +19,7 @@ _US_STATE_CODES = {
 
 
 def parse_city_country(value: object) -> tuple[str | None, str | None]:
-    """Parse only a simple city + exact supported country label.
+    """Parse exact country-only labels or a simple city + supported country.
 
     This is for office/location fields, not remote eligibility. Regional,
     multi-country, remote and ambiguous US Georgia strings stay unresolved.
@@ -29,6 +29,16 @@ def parse_city_country(value: object) -> tuple[str | None, str | None]:
     text = " ".join(value.split())
     if _REMOTE_OR_REGION.search(text) or any(mark in text for mark in ("/", "|", ";")):
         return None, None
+    # Some official ATS office fields provide only a country. Keep its country
+    # evidence without inventing a city; bare Georgia is ambiguous with the US
+    # state and remains unresolved.
+    country_only = normalize_country(text)
+    if (
+        country_only
+        and not re.fullmatch(r"[A-Za-z]{2,3}", text)
+        and text.casefold() != "georgia"
+    ):
+        return None, country_only
     parts = [part.strip() for part in text.split(",")]
     if len(parts) != 2 or not all(parts):
         return None, None

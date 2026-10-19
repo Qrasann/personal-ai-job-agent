@@ -3013,3 +3013,7 @@ International Hiring Eligibility now recognizes explicit requirements that appli
 ## 2026-10-19 — add Betsson's official DevOps opening
 
 Read-only Greenhouse board/detail GETs confirmed current provider ID `8200701`, “Platform Core DevOps Engineer - Infra”, Malta, under Betsson's official career page. Added it to the reviewed employer catalog and updated the opening count from 14 to 15; work authorization, sponsorship and relocation remain unknown. The host lacks `httpx` and pytest, so the repository's catalog validation and test suite could not run here; PyYAML confirmed the catalog has 13 employers/15 openings, and the official endpoint directly returned the exact ID/title/location. Regression assertion added for CI. No DB, notification, application or runtime action.
+
+## 2026-10-19 — resolve exact country-only ATS locations
+
+Location intelligence now accepts exact country-name office labels such as `Malta` as country evidence while leaving city empty. ISO-like two/three-letter values and bare `Georgia` remain unknown; no city is fabricated. Added parser regressions and a common Employer Watch adapter regression for Betsson. Eight direct location assertions, compileall, secret scan and diff check passed; pytest remains unavailable in this shell. No schema, DB or runtime change.

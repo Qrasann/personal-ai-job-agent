@@ -21,6 +21,15 @@ def test_conservative_city_country_resolution_uses_exact_supported_suffixes():
         assert parse_city_country(ambiguous) == (None, None)
 
 
+def test_exact_country_only_office_labels_resolve_country_without_inventing_city():
+    assert parse_city_country("Malta") == (None, "MT")
+    assert parse_city_country("Germany") == (None, "DE")
+    # Codes, broad regions and the country/state name collision are ambiguous.
+    assert parse_city_country("MT") == (None, None)
+    assert parse_city_country("DE") == (None, None)
+    assert parse_city_country("Georgia") == (None, None)
+
+
 def test_georgia_local_sources():
     ids = {x["id"] for x in local_sources("GE")}
     assert {"jobs_ge", "hr_ge"}.issubset(ids)

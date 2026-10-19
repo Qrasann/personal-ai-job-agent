@@ -62,6 +62,9 @@ Only an exact, simple `City, Country` office/location label using a supported
 country name can populate city/country. Remote or regional labels, multi-location
 text, and ambiguous US state abbreviations remain unknown. Search-market tags
 and remote eligibility are never converted into a physical work location.
+An exact country-name-only ATS office label may populate country while leaving
+city empty; bare country codes and the ambiguous standalone `Georgia` remain
+unknown.
 Hiring eligibility, sponsorship and relocation remain unknown unless separate
 posting evidence supports them.
 Provider failures are isolated and reported as partial results. Common

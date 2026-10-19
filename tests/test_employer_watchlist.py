@@ -70,6 +70,26 @@ def test_employer_watch_is_a_global_common_search_source_with_provenance() -> No
     assert job.raw["provider_feed_observed_at"]
     assert job.description == "Kubernetes"
     assert job.country == "NL" and job.city == "Amsterdam"
+
+
+def test_employer_watch_resolves_exact_country_only_office_without_city_guess():
+    employer = next(
+        item for item in load_employer_watchlist().employers
+        if item.id == "betsson-group"
+    )
+    context = SourceContext(user_id=1, current_country="RU", target_countries=["MT"], queries=["DevOps"])
+    jobs = EmployerCareerWatchSource.parse_board_payload(employer, {
+        "jobs": [{
+            "id": 8200701,
+            "title": "Platform Core DevOps Engineer - Infra",
+            "absolute_url": "https://job-boards.greenhouse.io/betsson/jobs/8200701",
+            "location": {"name": "Malta"},
+            "content": "Kubernetes and platform infrastructure",
+        }]
+    }, context)
+    assert len(jobs) == 1
+    assert jobs[0].city is None and jobs[0].country == "MT"
+    assert jobs[0].raw["source_location"] == "Malta"
     assert job.raw["location_resolution"] == "provider_location_city_country"
     assert job.raw["visa_sponsorship_evidence"] == "unknown"
     assert job.raw["work_authorization_evidence"] == "unknown"
