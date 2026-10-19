@@ -6,7 +6,7 @@ from app.telegram import handlers
 from app.telegram.vacancy_view import render_job_section, render_job_summary
 
 
-def _payload(*, applicant_count=None, country="DE"):
+def _payload(*, applicant_count=None, country="DE", city="Berlin"):
     details = {
         "description": "Requirements: Linux and Docker. English B2 required.",
         "experience": "1–3 years",
@@ -22,7 +22,7 @@ def _payload(*, applicant_count=None, country="DE"):
     return {
         "job": SimpleNamespace(
             id=42, title="Junior DevOps Engineer", company="Example",
-            description="Linux Docker", city="Berlin", country=country,
+            description="Linux Docker", city=city, country=country,
             work_mode="hybrid", remote_scope="Germany", published_at=None,
             salary_from=55000, salary_to=65000, salary_currency="EUR",
             salary_period="annual", relocation=None, visa_sponsorship=None,
@@ -50,6 +50,13 @@ def test_job_summary_is_compact_and_moves_long_sections_behind_buttons():
     assert "Описание" not in text
     assert "Technical:" not in text
     assert len(text) < 900
+
+
+def test_country_only_office_location_uses_country_name_instead_of_iso_code():
+    text = render_job_summary(_payload(country="MT", city=None))
+
+    assert "📍 Malta" in text
+    assert "📍 MT" not in text
 
 
 def test_competition_section_only_labels_confirmed_application_count():

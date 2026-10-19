@@ -5,6 +5,7 @@ import json
 from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
+from app.geo.countries import country_config
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
 from app.domain.eligibility_references import official_eligibility_references
 from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
@@ -80,7 +81,12 @@ def _escape_with_utf16_limit(value: str, units: int) -> str:
 
 
 def _location(job, details: dict) -> str:
-    return str(details.get("city") or job.city or job.country or "не указана")
+    city = details.get("city") or job.city
+    if city:
+        return str(city)
+    country = details.get("country") or job.country
+    config = country_config(str(country or "")) if country else None
+    return str((config or {}).get("name") or country or "не указана")
 
 
 def _experience(job, details: dict) -> str:
@@ -595,8 +601,9 @@ def render_jobs_list(
         )
         experience = extract_experience(job.description)
         meta = [f"💰 {salary}"]
-        if job.city or job.country:
-            meta.append(f"📍 {repair_mojibake(job.city or job.country or '')}")
+        location = _location(job, payload.get("details") or {})
+        if location != "не указана":
+            meta.append(f"📍 {repair_mojibake(location)}")
         if job.work_mode:
             meta.append(f"🏠 {repair_mojibake(job.work_mode)}")
         if experience:

@@ -3029,3 +3029,7 @@ The existing review/status/scoring/notification regressions also pass after the 
 ## 2026-10-19 — add official Malta eligibility starting link
 
 Verified Identità's current Single Permit guidance and added it to the Telegram hiring-terms allowlist for normalized MT vacancies. The link is a dated informational starting point, not a candidate eligibility decision. Compact vacancy, relocation-evidence and Arbeitnow regressions: 59 passed. No personal data, database or runtime change.
+
+## 2026-10-19 — display country-only vacancy location clearly
+
+Telegram compact summaries and detail cards now map country-only vacancy values to the configured country name instead of showing the ISO code. City-bearing values keep their current display. Compact vacancy and review/navigation tests: 17 passed.

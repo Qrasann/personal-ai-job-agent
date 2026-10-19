@@ -6,6 +6,7 @@
 - Employer Career Watch now includes Betsson Group's verified public Greenhouse opening `8200701` in Malta (13 employers / 15 reviewed openings). Work authorization, sponsorship and relocation stay unknown; this adds a genuine platform/DevOps source for common search without implying candidate eligibility.
 - Exact official ATS location labels containing only a country now resolve country while leaving city empty; country codes and bare “Georgia” stay unknown because of ambiguity. This handles Betsson's `Malta` location without inventing a city.
 - Betsson's reviewed Employer Watch entry carries private pipeline metadata `betting`/`gambling`. Source-ref projection exposes these tags to matching; an active matching `exclude_terms` entry rejects the job before Good/Stretch or notification lanes, even when the ATS description omits the industry words. Scoring semantics are now version 2; no production data was changed.
+- Telegram vacancy cards now show a country name (for example, “Malta”) when an ATS provides only a country, while city-bearing locations preserve their existing display.
 
 ## Current owner priority — search, relocation and offers (2026-10-18)
 - Standing execution mode is MAXIMUM TOKEN ECONOMY: one Main agent by default, targeted context/tests first, Fast/Deep only when total delegation cost is justified, and no repeated unchanged full-suite hang. This optimizes token/context use, never required safety or quality gates; account quotas are not claimed unless directly exposed.
