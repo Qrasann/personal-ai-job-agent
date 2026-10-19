@@ -1,3 +1,7 @@
+# 2026-10-19 — PR #56 exact-head gate and handoff refresh
+
+Confirmed CI run `39304646201` for checkpoint `a8103f5`: Docker build, Python checks and secret scan all passed. Updated current brief, task status and handoff; the private Telegram sample remains blocked on owner-local credentials. No runtime, production data, services or volumes were changed.
+
 ## 2026-10-19 — Job Bank location intelligence
 
 Job Bank's source itself verifies Canada, but its search cards combine locality and province code (for example `Toronto (ON)`). Normalize only single-locality labels paired with a recognized Canadian province/territory; preserve the exact source string and provenance. Remote, multiple/various location and ambiguous multi-city labels keep city unknown. Targeted Job Bank suite: 36 passed. No network/live source request or data write.
