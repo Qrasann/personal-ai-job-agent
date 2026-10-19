@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-19 — employer policy documentation reconciliation
+- [x] Compare the owner-approved policy with shared matching, legacy scoring and focused regressions; do not change the implemented ALLOW/WARN/BLOCK semantics.
+- [x] Remove current documentation claims that Betsson is hard-filtered by legacy betting/gambling blacklist terms or still uses assessment version 2.
+- [x] Preserve exact-employer priority, category overrides, exact Alabuga/Voentorg identities and their primary evidence references; do not broaden entity matching.
+- [ ] Run the focused employer-policy/settings/scoring regression suite and final static checks.
+
 ## 2026-10-19 — source notice delivery diagnostics
 - [x] Confirm the grouped source notification policy is already complete and avoid changing its source/state/impact grouping or daily suppression behavior.
 - [x] Reproduce missing dashboard evidence when Telegram delivery of an immediate source notice fails after notice-state persistence.
@@ -37,7 +43,7 @@
 
 ## 2026-10-19 — conservative EURES multi-location resolution
 - [x] Avoid selecting the first EURES detail location as if it represented the entire vacancy; require consistent structured country evidence and a unique city across all locations.
-- [x] Add mixed-country, same-country/multiple-city and repeated-same-city regressions. EURES/geo/IHE/Betsson exclusion suites: 118 passed.
+- [x] Add mixed-country, same-country/multiple-city and repeated-same-city regressions. EURES/geo/IHE/employer-policy suites: 118 passed.
 
 ## 2026-10-19 — Telegram pilot and Employer Career Watch integration
 
@@ -66,7 +72,7 @@
 - [x] Recognize explicit candidate-scoped existing-work-authorization prerequisites and preserve the source excerpt; distinguish negated “not only” prose.
 - [x] Expand Employer Career Watch with Betsson's verified current public Greenhouse DevOps opening; preserve unknown hiring/support evidence.
 - [x] Resolve exact country-only ATS office labels to country with no fabricated city and distinct provenance; retain code/Georgia ambiguity as unknown.
-- [x] Carry reviewed Betsson betting/gambling industry metadata through source-ref projection so active betting/gambling exclusions return `skip`/filtered before notification lanes.
+- [x] Carry reviewed Betsson betting/gambling industry metadata through source-ref projection; the superseding employer policy now treats legacy sector blacklist terms as inert while retaining explicit category/exact-employer overrides.
 - [x] Add an official Malta Identità single-permit starting link to Telegram hiring terms; informational only, displayed for normalized MT vacancies.
 - [x] Display a readable country name for country-only vacancy locations in Telegram summary and detail cards.
 - [x] Add allowlisted, dated official AM/DE/GE mobility starting links to Telegram hiring terms; these links are informational only and do not assess candidate eligibility. Recheck links periodically.
