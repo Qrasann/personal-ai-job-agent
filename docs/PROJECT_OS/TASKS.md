@@ -12,6 +12,7 @@
 - [ ] Apply the owner-requested manual-start policy with privileged access: disable only `ai-job-bot.service`, set only `repo` app/PostgreSQL Compose and container restart policies to `no`, preserve Docker and `jobbot`, verify rollback/config and running health. Current shell has no noninteractive sudo.
 - [ ] Extend Job Location Intelligence to other trusted source formats and country/city evidence with regressions.
 - [ ] Continue International Hiring Eligibility evidence handling without legal conclusions; verified official references and separate citizenship/residence/work-authorization/sponsorship fields remain open.
+- [x] Recognize generic explicit `Work authorization required` / `Work permit required` vacancy statements without collapsing them into employer sponsorship; preserve explicit negation and unknown states.
 - [ ] Continue confirmed Applicant Count capture, compact Telegram UX, and safe future rollout/re-scoring of old Good.
 
 ## 2026-10-19 — Telegram UX & Vacancy Intelligence

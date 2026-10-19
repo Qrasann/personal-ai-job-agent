@@ -2971,3 +2971,6 @@ The owner made MAXIMUM TOKEN ECONOMY the standing engineering mode: Main handles
 ## 2026-10-19 — conservative ATS Job Location Intelligence
 
 Official ATS location fields now populate city/country only for a simple exact `City, Country` pair with a supported country label. Remote and broad-region labels, multi-location strings and ambiguous US state codes remain unknown; structured SmartRecruiters city/country is accepted only when not marked remote. Source location text and resolution provenance are preserved. Targeted regressions cover Georgia, ordinary countries, ambiguous state codes and remote fields. Test results are recorded in the current handoff. No eligibility/legal inference, schema change, production write or runtime change.
+## 2026-10-19 — recognize explicit generic work authorization requirement
+
+`Work authorization required` and `Work permit required` were left unknown even though qualified variants and explicit negation were recognized. The bounded requirement rule now accepts these exact generic clauses; “No work authorization required” remains explicitly false, and no sponsorship/eligibility/legal conclusion is inferred. Relocation-evidence, remote-evidence and RemoteOK suites: 98 passed; compileall and diff check passed. No database or runtime changes.

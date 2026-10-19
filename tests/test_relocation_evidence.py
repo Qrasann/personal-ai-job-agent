@@ -280,6 +280,13 @@ def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_
     assert not_required["value"] is False
     assert "No EU work permit required" in not_required["excerpt"]
 
+    required = extract("Work authorization required.")
+    assert required["status"] == "confirmed" and required["value"] is True
+    assert required["excerpt"] == "Work authorization required"
+
+    generic_permit = extract("Work permit required.")
+    assert generic_permit["status"] == "confirmed" and generic_permit["value"] is True
+
     absent = extract("Linux operations role.")
     assert absent["status"] == "unknown" and absent["value"] is None
 
