@@ -7,6 +7,7 @@
 - [x] Read-only recheck the 14 provider IDs on official sources; all 14 are current across 12 employers as of 2026-10-19.
 - [x] Expand Employer Career Watch common discovery to bounded live Greenhouse, Lever and SmartRecruiters boards while keeping existing Collectly/Devexperts adapters as sole providers and preserving unknown location/eligibility evidence.
 - [x] Run bounded read-only public ATS common-search validation: 93 cards, 85 canonical unique, 8 duplicates, no diagnostics. Reproduce and filter five Career-first Good title mismatches (desktop support/engineering management) without filtering these role families from Relocation-first; rerun confirms the Career-first Good false positives are gone.
+- [x] Record common-pipeline exclusion reasons on the rerun: Career-first 55 technical-gap / 28 fit-skip / 2 geography-gap; Relocation-first 62 technical-gap / 23 fit-skip. Neither lane produced Good/Stretch in this sample.
 - [x] Add conservative Job Location Intelligence for exact supported `City, Country` labels in official ATS location fields; preserve unknown for remote/regional, multi-location and ambiguous US-state text.
 - [x] Reuse exact city/country parsing for explicit non-remote Arbeitnow location labels; preserve source location and resolution evidence, keep remote locations unknown.
 - [ ] Confirm exact-head CI for Draft PR #56 and keep Draft until the isolated Telegram sample is analyzed; last verified remote head `b367992` had all 3 required checks green before the local location slice.

@@ -2998,3 +2998,7 @@ The official source adapter now splits a simple supported `City, Country` label 
 ## 2026-10-19 — filter measured Career-first role mismatch false Goods
 
 A bounded, read-only run across nine official employer boards returned 93 cards (85 canonical jobs, 8 duplicates, no source errors). Five Career-first Good cards in the visible sample were Linux desktop-support or engineering-manager roles, outside the owner-defined DevOps/Infrastructure/SRE lane. Added a narrow Career-first-only exclusion with explicit scoring reason; Relocation-first support results remain unaffected. A same-query rerun kept the 93/85/8 source counts and removed the five Career-first Good false positives; both tracks produced zero Good/Stretch, so more useful yield remains open. Targeted scoring/review tests: 54 passed. No database or runtime operation.
+
+## 2026-10-19 — record public Employer Career Watch exclusion reasons
+
+A final bounded read-only rerun scored 85 canonical jobs from 93 public ATS cards (8 duplicates, no source errors). Career-first produced 55 technical-gap, 28 fit-skip and 2 geography-gap exclusions; Relocation-first produced 62 technical-gap and 23 fit-skip exclusions. Neither lane had Good/Stretch in the sample. Candidate facts/preferences were used only in memory and not written to disk or included in logs. The run made no database or notification calls.
