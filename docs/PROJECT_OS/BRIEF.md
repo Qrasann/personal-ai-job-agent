@@ -8,6 +8,7 @@
 - Job Bank location now resolves a city only from one locality plus an official Canadian province/territory code; remote, multiple and ambiguous location labels stay country-only/unknown-city. Job Bank targeted suite: 36 passed.
 - Job Bank keeps explicit sponsorship offers independent from “already authorized” restrictions; either can coexist while the existing-authorization prerequisite excludes the posting from the foreign-applicant lane. Uncertain/absent evidence remains unknown. Cross-domain tests: 151 passed.
 - Employer name matching includes only exact transliterations backed by linked official identity/war-service records. Employer policy/settings suite: 32 passed; no expansion to subsidiaries or civilian state-owned employers.
+- `/blacklist` now hides inert legacy sector terms and points users to `/employerpolicy`; policy view shows default ALLOW/WARN/BLOCK values. Handler/policy tests: 29 passed.
 
 ## 2026-10-19 incremental location provenance
 - EURES records whether location came from search `locationMap` or detail `countryCode`/`cityName`; country-only postings keep city unknown. Targeted EURES/geo/industry-exclusion suites: 39 passed. See HANDOFF for branch and exact CI state.

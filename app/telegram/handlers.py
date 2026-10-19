@@ -27,6 +27,7 @@ from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
 from app.domain.text_limits import utf16_length
+from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
@@ -440,8 +441,8 @@ async def blacklist_command(message: Message) -> None:
     parts = (message.text or "").split(maxsplit=2)
     cfg = searches[0].settings or {}
     if len(parts) == 1:
-        terms = cfg.get("exclude_terms") or []
-        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nОчистить: /blacklist clear")
+        terms = [str(term) for term in (cfg.get("exclude_terms") or []) if str(term).casefold() not in LEGACY_INDUSTRY_EXCLUSIONS]
+        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nОтраслевые решения: /employerpolicy\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nОчистить: /blacklist clear")
         return
     action = parts[1].casefold()
     term = parts[2].strip() if len(parts) == 3 else ""
@@ -470,7 +471,7 @@ async def employer_policy_command(message: Message) -> None:
         overrides = settings.get("employer_policy_overrides") or {}
         await message.answer(
             "Политика работодателей (ALLOW/WARN/BLOCK). Категории: "
-            + ", ".join((defaults.get("categories") or {}).keys())
+            + ", ".join(f"{key}={value}" for key, value in (defaults.get("categories") or {}).items())
             + "\nРучные решения: " + html.escape(str(overrides))
             + "\n/employerpolicy category <категория> <allow|warn|block|inherit>"
             + "\n/employerpolicy employer <allow|warn|block|inherit> <точное имя работодателя>"

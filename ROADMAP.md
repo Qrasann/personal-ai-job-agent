@@ -16,6 +16,8 @@ International Hiring Eligibility increment (2026-10-19): Job Bank reuses the sha
 
 Employer identity evidence (2026-10-19): exact Alabuga/Voentorg names and transliterations reference [OFAC's Alabuga listing](https://ofac.treasury.gov/recent-actions/20240223), [OFAC's Voentorg identity](https://ofac.treasury.gov/recent-actions/20250115) and the [EU record of Voentorg's military supply](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32022D0883). Rules remain exact-name only; no subsidiary or other state-owned employer is inferred.
 
+The Telegram `/blacklist` display omits sector terms now handled by the explicit employer policy, and `/employerpolicy` displays default category actions. This keeps visible settings consistent with actual filtering.
+
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
 
 The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.

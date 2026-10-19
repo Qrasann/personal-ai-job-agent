@@ -43,3 +43,18 @@ def test_employer_policy_command_rejects_unknown_category_without_writing(monkey
 
     update.assert_not_awaited()
     assert "Неизвестная категория" in message.answer.await_args.args[0]
+
+
+def test_blacklist_view_does_not_claim_legacy_sector_terms_are_active(monkeypatch):
+    searches = [SimpleNamespace(id=11, settings={"exclude_terms": ["gambling", "senior devops"]})]
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+    message = SimpleNamespace(text="/blacklist", answer=AsyncMock())
+
+    asyncio.run(handlers.blacklist_command(message))
+
+    response = message.answer.await_args.args[0]
+    assert "senior devops" in response
+    assert "gambling" not in response
+    assert "/employerpolicy" in response
