@@ -3,7 +3,8 @@
 ## 2026-10-19 P0 notification and employer-policy correction
 - Root cause of runtime error spam: PR #54 (`a1debc9`) merged into `feature/v3.5.7`, while runtime remains on `work/telegram-georgia-location` at `34bd4d6`, without the merge or `app/sources/notice_policy.py`. Runtime was read-only inspected, not changed.
 - Dev source notices now group by source/state/impact (not exact transport code), keep details in Diagnostics, ignore successful fallback noise across providers, alert only critical or material loss, and rate-limit unresolved notices to one daily grouped summary. Persisted v1 state migrates to v2. Targeted notification/source isolation suites: 82 passed, 3 skipped.
-- New owner employer policy supersedes the old gambling exclusion. Next code stage must remove betting/gambling from defaults, provide configurable ALLOW/WARN/BLOCK category/employer overrides, and avoid broad state-owned-company exclusions. No runtime preference migration or production config write is authorized.
+- Employer preference policy now replaces the old gambling exclusion in common matching: legacy betting/gambling/букмек/казино terms are inert as sector bans, Betsson remains eligible, exact named Alabuga/Voentorg entities block, structured categories support ALLOW/WARN/BLOCK, and user category/employer overrides persist in all search profiles. WARN stays visible in Stretch; no production settings migration/write.
+- Employer matching/review/notification regressions: 227 passed, 3 skipped. GitHub CI for notification checkpoint `913f305` passed all Python, secret-scan and image-build checks. Current employer-policy code still needs static checks, checkpoint and exact-head CI.
 
 ## 2026-10-19 incremental location provenance
 - EURES records whether location came from search `locationMap` or detail `countryCode`/`cityName`; country-only postings keep city unknown. Targeted EURES/geo/industry-exclusion suites: 39 passed. See HANDOFF for branch and exact CI state.

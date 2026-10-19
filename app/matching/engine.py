@@ -9,9 +9,10 @@ from app.domain.role_text import role_tokens
 from app.matching.technical_score import score_technical_v2
 from app.matching.recommendation import build_recommendation_breakdown
 from app.search.preferences import discovery_queries, search_strategy
+from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS, decision as employer_decision
 
 # Bump whenever score, fit-lane, cap, or exclusion semantics change.
-MATCH_ASSESSMENT_VERSION = 2
+MATCH_ASSESSMENT_VERSION = 3
 
 
 @dataclass(slots=True)
@@ -422,7 +423,13 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     )
     chosen_resume = choose_resume(job, resumes)
 
-    exclude = _terms(settings, "exclude_terms")
+    employer_action, employer_reason = employer_decision(job.company, industry_tags, settings)
+    if employer_action == "block":
+        return MatchResult(0, 0, 0, 0, 0, "Исключено по политике работодателя: " + str(employer_reason), chosen_resume, "unknown", "skip")
+
+    # Existing saved profiles may still carry the old sector terms. Sector
+    # preferences now belong to the explicit ALLOW/WARN/BLOCK policy.
+    exclude = [term for term in _terms(settings, "exclude_terms") if term not in LEGACY_INDUSTRY_EXCLUSIONS]
     exclusion_hay = f"{hay} {industry_hay}"
     hit_exclude = [x for x in exclude if x and x in exclusion_hay]
     if hit_exclude:
@@ -561,6 +568,14 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     total = round(technical * 0.48 + geography * 0.27 + salary * 0.12 + relocation * 0.13)
 
     risk_penalty, risk_reason = _risk_penalty(job, settings)
+    user_allow = employer_action == "allow" and bool(employer_reason and employer_reason.startswith("решение пользователя"))
+    if user_allow:
+        risk_penalty, risk_reason = 0, None
+    if employer_action == "warn":
+        risk_penalty = max(risk_penalty, 14)
+        risk_reason = employer_reason or risk_reason
+    if risk_reason and fit == "good":
+        fit = "stretch"
     total -= risk_penalty
 
     if signals.remote_eligibility == "no" and track == "remote":
@@ -618,6 +633,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append(geography_reason)
     if risk_reason:
         bits.append(risk_reason)
+    if employer_reason and employer_action == "warn" and risk_reason != employer_reason:
+        bits.append(employer_reason)
     if signals.remote_reason:
         bits.append(signals.remote_reason)
     if signals.relocation_reason:

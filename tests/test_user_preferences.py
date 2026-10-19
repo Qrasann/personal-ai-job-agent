@@ -28,18 +28,31 @@ def test_current_and_desired_salary_values_are_kept_separately():
 
 
 def test_blacklist_is_case_insensitive_and_applies_to_job_scoring():
-    settings = update_blacklist({}, "add", "Crypto")
-    settings = update_blacklist(settings, "add", "crypto")
-    assert settings["exclude_terms"] == ["Crypto"]
+    settings = update_blacklist({}, "add", "Fraud")
+    settings = update_blacklist(settings, "add", "fraud")
+    assert settings["exclude_terms"] == ["Fraud"]
     search = SearchProfile(id=1, profile_id=1, settings=settings)
     job = Job(
         fingerprint="blacklist",
         title="DevOps Engineer",
         company="Example",
-        description="Infrastructure role at a crypto company",
+        description="Infrastructure role at a fraud company",
         country="US",
     )
     result = score_job(job, search, [], [])
     assert result.fit == "skip"
-    assert "crypto" in result.reason.casefold()
-    assert update_blacklist(settings, "remove", "CRYPTO")["exclude_terms"] == []
+    assert "fraud" in result.reason.casefold()
+    assert update_blacklist(settings, "remove", "FRAUD")["exclude_terms"] == []
+
+
+def test_sector_preferences_use_allow_warn_block_policy_instead_of_blacklist_terms():
+    with pytest.raises(ValueError, match="employerpolicy"):
+        update_blacklist({}, "add", "gambling")
+    from app.domain.employer_policy import decision, update_policy
+
+    settings = update_policy({}, "category", "block", "betting")
+    assert decision("Betsson", ["betting"], settings)[0] == "block"
+    settings = update_policy(settings, "category", "allow", "betting")
+    assert decision("Betsson", ["betting"], settings)[0] == "allow"
+    settings = update_policy(settings, "employer", "warn", "Betsson Group")
+    assert decision("Betsson Group", ["betting"], settings)[0] == "warn"

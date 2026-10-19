@@ -5,13 +5,14 @@
 - [x] Canonicalize source issues by source/state/impact, not exact network code; suppress successful fallback diagnostics from Telegram across providers.
 - [x] Keep low-impact errors in Diagnostics and send one grouped daily summary; retain immediate critical/material-loss and recovery notices. Persist state and read prior v1 state.
 - [x] Add source/provider and code-churn regressions for HH, Job Bank, Remote OK, Greenhouse, multiple profiles and repeated scans: 82 passed, 3 skipped (targeted suites).
-- [ ] Verify exact-head GitHub CI and continue with owner-approved ALLOW/WARN/BLOCK employer policy.
+- [x] Verify exact-head GitHub CI for `913f305`: Python tests, secret scan and image build passed.
 
 ## 2026-10-19 — employer preference policy supersedes gambling defaults
-- [ ] Remove betting/gambling from automatic default exclusions; ensure Betsson is not blocked by sector tag alone.
-- [ ] Add centralized category and exact-employer ALLOW/WARN/BLOCK decisions across Career-first and Relocation-first; preserve manual decision precedence.
-- [ ] Add evidence-backed narrow Russian military/defense, direct war-tie, Alabuga/Voentorg and government-body BLOCK handling. Civilian state-owned organizations, betting, iGaming and crypto remain allowed or warned, never broadly blocked by default.
-- [ ] Preserve existing runtime/user settings; do not write or migrate production settings as part of dev work.
+- [x] Remove betting/gambling from automatic default exclusions; add regressions proving Betsson is not blocked from Good/Stretch by sector tags or legacy terms in either search strategy.
+- [x] Add central category and exact-employer ALLOW/WARN/BLOCK decisions and persist owner overrides across search profiles; exact employer choice wins, category choice overrides default policy.
+- [x] Add narrow structured BLOCK categories for Russian military/defense, verified direct war ties and direct government-body vacancies; exact Alabuga/Voentorg names are blocked. Civilian state-owned employers and betting/iGaming default to allow; crypto/Web3 warns.
+- [x] Preserve existing runtime/user settings; no production settings write or migration.
+- [x] Run extended matching/review/notification regression suite: 227 passed, 3 skipped. Final static checks, checkpoint and exact-head CI remain.
 
 ## 2026-10-19 — EURES location provenance
 - [x] Preserve provenance for EURES search-level country and detail-level structured city/country; don't infer city from country-only data.

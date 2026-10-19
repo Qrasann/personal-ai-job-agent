@@ -26,13 +26,27 @@ search:
     relocation: true
   minimum_salary_net_rub: 100000
   exclude_terms:
-    - betting
-    - gambling
-    - букмекер
-    - казино
-    - crypto casino
     - senior devops
     - lead devops
+  employer_policy:
+    categories:
+      betting: allow
+      casino_igaming: allow
+      crypto_web3: warn
+      civilian_state_owned: allow
+      russian_military_defense: block
+      verified_direct_war_tie: block
+      russian_government_body: block
+    # Exact employer identity only; ordinary state-owned civilian companies are not included.
+    employers:
+      "АО ОЭЗ ППТ АЛАБУГА": block
+      "JOINT STOCK COMPANY SPECIAL ECONOMIC ZONE OF INDUSTRIAL PRODUCTION ALABUGA": block
+      "Алабуга": block
+      "Alabuga": block
+      "АО ВОЕНТОРГ": block
+      "JOINT STOCK COMPANY VOENTORG": block
+      "Военторг": block
+      "Voentorg": block
   review_terms:
     - blockchain
     - crypto

@@ -30,6 +30,7 @@ from app.domain.text_limits import utf16_length
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
+from app.knowledge.profile import load_profile
 from app.matching.language_fit import normalize_cefr
 from app.agents.interview import build_interview_plan
 from app.services import ScanAlreadyRunning, apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, coordinated_scan_for_user, scan_hh_chats, hh_client
@@ -41,7 +42,7 @@ from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import relocation_first_allows, source_enabled
-from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
+from app.search.user_preferences import parse_salary_command, update_blacklist, update_employer_policy, update_salary
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
@@ -212,6 +213,7 @@ def _main_menu_text() -> str:
         "/settings — текущие настройки\n\n"
         "/salary — зарплатные ориентиры\n"
         "/blacklist — исключаемые слова\n\n"
+        "/employerpolicy — ALLOW/WARN/BLOCK для категории или точного работодателя\n\n"
         "🧠 <b>Профиль и вакансии</b>\n"
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
@@ -449,6 +451,50 @@ async def blacklist_command(message: Message) -> None:
     for search in searches:
         await repo.update_search_settings(search.id, update_blacklist(search.settings or {}, action, term))
     await message.answer("✅ Blacklist обновлён.")
+
+
+@router.message(Command("employerpolicy"))
+async def employer_policy_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    searches = await repo.list_search_profiles(profile.id) if profile else []
+    if not searches:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    parts = (message.text or "").split(maxsplit=3)
+    settings = searches[0].settings or {}
+    defaults = (load_profile().get("search") or {}).get("employer_policy") or {}
+    if len(parts) == 1:
+        overrides = settings.get("employer_policy_overrides") or {}
+        await message.answer(
+            "Политика работодателей (ALLOW/WARN/BLOCK). Категории: "
+            + ", ".join((defaults.get("categories") or {}).keys())
+            + "\nРучные решения: " + html.escape(str(overrides))
+            + "\n/employerpolicy category <категория> <allow|warn|block|inherit>"
+            + "\n/employerpolicy employer <allow|warn|block|inherit> <точное имя работодателя>"
+        )
+        return
+    if len(parts) < 4:
+        await message.answer("Формат: /employerpolicy category <категория> <решение> или /employerpolicy employer <решение> <точное имя>")
+        return
+    kind = parts[1].casefold()
+    if kind == "category":
+        key, value = parts[2], parts[3].strip()
+    elif kind == "employer":
+        value, key = parts[2].casefold(), parts[3].strip()
+    else:
+        await message.answer("Тип правила: category или employer.")
+        return
+    try:
+        update_employer_policy(settings, kind, value, key)
+        for search in searches:
+            await repo.update_search_settings(search.id, update_employer_policy(search.settings or {}, kind, value, key))
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    await message.answer("✅ Решение сохранено для всех поисковых профилей.")
 
 
 @router.message(Command("roles"))

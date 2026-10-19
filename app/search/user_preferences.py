@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 
+from app.domain.employer_policy import update_policy as update_employer_policy
+
 
 SALARY_KINDS = {"current", "desired", "minimum"}
 _CURRENCY = re.compile(r"^[A-Z]{3}$")
@@ -44,6 +46,8 @@ def update_blacklist(settings: dict, action: str, term: str = "") -> dict:
     result = dict(settings)
     terms = [str(item).strip() for item in result.get("exclude_terms", []) if str(item).strip()]
     if action == "add" and term.strip():
+        if term.strip().casefold() in {"betting", "gambling", "букмек", "букмекер", "казино", "casino", "igaming", "crypto casino", "crypto", "web3", "blockchain"}:
+            raise ValueError("Отраслевые предпочтения настраиваются через /employerpolicy category <категория> allow|warn|block.")
         if not any(item.casefold() == term.strip().casefold() for item in terms):
             terms.append(term.strip())
     elif action == "remove":
