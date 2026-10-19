@@ -2974,3 +2974,7 @@ Official ATS location fields now populate city/country only for a simple exact `
 ## 2026-10-19 — recognize explicit generic work authorization requirement
 
 `Work authorization required` and `Work permit required` were left unknown even though qualified variants and explicit negation were recognized. The bounded requirement rule now accepts these exact generic clauses; “No work authorization required” remains explicitly false, and no sponsorship/eligibility/legal conclusion is inferred. Relocation-evidence, remote-evidence and RemoteOK suites: 98 passed; compileall and diff check passed. No database or runtime changes.
+
+## 2026-10-19 — stale Good warning in Telegram review
+
+Persisted `/review` rows can predate current rules, as confirmed for explicit non-actionable roles. Review cards now detect current volunteer/unpaid and expression-of-interest title rules, replace the Good lane with a repeat-review warning, and hide the historical score. Stored rows are neither rescored nor mutated. Targeted review/navigation/status/experience/scoring tests: 81 passed. No database or runtime changes.

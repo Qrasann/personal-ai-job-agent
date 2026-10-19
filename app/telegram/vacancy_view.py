@@ -9,6 +9,7 @@ from app.domain.job_text import clean_html_text, extract_experience, format_sala
 from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 from app.domain.vacancy_availability import vacancy_availability_lines
+from app.matching.engine import non_actionable_role_reason
 
 
 def _clip(value: str, limit: int) -> str:
@@ -369,6 +370,9 @@ def render_queue_card(
     position: int,
     total: int,
 ) -> str:
+    stale_good_reason = non_actionable_role_reason(job) if "good" in lane.casefold() else None
+    if stale_good_reason:
+        lane = "⚠️ Требует повторной проверки"
     title = _clip(repair_mojibake(str(getattr(job, "title", "") or "")), 120)
     company = _clip(repair_mojibake(str(getattr(job, "company", "") or "")), 100)
     salary = format_salary(
@@ -409,12 +413,17 @@ def render_queue_card(
         f"💰 {html.escape(salary)} · Оплачиваемость: {html.escape(paid)}",
         f"🕒 Опыт: {html.escape(experience)} · 📅 {html.escape(published)}",
         f"👥 Отклики: {html.escape(applicant_text)}",
-        f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>",
+        (
+            "🎯 Сохранённая оценка может быть устаревшей; актуальные правила исключают эту роль."
+            if stale_good_reason else f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>"
+        ),
     ]
 
     reason = _concise_match_reason(match)
     if reason:
         lines.append(f"💡 {html.escape(reason)}")
+    if stale_good_reason:
+        lines.append(f"🔎 Причина проверки: {html.escape(stale_good_reason)}")
     lines.append("🛂 Иностранный найм: только по подтверждённым условиям работодателя; неизвестное не является разрешением.")
     return "\n".join(lines)
 

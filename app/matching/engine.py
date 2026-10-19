@@ -243,7 +243,7 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     return None, None
 
 
-def _non_actionable_role_reason(job: Job) -> str | None:
+def non_actionable_role_reason(job: Job) -> str | None:
     """Keep explicit non-openings and unpaid roles out of automatic Good results."""
     title = (job.title or "").casefold()
     unpaid_patterns = (
@@ -437,8 +437,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
         fit = "skip"
-    non_actionable_role_reason = _non_actionable_role_reason(job)
-    if non_actionable_role_reason:
+    non_actionable_reason = non_actionable_role_reason(job)
+    if non_actionable_reason:
         fit = "skip"
     experience_fit, experience_reason = _experience_fit(job, facts)
     if experience_fit == "stretch" and fit == "good":
@@ -539,7 +539,7 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     elif experience_fit == "stretch" and seniority is None:
         total = min(total, 72)
 
-    if non_actionable_role_reason:
+    if non_actionable_reason:
         total = min(total, 58)
 
 
@@ -565,8 +565,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
-    if non_actionable_role_reason:
-        bits.append(non_actionable_role_reason)
+    if non_actionable_reason:
+        bits.append(non_actionable_reason)
     if experience_reason:
         bits.append(experience_reason)
     if management_gap:

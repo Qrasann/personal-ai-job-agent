@@ -58,6 +58,20 @@ def test_review_card_flags_explicit_volunteer_work_as_unpaid():
     assert "Оплачиваемость: нет — явно волонтёрская/неоплачиваемая" in text
 
 
+def test_stale_good_assessment_is_not_presented_as_current_good():
+    job = _job()
+    job.title = "DevOps Volunteer"
+    match = _match()
+
+    text = _render_review_card(match, job, 1, 1)
+
+    assert "🟢 Good" not in text
+    assert "Требует повторной проверки" in text
+    assert "сохранённая оценка может быть устаревшей" in text.casefold()
+    assert "88/100" not in text
+    assert "волонтёрская/неоплачиваемая роль" in text
+
+
 def test_queue_cards_use_truthful_lane_labels():
     assert "🟢 Good" in _render_review_card(_match(), _job(), 1, 1)
     assert "🟡 Stretch" in _render_stretch_card(_match(), _job(), 1, 1)

@@ -22,6 +22,7 @@
 - [x] Make `/job` open with a short summary and safe owner-scoped tabs for Requirements, Description, Hiring terms, Competition and Source; section callbacks edit the existing message and reject malformed payloads.
 - [x] Accept applicant-count display only from persisted `applicant_count_v1` evidence with `kind=applications`, non-negative integer value, source and observation date. Never relabel views as applications; otherwise show `Нет открытых данных`.
 - [x] Reconfirm the dev `DevOps Volunteer` fit-skip/cap regression and make an explicitly volunteer/unpaid review card disclose non-payment. The owner's 88/100 running-bot observation is pre-fix runtime evidence; production was not rescored or changed.
+- [x] Prevent stale notified Good rows for currently non-actionable titles from presenting as current Good or showing the historical numeric score in `/review`; show a repeat-review warning without mutating stored rows.
 - [ ] **P1:** add verified adapter-specific applicant-count capture where a permitted source truly exposes it, then optional secondary ordering behind fit/freshness; do not alter Match Score or make count primary.
 - [ ] Add the persistent ReplyKeyboardMarkup control layer, richer matched/missing-skill summary and isolated visual Telegram before/after acceptance. Preserve every ordinary command.
 - [ ] Extend employer/legal evidence with official dated references for candidate citizenship/residence/work-authorization decisions; no automated legal conclusion or candidate-data transfer.
