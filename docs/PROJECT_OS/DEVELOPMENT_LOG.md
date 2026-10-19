@@ -3033,3 +3033,7 @@ Verified Identità's current Single Permit guidance and added it to the Telegram
 ## 2026-10-19 — display country-only vacancy location clearly
 
 Telegram compact summaries and detail cards now map country-only vacancy values to the configured country name instead of showing the ISO code. City-bearing values keep their current display. Compact vacancy and review/navigation tests: 17 passed.
+
+## 2026-10-19 — EURES location provenance
+
+EURES now annotates country evidence from search `locationMap` and structured country/city evidence from detail `countryCode`/`cityName`; a country-only record never gains a city. Added regressions for structured city-country, country-only and overlong city. Targeted EURES/geo/Betsson-exclusion tests: 39 passed using the existing project test venv at `/mnt/Storage/AI-Job-Bot/repo/.venv` (read-only interpreter use; no installs). No production/runtime/DB/volume changes.

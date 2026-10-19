@@ -47,6 +47,7 @@ def test_search_only_returns_employer_flagged_role_relevant_vacancies():
     assert result[0].source == "eures"
     assert result[0].raw["international_candidates"] is True
     assert result[0].country == "DE"
+    assert result[0].raw["location_resolution"] == "eures_location_map_country"
     assert result[0].visa_sponsorship is None
     assert result[0].relocation is None
 
@@ -99,6 +100,7 @@ def test_eures_flag_is_not_visa_or_relocation_support():
     assert job.country == "DE"
     assert normalize_country(job.country) == "DE"
     assert job.city == "Berlin"
+    assert job.raw["location_resolution"] == "eures_structured_city_country"
     assert job.company == "Example GmbH"
     assert job.url == "https://careers.example.org/123"
     assert job.visa_sponsorship is None
@@ -149,6 +151,16 @@ def test_eures_unusable_long_city_remains_unknown_with_source_value_preserved():
     assert job.country == "IE"
     assert job.city is None
     assert job.raw["location_text"] == source_city
+    assert job.raw["location_resolution"] == "eures_structured_country"
+
+
+def test_eures_detail_with_country_only_records_structured_country_provenance():
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[{"countryCode": "ie"}]))
+
+    assert job.country == "IE"
+    assert job.city is None
+    assert job.raw["location_resolution"] == "eures_structured_country"
 
 
 def test_search_request_filters_for_cross_border_vacancies():

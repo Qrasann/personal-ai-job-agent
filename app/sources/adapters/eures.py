@@ -129,6 +129,7 @@ class EuresSource(JobSource):
                     "international_candidates_evidence": "Employer-marked EURES vacancy for cross-border recruitment",
                     "evidence_url": f"https://europa.eu/eures/api/jv-searchengine/public/jv/id/{quote(str(row['id']), safe='')}?requestLang=en",
                     "location_map": location_map,
+                    "location_resolution": "eures_location_map_country" if country else None,
                     "source_summary": row,
                 },
             ))
@@ -192,6 +193,10 @@ class EuresSource(JobSource):
                 job.city = None
                 if raw_city:
                     job.raw["location_text"] = raw_city
+            if job.city and job.country:
+                job.raw["location_resolution"] = "eures_structured_city_country"
+            elif job.country:
+                job.raw["location_resolution"] = "eures_structured_country"
         job.company = str((profile.get("employer") or {}).get("name") or job.company)
 
         # Preserve a verified, source-provided application destination when one
