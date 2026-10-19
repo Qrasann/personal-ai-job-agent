@@ -61,3 +61,18 @@ def test_analysis_counts_non_vacancy_dedupe_and_scoring(tmp_path: Path):
     assert report["totals"]["unique_vacancies"] == 1
     assert report["totals"]["duplicates"] == 1
     assert len(report["vacancies"]) == 2
+
+
+def test_analysis_rejects_candidate_tag_after_channel_metadata(tmp_path: Path):
+    profile = tmp_path / "profile.yaml"
+    _profile(profile)
+    posts = [_post(
+        1,
+        "Публикатор: Иван\nОбсуждение: @devops_jobs\n"
+        "#резюме #devops #remote\nDevOps Engineer\nLinux Docker",
+    )]
+
+    report = analyze_sample(posts, profile)
+
+    assert report["totals"] == {"posts": 1, "non_vacancy": 1, "unique_vacancies": 0, "duplicates": 0}
+    assert report["vacancies"] == []

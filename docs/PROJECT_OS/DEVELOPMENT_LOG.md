@@ -3113,3 +3113,10 @@ EURES detail data no longer selects the first location from a multi-location vac
 ## 2026-10-19 — source error alert noise and runtime diagnosis
 
 Read-only inspection found PR #54 merged into `feature/v3.5.7` at `a1debc9`, while the live checkout remains on `work/telegram-georgia-location` at `34bd4d6` and has no `app/sources/notice_policy.py`. This is the direct reason production did not adopt the fix. Dev notification state now compares source/state/impact rather than changing raw network codes, omits successful fallback noise, leaves limited impact quiet until a grouped daily summary, and retains critical/material-loss/recovery messages. Persistent v1 state transitions to v2. Regression suites: 82 passed, 3 skipped. Runtime and production state remain unchanged.
+
+## 2026-10-20 — Telegram pilot offline yield correction
+
+- Verified the existing private sample/report in place: mode 0600, 60 posts across only the three approved channels, 20 each, and reproducible stored analysis. No Telegram connection or credential access was attempted.
+- Reviewed the real posts locally. Eighteen candidate resumes used a channel metadata preamble before an explicit `#резюме` tag; the old start-only classifier scored them and created all 11 Good plus 5 Stretch rows.
+- Added bounded-header recognition for explicit candidate tags and regressions through both watcher and pilot analysis. The unchanged sample now reports 18 non-vacancies, 42 vacancy candidates, 1 Good, 0 Stretch, 41 filtered and no canonical duplicates.
+- Expanded Telegram tests passed 132 with 1 skipped; compileall, secret scan and diff check passed. No private artifact, runtime, database, notification or external message changed.

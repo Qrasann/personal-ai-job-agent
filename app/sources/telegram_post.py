@@ -24,10 +24,15 @@ _NON_VACANCY_HEADER = re.compile(
     r"looking for (?:a )?job|my resume|мой опыт)\s*[:—-])",
     re.I,
 )
+_NON_VACANCY_TAG = re.compile(
+    r"#(?:резюме|opentowork|ищуработу|lookingforwork)(?=\W|$)",
+    re.I,
+)
 
 
 def explicit_non_vacancy(text: str) -> bool:
-    return bool(_NON_VACANCY_HEADER.match(text[:500]))
+    header = text[:500]
+    return bool(_NON_VACANCY_HEADER.match(header) or _NON_VACANCY_TAG.search(header))
 
 
 def post_fields(text: str) -> dict:

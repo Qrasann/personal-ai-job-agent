@@ -36,6 +36,12 @@ The analyzer uses the shared Telegram normalizer, canonical fingerprint and matc
 engine with the tracked `data/profile.yaml`; it performs no network, database or bot
 operation. Treat its Good/Stretch counts as a reproducible pilot-profile measurement,
 not as evidence of work authorization or a read of the production candidate database.
+The current private pilot artifact contains 60 posts (20 per approved channel). Offline
+manual review found and corrected 18 explicit candidate resumes hidden behind channel
+publisher metadata; the corrected measurement is 42 vacancy candidates, 1 Good,
+0 Stretch and 41 filtered. This does not establish runtime watch/restart acceptance.
+Do not repeat authorization or sampling merely to reproduce this completed artifact;
+continue analysis from the private files already present.
 Then run `watch` only after configuring the existing bot
 database and owner ID. The runner rechecks the folder preview and current IDs,
 disables account-wide updates, and polls **only** selected broadcast peers every

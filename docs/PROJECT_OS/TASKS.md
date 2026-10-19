@@ -2214,4 +2214,12 @@ remains open. Historical counts below belong to their recorded stages.
 - [x] Re-run partial-result, HH cooldown, notification lease/retry/backoff/fencing and recovery regressions against isolated PostgreSQL: 79 passed.
 - [x] Attempt the broader non-integration suite; it again stopped producing progress after 5% and was interrupted without claiming a pass. Keep the already queued pytest-hang investigation separate from this focused fix.
 - [x] Safely inspect the current network route. A priority `happ-xray` tunnel is active; IPv4 TLS currently succeeds to sampled sources, while Job Bank stalls after TLS. Do not infer VPN causality without a controlled owner-side route switch and repeat sample.
-- [ ] Complete the authorized three-channel interactive MTProto login/probe after local API credentials are present. Never paste or commit API hash, login code, folder invite or session.
+- [x] Superseded by the verified existing private 60-post sample and analysis. Do not repeat Telegram authorization or request credentials; continue offline from those artifacts.
+
+## 2026-10-20 — Telegram pilot real-sample false positives
+
+- [x] Validate the existing private mode-0600 sample/report offline: 60 approved posts, 20 per channel; stored analysis matches recomputation.
+- [x] Manually identify the dominant false-positive class: 18 explicit candidate resumes behind publisher/discussion metadata produced all 16 original Good/Stretch rows.
+- [x] Recognize unambiguous candidate tags within the bounded header and add watcher plus analyzer regressions. Corrected real-sample result: 18 non-vacancies, 42 vacancy candidates, 1 Good, 0 Stretch, 41 filtered, 0 duplicates.
+- [ ] Review filtered real vacancies for false negatives and add conservative exact-template company/title/location parsing where the post itself supplies evidence. Do not infer country from channel identity.
+- [ ] Validate live watch/restart/catch-up separately; the offline sample does not prove runtime delivery acceptance.

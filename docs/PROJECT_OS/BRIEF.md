@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-20 Telegram pilot offline yield
+- The existing private mode-0600 artifacts validate as 60 real posts, exactly 20 from each owner-approved channel; the stored analysis reproduces under the current offline analyzer without Telegram, network, database or notifications.
+- Manual review found 18 candidate resumes whose explicit `#резюме` tag followed channel publisher/discussion metadata. They had produced all 16 apparent Good/Stretch rows. The bounded header classifier now rejects those explicit candidate tags without treating later vacancy instructions mentioning resumes as non-vacancies.
+- On the unchanged sample/profile, the corrected measurement is 18 non-vacancies and 42 vacancy candidates: 1 Good, 0 Stretch, 41 filtered and 0 canonical duplicates. Common channel-template company/location extraction and false-negative review remain open; this is not runtime watcher, restart or notification acceptance.
+
 ## 2026-10-20 employer-policy verification
 - The owner-approved employer policy matches current code and regressions: legacy betting/gambling/casino blacklist terms are inert; betting and casino/iGaming default to ALLOW; crypto/Web3 defaults to WARN; exact-employer choices take priority over category/default choices.
 - Exact Alabuga/Voentorg identities and structured Russian military/direct-war/direct-government categories remain BLOCK with their primary evidence references preserved. No policy code, runtime settings, production data or evidence scope changed.
