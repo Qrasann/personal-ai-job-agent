@@ -601,7 +601,7 @@ def render_jobs_list(
         )
         experience = extract_experience(job.description)
         meta = [f"💰 {salary}"]
-        location = _location(job, payload.get("details") or {})
+        location = _location(job, {})
         if location != "не указана":
             meta.append(f"📍 {repair_mojibake(location)}")
         if job.work_mode:
