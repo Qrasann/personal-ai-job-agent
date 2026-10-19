@@ -145,12 +145,12 @@ class JobBankSource(JobSource):
             }[key]
             refusal = re.search(negative, job.description, re.I)
             refusals[key] = bool(refusal)
-            signals[key] = bool(found) and not restricted and not refusal
+            signals[key] = bool(found) and not refusal
             if signals[key]:
                 evidence[key] = found[0]
         signals["relocation_package"] = signals["relocation"]
         signals["immigration_support"] = signals["visa_sponsorship"]
-        job.visa_sponsorship = True if signals["visa_sponsorship"] else (False if restricted or refusals["visa_sponsorship"] else None)
+        job.visa_sponsorship = True if signals["visa_sponsorship"] else (False if refusals["visa_sponsorship"] else None)
         job.relocation = True if signals["relocation"] else (False if refusals["relocation"] else None)
         job.raw["support_signals"] = signals
         job.raw["support_evidence"] = evidence

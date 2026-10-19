@@ -72,11 +72,11 @@ def test_lmia_request_is_not_sponsorship_or_work_permit_support():
     assert not any(_signals(item).values())
 
 
-def test_explicit_eligibility_restriction_overrides_lmia_and_support():
+def test_explicit_eligibility_restriction_is_separate_from_explicit_sponsorship_offer():
     item = JobBankSource.enrich(job(), detail("We offer visa sponsorship.", "Do not apply if you are not authorized to work in Canada"))
     assert item.raw["international_candidates"] is False
-    assert item.visa_sponsorship is False
-    assert not any(_signals(item).values())
+    assert item.visa_sponsorship is True
+    assert item.raw["support_signals"]["visa_sponsorship"] is True
 
 
 @pytest.mark.parametrize("requirement", [
@@ -87,7 +87,7 @@ def test_explicit_eligibility_restriction_overrides_lmia_and_support():
 def test_explicit_existing_authorization_prerequisite_is_not_international_candidate_support(requirement):
     item = JobBankSource.enrich(job(), detail("LMIA requested.", requirement))
     assert item.raw["international_candidates"] is False
-    assert item.visa_sponsorship is False
+    assert item.visa_sponsorship is None
     assert item.raw["eligibility_evidence"] == requirement
 
 

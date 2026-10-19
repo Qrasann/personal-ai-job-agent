@@ -4,7 +4,7 @@ Job Bank's source itself verifies Canada, but its search cards combine locality 
 
 ## 2026-10-19 — Job Bank work authorization prerequisite
 
-Use the shared bounded eligibility parser to recognize explicit existing Canadian work-permit/right-to-work requirements. These set the source's international-candidate lane false but do not imply sponsorship; absent and conditional evidence remains unknown. Job Bank, support, relocation evidence and direct visa support suites: 127 passed.
+Use the shared bounded eligibility parser to recognize explicit existing Canadian work-permit/right-to-work requirements. These set the source's international-candidate lane false but do not imply sponsorship. Keep positive/negative sponsorship evidence independent from authorization restrictions; absent and conditional evidence remains unknown. Job Bank, support, relocation evidence, direct visa support and employer-policy suites: 151 passed.
 
 ## 2026-10-19 — employer policy settings handler coverage
 
