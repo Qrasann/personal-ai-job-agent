@@ -22,7 +22,7 @@ from app.domain.job_text import clean_html_text, format_salary
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
 from app.domain.vacancy_availability import publication_age_bucket
 from app.geo.countries import normalize_country
-from app.matching.engine import score_job
+from app.matching.engine import MATCH_ASSESSMENT_VERSION, score_job
 from app.matching.fact_comparison import compare_facts
 from app.matching.language_fit import compare_english_level
 from app.matching.resume_diff import compare_resume_coverage
@@ -53,6 +53,13 @@ from app.search.preferences import discovery_queries, job_priority, source_enabl
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
+
+
+def _versioned_assessment(result) -> dict:
+    scores = getattr(result, "recommendation_scores", {})
+    versioned = dict(scores) if isinstance(scores, dict) else {}
+    versioned["_meta"] = {"match_assessment_version": MATCH_ASSESSMENT_VERSION}
+    return versioned
 hh_client = HHClient()
 _DISCOVERY_CACHE: dict[
     tuple[str, tuple[str, ...], str | None, tuple[str, ...]],
@@ -361,7 +368,7 @@ async def ingest_and_match(
                 geography_score=result.geography_score,
                 salary_score=result.salary_score,
                 relocation_score=result.relocation_score,
-                recommendation_scores=getattr(result, "recommendation_scores", {}),
+                recommendation_scores=_versioned_assessment(result),
                 total_score=result.total_score,
                 reason=result.reason,
             )
@@ -801,7 +808,7 @@ async def refresh_match_score(match, job, *, technical_text: str = ""):
         geography_score=result.geography_score,
         salary_score=result.salary_score,
         relocation_score=result.relocation_score,
-        recommendation_scores=getattr(result, "recommendation_scores", {}),
+        recommendation_scores=_versioned_assessment(result),
         total_score=result.total_score,
         reason=result.reason,
     )

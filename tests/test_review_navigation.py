@@ -6,6 +6,13 @@ import pytest
 
 from app.telegram import handlers
 from app.telegram.ui import review_keyboard, saved_keyboard, stretch_keyboard
+from app.matching.engine import MATCH_ASSESSMENT_VERSION
+
+
+def _current_match(**kwargs):
+    return SimpleNamespace(**kwargs, recommendation_scores={
+        "_meta": {"match_assessment_version": MATCH_ASSESSMENT_VERSION}
+    })
 
 
 def _callbacks(keyboard):
@@ -43,8 +50,8 @@ def test_pick_previous_review_moves_back_and_stops_at_first():
 def test_previous_callback_edits_to_previous_match(
     monkeypatch, prefix, queue_name, callback_name, expected_header
 ):
-    previous = SimpleNamespace(id=301, user_id=7, total_score=88)
-    current = SimpleNamespace(id=302, user_id=7, total_score=81)
+    previous = _current_match(id=301, user_id=7, total_score=88)
+    current = _current_match(id=302, user_id=7, total_score=81)
     job1 = SimpleNamespace(id=24, title="First Engineer", company="ACME")
     job2 = SimpleNamespace(id=25, title="Second Engineer", company="Beta")
     message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())

@@ -5,6 +5,7 @@ from app.telegram.handlers import (
     _render_saved_card,
     _render_stretch_card,
 )
+from app.matching.engine import MATCH_ASSESSMENT_VERSION
 
 
 def _match():
@@ -15,6 +16,7 @@ def _match():
         salary_score=72,
         relocation_score=50,
         reason="роль: devops engineer; совпадения: linux, docker, nginx",
+        recommendation_scores={"_meta": {"match_assessment_version": MATCH_ASSESSMENT_VERSION}},
     )
 
 
@@ -70,6 +72,19 @@ def test_stale_good_assessment_is_not_presented_as_current_good():
     assert "сохранённая оценка может быть устаревшей" in text.casefold()
     assert "88/100" not in text
     assert "волонтёрская/неоплачиваемая роль" in text
+
+
+def test_legacy_good_without_assessment_version_hides_old_score_and_requests_scan():
+    match = _match()
+    match.recommendation_scores = {}
+
+    text = _render_review_card(match, _job(), 1, 1)
+
+    assert "Good" not in text
+    assert "Требует обновления оценки" in text
+    assert "устарела" in text
+    assert "/scan" in text
+    assert "82/100" not in text
 
 
 def test_queue_cards_use_truthful_lane_labels():

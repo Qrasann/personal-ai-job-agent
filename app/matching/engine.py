@@ -10,6 +10,8 @@ from app.matching.technical_score import score_technical_v2
 from app.matching.recommendation import build_recommendation_breakdown
 from app.search.preferences import discovery_queries
 
+MATCH_ASSESSMENT_VERSION = 1
+
 
 @dataclass(slots=True)
 class MatchResult:

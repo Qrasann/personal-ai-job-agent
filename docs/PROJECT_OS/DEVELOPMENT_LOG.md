@@ -2978,3 +2978,7 @@ Official ATS location fields now populate city/country only for a simple exact `
 ## 2026-10-19 — stale Good warning in Telegram review
 
 Persisted `/review` rows can predate current rules, as confirmed for explicit non-actionable roles. Review cards now detect current volunteer/unpaid and expression-of-interest title rules, replace the Good lane with a repeat-review warning, and hide the historical score. Stored rows are neither rescored nor mutated. Targeted review/navigation/status/experience/scoring tests: 81 passed. No database or runtime changes.
+
+## 2026-10-19 — version saved match assessments for safe refresh
+
+Normal scan and detail-refresh writes now persist `match_assessment_version=1` inside recommendation metadata. Legacy Good rows without the marker suppress the historical score and prompt `/scan`; the regular profile-scoped matcher updates only rows whose source posting is rediscovered. No bulk rescore, automatic status mutation or migration. Current-rule non-actionable titles retain a stronger warning. Review, navigation, status, score and refresh tests: 94 passed; compileall and diff check passed.

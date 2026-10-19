@@ -9,7 +9,7 @@ from app.domain.job_text import clean_html_text, extract_experience, format_sala
 from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 from app.domain.vacancy_availability import vacancy_availability_lines
-from app.matching.engine import non_actionable_role_reason
+from app.matching.engine import MATCH_ASSESSMENT_VERSION, non_actionable_role_reason
 
 
 def _clip(value: str, limit: int) -> str:
@@ -370,9 +370,15 @@ def render_queue_card(
     position: int,
     total: int,
 ) -> str:
-    stale_good_reason = non_actionable_role_reason(job) if "good" in lane.casefold() else None
+    is_good_lane = "good" in lane.casefold()
+    assessment_meta = (getattr(match, "recommendation_scores", None) or {}).get("_meta")
+    score_version = assessment_meta.get("match_assessment_version") if isinstance(assessment_meta, dict) else None
+    stale_good_reason = non_actionable_role_reason(job) if is_good_lane else None
+    stale_good = is_good_lane and (stale_good_reason is not None or score_version != MATCH_ASSESSMENT_VERSION)
     if stale_good_reason:
         lane = "⚠️ Требует повторной проверки"
+    elif stale_good:
+        lane = "⚠️ Требует обновления оценки"
     title = _clip(repair_mojibake(str(getattr(job, "title", "") or "")), 120)
     company = _clip(repair_mojibake(str(getattr(job, "company", "") or "")), 100)
     salary = format_salary(
@@ -414,8 +420,11 @@ def render_queue_card(
         f"🕒 Опыт: {html.escape(experience)} · 📅 {html.escape(published)}",
         f"👥 Отклики: {html.escape(applicant_text)}",
         (
-            "🎯 Сохранённая оценка может быть устаревшей; актуальные правила исключают эту роль."
-            if stale_good_reason else f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>"
+            (
+                "🎯 Сохранённая оценка может быть устаревшей; актуальные правила исключают эту роль."
+                if stale_good_reason else "🎯 Сохранённая оценка устарела. Запусти /scan, чтобы обновить её."
+            )
+            if stale_good else f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>"
         ),
     ]
 
