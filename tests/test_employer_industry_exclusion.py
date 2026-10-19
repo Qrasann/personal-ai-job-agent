@@ -65,6 +65,27 @@ def test_manual_category_choice_overrides_owner_category_default():
     assert decision("Betsson Group", ["betting"], cfg)[0] == "block"
 
 
+@pytest.mark.parametrize("strategy", ["career_first", "relocation_first"])
+@pytest.mark.parametrize("category", ["russian_military_defense", "verified_direct_war_tie", "russian_government_body"])
+def test_verified_russian_restriction_categories_apply_to_both_search_directions(strategy, category):
+    job = source_posting_view(
+        Job(fingerprint=f"blocked-{category}", title="DevOps Engineer", company="Ministry of Example", description="Linux Docker", country="RU"),
+        SimpleNamespace(raw={"industry_tags": [category]}),
+    )
+    search = SearchProfile(id=1, profile_id=1, settings={
+        "queries": ["DevOps Engineer"], "relocation_queries": ["warehouse worker"],
+        "search_strategy": strategy,
+        "modes": {"local_ru": True, "remote_international": True, "relocation": True},
+    })
+    result = score_job(job, search, [], [])
+    assert result.fit == "skip"
+    assert "политике работодателя" in result.reason
+
+
+def test_civilian_state_owned_category_is_explicitly_allowed():
+    assert decision("Russian Railways", ["civilian_state_owned"])[0] == "allow"
+
+
 def test_crypto_category_warns_and_keeps_job_in_stretch_lane():
     job = Job(fingerprint="web3", title="DevOps Engineer", company="Web3 Co", description="Linux Docker", country="GE")
     search = SearchProfile(id=1, profile_id=1, settings={"queries": ["DevOps Engineer"], "modes": {"local_ru": True, "remote_international": True, "relocation": True}})

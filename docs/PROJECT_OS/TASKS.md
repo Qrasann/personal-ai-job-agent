@@ -45,6 +45,7 @@
 - [x] Job Bank IHE recognizes explicit candidate work-permit/right-to-work prerequisites separately from sponsorship and preserves unknown when absent/uncertain. Job Bank/support/IHE tests: 127 passed.
 - [x] Check exact Alabuga and Voentorg legal/transliterated names against official identity/evidence sources; no substring or subsidiary matching. Employer policy/settings tests: 32 passed.
 - [x] Keep Telegram blacklist display aligned with the new policy: hide inert legacy sector terms and link to current category settings.
+- [x] Regress default military/direct-war/government BLOCK categories across Career-first and Relocation-first; explicitly protect civilian state-owned employers. Policy/settings tests: 40 passed.
 - [ ] Continue International Hiring Eligibility evidence handling without legal conclusions; verified official references and separate citizenship/residence/work-authorization/sponsorship fields remain open.
 - [x] Recognize explicit candidate-scoped existing-work-authorization prerequisites and preserve the source excerpt; distinguish negated “not only” prose.
 - [x] Expand Employer Career Watch with Betsson's verified current public Greenhouse DevOps opening; preserve unknown hiring/support evidence.

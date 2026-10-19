@@ -18,6 +18,8 @@ Employer identity evidence (2026-10-19): exact Alabuga/Voentorg names and transl
 
 The Telegram `/blacklist` display omits sector terms now handled by the explicit employer policy, and `/employerpolicy` displays default category actions. This keeps visible settings consistent with actual filtering.
 
+The focused employer-policy regressions now verify Russian military/direct-war/direct-government BLOCK categories in both search strategies and civilian state-owned ALLOW. Exact legal/transliteration aliases for Alabuga/Voentorg are documented with primary identity/evidence sources in `data/profile.yaml`.
+
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
 
 The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.
