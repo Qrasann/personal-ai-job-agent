@@ -1,3 +1,7 @@
+## 2026-10-19 — Employer Career Watch official freshness recheck
+
+Ran the bounded read-only probe against all 12 reviewed employers. All 14 tracked provider IDs were present; no missing openings or unavailable employers. Catalog `verified_at` remains 2026-10-18 because this run is a separate freshness observation. `jobbot status` still reports both app and healthy PostgreSQL. No database/runtime settings were changed.
+
 ## 2026-10-19 — Telegram pilot no-reauth guard and Employer Career Watch source
 
 The Telegram user runner now checks the existing MTProto session authorization before probe/sample/watch and exits without triggering sign-in if it is unavailable. Added `EmployerCareerWatchSource` to common discovery for the 14 owner-reviewed catalog rows; exact provider IDs, official URLs and the 2026-10-18 catalog date survive normalization, while location and hiring eligibility remain unknown. Registry and adapter regressions plus Telegram pilot tests: 28 passed. No production DB/runtime or notification action. Live Telegram sample is pending local API ID/hash; startup-policy changes remain pending owner confirmation.

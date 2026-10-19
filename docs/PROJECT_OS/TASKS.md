@@ -4,6 +4,8 @@
 
 - [x] Require an existing authorized MTProto session before probe/sample/watch; fail without initiating login.
 - [x] Integrate the 14 owner-reviewed official employer openings into common discovery, retaining provider/source provenance and unknown eligibility/location evidence.
+- [x] Read-only recheck the 14 provider IDs on official sources; all 14 are current across 12 employers as of 2026-10-19.
+- [ ] Expand the official career-source set using public, bounded ATS feeds; retain provenance, freshness evidence and cross-source deduplication.
 - [ ] Run the bounded read-only sample for exactly `@devops_jobs_feed`, `@itjobsgeorgia`, `@vgrecruitingit` and analyze results when local API ID/hash are available; never write to production DB or notify.
 - [ ] Confirm the startup-policy plan before changing only AI Job Agent systemd and Docker restart policies; preserve `jobbot` manual controls and all data/volumes.
 - [ ] Continue Job Location Intelligence, International Hiring Eligibility, confirmed Applicant Count capture, compact Telegram UX, and safe future rollout/re-scoring of old Good.

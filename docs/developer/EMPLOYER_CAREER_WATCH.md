@@ -33,6 +33,11 @@ the official public response. A changed or unavailable result requires manual
 review before the catalog is refreshed; it must not silently become a confirmed
 closure or eligibility refusal.
 
+Freshness observation: the bounded read-only probe on 2026-10-19 found all
+14 reviewed provider IDs current across the 12 enabled employers. This does not
+change the catalog's own `verified_at` date (2026-10-18); it is a separate
+dated observation and makes no claim about applicant fit or hiring eligibility.
+
 Common-search integration: `EmployerCareerWatchSource` exposes the 14 entries
 in the owner-reviewed catalog to the existing scan pipeline. Each normalized
 job retains employer/provider identity, official URL, source location, and the
