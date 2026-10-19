@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-19 — exact reviewed ATS opening yield
+- [x] Validate the checked-in official inventory offline: 13 employers / 15 openings, with no network request.
+- [x] Reproduce a reviewed Xsolla `Operations Engineer` being dropped from a `DevOps Engineer` discovery pass solely because its title has no literal query-token overlap.
+- [x] Admit only an exact reviewed provider ID + normalized title; keep an unreviewed Operations role excluded and preserve unknown work-authorization, sponsorship and relocation evidence.
+- [x] Run employer/source/matching regressions: 86 passed; compileall passed.
+- [ ] Re-run the bounded official freshness probe from a working route. The 2026-10-19 attempt yielded no result before manual stop after three minutes and does not replace the prior completed 14/14 evidence.
+
 ## 2026-10-19 — P0 source notification policy
 - [x] Establish the runtime mismatch: PR #54 merged to feature at `a1debc9`; running runtime is on another branch at `34bd4d6` and lacks `notice_policy.py`. Read-only only; no runtime update.
 - [x] Canonicalize source issues by source/state/impact, not exact network code; suppress successful fallback diagnostics from Telegram across providers.

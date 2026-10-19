@@ -1,3 +1,16 @@
+## 2026-10-19 — exact reviewed ATS opening yield
+
+The official inventory validates offline at 13 employers and 15 openings. Common
+ATS discovery previously dropped Xsolla's reviewed `Operations Engineer` for a
+`DevOps Engineer` query because the title lacked a literal query token. Exact
+provider-ID plus normalized-title inventory matches now bypass only that lexical
+filter and carry their reviewed suitability/provenance; an unreviewed Business
+Operations role remains excluded. Authorization, sponsorship and relocation stay
+unknown. Employer/source/matching regressions passed 86 tests and compileall
+passed. A new sequential official probe returned no output on the current route
+and was stopped after three minutes; no status was inferred or catalog date
+changed.
+
 # 2026-10-19 — PR #56 exact-head gate and handoff refresh
 
 Confirmed CI run `39304646201` for checkpoint `a8103f5`: Docker build, Python checks and secret scan all passed. Updated current brief, task status and handoff; the private Telegram sample remains blocked on owner-local credentials. No runtime, production data, services or volumes were changed.

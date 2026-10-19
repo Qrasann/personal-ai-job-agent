@@ -1,5 +1,9 @@
 # Handoff
 
+## Current checkpoint — exact reviewed ATS opening yield (2026-10-19)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `ade5235`. Offline inventory is valid at 13 employers / 15 openings. Employer Career Watch now admits an exact reviewed `provider_id` + normalized-title match even without literal query-token overlap, recovering Xsolla `Operations Engineer` for `DevOps Engineer`; an unreviewed Operations role remains excluded. The row carries inventory provenance/suitability, while work authorization, visa sponsorship and relocation remain unknown. Employer/source/matching tests: 86 passed; compileall passed. A fresh sequential official probe returned no output on this route and was stopped after three minutes, so the earlier completed 14/14 freshness observation remains the latest live evidence. No runtime, DB, volume, notification, application or message changed. Next: rerun the bounded probe from a working route, then measure this reviewed opening through the full common scan without changing thresholds.
+
 ## Current checkpoint — source notification policy + employer preferences (2026-10-19)
 
 PR #54 is merged into `feature/v3.5.7-international-market-coverage` at `a1debc9`; it was not in the running checkout. Read-only runtime inspection: `/mnt/Storage/AI-Job-Bot/repo` is on `work/telegram-georgia-location` at `34bd4d6`, with local untracked files preserved and no `app/sources/notice_policy.py`. Runtime reports 3.5.7. This explains the owner's repeated legacy notifications; do not update runtime without separate authorization.

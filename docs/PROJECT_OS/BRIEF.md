@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-19 reviewed ATS opening yield
+- Employer Career Watch now retains an exact `provider_id` + normalized-title match from the reviewed inventory even when a configured query has no literal title token overlap. This recovers Xsolla's reviewed `Operations Engineer` for a `DevOps Engineer` discovery pass while an unreviewed `Business Operations Manager` remains excluded.
+- Offline inventory validation remains 13 employers / 15 openings. The latest completed live freshness evidence remains the earlier 14/14 probe; a new sequential read-only probe produced no results in this network environment and was stopped after three minutes, so it did not update any ATS status.
+- The recovered row carries reviewed-inventory provenance and suitability only. Work authorization, visa sponsorship and relocation remain explicitly unknown. Employer/source/matching regressions: 86 passed.
+
 ## 2026-10-19 P0 notification and employer-policy correction
 - Root cause of runtime error spam: PR #54 (`a1debc9`) merged into `feature/v3.5.7`, while runtime remains on `work/telegram-georgia-location` at `34bd4d6`, without the merge or `app/sources/notice_policy.py`. Runtime was read-only inspected, not changed.
 - Dev source notices now group by source/state/impact (not exact transport code), keep details in Diagnostics, ignore successful fallback noise across providers, alert only critical or material loss, and rate-limit unresolved notices to one daily grouped summary. Persisted v1 state migrates to v2. Targeted notification/source isolation suites: 82 passed, 3 skipped.

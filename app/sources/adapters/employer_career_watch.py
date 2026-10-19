@@ -62,6 +62,20 @@ class EmployerCareerWatchSource(JobSource):
                 return True
         return False
 
+    @staticmethod
+    def _reviewed_opening(employer, provider_id: str, title: str):
+        """Return the exact reviewed inventory row, without broad title inference."""
+        normalized_title = " ".join(title.casefold().split())
+        return next(
+            (
+                opening
+                for opening in employer.openings
+                if opening.provider_id == provider_id
+                and " ".join(opening.title.casefold().split()) == normalized_title
+            ),
+            None,
+        )
+
     @classmethod
     def parse_board_payload(cls, employer, payload: object, context: SourceContext) -> list[NormalizedJob]:
         if employer.ats == "greenhouse":
@@ -79,11 +93,15 @@ class EmployerCareerWatchSource(JobSource):
         for row in rows[:cls.max_rows_per_board]:
             if not isinstance(row, dict) or isinstance(row.get("id"), bool) or not isinstance(row.get("id"), (str, int)):
                 continue
+            provider_id = str(row["id"]).strip()
+            if not provider_id or len(provider_id) > 128:
+                continue
             title_value = row.get("title") if employer.ats == "greenhouse" else (
                 row.get("text") if employer.ats == "lever" else row.get("name")
             )
             title = title_value.strip() if isinstance(title_value, str) else ""
-            if not title or not cls._matches_query(title, context.queries):
+            reviewed_opening = cls._reviewed_opening(employer, provider_id, title) if title else None
+            if not title or (not reviewed_opening and not cls._matches_query(title, context.queries)):
                 continue
             url_value = row.get("absolute_url") if employer.ats == "greenhouse" else (
                 row.get("hostedUrl") if employer.ats == "lever" else row.get("postingUrl")
@@ -131,9 +149,6 @@ class EmployerCareerWatchSource(JobSource):
                 description = clean_html_text(str(row.get("content") or ""))
             elif employer.ats == "lever":
                 description = clean_html_text(str(row.get("descriptionPlain") or row.get("descriptionBodyPlain") or ""))
-            provider_id = str(row["id"]).strip()
-            if not provider_id or len(provider_id) > 128:
-                continue
             jobs.append(NormalizedJob(
                 source=cls.source_id,
                 source_job_id=f"{employer.id}:{provider_id}",
@@ -153,6 +168,8 @@ class EmployerCareerWatchSource(JobSource):
                     "location_resolution": location_resolution,
                     "watchlist_verified_at": load_employer_watchlist().verified_at.isoformat(),
                     "provider_feed_observed_at": datetime.now(UTC).isoformat(),
+                    "curated_suitability": reviewed_opening.suitability if reviewed_opening else None,
+                    "reviewed_inventory_match": bool(reviewed_opening),
                     "work_authorization_evidence": "unknown",
                     "visa_sponsorship_evidence": "unknown",
                     "relocation_evidence": "unknown",

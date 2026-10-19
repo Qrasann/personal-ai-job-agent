@@ -141,6 +141,43 @@ def test_employer_watch_rejects_unapproved_url_and_nonmatching_titles() -> None:
     assert EmployerCareerWatchSource.parse_board_payload(employer, payload, context) == []
 
 
+def test_employer_watch_keeps_exact_reviewed_opening_without_query_token_overlap() -> None:
+    employer = next(
+        item for item in load_employer_watchlist().employers
+        if item.id == "xsolla"
+    )
+    reviewed = next(
+        item for item in employer.openings
+        if item.title == "Operations Engineer"
+    )
+    context = SourceContext(user_id=1, queries=["DevOps Engineer"])
+    payload = [
+        {
+            "id": reviewed.provider_id,
+            "text": reviewed.title,
+            "hostedUrl": reviewed.url,
+            "categories": {"location": reviewed.location},
+            "descriptionPlain": "Infrastructure operations and production systems",
+        },
+        {
+            "id": "unreviewed-operations",
+            "text": "Business Operations Manager",
+            "hostedUrl": "https://jobs.lever.co/xsolla/unreviewed-operations",
+        },
+    ]
+
+    jobs = EmployerCareerWatchSource.parse_board_payload(employer, payload, context)
+
+    assert len(jobs) == 1
+    assert jobs[0].source_job_id == f"xsolla:{reviewed.provider_id}"
+    assert jobs[0].title == "Operations Engineer"
+    assert jobs[0].raw["reviewed_inventory_match"] is True
+    assert jobs[0].raw["curated_suitability"] == "high"
+    assert jobs[0].raw["work_authorization_evidence"] == "unknown"
+    assert jobs[0].raw["visa_sponsorship_evidence"] == "unknown"
+    assert jobs[0].raw["relocation_evidence"] == "unknown"
+
+
 def test_smartrecruiters_structured_city_country_is_normalized():
     employer = next(item for item in load_employer_watchlist().employers if item.ats == "smartrecruiters")
     context = SourceContext(user_id=1, queries=["Reliability"])
