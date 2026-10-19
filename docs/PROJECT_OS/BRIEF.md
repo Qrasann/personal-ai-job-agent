@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-20 employer-policy verification
+- The owner-approved employer policy matches current code and regressions: legacy betting/gambling/casino blacklist terms are inert; betting and casino/iGaming default to ALLOW; crypto/Web3 defaults to WARN; exact-employer choices take priority over category/default choices.
+- Exact Alabuga/Voentorg identities and structured Russian military/direct-war/direct-government categories remain BLOCK with their primary evidence references preserved. No policy code, runtime settings, production data or evidence scope changed.
+- Focused employer-policy/settings/scoring suite: 130 passed. Compileall, secret scan and `git diff --check` passed.
+
 ## 2026-10-19 source-notice delivery diagnostics
 - The existing grouped source notification policy remains unchanged: source/state/impact grouping, immediate material/critical transitions, one daily digest, and quiet successful fallbacks.
 - A failed Telegram delivery of either an immediate source notice or the grouped daily digest now adds the sanitized `SOURCE_NOTICE_DELIVERY_FAILED` event to the affected source Diagnostics. Raw Telegram/provider exception text is not retained, and no fallback chat message is attempted.

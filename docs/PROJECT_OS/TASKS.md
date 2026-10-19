@@ -4,7 +4,7 @@
 - [x] Compare the owner-approved policy with shared matching, legacy scoring and focused regressions; do not change the implemented ALLOW/WARN/BLOCK semantics.
 - [x] Remove current documentation claims that Betsson is hard-filtered by legacy betting/gambling blacklist terms or still uses assessment version 2.
 - [x] Preserve exact-employer priority, category overrides, exact Alabuga/Voentorg identities and their primary evidence references; do not broaden entity matching.
-- [ ] Run the focused employer-policy/settings/scoring regression suite and final static checks.
+- [x] Run the focused employer-policy/settings/scoring regression suite (130 passed), compileall, secret scan and `git diff --check`.
 
 ## 2026-10-19 — source notice delivery diagnostics
 - [x] Confirm the grouped source notification policy is already complete and avoid changing its source/state/impact grouping or daily suppression behavior.
