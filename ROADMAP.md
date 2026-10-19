@@ -24,6 +24,8 @@ IHE parser increment: recognize explicit existing work authorization/authorisati
 
 Job Bank location parser additionally accepts supported full Canadian province/territory names as well as codes, without inferring a city from remote, multi-location or ambiguous labels. Source tests: 42 passed.
 
+Detailed relocation evidence now matches shared IHE parsing for British/American authorization wording and hold/possess prerequisites; it retains the exact excerpt and keeps conditional/negative evidence explicit. Focused cross-source suite: 180 passed.
+
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
 
 The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.

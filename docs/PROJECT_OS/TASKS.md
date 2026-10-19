@@ -48,6 +48,7 @@
 - [x] Regress default military/direct-war/government BLOCK categories across Career-first and Relocation-first; explicitly protect civilian state-owned employers. Policy/settings tests: 40 passed.
 - [x] Extend shared IHE parsing for work authorization/authorisation and explicit hold/possess requirements; test negation and uncertainty. Support/Job Bank/relocation/source notice tests: 143 passed.
 - [x] Extend Job Bank city evidence to full province/territory names as well as official codes without guessing remote or multi-location labels. Job Bank tests: 42 passed.
+- [x] Keep detailed relocation evidence aligned with shared authorization detection: exact positive excerpts, British-spelling negative, and conditional text remaining unknown. Cross-source tests: 180 passed.
 - [ ] Continue International Hiring Eligibility evidence handling without legal conclusions; verified official references and separate citizenship/residence/work-authorization/sponsorship fields remain open.
 - [x] Recognize explicit candidate-scoped existing-work-authorization prerequisites and preserve the source excerpt; distinguish negated “not only” prose.
 - [x] Expand Employer Career Watch with Betsson's verified current public Greenhouse DevOps opening; preserve unknown hiring/support evidence.

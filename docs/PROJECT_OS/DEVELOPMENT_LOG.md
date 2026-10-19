@@ -30,6 +30,10 @@ Expanded the shared existing-work-authorization prerequisite matcher for British
 
 Job Bank city resolution now accepts either a recognized province/territory code or its official full name, preserving which evidence form was used. The source tests, including remote/multiple/ambiguous labels, pass 42/42.
 
+## 2026-10-19 — relocation evidence excerpt alignment
+
+Updated detailed evidence to retain exact excerpts for shared must-hold/possess authorization requirements, recognize British spelling in explicit negatives and keep conditional statements unknown. Job Bank, support, relocation evidence, direct visa and vacancy details tests: 180 passed.
+
 ## 2026-10-19 — owner employer preference policy
 
 Replaced the previous industry-wide betting/gambling ban with central exact-employer and structured-category ALLOW/WARN/BLOCK decisions, wired into shared matching and the legacy scoring adapter. Added exact Alabuga/Voentorg identities, defaults for Russian military/defense, verified direct-war and direct-government tags, and all-profile `/employerpolicy` overrides. Betting/casino and civilian state-owned companies remain eligible; crypto/Web3 warns into Stretch unless the user explicitly allows the employer/category. Legacy stored sector blacklist terms no longer suppress jobs. Expanded matching/review/notification suites: 227 passed, 3 skipped; exact-head CI pending. Runtime and production settings untouched.

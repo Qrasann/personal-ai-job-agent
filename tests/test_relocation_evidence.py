@@ -280,6 +280,11 @@ def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_
     assert not_required["value"] is False
     assert "No EU work permit required" in not_required["excerpt"]
 
+    british_not_required = extract("Work authorisation is not required.")
+    assert british_not_required["status"] == "confirmed"
+    assert british_not_required["value"] is False
+    assert "Work authorisation is not required" in british_not_required["excerpt"]
+
     required = extract("Work authorization required.")
     assert required["status"] == "confirmed" and required["value"] is True
     assert required["excerpt"] == "Work authorization required"
@@ -292,6 +297,8 @@ def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_
         "Candidates must be eligible to work in Canada.",
         "Only candidates already authorized to work in Germany may apply.",
         "Applicants with an existing work permit are eligible.",
+        "Applicants must already hold valid work authorisation.",
+        "Candidates must possess an existing work permit.",
     ):
         item = extract(statement)
         assert item["status"] == "confirmed" and item["value"] is True
@@ -299,6 +306,8 @@ def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_
 
     absent = extract("Linux operations role.")
     assert absent["status"] == "unknown" and absent["value"] is None
+    conditional = extract("Work authorisation may be required.")
+    assert conditional["status"] == "unknown" and conditional["value"] is None
 
     conflicting = extract(
         "Must already have the right to work in Germany, but right to work is not required."

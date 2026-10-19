@@ -12,6 +12,7 @@
 - Verified Russian military, direct-war and direct-government structured categories block in both search strategies; civilian state-owned category remains explicitly allowed. Policy/settings direction suite: 40 passed.
 - International eligibility now recognizes British/American authorization spellings and explicit hold/possess requirements, while “may be required”, explicit negation and support offers do not become prerequisites. Cross-domain eligibility suite: 143 passed.
 - Job Bank also resolves full province/territory names (e.g. Ontario) as well as official two-letter codes; source tests: 42 passed.
+- Relocation evidence now retains exact excerpts and explicit confirmed/unknown/negative status for those new authorization phrases, including British spelling; details no longer claim evidence without its source text. Cross-source package: 180 passed.
 
 ## 2026-10-19 incremental location provenance
 - EURES records whether location came from search `locationMap` or detail `countryCode`/`cityName`; country-only postings keep city unknown. Targeted EURES/geo/industry-exclusion suites: 39 passed. See HANDOFF for branch and exact CI state.
