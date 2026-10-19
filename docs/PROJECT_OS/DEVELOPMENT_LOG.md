@@ -2982,3 +2982,7 @@ Persisted `/review` rows can predate current rules, as confirmed for explicit no
 ## 2026-10-19 — version saved match assessments for safe refresh
 
 Normal scan and detail-refresh writes now persist `match_assessment_version=1` inside recommendation metadata. Legacy Good rows without the marker suppress the historical score and prompt `/scan`; the regular profile-scoped matcher updates only rows whose source posting is rediscovered. No bulk rescore, automatic status mutation or migration. Current-rule non-actionable titles retain a stronger warning. Review, navigation, status, score and refresh tests: 94 passed; compileall and diff check passed.
+
+## 2026-10-19 — persist assessment version through PostgreSQL repository
+
+The isolated PostgreSQL review-flow test now confirms the version marker round-trips through `JobMatch.recommendation_scores`. Initial connection raced the test service startup and reset; after the healthcheck reported ready, one retry passed. This used only `docker-compose.test.yml` tmpfs PostgreSQL, not the running `repo` database or volumes.

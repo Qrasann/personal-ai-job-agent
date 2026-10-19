@@ -524,8 +524,10 @@ async def _repository_review_flow(monkeypatch):
             relocation_score=50,
             total_score=78,
             reason="integration test",
+            recommendation_scores={"_meta": {"match_assessment_version": 1}},
             status="notified",
         )
+        assert match.recommendation_scores["_meta"]["match_assessment_version"] == 1
 
         package = await repo.save_application(
             user_id=user.id,

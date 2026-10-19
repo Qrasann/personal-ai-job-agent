@@ -14,6 +14,7 @@
 - [ ] Continue International Hiring Eligibility evidence handling without legal conclusions; verified official references and separate citizenship/residence/work-authorization/sponsorship fields remain open.
 - [x] Recognize generic explicit `Work authorization required` / `Work permit required` vacancy statements without collapsing them into employer sponsorship; preserve explicit negation and unknown states.
 - [x] Version scoring metadata in normal scan/detail-refresh writes; legacy Good cards without the current version hide their historical score and direct the owner to `/scan` for a normal, profile-scoped refresh. No bulk rescore.
+- [x] Verify scoring metadata persistence in the isolated PostgreSQL repository review flow; test-only tmpfs database, no runtime database access.
 - [ ] P1 Applicant Count: capture only if a permitted public source supplies dated application counts; the prior source audit found none (HH requires employer-side access; Job Bank count is employer-dashboard-only; EURES counts positions; sampled Arbeitnow/RemoteOK lack the field).
 - [ ] Continue remaining compact Telegram UX and safe validation of the versioned normal-scan refresh path for old Good rows.
 
