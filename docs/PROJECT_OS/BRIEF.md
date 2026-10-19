@@ -6,6 +6,7 @@
 - Employer preference policy now replaces the old gambling exclusion in common matching: legacy betting/gambling/букмек/казино terms are inert as sector bans, Betsson remains eligible, exact named Alabuga/Voentorg entities block, structured categories support ALLOW/WARN/BLOCK, and user category/employer overrides persist in all search profiles. WARN stays visible in Stretch; no production settings migration/write.
 - Employer matching/review/notification regressions: 227 passed, 3 skipped. Notification checkpoint `913f305` CI passed all Python, secret-scan and image-build checks. Employer policy is saved at `7124035`, pushed to Draft PR #56; exact-head CI is running.
 - Job Bank location now resolves a city only from one locality plus an official Canadian province/territory code; remote, multiple and ambiguous location labels stay country-only/unknown-city. Job Bank targeted suite: 36 passed.
+- Job Bank now treats explicit candidate prerequisites for existing Canadian work authorization as not an employer sponsorship offer and excludes those cards from the foreign-applicant lane; uncertain wording and absent evidence remain unknown. Job Bank/support/IHE regression package: 127 passed.
 
 ## 2026-10-19 incremental location provenance
 - EURES records whether location came from search `locationMap` or detail `countryCode`/`cityName`; country-only postings keep city unknown. Targeted EURES/geo/industry-exclusion suites: 39 passed. See HANDOFF for branch and exact CI state.

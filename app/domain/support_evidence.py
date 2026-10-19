@@ -180,6 +180,8 @@ def existing_work_authorization_required(text: str) -> bool:
     requirement = re.compile(
         r"\bmust (?:already )?(?:have (?:the )?right to work|be (?:legally )?(?:authorized to work|eligible to work)|"
         r"have (?:a |an )?(?:valid |existing )?(?:eu |european union )?work permit)|"
+        r"\b(?:candidates|applicants) must (?:already )?(?:have (?:a |an )?(?:valid |existing )?"
+        r"(?:canadian |eu |european union )?work permit|be (?:legally )?(?:authorized|authorised|eligible) to work)\b|"
         r"\b(?:only )?(?:candidates|applicants) (?:who are )?(?:already )?(?:legally )?(?:authorized|authorised|eligible) to work\b|"
         r"\b(?:only )?(?:candidates|applicants) (?:with|holding) (?:a |an )?(?:valid |existing )?"
         r"(?:right to work|work authorization|work authorisation|work permit)\b|"

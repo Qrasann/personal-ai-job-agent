@@ -9,6 +9,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.support_evidence import existing_work_authorization_required
 from app.sources.diagnostics import SourceInvalidResponse, classify_source_error
 from app.sources.base import JobSource, SourceContext
 
@@ -120,7 +121,10 @@ class JobBankSource(JobSource):
         job.description = body.get_text(" ", strip=True)
         eligibility = body.select_one(".job-posting-detail-apply")
         eligibility_text = eligibility.get_text(" ", strip=True) if eligibility else ""
-        restricted = "do not apply if you are not authorized to work in canada" in eligibility_text.casefold()
+        restricted = (
+            "do not apply if you are not authorized to work in canada" in eligibility_text.casefold()
+            or existing_work_authorization_required(eligibility_text)
+        )
         job.raw["international_candidates"] = False if restricted else (
             True if "with or without a valid canadian work permit" in eligibility_text.casefold() else None
         )

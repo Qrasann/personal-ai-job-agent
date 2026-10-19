@@ -12,6 +12,8 @@ Dev implementation note (2026-10-19): shared match scoring now ignores legacy se
 
 Job Location Intelligence increment (2026-10-19): Job Bank's Canada-only source supports country=CA; city resolution now requires one locality plus a recognized Canadian province/territory code. Remote, multiple and ambiguous labels retain city unknown. Targeted suite: 36 passed.
 
+International Hiring Eligibility increment (2026-10-19): Job Bank reuses the shared parser for explicit candidate-scope existing permit/right-to-work requirements, keeping those separate from sponsorship and preserving unknown for absent/conditional text. Targeted cross-domain suite: 127 passed.
+
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
 
 The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.

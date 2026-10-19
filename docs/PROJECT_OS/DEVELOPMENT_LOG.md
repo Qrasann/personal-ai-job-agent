@@ -2,6 +2,10 @@
 
 Job Bank's source itself verifies Canada, but its search cards combine locality and province code (for example `Toronto (ON)`). Normalize only single-locality labels paired with a recognized Canadian province/territory; preserve the exact source string and provenance. Remote, multiple/various location and ambiguous multi-city labels keep city unknown. Targeted Job Bank suite: 36 passed. No network/live source request or data write.
 
+## 2026-10-19 — Job Bank work authorization prerequisite
+
+Use the shared bounded eligibility parser to recognize explicit existing Canadian work-permit/right-to-work requirements. These set the source's international-candidate lane false but do not imply sponsorship; absent and conditional evidence remains unknown. Job Bank, support, relocation evidence and direct visa support suites: 127 passed.
+
 ## 2026-10-19 — employer policy settings handler coverage
 
 Added handler-level regressions proving exact-employer choices update every search profile and unknown categories are rejected before any repository write. `/employerpolicy`/matching preferences: 30 passed. No live DB or user settings were touched.

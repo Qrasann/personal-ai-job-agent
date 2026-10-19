@@ -79,6 +79,25 @@ def test_explicit_eligibility_restriction_overrides_lmia_and_support():
     assert not any(_signals(item).values())
 
 
+@pytest.mark.parametrize("requirement", [
+    "Only candidates already authorized to work in Canada may apply.",
+    "Applicants must already have a valid Canadian work permit.",
+    "Must be legally eligible to work in Canada.",
+])
+def test_explicit_existing_authorization_prerequisite_is_not_international_candidate_support(requirement):
+    item = JobBankSource.enrich(job(), detail("LMIA requested.", requirement))
+    assert item.raw["international_candidates"] is False
+    assert item.visa_sponsorship is False
+    assert item.raw["eligibility_evidence"] == requirement
+
+
+def test_absent_or_uncertain_authorization_requirement_stays_unknown():
+    for statement in ("Work authorization may be required.", "Candidates are welcome to apply."):
+        item = JobBankSource.enrich(job(), detail("LMIA requested.", statement))
+        assert item.raw["international_candidates"] is None
+        assert item.visa_sponsorship is None
+
+
 def test_international_eligibility_does_not_imply_sponsorship():
     item = JobBankSource.enrich(job(), detail("LMIA requested.", "Other candidates, with or without a valid Canadian work permit."))
     assert item.raw["international_candidates"] is True
