@@ -4,6 +4,10 @@
 - [x] Preserve provenance for EURES search-level country and detail-level structured city/country; don't infer city from country-only data.
 - [x] Add regressions for city+country, country-only, and unusably long city evidence; EURES/geo/industry exclusion tests: 39 passed.
 
+## 2026-10-19 — compact job-list country rendering
+- [x] Fix country-only `/jobs` list rendering that referenced an undefined detail payload; show the configured country name without fabricating a city.
+- [x] Telegram navigation/vacancy, Remotive, EURES and geo regressions: 157 passed; exact-head PR #56 CI for `ec9b8f3`: all required checks passed.
+
 ## 2026-10-19 — Telegram pilot and Employer Career Watch integration
 
 - [x] Require an existing authorized MTProto session before probe/sample/watch; fail without initiating login.

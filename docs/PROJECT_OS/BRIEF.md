@@ -2,6 +2,7 @@
 
 ## 2026-10-19 incremental location provenance
 - EURES records whether location came from search `locationMap` or detail `countryCode`/`cityName`; country-only postings keep city unknown. Targeted EURES/geo/industry-exclusion suites: 39 passed. See HANDOFF for branch and exact CI state.
+- Compact `/jobs` country-only rendering now uses available job fields and shows the configured country name. It no longer reads a nonexistent detail payload. Exact-head CI for `ec9b8f3` passed.
 
 ## 2026-10-19 incremental eligibility UX
 - Telegram hiring terms now have a bounded implementation slice for dated official mobility starting links (AM/DE/GE/MT), shown only for a vacancy with that normalized country. Links do not determine candidate eligibility; broader source-specific citizenship, residence, authorization and sponsorship evidence remains P0 work. See current `HANDOFF.md` and `docs/developer/INTERNATIONAL_SOURCES.md`.
