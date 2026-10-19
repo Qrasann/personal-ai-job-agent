@@ -3005,3 +3005,7 @@ A final bounded read-only rerun scored 85 canonical jobs from 93 public ATS card
 ## 2026-10-19 — official mobility starting links in Telegram
 
 Added a country allowlist of dated official starting links for Armenia, Germany and Georgia to the `/job` hiring-terms view. The links appear only when a vacancy already has the matching normalized country; output states that they do not establish the candidate's right to work. Expanded compact-vacancy regressions for supported/unsupported countries and multi-link output. No profile or vacancy eligibility inference, database mutation, production/runtime change or external action.
+
+## 2026-10-19 — candidate-scoped existing work authorization
+
+International Hiring Eligibility now recognizes explicit requirements that applicants already hold authorization, including “only candidates … authorized to work” and “applicants with an existing work permit”. Evidence keeps the matching posting excerpt. Negated “not only” wording and explicit “no work permit required” remain non-restrictions; no sponsorship or legal conclusion is inferred. Pytest is unavailable in this shell; six direct parser assertions and two relocation-evidence excerpt assertions passed, along with compileall, secret scan and diff check. Regression cases were added for CI.

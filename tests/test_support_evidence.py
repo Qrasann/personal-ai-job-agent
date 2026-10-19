@@ -88,6 +88,21 @@ def test_existing_authorization_requirement_is_separate_from_support():
 
 
 @pytest.mark.parametrize("text", [
+    "Only candidates already authorized to work in Germany may apply.",
+    "Applicants with an existing work permit are eligible.",
+    "Applicants holding valid work authorisation can be considered.",
+])
+def test_candidate_scope_work_authorization_prerequisites(text):
+    assert existing_work_authorization_required(text)
+
+
+def test_not_only_authorized_candidates_is_not_a_work_authorization_prerequisite():
+    assert not existing_work_authorization_required(
+        "It is not only candidates with a work permit who can apply."
+    )
+
+
+@pytest.mark.parametrize("text", [
     "Warehouse worker with relocation assistance",
     "Remote worldwide with relocation assistance.",
     "Junior DevOps Engineer with visa sponsorship.",

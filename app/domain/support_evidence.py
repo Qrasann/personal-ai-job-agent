@@ -180,12 +180,17 @@ def existing_work_authorization_required(text: str) -> bool:
     requirement = re.compile(
         r"\bmust (?:already )?(?:have (?:the )?right to work|be (?:legally )?(?:authorized to work|eligible to work)|"
         r"have (?:a |an )?(?:valid |existing )?(?:eu |european union )?work permit)|"
+        r"\b(?:only )?(?:candidates|applicants) (?:who are )?(?:already )?(?:legally )?(?:authorized|authorised|eligible) to work\b|"
+        r"\b(?:only )?(?:candidates|applicants) (?:with|holding) (?:a |an )?(?:valid |existing )?"
+        r"(?:right to work|work authorization|work authorisation|work permit)\b|"
         r"\b(?:(?:eu|existing|valid) )?work (?:permit|authorization) (?:is )?required\b|"
         r"\b(?:должен|должны) (?:уже )?иметь (?:право|разрешение) на работу\b|"
         r"\b(?:gültige|bestehende) arbeitserlaubnis (?:ist )?(?:erforderlich|vorausgesetzt)\b",
     )
     for found in requirement.finditer(normalized):
         before = normalized[max(0, found.start() - 35):found.start()]
+        if re.search(r"\bnot(?: only)?(?:\s+(?:candidates|applicants))?\s*$", before):
+            continue
         if re.search(r"\b(?:no|without|не|нет|без|kein\w*|ohne)\s*$", before):
             continue
         return True

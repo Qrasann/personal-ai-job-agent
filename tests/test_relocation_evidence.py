@@ -290,6 +290,8 @@ def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_
     for statement in (
         "Must be legally authorized to work in Germany.",
         "Candidates must be eligible to work in Canada.",
+        "Only candidates already authorized to work in Germany may apply.",
+        "Applicants with an existing work permit are eligible.",
     ):
         item = extract(statement)
         assert item["status"] == "confirmed" and item["value"] is True
