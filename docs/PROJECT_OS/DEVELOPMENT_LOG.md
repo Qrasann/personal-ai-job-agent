@@ -10,6 +10,10 @@ Use the shared bounded eligibility parser to recognize explicit existing Canadia
 
 Added handler-level regressions proving exact-employer choices update every search profile and unknown categories are rejected before any repository write. `/employerpolicy`/matching preferences: 30 passed. No live DB or user settings were touched.
 
+## 2026-10-19 — exact employer identity evidence
+
+Added only official exact transliteration aliases for the two owner-named entities and documented primary identity/evidence URLs beside defaults. This does not broaden matching to subsidiaries or other state-owned firms. Employer policy/settings regressions: 32 passed.
+
 ## 2026-10-19 — owner employer preference policy
 
 Replaced the previous industry-wide betting/gambling ban with central exact-employer and structured-category ALLOW/WARN/BLOCK decisions, wired into shared matching and the legacy scoring adapter. Added exact Alabuga/Voentorg identities, defaults for Russian military/defense, verified direct-war and direct-government tags, and all-profile `/employerpolicy` overrides. Betting/casino and civilian state-owned companies remain eligible; crypto/Web3 warns into Stretch unless the user explicitly allows the employer/category. Legacy stored sector blacklist terms no longer suppress jobs. Expanded matching/review/notification suites: 227 passed, 3 skipped; exact-head CI pending. Runtime and production settings untouched.

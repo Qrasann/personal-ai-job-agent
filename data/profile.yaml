@@ -38,13 +38,18 @@ search:
       verified_direct_war_tie: block
       russian_government_body: block
     # Exact employer identity only; ordinary state-owned civilian companies are not included.
+    # Alabuga legal name/aliases: OFAC 2024-02-23, https://ofac.treasury.gov/recent-actions/20240223
+    # Voentorg identity: OFAC 2025-01-15, https://ofac.treasury.gov/recent-actions/20250115
+    # Voentorg armed-forces provision evidence: EU Decision 2022/883, https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32022D0883
     employers:
       "АО ОЭЗ ППТ АЛАБУГА": block
       "JOINT STOCK COMPANY SPECIAL ECONOMIC ZONE OF INDUSTRIAL PRODUCTION ALABUGA": block
+      "AO OEZ PPT ALABUGA": block
       "Алабуга": block
       "Alabuga": block
       "АО ВОЕНТОРГ": block
       "JOINT STOCK COMPANY VOENTORG": block
+      "AKTSIONERNOE OBSHCHESTVO VOENTORG": block
       "Военторг": block
       "Voentorg": block
   review_terms:

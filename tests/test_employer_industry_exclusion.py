@@ -40,7 +40,7 @@ def test_betsson_is_not_blocked_by_old_sector_blacklist_or_industry_tag(strategy
     assert _match_lane(result, 0) in {"qualified", "stretch"}
 
 
-@pytest.mark.parametrize("name", ["Алабуга", "АО ОЭЗ ППТ АЛАБУГА", "JOINT STOCK COMPANY SPECIAL ECONOMIC ZONE OF INDUSTRIAL PRODUCTION ALABUGA", "Военторг", "АО ВОЕНТОРГ", "JOINT STOCK COMPANY VOENTORG"])
+@pytest.mark.parametrize("name", ["Алабуга", "АО ОЭЗ ППТ АЛАБУГА", "AO OEZ PPT ALABUGA", "JOINT STOCK COMPANY SPECIAL ECONOMIC ZONE OF INDUSTRIAL PRODUCTION ALABUGA", "Военторг", "АО ВОЕНТОРГ", "AKTSIONERNOE OBSHCHESTVO VOENTORG", "JOINT STOCK COMPANY VOENTORG"])
 def test_exact_named_employers_are_blocked(name):
     assert decision(name, [])[0] == "block"
 
