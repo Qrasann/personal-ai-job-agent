@@ -754,6 +754,11 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 parse_mode=None,
             )
         except Exception as exc:
+            info.setdefault("diagnostics", []).append(diagnostic(
+                "SOURCE_NOTICE_DELIVERY_FAILED",
+                stage="notification",
+                action="inspect_dashboard",
+            ))
             log.error("source diagnostic notification failed (%s)", type(exc).__name__)
     if daily_events:
         try:
@@ -764,6 +769,13 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 parse_mode=None,
             )
         except Exception as exc:
+            for event in daily_events:
+                info = summary["sources"].get(event["source_id"], {})
+                info.setdefault("diagnostics", []).append(diagnostic(
+                    "SOURCE_NOTICE_DELIVERY_FAILED",
+                    stage="notification",
+                    action="inspect_dashboard",
+                ))
             log.error("source daily digest notification failed (%s)", type(exc).__name__)
     return summary
 

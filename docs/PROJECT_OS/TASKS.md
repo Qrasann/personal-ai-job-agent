@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-19 — source notice delivery diagnostics
+- [x] Confirm the grouped source notification policy is already complete and avoid changing its source/state/impact grouping or daily suppression behavior.
+- [x] Reproduce missing dashboard evidence when Telegram delivery of an immediate source notice fails after notice-state persistence.
+- [x] Preserve one sanitized `SOURCE_NOTICE_DELIVERY_FAILED` diagnostic for immediate and grouped-digest failures without storing exception payloads or emitting a fallback message.
+- [x] Run notice policy, diagnostics and source-isolation regressions: 79 passed; compileall, diff check and secret scan passed.
+
 ## 2026-10-19 — exact reviewed ATS opening yield
 - [x] Validate the checked-in official inventory offline: 13 employers / 15 openings, with no network request.
 - [x] Reproduce a reviewed Xsolla `Operations Engineer` being dropped from a `DevOps Engineer` discovery pass solely because its title has no literal query-token overlap.

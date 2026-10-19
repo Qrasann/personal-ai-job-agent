@@ -1,4 +1,5 @@
 import asyncio
+import json
 import ssl
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
@@ -107,6 +108,76 @@ def test_source_notice_suppression_persists_between_scans_and_ignores_network_co
     assert alerts.await_count == 1
     assert '"version":2' in persisted["value"]
     assert "private endpoint" not in persisted["value"]
+
+
+def test_source_notice_delivery_failure_stays_in_diagnostics_without_followup_spam(monkeypatch):
+    class Remote:
+        source_id = name = "remoteok"
+
+        async def discover(self, context):
+            raise httpx.ConnectTimeout("private endpoint")
+
+    configure_scan(monkeypatch, {"remoteok": Remote})
+    alerts = AsyncMock(side_effect=RuntimeError("private Telegram payload"))
+    monkeypatch.setattr(services, "notify_chat", alerts)
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    diagnostics = summary["sources"]["remoteok"]["diagnostics"]
+    assert alerts.await_count == 1
+    assert [item["code"] for item in diagnostics] == [
+        "NETWORK_CONNECT_TIMEOUT",
+        "SOURCE_NOTICE_DELIVERY_FAILED",
+    ]
+    assert diagnostics[-1]["stage"] == "notification"
+    assert diagnostics[-1]["action"] == "inspect_dashboard"
+    assert "private Telegram payload" not in str(summary)
+
+
+def test_daily_source_digest_delivery_failure_is_kept_per_source_in_diagnostics(monkeypatch):
+    class Remote:
+        source_id = name = "remoteok"
+
+        async def discover(self, context):
+            self.partial_failures = 1
+            self.discovery_diagnostics = [{
+                "code": "NETWORK_READ_TIMEOUT",
+                "stage": "read",
+                "action": "continue_partial",
+                "count": 1,
+            }]
+            return [NormalizedJob(source="remoteok", source_job_id="1", title="DevOps")]
+
+    configure_scan(monkeypatch, {"remoteok": Remote})
+    old = (datetime.now(UTC) - timedelta(hours=25)).isoformat()
+    notice_state = json.dumps({
+        "version": 2,
+        "sources": {
+            "remoteok": {
+                "signature": "limited|limited",
+                "state": "limited",
+                "impact": "limited",
+                "occurrences": 1,
+                "first_seen_at": old,
+                "last_seen_at": old,
+                "last_notified_at": None,
+            },
+        },
+    })
+    monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value=notice_state))
+    monkeypatch.setattr(services, "ingest_and_match", AsyncMock(return_value={"processed": 1}))
+    alerts = AsyncMock(side_effect=RuntimeError("private Telegram payload"))
+    monkeypatch.setattr(services, "notify_chat", alerts)
+
+    summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert alerts.await_count == 1
+    assert alerts.await_args.args[2].startswith("ℹ️ Ежедневная сводка:")
+    assert [item["code"] for item in summary["sources"]["remoteok"]["diagnostics"]] == [
+        "NETWORK_READ_TIMEOUT",
+        "SOURCE_NOTICE_DELIVERY_FAILED",
+    ]
+    assert "private Telegram payload" not in str(summary)
 
 
 def test_source_timeout_and_error_do_not_discard_successful_discovery(monkeypatch):

@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-19 source-notice delivery diagnostics
+- The existing grouped source notification policy remains unchanged: source/state/impact grouping, immediate material/critical transitions, one daily digest, and quiet successful fallbacks.
+- A failed Telegram delivery of either an immediate source notice or the grouped daily digest now adds the sanitized `SOURCE_NOTICE_DELIVERY_FAILED` event to the affected source Diagnostics. Raw Telegram/provider exception text is not retained, and no fallback chat message is attempted.
+- Notice/diagnostic/source-isolation regressions: 79 passed. Production runtime, database and notifications were untouched.
+
 ## 2026-10-19 reviewed ATS opening yield
 - Employer Career Watch now retains an exact `provider_id` + normalized-title match from the reviewed inventory even when a configured query has no literal title token overlap. This recovers Xsolla's reviewed `Operations Engineer` for a `DevOps Engineer` discovery pass while an unreviewed `Business Operations Manager` remains excluded.
 - Offline inventory validation remains 13 employers / 15 openings. The latest completed live freshness evidence remains the earlier 14/14 probe; a new sequential read-only probe produced no results in this network environment and was stopped after three minutes, so it did not update any ATS status.

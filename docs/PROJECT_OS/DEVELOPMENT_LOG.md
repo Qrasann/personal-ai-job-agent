@@ -1,3 +1,7 @@
+## 2026-10-19 — preserve failed source-notice delivery diagnostics
+
+Confirmed the grouped notification policy was already implemented and left its grouping/rate limits unchanged. Reproduced the next reliability gap: Telegram failure while sending an immediate source notice or daily digest was only logged after suppression state had been persisted, leaving `/scanstatus`/Diagnostics unable to explain the missing notice. The scan summary now receives one sanitized `SOURCE_NOTICE_DELIVERY_FAILED` diagnostic per affected source, retains the original source cause, stores no exception payload, and does not attempt a second chat message. Notice/diagnostic/source-isolation tests: 79 passed; compileall, diff check and secret scan passed. No live notification or runtime/DB change.
+
 ## 2026-10-19 — exact reviewed ATS opening yield
 
 The official inventory validates offline at 13 employers and 15 openings. Common
