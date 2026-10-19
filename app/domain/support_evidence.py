@@ -178,7 +178,7 @@ def existing_work_authorization_required(text: str) -> bool:
     """Recognize prerequisites separately from employer permit assistance."""
     normalized = " ".join(clean_html_text(text).casefold().replace("ё", "е").split())
     requirement = re.compile(
-        r"\bmust (?:already )?(?:have (?:the )?right to work|be authorized to work|"
+        r"\bmust (?:already )?(?:have (?:the )?right to work|be (?:legally )?(?:authorized to work|eligible to work)|"
         r"have (?:a |an )?(?:valid |existing )?(?:eu |european union )?work permit)|"
         r"\b(?:(?:eu|existing|valid) )?work (?:permit|authorization) (?:is )?required\b|"
         r"\b(?:должен|должны) (?:уже )?иметь (?:право|разрешение) на работу\b|"

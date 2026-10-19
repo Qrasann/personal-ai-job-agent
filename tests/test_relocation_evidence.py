@@ -287,6 +287,14 @@ def test_existing_work_authorization_requirement_distinguishes_explicit_no_from_
     generic_permit = extract("Work permit required.")
     assert generic_permit["status"] == "confirmed" and generic_permit["value"] is True
 
+    for statement in (
+        "Must be legally authorized to work in Germany.",
+        "Candidates must be eligible to work in Canada.",
+    ):
+        item = extract(statement)
+        assert item["status"] == "confirmed" and item["value"] is True
+        assert statement.rstrip(".") in item["excerpt"]
+
     absent = extract("Linux operations role.")
     assert absent["status"] == "unknown" and absent["value"] is None
 

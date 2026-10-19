@@ -2986,3 +2986,7 @@ Normal scan and detail-refresh writes now persist `match_assessment_version=1` i
 ## 2026-10-19 — persist assessment version through PostgreSQL repository
 
 The isolated PostgreSQL review-flow test now confirms the version marker round-trips through `JobMatch.recommendation_scores`. Initial connection raced the test service startup and reset; after the healthcheck reported ready, one retry passed. This used only `docker-compose.test.yml` tmpfs PostgreSQL, not the running `repo` database or volumes.
+
+## 2026-10-19 — preserve explicit legal work-authorization clauses
+
+The eligibility evidence parser previously left `must be legally authorized to work` and `must be eligible to work` as unknown. These explicit source clauses now populate the existing authorization-requirement evidence with the original excerpt; no sponsorship or candidate-specific legal conclusion follows. Relocation-evidence, remote-evidence and RemoteOK tests: 98 passed; compileall, diff check and secret scan passed.

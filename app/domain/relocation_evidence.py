@@ -110,7 +110,7 @@ _AUTH_NOT_REQUIRED = re.compile(
     re.I,
 )
 _AUTH_REQUIREMENT_TEXT = re.compile(
-    r"[^.!?;\n]{0,100}(?:must (?:already )?(?:have (?:the )?right to work|be authorized to work)|"
+    r"[^.!?;\n]{0,100}(?:must (?:already )?(?:have (?:the )?right to work|be (?:legally )?(?:authorized to work|eligible to work))|"
         r"(?:work permit|work authorization) (?:is )?required|gültige arbeitserlaubnis (?:ist )?(?:erforderlich|vorausgesetzt)|"
         r"должны? иметь право на работу)"
     r"[^.!?;\n]{0,100}", re.I,
