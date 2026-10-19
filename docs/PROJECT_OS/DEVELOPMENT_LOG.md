@@ -3002,3 +3002,6 @@ A bounded, read-only run across nine official employer boards returned 93 cards 
 ## 2026-10-19 — record public Employer Career Watch exclusion reasons
 
 A final bounded read-only rerun scored 85 canonical jobs from 93 public ATS cards (8 duplicates, no source errors). Career-first produced 55 technical-gap, 28 fit-skip and 2 geography-gap exclusions; Relocation-first produced 62 technical-gap and 23 fit-skip exclusions. Neither lane had Good/Stretch in the sample. Candidate facts/preferences were used only in memory and not written to disk or included in logs. The run made no database or notification calls.
+## 2026-10-19 — official mobility starting links in Telegram
+
+Added a country allowlist of dated official starting links for Armenia, Germany and Georgia to the `/job` hiring-terms view. The links appear only when a vacancy already has the matching normalized country; output states that they do not establish the candidate's right to work. Expanded compact-vacancy regressions for supported/unsupported countries and multi-link output. No profile or vacancy eligibility inference, database mutation, production/runtime change or external action.

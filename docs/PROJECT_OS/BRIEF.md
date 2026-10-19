@@ -1,5 +1,8 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-19 incremental eligibility UX
+- Telegram hiring terms now have a bounded implementation slice for dated official mobility starting links (AM/DE/GE), shown only for a vacancy with that normalized country. Links do not determine candidate eligibility; broader source-specific citizenship, residence, authorization and sponsorship evidence remains P0 work. See current `HANDOFF.md` and `docs/developer/INTERNATIONAL_SOURCES.md`.
+
 ## Current owner priority — search, relocation and offers (2026-10-18)
 - Standing execution mode is MAXIMUM TOKEN ECONOMY: one Main agent by default, targeted context/tests first, Fast/Deep only when total delegation cost is justified, and no repeated unchanged full-suite hang. This optimizes token/context use, never required safety or quality gates; account quotas are not claimed unless directly exposed.
 - Telegram UX & Vacancy Intelligence is now an explicit P0 alongside (not ahead of) the two watcher deliverables. The first dev slice makes `/scanstatus`, `/review` and `/job` compact with owner-scoped inline tabs/edit-in-place and keeps detailed diagnostics/provenance behind buttons. Applicant counts render only from persisted, dated `kind=applications` evidence; views are rejected and absence is shown as `Нет открытых данных`. ReplyKeyboard, adapter collection, soft secondary ordering, richer skill summaries and isolated visual Telegram acceptance remain open.

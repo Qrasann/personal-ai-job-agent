@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
+from app.domain.eligibility_references import official_eligibility_references
 from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 from app.domain.vacancy_availability import vacancy_availability_lines
@@ -526,6 +527,16 @@ def render_job_section(payload: dict, section: str) -> str:
         ]
         lines.extend(_mobility_evidence_lines(job, value["description"]))
         lines.extend(_relocation_evidence_lines(payload.get("relocation_evidence") or {}))
+        references = official_eligibility_references(getattr(job, "country", None))
+        for reference in references:
+            url = _safe_http_url(reference.url)
+            if url:
+                lines.append(
+                    f'<a href="{html.escape(url, quote=True)}">Официально: '
+                    f'{html.escape(reference.label)}</a> · проверено {_published(reference.checked_at)}'
+                )
+        if references:
+            lines.append("Проверь актуальные условия по своей ситуации; эта ссылка не определяет право кандидата на работу.")
         lines.append("Remote worldwide сам по себе не подтверждает право работать из любой страны.")
         return "\n".join(lines)
     if section == "competition":

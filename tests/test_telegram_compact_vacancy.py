@@ -6,7 +6,7 @@ from app.telegram import handlers
 from app.telegram.vacancy_view import render_job_section, render_job_summary
 
 
-def _payload(*, applicant_count=None):
+def _payload(*, applicant_count=None, country="DE"):
     details = {
         "description": "Requirements: Linux and Docker. English B2 required.",
         "experience": "1–3 years",
@@ -22,7 +22,7 @@ def _payload(*, applicant_count=None):
     return {
         "job": SimpleNamespace(
             id=42, title="Junior DevOps Engineer", company="Example",
-            description="Linux Docker", city="Berlin", country="DE",
+            description="Linux Docker", city="Berlin", country=country,
             work_mode="hybrid", remote_scope="Germany", published_at=None,
             salary_from=55000, salary_to=65000, salary_currency="EUR",
             salary_period="annual", relocation=None, visa_sponsorship=None,
@@ -60,6 +60,23 @@ def test_competition_section_only_labels_confirmed_application_count():
     assert "Просмотры" in unknown
     assert "Подтверждённых откликов: <b>17</b>" in confirmed
     assert "18.10.2026 09:00 UTC" in confirmed
+
+
+def test_terms_section_links_allowlisted_official_mobility_references():
+    cases = {
+        "AM": ("workpermit.am/en/home", 1),
+        "DE": ("make-it-in-germany.com/en/looking-for-foreign-professionals", 1),
+        "GE": ("sda.gov.ge/en/products/migration-residence-permits", 2),
+    }
+    for country, (url_fragment, link_count) in cases.items():
+        terms = render_job_section(_payload(country=country), "terms")
+        assert url_fragment in terms
+        assert terms.count("<a href=") == link_count
+        assert "не определяет право кандидата на работу" in terms
+        assert "проверено 19.10.2026" in terms
+
+    unsupported = render_job_section(_payload(country="RU"), "terms")
+    assert "<a href=" not in unsupported
 
 
 def test_jobtab_callback_edits_message_and_preserves_profile_scope(monkeypatch):
