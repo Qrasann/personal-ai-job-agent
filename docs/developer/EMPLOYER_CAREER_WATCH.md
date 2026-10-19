@@ -47,7 +47,11 @@ stable public feed is available. Existing Collectly and Devexperts adapters
 remain the sole providers for their boards to avoid a second source identity.
 Each normalized ATS job retains employer/provider identity, an allowlisted
 official posting URL, source location text, and a feed observation timestamp.
-Country/city and hiring eligibility remain unknown; market tags and free-form
-locations are not converted into legal or normalized location evidence.
+Only an exact, simple `City, Country` office/location label using a supported
+country name can populate city/country. Remote or regional labels, multi-location
+text, and ambiguous US state abbreviations remain unknown. Search-market tags
+and remote eligibility are never converted into a physical work location.
+Hiring eligibility, sponsorship and relocation remain unknown unless separate
+posting evidence supports them.
 Provider failures are isolated and reported as partial results. Common
 repository canonical deduplication continues to apply.

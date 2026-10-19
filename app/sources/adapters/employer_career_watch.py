@@ -9,6 +9,8 @@ import httpx
 
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.geo.countries import normalize_country
+from app.geo.locations import parse_city_country
 from app.sources.diagnostics import classify_source_error, diagnostic
 from app.sources.base import JobSource, SourceContext
 from app.sources.employer_watchlist import enabled_employers, load_employer_watchlist
@@ -104,6 +106,24 @@ class EmployerCareerWatchSource(JobSource):
                 location = categories.get("location") if isinstance(categories, dict) else None
             else:
                 location = location_value
+            source_location = str(location or "").strip()
+            workplace_type = str(row.get("workplaceType") or "").strip().casefold()
+            is_remote = (
+                workplace_type == "remote"
+                or row.get("remote") is True
+                or (isinstance(location_value, dict) and location_value.get("remote") is True)
+                or bool(re.search(r"\bremote\b", source_location, re.I))
+            )
+            city, country = parse_city_country(source_location) if not is_remote else (None, None)
+            location_resolution = None
+            if employer.ats == "smartrecruiters" and isinstance(location_value, dict) and not is_remote:
+                structured_country = normalize_country(str(location_value.get("country") or ""))
+                structured_city = str(location_value.get("city") or "").strip()
+                if structured_country and structured_city and len(structured_city) <= 96:
+                    city, country = structured_city, structured_country
+                    location_resolution = "provider_structured_country_city"
+            elif country:
+                location_resolution = "provider_location_city_country"
             description = ""
             if employer.ats == "greenhouse":
                 description = clean_html_text(str(row.get("content") or ""))
@@ -119,12 +139,15 @@ class EmployerCareerWatchSource(JobSource):
                 company=employer.name,
                 description=description,
                 url=url,
+                country=country,
+                city=city,
                 raw={
                     "provider": employer.ats,
                     "provider_id": provider_id,
                     "employer_id": employer.id,
                     "employer_careers_url": employer.careers_url,
-                    "source_location": str(location or "").strip() or None,
+                    "source_location": source_location or None,
+                    "location_resolution": location_resolution,
                     "watchlist_verified_at": load_employer_watchlist().verified_at.isoformat(),
                     "provider_feed_observed_at": datetime.now(UTC).isoformat(),
                     "work_authorization_evidence": "unknown",

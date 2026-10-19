@@ -2966,3 +2966,8 @@ Applicant counts are accepted only from persisted `applicant_count_v1` evidence 
 A read-only query of the isolated Web acceptance database found two historical `DevOps Volunteer` matches at 69 and 60, both status `new`; they predate the fit-skip/cap correction and were not silently rewritten. The running Compose service reports v3.5.7, but this does not identify its exact scoring commit. The owner's screenshot remains the evidence for production Makerble 88/100; production PostgreSQL was not queried or changed.
 
 The owner made MAXIMUM TOKEN ECONOMY the standing engineering mode: Main handles ordinary work; Fast/Deep require a clear total-cost or risk advantage; context reads and tests start narrowly and expand by risk; the unchanged known full-pytest stall is not rerun mechanically. Safety, critical tests, migration and release gates are not reduced, and no unexposed account-quota visibility is claimed. The durable protocol is recorded in `AI_INSTRUCTIONS.md` and the compact handoff.
+## 2026-10-19 — conservative ATS Job Location Intelligence
+
+## 2026-10-19 — conservative ATS Job Location Intelligence
+
+Official ATS location fields now populate city/country only for a simple exact `City, Country` pair with a supported country label. Remote and broad-region labels, multi-location strings and ambiguous US state codes remain unknown; structured SmartRecruiters city/country is accepted only when not marked remote. Source location text and resolution provenance are preserved. Targeted regressions cover Georgia, ordinary countries, ambiguous state codes and remote fields. Test results are recorded in the current handoff. No eligibility/legal inference, schema change, production write or runtime change.

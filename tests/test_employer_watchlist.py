@@ -67,7 +67,8 @@ def test_employer_watch_is_a_global_common_search_source_with_provenance() -> No
     assert job.raw["watchlist_verified_at"] == watchlist.verified_at.isoformat()
     assert job.raw["provider_feed_observed_at"]
     assert job.description == "Kubernetes"
-    assert job.country is None and job.city is None
+    assert job.country == "NL" and job.city == "Amsterdam"
+    assert job.raw["location_resolution"] == "provider_location_city_country"
     assert job.raw["visa_sponsorship_evidence"] == "unknown"
     assert job.raw["work_authorization_evidence"] == "unknown"
     assert job.raw["relocation_evidence"] == "unknown"
@@ -111,6 +112,25 @@ def test_employer_watch_rejects_unapproved_url_and_nonmatching_titles() -> None:
         {"id": "irrelevant", "text": "Sales Manager", "hostedUrl": f"https://jobs.lever.co/{employer.identifier}/irrelevant"},
     ]
     assert EmployerCareerWatchSource.parse_board_payload(employer, payload, context) == []
+
+
+def test_smartrecruiters_structured_city_country_is_normalized():
+    employer = next(item for item in load_employer_watchlist().employers if item.ats == "smartrecruiters")
+    context = SourceContext(user_id=1, queries=["Reliability"])
+    payload = {"content": [{
+        "id": "reliable-id", "name": "Site Reliability Engineer",
+        "postingUrl": "https://jobs.smartrecruiters.com/Devexperts/reliable-id-sre",
+        "location": {"city": "Sofia", "region": "Sofia City Province", "country": "Bulgaria"},
+    }]}
+    jobs = EmployerCareerWatchSource.parse_board_payload(employer, payload, context)
+    assert len(jobs) == 1
+    assert (jobs[0].city, jobs[0].country) == ("Sofia", "BG")
+    assert jobs[0].raw["location_resolution"] == "provider_structured_country_city"
+
+    payload["content"][0]["location"]["remote"] = True
+    remote = EmployerCareerWatchSource.parse_board_payload(employer, payload, context)[0]
+    assert remote.city is None and remote.country is None
+    assert remote.raw["source_location"] == "Sofia, Sofia City Province, Bulgaria"
 
 
 def test_watchlist_rejects_unreviewed_api_endpoint(tmp_path: Path) -> None:

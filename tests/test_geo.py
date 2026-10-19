@@ -1,4 +1,5 @@
 from app.geo.countries import normalize_country, local_sources
+from app.geo.locations import parse_city_country
 from app.sources.registry import build_source_plan, source_capabilities
 from app.telegram.source_display import manual_source_line
 
@@ -7,6 +8,17 @@ def test_country_aliases():
     assert normalize_country("GE") == "GE"
     assert normalize_country("Грузия") == "GE"
     assert normalize_country("Moldova") == "MD"
+
+
+def test_conservative_city_country_resolution_uses_exact_supported_suffixes():
+    assert parse_city_country("Berlin, Germany") == ("Berlin", "DE")
+    assert parse_city_country("Tbilisi, Georgia") == ("Tbilisi", "GE")
+    for ambiguous in (
+        "Atlanta, Georgia", "Savannah, Georgia", "Atlanta, Georgia, USA",
+        "Berlin / Amsterdam, Germany", "Remote, Germany", "EMEA",
+        "Paris, France / Germany", "San Francisco, CA", "Wilmington, DE",
+    ):
+        assert parse_city_country(ambiguous) == (None, None)
 
 
 def test_georgia_local_sources():
