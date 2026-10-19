@@ -3045,3 +3045,6 @@ Fixed `render_jobs_list` reading an undefined details payload after the country-
 ## 2026-10-19 — conservative EURES multi-location resolution
 
 EURES detail data no longer selects the first location from a multi-location vacancy. A single country is retained only when every structured location confirms it; a city is retained only when every location agrees on one usable city. Mixed/malformed evidence stays unknown. Added three focused regressions; EURES/geo/IHE/industry exclusion tests: 118 passed. Exact branch CI for preceding docs checkpoint `0fea880` remains in progress; no runtime/data changes.
+## 2026-10-19 — source error alert noise and runtime diagnosis
+
+Read-only inspection found PR #54 merged into `feature/v3.5.7` at `a1debc9`, while the live checkout remains on `work/telegram-georgia-location` at `34bd4d6` and has no `app/sources/notice_policy.py`. This is the direct reason production did not adopt the fix. Dev notification state now compares source/state/impact rather than changing raw network codes, omits successful fallback noise, leaves limited impact quiet until a grouped daily summary, and retains critical/material-loss/recovery messages. Persistent v1 state transitions to v2. Regression suites: 82 passed, 3 skipped. Runtime and production state remain unchanged.

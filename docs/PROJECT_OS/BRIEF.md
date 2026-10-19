@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-19 P0 notification and employer-policy correction
+- Root cause of runtime error spam: PR #54 (`a1debc9`) merged into `feature/v3.5.7`, while runtime remains on `work/telegram-georgia-location` at `34bd4d6`, without the merge or `app/sources/notice_policy.py`. Runtime was read-only inspected, not changed.
+- Dev source notices now group by source/state/impact (not exact transport code), keep details in Diagnostics, ignore successful fallback noise across providers, alert only critical or material loss, and rate-limit unresolved notices to one daily grouped summary. Persisted v1 state migrates to v2. Targeted notification/source isolation suites: 82 passed, 3 skipped.
+- New owner employer policy supersedes the old gambling exclusion. Next code stage must remove betting/gambling from defaults, provide configurable ALLOW/WARN/BLOCK category/employer overrides, and avoid broad state-owned-company exclusions. No runtime preference migration or production config write is authorized.
+
 ## 2026-10-19 incremental location provenance
 - EURES records whether location came from search `locationMap` or detail `countryCode`/`cityName`; country-only postings keep city unknown. Targeted EURES/geo/industry-exclusion suites: 39 passed. See HANDOFF for branch and exact CI state.
 - Compact `/jobs` country-only rendering now uses available job fields and shows the configured country name. It no longer reads a nonexistent detail payload. Exact-head CI for `ec9b8f3` passed.

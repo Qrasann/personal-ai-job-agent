@@ -75,6 +75,40 @@ def test_raw_tls_failure_is_safe_in_logs_summary_and_alert(monkeypatch, caplog):
     assert "private-value" not in alerts.await_args.args[2]
 
 
+def test_source_notice_suppression_persists_between_scans_and_ignores_network_code_churn(monkeypatch):
+    codes = iter((httpx.ConnectTimeout, httpx.ConnectError))
+
+    class Remote:
+        source_id = name = "remoteok"
+
+        async def discover(self, context):
+            error = next(codes)("private endpoint")
+            raise error
+
+    configure_scan(monkeypatch, {"remoteok": Remote})
+    persisted = {"value": ""}
+
+    async def get_state(user_id, key, default=""):
+        return persisted["value"] or default
+
+    async def set_state(user_id, key, value):
+        persisted["value"] = value
+
+    monkeypatch.setattr(services.repo, "get_state", get_state)
+    monkeypatch.setattr(services.repo, "set_state", set_state)
+    alerts = AsyncMock()
+    monkeypatch.setattr(services, "notify_chat", alerts)
+
+    first = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+    second = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
+
+    assert first["sources"]["remoteok"]["status"] == "failed"
+    assert second["sources"]["remoteok"]["status"] == "failed"
+    assert alerts.await_count == 1
+    assert '"version":2' in persisted["value"]
+    assert "private endpoint" not in persisted["value"]
+
+
 def test_source_timeout_and_error_do_not_discard_successful_discovery(monkeypatch):
     cancelled = []
     matched = []
@@ -465,8 +499,9 @@ def test_hh_connect_timeout_is_rechecked_after_cooldown_and_keeps_safe_notice(mo
     assert summary["sources"]["hh"]["skipped"] == 1
     assert alerts.await_count == 1
     notice = alerts.await_args.args[2]
-    assert "NETWORK_CONNECT_TIMEOUT" in notice
-    assert "Причина устанавливается" in notice
+    assert "недоступен" in notice
+    assert "/scanstatus" in notice
+    assert "NETWORK_CONNECT_TIMEOUT" not in notice
     assert "secret" not in notice
     assert services._HH_CONNECT_RETRY_AFTER > 0
 
@@ -629,8 +664,9 @@ def test_two_profile_timeouts_have_one_safe_alert_and_two_observations(monkeypat
     assert len(info['diagnostics'])==2
     assert alerts.await_count==1
     text=alerts.await_args.args[2]
-    assert 'Career-first / Relocation-first' in text
-    assert 'NETWORK_CONNECT_TIMEOUT' in text
+    assert 'Remote OK' in text
+    assert 'Career-first / Relocation-first' not in text
+    assert 'NETWORK_CONNECT_TIMEOUT' not in text
     assert 'secret' not in text
     assert '&#' not in text
     assert alerts.await_args.kwargs['parse_mode'] is None
@@ -678,7 +714,7 @@ def test_summary_failure_does_not_become_provider_failure(monkeypatch):
     assert info['status']=='partial'
     assert info['failed']==0
     assert info['diagnostics'][0]['code']=='SOURCE_SUMMARY_MISSING_FIELD'
-    assert 'статистика приложения' in alerts.await_args.args[2]
+    assert alerts.await_count==0
 
 
 def test_scheduled_summary_persists_partial_history_per_user(monkeypatch):
@@ -727,7 +763,8 @@ def test_fallback_observation_does_not_hide_later_connection_timeout(monkeypatch
     assert info['fallback']==1
     assert {item['code'] for item in info['diagnostics']}=={'HTTP_403_FORBIDDEN','NETWORK_CONNECT_TIMEOUT'}
     assert alerts.await_count==1
-    assert any('NETWORK_CONNECT_TIMEOUT' in call.args[2] for call in alerts.await_args_list)
+    assert all('/scanstatus' in call.args[2] for call in alerts.await_args_list)
+    assert all('NETWORK_CONNECT_TIMEOUT' not in call.args[2] for call in alerts.await_args_list)
     assert all('HTTP_403_FORBIDDEN' not in call.args[2] for call in alerts.await_args_list)
     assert 'private fallback URL' not in str(summary)
 
@@ -746,7 +783,8 @@ def test_hh_certificate_failure_is_not_hidden_by_quiet_cooldown(monkeypatch):
     summary=asyncio.run(services.scan_for_user(object(),7))
     assert summary['sources']['hh']['status']=='failed'
     assert alerts.await_count==1
-    assert 'TLS_VALIDATION_FAILED' in alerts.await_args.args[2]
+    assert 'недоступен' in alerts.await_args.args[2]
+    assert 'TLS_VALIDATION_FAILED' not in alerts.await_args.args[2]
     assert 'secret' not in alerts.await_args.args[2]
     assert services._HH_CONNECT_RETRY_AFTER>0
 
@@ -775,7 +813,8 @@ def test_cached_discovery_does_not_merge_independent_profile_processing_failures
     assert len(info['diagnostics'])==2
     assert len({item['observation_id'] for item in info['diagnostics']})==2
     assert alerts.await_count==1
-    assert 'Career-first / Relocation-first' in alerts.await_args.args[2]
+    assert 'remoteok' in alerts.await_args.args[2]
+    assert 'Career-first / Relocation-first' not in alerts.await_args.args[2]
 
 
 def test_partial_metadata_survives_generic_source_cache_without_double_counting(monkeypatch):

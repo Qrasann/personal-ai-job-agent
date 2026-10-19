@@ -47,6 +47,7 @@ from app.sources.diagnostics import classify_source_error, diagnostic
 from app.sources.notice_policy import (
     STATE_KEY as SOURCE_NOTICE_STATE_KEY,
     plan_source_notices,
+    render_source_daily_digest,
     render_source_state_notice,
 )
 from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed, vacancy_exclusion_reason
@@ -740,7 +741,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
     except Exception as exc:
         source_notices = []
         log.error("source notification state persistence failed (%s)", type(exc).__name__)
+    daily_events = [event for event in source_notices if event.get("kind") == "daily"]
     for event in source_notices:
+        if event.get("kind") == "daily":
+            continue
         info = summary["sources"].get(event["source_id"], {})
         try:
             await notify_chat(
@@ -751,6 +755,16 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             )
         except Exception as exc:
             log.error("source diagnostic notification failed (%s)", type(exc).__name__)
+    if daily_events:
+        try:
+            await notify_chat(
+                bot,
+                user.telegram_chat_id,
+                render_source_daily_digest(daily_events, summary["sources"]),
+                parse_mode=None,
+            )
+        except Exception as exc:
+            log.error("source daily digest notification failed (%s)", type(exc).__name__)
     return summary
 
 

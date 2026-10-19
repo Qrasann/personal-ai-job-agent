@@ -2,6 +2,12 @@
 
 ## Current owner execution priorities — 2026-10-18
 
+### Owner correction — 2026-10-19
+
+P0: suppress repetitive technical scan errors across all sources and profiles. A successful fallback with no material result loss belongs in Diagnostics, not chat; group transport-code churn by source/state/impact, persist state across restarts, send critical failures/recoveries promptly, and otherwise use at most a concise daily summary. Preserve vacancy/action notifications. Root cause of the owner's 2026-10-19 runtime observations: PR #54 was merged into the feature branch, while the running deployment remains on a different branch/older commit and has no notice-policy implementation; do not update runtime without explicit release authorization.
+
+The employer blacklist decision now replaces the prior default betting/gambling exclusion. Exclude only verified Russian military/defense organizations, employers with verified direct war/military-production ties, the specifically named Alabuga and Voentorg entities after exact identity matching, and vacancies directly at Russian government bodies. Betting, casino/iGaming, crypto/Web3 and ordinary civilian state-owned employers (including Russian Railways) are not blocked by default. Model category/employer actions as ALLOW/WARN/BLOCK with explicit user choices taking priority; uncertain evidence remains visible as WARN/unknown. Do not infer a blanket restriction from state ownership, city names, incidental words or unverified political claims. Preserve existing production preferences; no runtime settings migration without owner authorization.
+
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
 
 The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.
