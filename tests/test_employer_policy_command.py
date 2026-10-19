@@ -1,0 +1,45 @@
+import asyncio
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+from app.telegram import handlers
+
+
+def test_employer_policy_command_persists_exact_override_to_all_search_profiles(monkeypatch):
+    searches = [
+        SimpleNamespace(id=11, settings={"queries": ["DevOps"]}),
+        SimpleNamespace(id=12, settings={"search_strategy": "relocation_first"}),
+    ]
+    writes = []
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+
+    async def update(search_id, settings):
+        writes.append((search_id, settings))
+
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+    message = SimpleNamespace(text="/employerpolicy employer allow Betsson Group", answer=AsyncMock())
+
+    asyncio.run(handlers.employer_policy_command(message))
+
+    assert [search_id for search_id, _ in writes] == [11, 12]
+    assert all(settings["employer_policy_overrides"]["employers"]["Betsson Group"] == "allow" for _, settings in writes)
+    assert writes[0][1]["queries"] == ["DevOps"]
+    assert writes[1][1]["search_strategy"] == "relocation_first"
+    message.answer.assert_awaited_once_with("✅ Решение сохранено для всех поисковых профилей.")
+
+
+def test_employer_policy_command_rejects_unknown_category_without_writing(monkeypatch):
+    searches = [SimpleNamespace(id=11, settings={})]
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+    update = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+    message = SimpleNamespace(text="/employerpolicy category typo block", answer=AsyncMock())
+
+    asyncio.run(handlers.employer_policy_command(message))
+
+    update.assert_not_awaited()
+    assert "Неизвестная категория" in message.answer.await_args.args[0]
