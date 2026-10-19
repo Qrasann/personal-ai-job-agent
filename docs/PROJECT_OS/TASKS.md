@@ -8,6 +8,10 @@
 - [x] Fix country-only `/jobs` list rendering that referenced an undefined detail payload; show the configured country name without fabricating a city.
 - [x] Telegram navigation/vacancy, Remotive, EURES and geo regressions: 157 passed; exact-head PR #56 CI for `ec9b8f3`: all required checks passed.
 
+## 2026-10-19 — conservative EURES multi-location resolution
+- [x] Avoid selecting the first EURES detail location as if it represented the entire vacancy; require consistent structured country evidence and a unique city across all locations.
+- [x] Add mixed-country, same-country/multiple-city and repeated-same-city regressions. EURES/geo/IHE/Betsson exclusion suites: 118 passed.
+
 ## 2026-10-19 — Telegram pilot and Employer Career Watch integration
 
 - [x] Require an existing authorized MTProto session before probe/sample/watch; fail without initiating login.

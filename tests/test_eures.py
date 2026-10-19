@@ -163,6 +163,42 @@ def test_eures_detail_with_country_only_records_structured_country_provenance():
     assert job.raw["location_resolution"] == "eures_structured_country"
 
 
+def test_eures_multiple_locations_do_not_arbitrarily_select_first_country_or_city():
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[
+        {"countryCode": "de", "cityName": "Berlin"},
+        {"countryCode": "fr", "cityName": "Paris"},
+    ]))
+
+    assert job.country is None
+    assert job.city is None
+    assert job.raw["location_resolution"] == "eures_multiple_locations_ambiguous"
+
+
+def test_eures_multiple_cities_keep_only_the_common_verified_country():
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[
+        {"countryCode": "de", "cityName": "Berlin"},
+        {"countryCode": "de", "cityName": "Hamburg"},
+    ]))
+
+    assert job.country == "DE"
+    assert job.city is None
+    assert job.raw["location_resolution"] == "eures_multiple_locations_same_country"
+
+
+def test_eures_repeated_same_city_locations_resolve_city_and_country():
+    job = EuresSource.parse_search({"jvs": [search_row()]}, "DevOps")[0]
+    job = EuresSource.enrich(job, details(locations=[
+        {"countryCode": "de", "cityName": "Berlin"},
+        {"countryCode": "DE", "cityName": " Berlin "},
+    ]))
+
+    assert job.country == "DE"
+    assert job.city == "Berlin"
+    assert job.raw["location_resolution"] == "eures_multiple_locations_same_city_country"
+
+
 def test_search_request_filters_for_cross_border_vacancies():
     request = EuresSource.request_payload("DevOps")
     assert request["keywords"] == [{"keyword": "DevOps", "specificSearchCode": "EVERYWHERE"}]

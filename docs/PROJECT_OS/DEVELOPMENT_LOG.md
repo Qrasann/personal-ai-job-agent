@@ -3041,3 +3041,7 @@ EURES now annotates country evidence from search `locationMap` and structured co
 ## 2026-10-19 — compact job-list country rendering
 
 Fixed `render_jobs_list` reading an undefined details payload after the country-name display update; job-list rows use the available normalized job location. Added country-only Malta regression. Telegram navigation/vacancy, Remotive, EURES and geo suites: 157 passed. Draft PR #56 exact-head CI `39295243444` passed all required checks.
+
+## 2026-10-19 — conservative EURES multi-location resolution
+
+EURES detail data no longer selects the first location from a multi-location vacancy. A single country is retained only when every structured location confirms it; a city is retained only when every location agrees on one usable city. Mixed/malformed evidence stays unknown. Added three focused regressions; EURES/geo/IHE/industry exclusion tests: 118 passed. Exact branch CI for preceding docs checkpoint `0fea880` remains in progress; no runtime/data changes.
