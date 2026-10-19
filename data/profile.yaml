@@ -11,6 +11,7 @@ search:
     - DevOps Engineer
     - Infrastructure Engineer
     - Linux Administrator
+    - Site Reliability Engineer
   relocation_queries:
     - warehouse worker
     - production worker
@@ -84,6 +85,7 @@ candidate:
     - DevOps Engineer
     - Infrastructure Engineer
     - Linux Administrator
+    - Site Reliability Engineer
   english: B1 # Current self-assessed general working English level.
   technical_reading_english: B2 # Historical technical-reading estimate only; not a speaking/interview score.
   hh_resume_id: null

@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-20 Search Quality IT/Any Job query lanes
+- Career-first keeps only its configured DevOps/Infrastructure/Linux/SRE queries. Relocation-first no longer loses the IT track when broader Any Job roles are configured: it alternates IT and Any Job queries so bounded adapters receive both, with normalized duplicate removal.
+- The default Career-first list now explicitly includes Site Reliability Engineer. Match Score, thresholds and hiring-evidence rules did not change; missing visa/sponsorship/relocation evidence remains unknown.
+- Focused and related offline suites: 147 passed. The unchanged private 60-post sample remains 18 non-vacancies, 42 candidates, 1 Good and 41 filtered; per-profile measurement is Career-first 1 Good/41 filtered and Relocation-first 1 Good/41 filtered. No private artifact, network, database, production runtime, notification or application was used.
+
 ## 2026-10-20 Telegram pilot offline yield
 - The existing private mode-0600 artifacts validate as 60 real posts, exactly 20 from each owner-approved channel; the stored analysis reproduces under the current offline analyzer without Telegram, network, database or notifications.
 - Manual review found 18 candidate resumes whose explicit `#резюме` tag followed channel publisher/discussion metadata. They had produced all 16 apparent Good/Stretch rows. The bounded header classifier now rejects those explicit candidate tags without treating later vacancy instructions mentioning resumes as non-vacancies.

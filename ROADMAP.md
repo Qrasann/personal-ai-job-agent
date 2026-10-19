@@ -1,5 +1,9 @@
 # Roadmap
 
+## Search Quality query-lane increment — 2026-10-20
+
+Career-first remains a dedicated DevOps/Infrastructure/Linux/SRE lane. Relocation-first now keeps both configured IT queries and broader Any Job queries by alternating the two lists before bounded source adapters consume them; case-insensitive duplicates do not spend another request slot. The checked-in defaults now name Site Reliability Engineer explicitly. This changes discovery coverage, not Match Score, thresholds or evidence semantics: absent visa, sponsorship and relocation evidence remains unknown. On the unchanged private offline Telegram sample, both profiles were measured separately and the aggregate stayed 18 non-vacancies / 42 vacancy candidates / 1 Good / 41 filtered.
+
 ## Current owner execution priorities — 2026-10-18
 
 ### Owner correction — 2026-10-19

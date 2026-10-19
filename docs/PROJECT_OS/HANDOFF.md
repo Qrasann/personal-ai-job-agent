@@ -1,5 +1,11 @@
 # Handoff
 
+## Current checkpoint — Search Quality IT/Any Job query lanes (2026-10-20)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `95b4c9c`. A red regression showed that Relocation-first discarded the configured IT query list whenever broader `relocation_queries` existed. Working code leaves Career-first dedicated to DevOps/Infrastructure/Linux/SRE and alternates normalized IT + Any Job roles for Relocation-first, so bounded adapters receive both tracks; cross-list duplicates consume one slot. The checked-in defaults now explicitly include Site Reliability Engineer. Match Score, thresholds, geography and evidence semantics are unchanged, and absent visa/sponsorship/relocation evidence remains unknown.
+
+Focused query/default/pilot suites: 94 passed. Related Candidate Fit/settings/bootstrap suites: 53 passed. Compileall, secret scan and `git diff --check` passed. The unchanged private mode-0600 60-post sample was read only and still yields 18 non-vacancies, 42 vacancy candidates, 1 Good and 41 filtered; separate profile counts are Career-first 1 Good/41 filtered and Relocation-first 1 Good/41 filtered. No post body was printed and no private artifact, network, database, production runtime, notification, application or employer message was touched. One broader scan test entered its existing database-dependent path in the available borrowed environment and was stopped without claiming a result; no persistence code changed. Git metadata remains outside the writable sandbox, so no local checkpoint was attempted. Next: checkpoint from a session with writable Git metadata, then resume measured false-negative/source usefulness review without changing score thresholds.
+
 ## Current checkpoint — Telegram pilot offline false-positive correction (2026-10-20)
 
 Branch `wip/telegram-pilot-20261019`, starting HEAD `5ecd233`. Recovery-context was verified without printing private post bodies: private `pilot-sample.json` and `pilot-analysis.json` exist with mode 0600; the sample passes the approved-channel contract with 60 posts, exactly 20 per channel, and the stored analysis matches a fresh offline recomputation. Do not reauthorize Telegram or request credentials.

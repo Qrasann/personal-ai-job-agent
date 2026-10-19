@@ -94,7 +94,6 @@ def _profile(profile_path: Path) -> tuple[list[CandidateFact], tuple[SearchProfi
     })
     relocation = SearchProfile(id=2, profile_id=1, name="Relocation-first", kind="employment", settings={
         **common,
-        "queries": source.get("relocation_queries") or source.get("queries") or [],
         "search_strategy": "relocation_first",
     })
     return facts, (career, relocation)

@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-20 — Search Quality IT/Any Job query lanes
+- [x] Reproduce that Relocation-first discarded all configured IT queries whenever Any Job relocation roles existed, while Career-first correctly remained on its own role list.
+- [x] Alternate normalized IT and Any Job queries for Relocation-first so bounded adapters retain both tracks; leave Career-first dedicated to DevOps/Infrastructure/Linux/SRE and add the missing explicit SRE default.
+- [x] Preserve unknown visa, sponsorship and relocation evidence and leave scoring/thresholds unchanged.
+- [x] Run focused/related offline regressions (94 + 53 passed) and remeasure the unchanged private sample by profile: both profiles 1 Good / 41 filtered; aggregate 18 non-vacancies / 42 candidates / 1 Good / 41 filtered.
+
 ## 2026-10-19 — employer policy documentation reconciliation
 - [x] Compare the owner-approved policy with shared matching, legacy scoring and focused regressions; do not change the implemented ALLOW/WARN/BLOCK semantics.
 - [x] Remove current documentation claims that Betsson is hard-filtered by legacy betting/gambling blacklist terms or still uses assessment version 2.

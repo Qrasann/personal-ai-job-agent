@@ -55,30 +55,55 @@ def search_strategy(settings: dict | None) -> str:
     return value if value in SEARCH_STRATEGIES else "balanced"
 
 
+def _unique_queries(values: list[str], *, exclude: set[str] | None = None) -> list[str]:
+    selected: list[str] = []
+    seen = set(exclude or ())
+    for value in values:
+        key = _norm_text(value)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        selected.append(value)
+    return selected
+
+
+def _interleave_queries(first: list[str], second: list[str]) -> list[str]:
+    selected: list[str] = []
+    for index in range(max(len(first), len(second))):
+        if index < len(first):
+            selected.append(first[index])
+        if index < len(second):
+            selected.append(second[index])
+    return selected
+
+
 def discovery_queries(settings: dict | None, fallback: str = "") -> list[str]:
     """Return a stable, deduplicated query list for the selected strategy.
 
     Existing ``queries`` remain the career track for backwards compatibility.
-    A relocation-only track falls back to them until the user explicitly adds
-    broader relocation roles, so changing strategy can never disable discovery.
+    Relocation-first alternates career/IT and broader relocation roles so
+    bounded adapters retain at least one request slot for each configured
+    track. A missing broader track still falls back to career discovery.
     """
     cfg = search_config(settings)
-    career = [str(item).strip() for item in _list(cfg.get("queries")) if str(item).strip()]
+    career = _unique_queries([
+        str(item).strip() for item in _list(cfg.get("queries")) if str(item).strip()
+    ])
     if not career and fallback.strip():
         career = [fallback.strip()]
-    relocation = [
+    relocation = _unique_queries([
         str(item).strip()
         for item in _list(cfg.get("relocation_queries"))
         if str(item).strip()
-    ]
+    ], exclude={_norm_text(item) for item in career})
     strategy = search_strategy(cfg)
     if strategy == "career_first":
         selected = career
     elif strategy == "relocation_first":
-        selected = relocation or career
+        selected = _interleave_queries(career, relocation) if relocation else career
     else:
         selected = career + relocation
-    return list(dict.fromkeys(selected))
+    return selected
 
 
 def source_enabled(settings: dict | None, source_id: str) -> bool:

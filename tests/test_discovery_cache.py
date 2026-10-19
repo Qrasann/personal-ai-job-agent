@@ -351,7 +351,7 @@ def test_scan_uses_each_search_profile_independently(monkeypatch):
 
     summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
 
-    assert contexts == [["SRE"], ["warehouse"]]
+    assert contexts == [["SRE"], ["SRE", "warehouse"]]
     assert matched_searches == [11, 12]
     assert set(summary["searches"]) == {"11", "12"}
 
