@@ -67,6 +67,11 @@ def test_terms_section_links_allowlisted_official_mobility_references():
         "AM": ("workpermit.am/en/home", 1),
         "DE": ("make-it-in-germany.com/en/looking-for-foreign-professionals", 1),
         "GE": ("sda.gov.ge/en/products/migration-residence-permits", 2),
+        "MT": (
+            "identita.gov.mt/expatriates-unit-main-page/noneu-nationals/"
+            "employment-related-permits/single-permit",
+            1,
+        ),
     }
     for country, (url_fragment, link_count) in cases.items():
         terms = render_job_section(_payload(country=country), "terms")

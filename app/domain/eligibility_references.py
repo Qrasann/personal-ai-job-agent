@@ -44,6 +44,14 @@ _REFERENCES: dict[str, tuple[OfficialEligibilityReference, ...]] = {
             _CHECKED_AT,
         ),
     ),
+    "MT": (
+        OfficialEligibilityReference(
+            "Identità — Expatriates Unit",
+            "Single permit — official Malta guidance",
+            "https://identita.gov.mt/expatriates-unit-main-page/noneu-nationals/employment-related-permits/single-permit/",
+            _CHECKED_AT,
+        ),
+    ),
 }
 
 

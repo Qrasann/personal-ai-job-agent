@@ -19,6 +19,7 @@
 - [x] Expand Employer Career Watch with Betsson's verified current public Greenhouse DevOps opening; preserve unknown hiring/support evidence.
 - [x] Resolve exact country-only ATS office labels to country with no fabricated city and distinct provenance; retain code/Georgia ambiguity as unknown.
 - [x] Carry reviewed Betsson betting/gambling industry metadata through source-ref projection so active betting/gambling exclusions return `skip`/filtered before notification lanes.
+- [x] Add an official Malta Identità single-permit starting link to Telegram hiring terms; informational only, displayed for normalized MT vacancies.
 - [x] Add allowlisted, dated official AM/DE/GE mobility starting links to Telegram hiring terms; these links are informational only and do not assess candidate eligibility. Recheck links periodically.
 - [x] Recognize generic explicit `Work authorization required` / `Work permit required` vacancy statements without collapsing them into employer sponsorship; preserve explicit negation and unknown states.
 - [x] Recognize source clauses requiring the candidate to be legally authorized or eligible to work, retaining their posting excerpt and not inferring sponsorship or candidate-specific legal eligibility.

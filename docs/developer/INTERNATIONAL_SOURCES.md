@@ -376,6 +376,7 @@
 - Armenia: [Migration and Citizenship Service — Workpermit.am](https://workpermit.am/en/home).
 - Germany: [Federal Government — Make it in Germany work visa information](https://www.make-it-in-germany.com/en/looking-for-foreign-professionals/entering/german-work-visa).
 - Georgia: [Public Service Development Agency — migration and work residence permits](https://sda.gov.ge/en/products/migration-residence-permits/) and [Georgian Embassy to Norway — employment rules update](https://norway.mfa.gov.ge/en/news/929284-new-rules-for-the-employed-self-employed-aliens-with-no-permit-for-permanent-residence-in-georgia-sh).
+- Malta: [Identità — Single Permit guidance](https://identita.gov.mt/expatriates-unit-main-page/noneu-nationals/employment-related-permits/single-permit/).
 - Telegram `/job` hiring terms may show these allowlisted starting links only when the vacancy already has that normalized country. The date is the link-review date, not a determination that a rule applies to a candidate or vacancy. Recheck official destinations periodically; the owner must verify their own circumstances and current requirements.
 
 - Do not infer citizenship or work rights from a candidate's current country.

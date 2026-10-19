@@ -3025,3 +3025,7 @@ Country-only ATS location evidence now also carries distinct `provider_location_
 The public Betsson ATS posting itself omits `betting`, `gambling` and `casino`, so text-only exclusions did not catch it. Added reviewed `betting`/`gambling` industry tags to the employer catalog, preserved them in source-ref raw data, projected them to the selected source posting, and included them only in hard exclusion matching. With an active `betting` or `gambling` term, the result is `fit=skip` and `_match_lane=filtered`, before Good/Stretch counters or notification eligibility. Bumped match assessment version to 2. Targeted employer, source-posting, geography, eligibility and matcher tests: 133 passed. No production/runtime/DB changes.
 
 The existing review/status/scoring/notification regressions also pass after the required assessment-version bump: 87 passed, 3 skipped. One test had a literal old version expectation and now reads `services.MATCH_ASSESSMENT_VERSION`. Together with the 133 focused Employer/geo/IHE/matcher tests, this validates the new exclusion and the refresh/review lane.
+
+## 2026-10-19 — add official Malta eligibility starting link
+
+Verified Identità's current Single Permit guidance and added it to the Telegram hiring-terms allowlist for normalized MT vacancies. The link is a dated informational starting point, not a candidate eligibility decision. Compact vacancy, relocation-evidence and Arbeitnow regressions: 59 passed. No personal data, database or runtime change.
