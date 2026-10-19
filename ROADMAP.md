@@ -22,6 +22,8 @@ The focused employer-policy regressions now verify Russian military/direct-war/d
 
 IHE parser increment: recognize explicit existing work authorization/authorisation requirements including must hold/possess forms. Conditional “may be required”, explicit negation and help/support offers remain distinct. Focused support, Job Bank, relocation and notice tests: 143 passed.
 
+Job Bank location parser additionally accepts supported full Canadian province/territory names as well as codes, without inferring a city from remote, multi-location or ambiguous labels. Source tests: 42 passed.
+
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
 
 The existing Web GUI MVP is frozen. Preserve its code, tests and browser-acceptance evidence; make no further redesign or feature expansion unless the owner changes direction. Only critical security and data-correctness fixes may interrupt this freeze. Telegram Mini App work is deferred behind the priorities below.

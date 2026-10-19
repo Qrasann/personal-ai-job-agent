@@ -59,10 +59,17 @@ def test_search_keeps_ambiguous_or_remote_jobbank_location_city_unknown(location
     assert item.raw["location_resolution"] is None
 
 
-@pytest.mark.parametrize("location,expected", [("Ottawa, ON", "Ottawa"), ("Vancouver (BC)", "Vancouver"), ("St. John's (NL)", "St. John's")])
-def test_search_resolves_single_city_with_official_province_code(location, expected):
+@pytest.mark.parametrize("location,expected,resolution", [
+    ("Ottawa, ON", "Ottawa", "jobbank_city_province_code"),
+    ("Vancouver (BC)", "Vancouver", "jobbank_city_province_code"),
+    ("St. John's (NL)", "St. John's", "jobbank_city_province_code"),
+    ("Toronto, Ontario", "Toronto", "jobbank_city_province_name"),
+    ("St. John's, Newfoundland and Labrador", "St. John's", "jobbank_city_province_name"),
+])
+def test_search_resolves_single_city_with_official_province_evidence(location, expected, resolution):
     item = JobBankSource.parse_search(SEARCH.replace("Location Toronto (ON)", f"Location {location}"))[0]
     assert item.city == expected
+    assert item.raw["location_resolution"] == resolution
 
 
 def test_lmia_request_is_not_sponsorship_or_work_permit_support():

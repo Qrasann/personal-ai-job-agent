@@ -26,6 +26,10 @@ Added regressions that structured Russian military, direct-war and direct-govern
 
 Expanded the shared existing-work-authorization prerequisite matcher for British/American spelling and explicit candidate requirements to hold/possess a permit/authorization. Conditional, negated and employer-support statements remain non-prerequisites. Support, Job Bank, relocation evidence, direct visa support and notification regression suite: 143 passed.
 
+## 2026-10-19 — Job Bank full province labels
+
+Job Bank city resolution now accepts either a recognized province/territory code or its official full name, preserving which evidence form was used. The source tests, including remote/multiple/ambiguous labels, pass 42/42.
+
 ## 2026-10-19 — owner employer preference policy
 
 Replaced the previous industry-wide betting/gambling ban with central exact-employer and structured-category ALLOW/WARN/BLOCK decisions, wired into shared matching and the legacy scoring adapter. Added exact Alabuga/Voentorg identities, defaults for Russian military/defense, verified direct-war and direct-government tags, and all-profile `/employerpolicy` overrides. Betting/casino and civilian state-owned companies remain eligible; crypto/Web3 warns into Stretch unless the user explicitly allows the employer/category. Legacy stored sector blacklist terms no longer suppress jobs. Expanded matching/review/notification suites: 227 passed, 3 skipped; exact-head CI pending. Runtime and production settings untouched.
