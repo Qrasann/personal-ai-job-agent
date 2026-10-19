@@ -77,6 +77,14 @@ def selected_channels(config: dict, inventory: list[dict]) -> dict[int, dict]:
     return selected
 
 
+async def connect_authorized_client(client) -> None:
+    """Connect an existing Telethon session without starting an auth flow."""
+    await client.connect()
+    if not await client.is_user_authorized():
+        await client.disconnect()
+        raise RuntimeError("Existing Telegram session is not authorized; no login was attempted")
+
+
 def load_local_config(path: Path) -> dict:
     if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
         raise ValueError("Folder configuration must be a private regular file (mode 0600)")

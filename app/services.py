@@ -38,6 +38,7 @@ from app.sources.adapters.greenhouse import GreenhouseSource
 from app.sources.adapters.lever import LeverSource
 from app.sources.adapters.smartrecruiters import SmartRecruitersSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
+from app.sources.adapters.employer_career_watch import EmployerCareerWatchSource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
 from app.sources.network_errors import TRANSPORT_ERROR_TYPES, transport_failure_category
@@ -523,6 +524,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(JobsGESource())
         if "hr_ge" in source_ids:
             adapters.append(HRGESource())
+        if "employer_career_watch" in source_ids:
+            adapters.append(EmployerCareerWatchSource())
         adapters.sort(key=lambda item: source_priority(settings_map, item.source_id), reverse=True)
 
         semaphore = asyncio.Semaphore(DISCOVERY_CONCURRENCY)

@@ -6,9 +6,35 @@ from types import SimpleNamespace
 import pytest
 
 from app.sources.telegram_folder_user import (
-    folder_inventory, folder_slug, load_cursors, load_local_config,
+    connect_authorized_client, folder_inventory, folder_slug, load_cursors, load_local_config,
     poll_channel, sampled_posts, save_cursors, save_private_json, selected_channels,
 )
+
+
+def test_existing_session_guard_never_starts_login_flow():
+    class FakeClient:
+        def __init__(self, authorized):
+            self.authorized = authorized
+            self.connected = False
+            self.disconnected = False
+
+        async def connect(self):
+            self.connected = True
+
+        async def is_user_authorized(self):
+            return self.authorized
+
+        async def disconnect(self):
+            self.disconnected = True
+
+    unauthorized = FakeClient(False)
+    with pytest.raises(RuntimeError, match="no login was attempted"):
+        asyncio.run(connect_authorized_client(unauthorized))
+    assert unauthorized.connected and unauthorized.disconnected
+
+    authorized = FakeClient(True)
+    asyncio.run(connect_authorized_client(authorized))
+    assert authorized.connected and not authorized.disconnected
 
 
 def test_folder_slug_accepts_only_exact_telegram_folder_link():

@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-19 — Telegram pilot and Employer Career Watch integration
+
+- [x] Require an existing authorized MTProto session before probe/sample/watch; fail without initiating login.
+- [x] Integrate the 14 owner-reviewed official employer openings into common discovery, retaining provider/source provenance and unknown eligibility/location evidence.
+- [ ] Run the bounded read-only sample for exactly `@devops_jobs_feed`, `@itjobsgeorgia`, `@vgrecruitingit` and analyze results when local API ID/hash are available; never write to production DB or notify.
+- [ ] Confirm the startup-policy plan before changing only AI Job Agent systemd and Docker restart policies; preserve `jobbot` manual controls and all data/volumes.
+- [ ] Continue Job Location Intelligence, International Hiring Eligibility, confirmed Applicant Count capture, compact Telegram UX, and safe future rollout/re-scoring of old Good.
+
 ## 2026-10-19 — Telegram UX & Vacancy Intelligence
 
 - [x] Replace the default `/scanstatus` source dump with one compact Good/Stretch/new/source-health summary; retain sanitized per-source/profile diagnostics behind an inline button and edit the same message.

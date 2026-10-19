@@ -10,6 +10,9 @@ import yaml
 
 from app.sources.employer_watch import probe_employer, probe_watchlist
 from app.sources.employer_watchlist import load_employer_watchlist
+from app.sources.adapters.employer_career_watch import EmployerCareerWatchSource
+from app.sources.base import SourceContext
+from app.sources.registry import build_source_plan, source_capabilities
 
 
 def test_curated_watchlist_has_realistic_bounded_pilot() -> None:
@@ -41,6 +44,30 @@ def test_priority_openings_and_unknown_eligibility_are_explicit() -> None:
         for opening in rows.values()
         for evidence in (opening.work_authorization, opening.visa_sponsorship, opening.relocation)
     )
+
+
+def test_employer_watch_is_a_global_common_search_source_with_provenance() -> None:
+    plan = next(item for item in build_source_plan("RU", ["GE"]) if item.source_id == "employer_career_watch")
+    assert plan.implemented and plan.scope == "global"
+    assert source_capabilities("employer_career_watch").discovery
+    assert not source_capabilities("employer_career_watch").apply
+
+    context = SourceContext(user_id=1, current_country="RU", target_countries=["GE"], queries=["SRE"])
+    jobs = asyncio.run(EmployerCareerWatchSource().discover(context))
+    watchlist = load_employer_watchlist()
+    expected = sum(len(item.openings) for item in watchlist.employers if item.enabled)
+    assert len(jobs) == expected == 14
+    for job in jobs:
+        employer_id, provider_id = job.source_job_id.split(":", 1)
+        employer = next(item for item in watchlist.employers if item.id == employer_id)
+        opening = next(item for item in employer.openings if item.provider_id == provider_id)
+        assert job.url == opening.url
+        assert job.raw["provider_id"] == provider_id
+        assert job.raw["catalog_verified_at"] == watchlist.verified_at.isoformat()
+        assert job.country is None and job.city is None
+        assert job.raw["visa_sponsorship_evidence"] == "unknown"
+        assert job.raw["work_authorization_evidence"] == "unknown"
+        assert job.raw["relocation_evidence"] == "unknown"
 
 
 def test_watchlist_rejects_unreviewed_api_endpoint(tmp_path: Path) -> None:

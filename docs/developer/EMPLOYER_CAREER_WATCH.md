@@ -33,10 +33,11 @@ the official public response. A changed or unavailable result requires manual
 review before the catalog is refreshed; it must not silently become a confirmed
 closure or eligibility refusal.
 
-Current integration boundary: this checkpoint establishes a validated catalog
-and reproducible official-source freshness check. New multi-employer jobs are
-not yet ingested. The next gate is to normalize selected current entries through
-the existing source pipeline, retaining employer/provider identity and using
-the existing canonical fingerprint so an equivalent Telegram post deduplicates
-against the official posting. Existing single-company adapters remain unchanged
-until that path has regression coverage.
+Common-search integration: `EmployerCareerWatchSource` exposes the 14 entries
+in the owner-reviewed catalog to the existing scan pipeline. Each normalized
+job retains employer/provider identity, official URL, source location, and the
+catalog verification date. Country/city and hiring eligibility remain unknown
+unless supported by posting evidence. The adapter does not claim freshness
+beyond the catalog's `verified_at` date and does not alter existing single-
+company adapters. Canonical job deduplication remains the repository's existing
+cross-source behavior.

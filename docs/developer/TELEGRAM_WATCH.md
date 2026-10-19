@@ -2,6 +2,13 @@
 
 ## Optional Telegram folder user client (offline-tested; live acceptance pending)
 
+Current bounded pilot selection: `@devops_jobs_feed`, `@itjobsgeorgia` and
+`@vgrecruitingit` are owner-checked and enabled in the private inventory. The
+sample is limited to 20 recent posts per selected channel. The runner requires
+an existing authorized session and exits before any login prompt if it is
+missing or unauthorized. API ID/hash must be supplied locally when absent from
+the shell; never place them in command history, tracked files or logs.
+
 The private folder intake uses Telegram's official `chatlists.checkChatlistInvite`
 preview through optional Telethon 1.x. It does not import the folder, join chats,
 send user-account messages, or read private conversations. Install locally with

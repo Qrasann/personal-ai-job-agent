@@ -20,7 +20,7 @@ class SourcePlan:
     url: str | None = None
 
 
-IMPLEMENTED = {"hh", "remoteok", "himalayas", "remotive", "arbeitnow", "jobbank", "eures", "greenhouse", "lever", "smartrecruiters", "telegram", "jobs_ge", "hr_ge"}
+IMPLEMENTED = {"hh", "remoteok", "himalayas", "remotive", "arbeitnow", "jobbank", "eures", "greenhouse", "lever", "smartrecruiters", "telegram", "jobs_ge", "hr_ge", "employer_career_watch"}
 
 
 def build_source_plan(current_country: str | None, target_countries: list[str], *, include_international: bool = True) -> list[SourcePlan]:
@@ -65,6 +65,17 @@ def build_source_plan(current_country: str | None, target_countries: list[str], 
                 available=src.get("available", True) is not False,
                 availability_note=src.get("availability_note"),
             )
+    # Owner-reviewed employer openings are a global curated source, independent
+    # of country catalog membership. The adapter preserves unknown geography and
+    # eligibility evidence rather than deriving either from the watchlist scope.
+    plans["employer_career_watch"] = SourcePlan(
+        source_id="employer_career_watch",
+        name="Employer Career Watch",
+        scope="global",
+        transport="curated_catalog",
+        capability="discovery",
+        implemented=True,
+    )
     return list(plans.values())
 
 
