@@ -36,7 +36,7 @@
 - [x] Record common-pipeline exclusion reasons on the rerun: Career-first 55 technical-gap / 28 fit-skip / 2 geography-gap; Relocation-first 62 technical-gap / 23 fit-skip. Neither lane produced Good/Stretch in this sample.
 - [x] Add conservative Job Location Intelligence for exact supported `City, Country` labels in official ATS location fields; preserve unknown for remote/regional, multi-location and ambiguous US-state text.
 - [x] Reuse exact city/country parsing for explicit non-remote Arbeitnow location labels; preserve source location and resolution evidence, keep remote locations unknown.
-- [ ] Confirm exact-head CI for Draft PR #56 (`0f90ea8`); keep Draft until the isolated Telegram sample is analyzed.
+- [ ] Confirm exact-head CI for Draft PR #56 (`e81e4f6`, run `39304245905`); keep Draft until the isolated Telegram sample is analyzed.
 - [ ] Run the bounded read-only sample for exactly `@devops_jobs_feed`, `@itjobsgeorgia`, `@vgrecruitingit` and analyze results when local API ID/hash are available; never write to production DB or notify.
 - [ ] Manual-start service policy is out of scope under the current owner boundary; do not change system services unless the owner separately authorizes it. Preserve `jobbot` manual start/status/logs.
 - [ ] Extend Job Location Intelligence to other trusted source formats and country/city evidence with regressions.
