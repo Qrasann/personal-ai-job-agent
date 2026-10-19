@@ -60,6 +60,17 @@ def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
     assert jobs[0].published_at == "2026-10-11T00:00:00+00:00"
 
 
+def test_arbeitnow_splits_explicit_city_country_location_label():
+    job = ArbeitnowSource.parse_payload({"data": [{
+        "slug": "city-country-1", "title": "DevOps Engineer",
+        "location": "Berlin, Germany", "remote": False,
+    }]}, SourceContext(user_id=1, queries=["DevOps"]))[0]
+
+    assert (job.city, job.country) == ("Berlin", "DE")
+    assert job.raw["source_location"] == "Berlin, Germany"
+    assert job.raw["location_resolution"] == "provider_location_city_country"
+
+
 def test_arbeitnow_remote_free_form_location_does_not_confirm_work_country():
     payload = {"data": [{
         "slug": "remote-1", "title": "DevOps Engineer", "location": "Worldwide",

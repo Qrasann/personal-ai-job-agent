@@ -7,6 +7,7 @@ import httpx
 
 from app.domain.job_text import clean_html_text
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.geo.locations import parse_city_country
 from app.domain.remote_evidence import remote_location_restriction
 from app.domain.support_evidence import support_evidence
 from app.domain.vacancy_availability import source_datetime
@@ -72,6 +73,10 @@ class ArbeitnowSource(JobSource):
             support = support_evidence(f"{title}\n{description}")
             published = source_datetime(row.get("created_at"))
             remote = row.get("remote") is True
+            location = str(row.get("location") or "").strip()
+            parsed_city, parsed_country = parse_city_country(location) if not remote else (None, None)
+            physical_country = None if remote else parsed_country or "DE"
+            city = None if remote else parsed_city or location or None
             jobs.append(
                 NormalizedJob(
                     source=ArbeitnowSource.source_id,
@@ -82,15 +87,16 @@ class ArbeitnowSource(JobSource):
                     url=str(row.get("url") or ""),
                     # A remote posting's free-form location may be an office
                     # or scope label, not the employee's work country.
-                    country=None if remote else "DE",
-                    city=None if remote else str(row.get("location") or "") or None,
+                    country=physical_country,
+                    city=city,
                     work_mode="remote" if remote else "onsite",
                     remote_scope=remote_location_restriction(row.get("location")) if remote else None,
                     relocation=support["relocation"],
                     visa_sponsorship=support["visa_sponsorship"],
                     skills=tags,
                     published_at=published.isoformat() if published else None,
-                    raw={**row, "source_location": row.get("location")},
+                    raw={**row, "source_location": location or None,
+                         "location_resolution": "provider_location_city_country" if parsed_country else None},
                 )
             )
         return jobs

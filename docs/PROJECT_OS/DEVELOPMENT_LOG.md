@@ -2990,3 +2990,7 @@ The isolated PostgreSQL review-flow test now confirms the version marker round-t
 ## 2026-10-19 — preserve explicit legal work-authorization clauses
 
 The eligibility evidence parser previously left `must be legally authorized to work` and `must be eligible to work` as unknown. These explicit source clauses now populate the existing authorization-requirement evidence with the original excerpt; no sponsorship or candidate-specific legal conclusion follows. Relocation-evidence, remote-evidence and RemoteOK tests: 98 passed; compileall, diff check and secret scan passed.
+
+## 2026-10-19 — normalize explicit Arbeitnow city/country labels
+
+The official source adapter now splits a simple supported `City, Country` label on non-remote posts into normalized city/country fields and preserves the original label plus resolution provenance. Existing plain city values are unchanged; remote location stays unknown. Arbeitnow, geo and employer ATS tests: 39 passed; compileall, diff check and secret scan passed.
