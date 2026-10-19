@@ -8,8 +8,9 @@ from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
 from app.domain.role_text import role_tokens
 from app.matching.technical_score import score_technical_v2
 from app.matching.recommendation import build_recommendation_breakdown
-from app.search.preferences import discovery_queries
+from app.search.preferences import discovery_queries, search_strategy
 
+# Bump whenever score, fit-lane, cap, or exclusion semantics change.
 MATCH_ASSESSMENT_VERSION = 1
 
 
@@ -262,6 +263,27 @@ def non_actionable_role_reason(job: Job) -> str | None:
     return None
 
 
+def _career_role_scope_reason(job: Job, settings: dict) -> str | None:
+    """Exclude measured end-user support/management false Goods on Career-first."""
+    if search_strategy(settings) != "career_first":
+        return None
+    title = (job.title or "").casefold()
+    target_engineering = re.search(
+        r"\b(?:devops|sre|site reliability|infrastructure|platform engineer)\b", title
+    )
+    outside_roles = (
+        (r"\b(?:desktop|workstation)\b.*\bsupport\b|\b(?:help|service)\s*desk\b",
+         "роль пользовательской поддержки вне Career-first"),
+        (r"\bengineering manager\b", "управленческая инженерная роль вне Career-first"),
+    )
+    if target_engineering:
+        return None
+    for pattern, reason in outside_roles:
+        if re.search(pattern, title):
+            return reason
+    return None
+
+
 def _best_skill_experience(facts: list[CandidateFact], aliases: tuple[str, ...]) -> str:
     rank = {"missing": 0, "learning": 1, "unknown": 2, "lab": 3, "commercial": 4}
     best = "missing"
@@ -442,6 +464,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     non_actionable_reason = non_actionable_role_reason(job)
     if non_actionable_reason:
         fit = "skip"
+    career_scope_reason = _career_role_scope_reason(job, settings)
+    if career_scope_reason:
+        fit = "skip"
     experience_fit, experience_reason = _experience_fit(job, facts)
     if experience_fit == "stretch" and fit == "good":
         fit = "stretch"
@@ -543,6 +568,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
 
     if non_actionable_reason:
         total = min(total, 58)
+    if career_scope_reason:
+        total = min(total, 58)
 
 
     # In rule-only fallback mode, obvious senior roles must not slip above the
@@ -569,6 +596,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append(seniority_reason)
     if non_actionable_reason:
         bits.append(non_actionable_reason)
+    if career_scope_reason:
+        bits.append(career_scope_reason)
     if experience_reason:
         bits.append(experience_reason)
     if management_gap:

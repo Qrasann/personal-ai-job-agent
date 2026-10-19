@@ -436,6 +436,41 @@ def test_score_job_classifies_good_stretch_and_skip():
     assert score_job(high_exp, _search(), facts, []).fit == "skip"
 
 
+def test_career_first_filters_measured_desktop_support_and_engineering_manager_false_goods():
+    facts = [_fact("Linux", "commercial", fact_id=101), _fact("Docker", "commercial", fact_id=102)]
+    search = _search()
+    search.settings["search_strategy"] = "career_first"
+    search.settings["queries"] = ["Linux"]
+    for index, title in enumerate((
+        "Linux Desktop Support Engineer",
+        "Dedicated Linux Desktop & Devices Support Engineer",
+        "Engineering Manager - Linux Hardware Enablement",
+    )):
+        job = Job(fingerprint=f"career-role-scope-{index}", title=title,
+                  company="ACME", description="Linux Docker", country="RU")
+        result = score_job(job, search, facts, [])
+        assert result.fit == "skip"
+        assert result.total_score <= 58
+        assert "вне Career-first" in result.reason
+
+    devops = Job(fingerprint="career-role-scope-devops", title="DevOps Desktop Support Engineer",
+                 company="ACME", description="Linux Docker", country="RU")
+    assert score_job(devops, search, facts, []).fit != "skip"
+
+
+def test_career_role_scope_filter_does_not_remove_relocation_first_support_jobs():
+    search = _search()
+    search.settings["search_strategy"] = "relocation_first"
+    search.settings["queries"] = ["Linux"]
+    job = Job(fingerprint="relocation-desktop-support", title="Linux Desktop Support Engineer",
+              company="ACME", description="Linux Docker", country="DE")
+
+    result = score_job(job, search, [_fact("Linux", "commercial", fact_id=103)], [])
+
+    assert result.fit != "skip"
+    assert "вне Career-first" not in result.reason
+
+
 def test_explicit_volunteer_title_stays_visible_but_is_not_good():
     job = Job(
         fingerprint="volunteer-devops",
