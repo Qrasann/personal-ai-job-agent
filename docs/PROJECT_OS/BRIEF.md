@@ -3,6 +3,7 @@
 ## 2026-10-19 incremental eligibility UX
 - Telegram hiring terms now have a bounded implementation slice for dated official mobility starting links (AM/DE/GE), shown only for a vacancy with that normalized country. Links do not determine candidate eligibility; broader source-specific citizenship, residence, authorization and sponsorship evidence remains P0 work. See current `HANDOFF.md` and `docs/developer/INTERNATIONAL_SOURCES.md`.
 - International Hiring Eligibility extraction also recognizes direct candidate-scope prerequisites (“only candidates … authorized to work” / “applicants with an existing work permit”) with the exact excerpt. Negated “not only” wording, explicit no-permit requirements and sponsorship offers remain distinct; this is posting-text classification, not a legal determination.
+- Employer Career Watch now includes Betsson Group's verified public Greenhouse opening `8200701` in Malta (13 employers / 15 reviewed openings). Work authorization, sponsorship and relocation stay unknown; this adds a genuine platform/DevOps source for common search without implying candidate eligibility.
 
 ## Current owner priority — search, relocation and offers (2026-10-18)
 - Standing execution mode is MAXIMUM TOKEN ECONOMY: one Main agent by default, targeted context/tests first, Fast/Deep only when total delegation cost is justified, and no repeated unchanged full-suite hang. This optimizes token/context use, never required safety or quality gates; account quotas are not claimed unless directly exposed.

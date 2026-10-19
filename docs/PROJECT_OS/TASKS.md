@@ -16,6 +16,7 @@
 - [ ] Extend Job Location Intelligence to other trusted source formats and country/city evidence with regressions.
 - [ ] Continue International Hiring Eligibility evidence handling without legal conclusions; verified official references and separate citizenship/residence/work-authorization/sponsorship fields remain open.
 - [x] Recognize explicit candidate-scoped existing-work-authorization prerequisites and preserve the source excerpt; distinguish negated “not only” prose.
+- [x] Expand Employer Career Watch with Betsson's verified current public Greenhouse DevOps opening; preserve unknown hiring/support evidence.
 - [x] Add allowlisted, dated official AM/DE/GE mobility starting links to Telegram hiring terms; these links are informational only and do not assess candidate eligibility. Recheck links periodically.
 - [x] Recognize generic explicit `Work authorization required` / `Work permit required` vacancy statements without collapsing them into employer sponsorship; preserve explicit negation and unknown states.
 - [x] Recognize source clauses requiring the candidate to be legally authorized or eligible to work, retaining their posting excerpt and not inferring sponsorship or candidate-specific legal eligibility.

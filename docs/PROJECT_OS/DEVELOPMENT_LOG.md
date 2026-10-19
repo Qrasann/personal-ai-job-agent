@@ -3009,3 +3009,7 @@ Added a country allowlist of dated official starting links for Armenia, Germany 
 ## 2026-10-19 — candidate-scoped existing work authorization
 
 International Hiring Eligibility now recognizes explicit requirements that applicants already hold authorization, including “only candidates … authorized to work” and “applicants with an existing work permit”. Evidence keeps the matching posting excerpt. Negated “not only” wording and explicit “no work permit required” remain non-restrictions; no sponsorship or legal conclusion is inferred. Pytest is unavailable in this shell; six direct parser assertions and two relocation-evidence excerpt assertions passed, along with compileall, secret scan and diff check. Regression cases were added for CI.
+
+## 2026-10-19 — add Betsson's official DevOps opening
+
+Read-only Greenhouse board/detail GETs confirmed current provider ID `8200701`, “Platform Core DevOps Engineer - Infra”, Malta, under Betsson's official career page. Added it to the reviewed employer catalog and updated the opening count from 14 to 15; work authorization, sponsorship and relocation remain unknown. The host lacks `httpx` and pytest, so the repository's catalog validation and test suite could not run here; PyYAML confirmed the catalog has 13 employers/15 openings, and the official endpoint directly returned the exact ID/title/location. Regression assertion added for CI. No DB, notification, application or runtime action.

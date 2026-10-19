@@ -22,7 +22,7 @@ def test_curated_watchlist_has_realistic_bounded_pilot() -> None:
     assert 10 <= len(watchlist.employers) <= 20
     assert len({item.id for item in watchlist.employers}) == len(watchlist.employers)
     assert all(item.enabled and item.openings for item in watchlist.employers)
-    assert sum(len(item.openings) for item in watchlist.employers) == 14
+    assert sum(len(item.openings) for item in watchlist.employers) == 15
     assert {item.ats for item in watchlist.employers} == {
         "custom", "greenhouse", "lever", "smartrecruiters"
     }
@@ -39,6 +39,8 @@ def test_priority_openings_and_unknown_eligibility_are_explicit() -> None:
     assert rows[("emerging-travel-group", "167")].title == "Technical Support Specialist"
     assert rows[("canonical", "6448444")].title == "Associate Linux Support Engineer"
     assert rows[("nebius", "4967085101")].title == "Site Reliability Engineer - Early Talent"
+    assert rows[("betsson-group", "8200701")].location == "Malta"
+    assert rows[("betsson-group", "8200701")].suitability == "medium"
     assert rows[("xsolla", "fe6a2e57-3aa8-4226-93f0-1264e815507e")].title == "Operations Engineer"
     assert all(
         evidence == "unknown"

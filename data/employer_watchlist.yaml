@@ -76,6 +76,27 @@ employers:
         visa_sponsorship: unknown
         relocation: unknown
 
+  - id: betsson-group
+    name: Betsson Group
+    enabled: true
+    priority: P1
+    ats: greenhouse
+    identifier: betsson
+    careers_url: https://betssongroup.com/careers/
+    api_url: https://boards-api.greenhouse.io/v1/boards/betsson/jobs
+    allowed_hosts: [betssongroup.com, job-boards.greenhouse.io]
+    markets: [MT, GR, ES, HU]
+    tracks: [devops, infrastructure, platform-engineering, relocation-it]
+    openings:
+      - provider_id: "8200701"
+        title: Platform Core DevOps Engineer - Infra
+        location: Malta
+        url: https://job-boards.greenhouse.io/betsson/jobs/8200701
+        suitability: medium
+        work_authorization: unknown
+        visa_sponsorship: unknown
+        relocation: unknown
+
   - id: xsolla
     name: Xsolla
     enabled: true

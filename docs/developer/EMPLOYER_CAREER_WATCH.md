@@ -38,6 +38,17 @@ Freshness observation: the bounded read-only probe on 2026-10-19 found all
 change the catalog's own `verified_at` date (2026-10-18); it is a separate
 dated observation and makes no claim about applicant fit or hiring eligibility.
 
+### Betsson Group addition, 2026-10-19
+
+The official Betsson careers page links to its public Greenhouse board. A
+read-only public board/detail check found provider ID `8200701`, “Platform Core
+DevOps Engineer - Infra”, location Malta, still present on 2026-10-19. The
+watchlist now has 13 enabled employers and 15 reviewed openings. This role is
+recorded as medium suitability; work authorization, sponsorship and relocation
+remain unknown because the vacancy does not establish them. Its public ATS feed
+is included in the existing bounded common-search adapter; it is not a claim
+that the role is open to a particular candidate.
+
 Common-search integration: `EmployerCareerWatchSource` reads public Greenhouse,
 Lever, and SmartRecruiters feeds from the owner-reviewed employer catalog,
 bounded to four concurrent requests, one page per board (provider limit 100
