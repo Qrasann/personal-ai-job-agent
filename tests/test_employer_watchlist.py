@@ -41,6 +41,9 @@ def test_priority_openings_and_unknown_eligibility_are_explicit() -> None:
     assert rows[("nebius", "4967085101")].title == "Site Reliability Engineer - Early Talent"
     assert rows[("betsson-group", "8200701")].location == "Malta"
     assert rows[("betsson-group", "8200701")].suitability == "medium"
+    assert next(item for item in watchlist.employers if item.id == "betsson-group").industry_tags == (
+        "betting", "gambling"
+    )
     assert rows[("xsolla", "fe6a2e57-3aa8-4226-93f0-1264e815507e")].title == "Operations Engineer"
     assert all(
         evidence == "unknown"
@@ -70,6 +73,10 @@ def test_employer_watch_is_a_global_common_search_source_with_provenance() -> No
     assert job.raw["provider_feed_observed_at"]
     assert job.description == "Kubernetes"
     assert job.country == "NL" and job.city == "Amsterdam"
+    assert job.raw["location_resolution"] == "provider_location_city_country"
+    assert job.raw["visa_sponsorship_evidence"] == "unknown"
+    assert job.raw["work_authorization_evidence"] == "unknown"
+    assert job.raw["relocation_evidence"] == "unknown"
 
 
 def test_employer_watch_resolves_exact_country_only_office_without_city_guess():
@@ -91,10 +98,7 @@ def test_employer_watch_resolves_exact_country_only_office_without_city_guess():
     assert jobs[0].city is None and jobs[0].country == "MT"
     assert jobs[0].raw["source_location"] == "Malta"
     assert jobs[0].raw["location_resolution"] == "provider_location_country"
-    assert job.raw["location_resolution"] == "provider_location_city_country"
-    assert job.raw["visa_sponsorship_evidence"] == "unknown"
-    assert job.raw["work_authorization_evidence"] == "unknown"
-    assert job.raw["relocation_evidence"] == "unknown"
+    assert jobs[0].raw["industry_tags"] == ["betting", "gambling"]
 
 
 def test_employer_watch_fetches_bounded_public_ats_boards(monkeypatch) -> None:
@@ -122,7 +126,7 @@ def test_employer_watch_fetches_bounded_public_ats_boards(monkeypatch) -> None:
     context = SourceContext(user_id=1, queries=["DevOps"])
     jobs = asyncio.run(EmployerCareerWatchSource().discover(context))
     expected = {item.id for item in employers} - {"collectly", "devexperts"}
-    assert len(jobs) == len(expected) == 9
+    assert len(jobs) == len(expected) == 10
     assert set(calls) == expected
     assert all(job.title == "DevOps Engineer" and job.country is None for job in jobs)
 

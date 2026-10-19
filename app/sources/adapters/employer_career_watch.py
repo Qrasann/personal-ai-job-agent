@@ -147,6 +147,7 @@ class EmployerCareerWatchSource(JobSource):
                     "provider": employer.ats,
                     "provider_id": provider_id,
                     "employer_id": employer.id,
+                    "industry_tags": list(employer.industry_tags),
                     "employer_careers_url": employer.careers_url,
                     "source_location": source_location or None,
                     "location_resolution": location_resolution,

@@ -282,7 +282,10 @@ def test_refresh_match_score_updates_scores_without_status(monkeypatch):
 
     assert refreshed.technical_score == 43
     assert refreshed.total_score == 60
-    assert saved["recommendation_scores"]["_meta"]["match_assessment_version"] == 1
+    assert (
+        saved["recommendation_scores"]["_meta"]["match_assessment_version"]
+        == services.MATCH_ASSESSMENT_VERSION
+    )
     assert "status" not in saved
 
 def test_match_lane_routes_good_stretch_and_skip():

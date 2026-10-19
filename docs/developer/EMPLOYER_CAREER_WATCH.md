@@ -67,5 +67,14 @@ city empty; bare country codes and the ambiguous standalone `Georgia` remain
 unknown.
 Hiring eligibility, sponsorship and relocation remain unknown unless separate
 posting evidence supports them.
+
+The curated Betsson record includes reviewed `betting` and `gambling` industry
+tags because its posting text may omit the employer's sector. These tags remain
+separate from the displayed vacancy text and flow through source-ref metadata
+to hard `exclude_terms` matching. When either matching term is excluded by the
+active search profile, scoring returns `skip` and the scan marks it filtered
+before Good/Stretch or notification eligibility. This is source classification,
+not inferred vacancy eligibility. Matching semantics are at assessment version
+2; ordinary rescans refresh rediscovered matches without bulk mutation.
 Provider failures are isolated and reported as partial results. Common
 repository canonical deduplication continues to apply.

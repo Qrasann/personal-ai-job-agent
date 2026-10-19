@@ -11,7 +11,7 @@ from app.matching.recommendation import build_recommendation_breakdown
 from app.search.preferences import discovery_queries, search_strategy
 
 # Bump whenever score, fit-lane, cap, or exclusion semantics change.
-MATCH_ASSESSMENT_VERSION = 1
+MATCH_ASSESSMENT_VERSION = 2
 
 
 @dataclass(slots=True)
@@ -414,10 +414,17 @@ def _risk_penalty(job: Job, settings: dict) -> tuple[int, str | None]:
 def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resumes: list[ResumeProfile], *, technical_text: str | None = None) -> MatchResult:
     settings = search.settings or {}
     hay = " ".join([job.title, job.company, job.description]).casefold()
+    industry_tags = getattr(job, "industry_tags", None)
+    if not isinstance(industry_tags, (list, tuple)):
+        industry_tags = []
+    industry_hay = " ".join(
+        str(value).casefold() for value in industry_tags if isinstance(value, str)
+    )
     chosen_resume = choose_resume(job, resumes)
 
     exclude = _terms(settings, "exclude_terms")
-    hit_exclude = [x for x in exclude if x and x in hay]
+    exclusion_hay = f"{hay} {industry_hay}"
+    hit_exclude = [x for x in exclude if x and x in exclusion_hay]
     if hit_exclude:
         return MatchResult(0, 0, 0, 0, 0, "Исключено по фильтру: " + ", ".join(hit_exclude), chosen_resume, "excluded", "skip")
 

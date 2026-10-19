@@ -87,6 +87,7 @@ employers:
     allowed_hosts: [betssongroup.com, job-boards.greenhouse.io]
     markets: [MT, GR, ES, HU]
     tracks: [devops, infrastructure, platform-engineering, relocation-it]
+    industry_tags: [betting, gambling]
     openings:
       - provider_id: "8200701"
         title: Platform Core DevOps Engineer - Infra
