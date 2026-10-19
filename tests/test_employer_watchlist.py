@@ -7,6 +7,7 @@ from pathlib import Path
 import httpx
 import pytest
 import yaml
+from urllib.parse import urlparse
 
 from app.sources.employer_watch import probe_employer, probe_watchlist
 from app.sources.employer_watchlist import load_employer_watchlist
@@ -52,22 +53,64 @@ def test_employer_watch_is_a_global_common_search_source_with_provenance() -> No
     assert source_capabilities("employer_career_watch").discovery
     assert not source_capabilities("employer_career_watch").apply
 
-    context = SourceContext(user_id=1, current_country="RU", target_countries=["GE"], queries=["SRE"])
-    jobs = asyncio.run(EmployerCareerWatchSource().discover(context))
+    context = SourceContext(user_id=1, current_country="RU", target_countries=["GE"], queries=["Reliability"])
     watchlist = load_employer_watchlist()
-    expected = sum(len(item.openings) for item in watchlist.employers if item.enabled)
-    assert len(jobs) == expected == 14
-    for job in jobs:
-        employer_id, provider_id = job.source_job_id.split(":", 1)
-        employer = next(item for item in watchlist.employers if item.id == employer_id)
-        opening = next(item for item in employer.openings if item.provider_id == provider_id)
-        assert job.url == opening.url
-        assert job.raw["provider_id"] == provider_id
-        assert job.raw["catalog_verified_at"] == watchlist.verified_at.isoformat()
-        assert job.country is None and job.city is None
-        assert job.raw["visa_sponsorship_evidence"] == "unknown"
-        assert job.raw["work_authorization_evidence"] == "unknown"
-        assert job.raw["relocation_evidence"] == "unknown"
+    greenhouse = next(item for item in watchlist.employers if item.ats == "greenhouse")
+    jobs = EmployerCareerWatchSource.parse_board_payload(greenhouse, {
+        "jobs": [{"id": 123, "title": "Site Reliability Engineer", "absolute_url": f"https://{next(iter(greenhouse.allowed_hosts))}/jobs/123", "location": {"name": "Amsterdam, Netherlands"}, "content": "<p>Kubernetes</p>"}]
+    }, context)
+    assert len(jobs) == 1
+    job = jobs[0]
+    assert job.source_job_id == f"{greenhouse.id}:123"
+    assert job.url.endswith("/jobs/123")
+    assert job.raw["provider_id"] == "123"
+    assert job.raw["watchlist_verified_at"] == watchlist.verified_at.isoformat()
+    assert job.raw["provider_feed_observed_at"]
+    assert job.description == "Kubernetes"
+    assert job.country is None and job.city is None
+    assert job.raw["visa_sponsorship_evidence"] == "unknown"
+    assert job.raw["work_authorization_evidence"] == "unknown"
+    assert job.raw["relocation_evidence"] == "unknown"
+
+
+def test_employer_watch_fetches_bounded_public_ats_boards(monkeypatch) -> None:
+    employers = [item for item in load_employer_watchlist().employers if item.api_url]
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        employer = next(item for item in employers if request.url.path == urlparse(item.api_url).path)
+        calls.append(employer.id)
+        host = next(iter(employer.allowed_hosts))
+        if employer.ats == "greenhouse":
+            payload = {"jobs": [{"id": "new-1", "title": "DevOps Engineer", "absolute_url": f"https://{host}/jobs/new-1", "location": {"name": "Remote"}}]}
+        elif employer.ats == "lever":
+            payload = [{"id": "new-1", "text": "DevOps Engineer", "hostedUrl": f"https://{host}/new-1", "categories": {"location": "Remote"}}]
+        else:
+            payload = {"content": [{"id": "new-1", "name": "DevOps Engineer", "postingUrl": f"https://{host}/new-1", "location": {"city": "Remote"}}]}
+        return httpx.Response(200, json=payload)
+
+    class MockClient(httpx.AsyncClient):
+        def __init__(self, *args, **kwargs):
+            kwargs["transport"] = httpx.MockTransport(handler)
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr("app.sources.adapters.employer_career_watch.httpx.AsyncClient", MockClient)
+    context = SourceContext(user_id=1, queries=["DevOps"])
+    jobs = asyncio.run(EmployerCareerWatchSource().discover(context))
+    expected = {item.id for item in employers} - {"collectly", "devexperts"}
+    assert len(jobs) == len(expected) == 9
+    assert set(calls) == expected
+    assert all(job.title == "DevOps Engineer" and job.country is None for job in jobs)
+
+
+def test_employer_watch_rejects_unapproved_url_and_nonmatching_titles() -> None:
+    employer = next(item for item in load_employer_watchlist().employers if item.ats == "lever")
+    context = SourceContext(user_id=1, queries=["DevOps"])
+    payload = [
+        {"id": "unsafe", "text": "DevOps Engineer", "hostedUrl": "https://evil.example/jobs/unsafe"},
+        {"id": "irrelevant", "text": "Sales Manager", "hostedUrl": f"https://jobs.lever.co/{employer.identifier}/irrelevant"},
+    ]
+    assert EmployerCareerWatchSource.parse_board_payload(employer, payload, context) == []
 
 
 def test_watchlist_rejects_unreviewed_api_endpoint(tmp_path: Path) -> None:

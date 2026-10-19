@@ -38,11 +38,16 @@ Freshness observation: the bounded read-only probe on 2026-10-19 found all
 change the catalog's own `verified_at` date (2026-10-18); it is a separate
 dated observation and makes no claim about applicant fit or hiring eligibility.
 
-Common-search integration: `EmployerCareerWatchSource` exposes the 14 entries
-in the owner-reviewed catalog to the existing scan pipeline. Each normalized
-job retains employer/provider identity, official URL, source location, and the
-catalog verification date. Country/city and hiring eligibility remain unknown
-unless supported by posting evidence. The adapter does not claim freshness
-beyond the catalog's `verified_at` date and does not alter existing single-
-company adapters. Canonical job deduplication remains the repository's existing
-cross-source behavior.
+Common-search integration: `EmployerCareerWatchSource` reads public Greenhouse,
+Lever, and SmartRecruiters feeds from the owner-reviewed employer catalog,
+bounded to four concurrent requests, one page per board (provider limit 100
+for Lever and SmartRecruiters; local parser cap 500), and per-board timeouts.
+The custom career page uses its reviewed opening until a
+stable public feed is available. Existing Collectly and Devexperts adapters
+remain the sole providers for their boards to avoid a second source identity.
+Each normalized ATS job retains employer/provider identity, an allowlisted
+official posting URL, source location text, and a feed observation timestamp.
+Country/city and hiring eligibility remain unknown; market tags and free-form
+locations are not converted into legal or normalized location evidence.
+Provider failures are isolated and reported as partial results. Common
+repository canonical deduplication continues to apply.

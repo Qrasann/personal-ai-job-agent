@@ -5,7 +5,8 @@
 - [x] Require an existing authorized MTProto session before probe/sample/watch; fail without initiating login.
 - [x] Integrate the 14 owner-reviewed official employer openings into common discovery, retaining provider/source provenance and unknown eligibility/location evidence.
 - [x] Read-only recheck the 14 provider IDs on official sources; all 14 are current across 12 employers as of 2026-10-19.
-- [ ] Expand the official career-source set using public, bounded ATS feeds; retain provenance, freshness evidence and cross-source deduplication.
+- [x] Expand Employer Career Watch common discovery to bounded live Greenhouse, Lever and SmartRecruiters boards while keeping existing Collectly/Devexperts adapters as sole providers and preserving unknown location/eligibility evidence.
+- [ ] Confirm exact-head CI for Draft PR #56 and keep Draft until the isolated Telegram sample is analyzed.
 - [ ] Run the bounded read-only sample for exactly `@devops_jobs_feed`, `@itjobsgeorgia`, `@vgrecruitingit` and analyze results when local API ID/hash are available; never write to production DB or notify.
 - [ ] Apply the owner-requested manual-start policy with privileged access: disable only `ai-job-bot.service`, set only `repo` app/PostgreSQL Compose and container restart policies to `no`, preserve Docker and `jobbot`, verify rollback/config and running health. Current shell has no noninteractive sudo.
 - [ ] Continue Job Location Intelligence, International Hiring Eligibility, confirmed Applicant Count capture, compact Telegram UX, and safe future rollout/re-scoring of old Good.

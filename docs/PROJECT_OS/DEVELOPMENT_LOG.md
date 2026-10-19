@@ -1,3 +1,7 @@
+## 2026-10-19 — bounded live Employer Career Watch feeds
+
+Expanded common discovery from the 14 watched sample entries to current public Greenhouse, Lever and SmartRecruiters postings across reviewed employers. Fetch fanout is capped at four with one page per board, per-board timeout, official-host validation, title-query filtering and partial-source diagnostics. Custom pages retain only reviewed openings; Collectly/Devexperts stay on their existing adapters to avoid duplicate providers. Feed observation time and raw location are retained; normalized country/city and hiring eligibility remain unknown. Targeted employer/source-plan tests: 16 passed; `py_compile` and `git diff --check` passed. No production/runtime changes.
+
 ## 2026-10-19 — Employer Career Watch official freshness recheck
 
 Ran the bounded read-only probe against all 12 reviewed employers. All 14 tracked provider IDs were present; no missing openings or unavailable employers. Catalog `verified_at` remains 2026-10-18 because this run is a separate freshness observation. `jobbot status` still reports both app and healthy PostgreSQL. No database/runtime settings were changed.
