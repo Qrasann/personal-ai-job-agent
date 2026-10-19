@@ -3017,3 +3017,5 @@ Read-only Greenhouse board/detail GETs confirmed current provider ID `8200701`, 
 ## 2026-10-19 — resolve exact country-only ATS locations
 
 Location intelligence now accepts exact country-name office labels such as `Malta` as country evidence while leaving city empty. ISO-like two/three-letter values and bare `Georgia` remain unknown; no city is fabricated. Added parser regressions and a common Employer Watch adapter regression for Betsson. Eight direct location assertions, compileall, secret scan and diff check passed; pytest remains unavailable in this shell. No schema, DB or runtime change.
+
+Country-only ATS location evidence now also carries distinct `provider_location_country` provenance, while city-plus-country retains its prior provenance label. The Employer Watch adapter regression asserts `Malta` resolves to `MT` with no city and the country-only provenance. This was added after the standalone geo slice was committed; pytest remains unavailable locally, so CI is required.

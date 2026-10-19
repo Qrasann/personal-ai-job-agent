@@ -90,6 +90,7 @@ def test_employer_watch_resolves_exact_country_only_office_without_city_guess():
     assert len(jobs) == 1
     assert jobs[0].city is None and jobs[0].country == "MT"
     assert jobs[0].raw["source_location"] == "Malta"
+    assert jobs[0].raw["location_resolution"] == "provider_location_country"
     assert job.raw["location_resolution"] == "provider_location_city_country"
     assert job.raw["visa_sponsorship_evidence"] == "unknown"
     assert job.raw["work_authorization_evidence"] == "unknown"

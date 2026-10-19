@@ -123,7 +123,9 @@ class EmployerCareerWatchSource(JobSource):
                     city, country = structured_city, structured_country
                     location_resolution = "provider_structured_country_city"
             elif country:
-                location_resolution = "provider_location_city_country"
+                location_resolution = (
+                    "provider_location_city_country" if city else "provider_location_country"
+                )
             description = ""
             if employer.ats == "greenhouse":
                 description = clean_html_text(str(row.get("content") or ""))
