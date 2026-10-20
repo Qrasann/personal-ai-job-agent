@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## Binding owner decision — 2026-10-20: Web GUI frozen indefinitely
+
+Web GUI feature work, redesign, UX expansion, acceptance initiatives and rollout planning are **frozen without an end date**. Preserve existing Web GUI code, tests and evidence; allow only narrowly scoped critical security, data-integrity or compatibility corrections. **Telegram is the primary active interface**. Telegram Mini App remains deferred, not an automatic substitute. No milestone, calendar date or completed test reactivates Web GUI; only a new explicit owner instruction can do so. This supersedes historical Web-GUI-first priorities in DEC-011/DEC-015 and previous milestone queues, without cancelling unrelated product requirements. Do not make Web GUI a gate for the Telegram/backend pipeline.
+
 ## Current owner priority — search, relocation and offers (2026-10-18)
 - Standing execution mode is MAXIMUM TOKEN ECONOMY: one Main agent by default, targeted context/tests first, Fast/Deep only when total delegation cost is justified, and no repeated unchanged full-suite hang. This optimizes token/context use, never required safety or quality gates; account quotas are not claimed unless directly exposed.
 - Telegram UX & Vacancy Intelligence is now an explicit P0 alongside (not ahead of) the two watcher deliverables. The first dev slice makes `/scanstatus`, `/review` and `/job` compact with owner-scoped inline tabs/edit-in-place and keeps detailed diagnostics/provenance behind buttons. Applicant counts render only from persisted, dated `kind=applications` evidence; views are rejected and absence is shown as `Нет открытых данных`. ReplyKeyboard, adapter collection, soft secondary ordering, richer skill summaries and isolated visual Telegram acceptance remain open.
