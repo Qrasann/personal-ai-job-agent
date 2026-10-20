@@ -1,4 +1,24 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
+
+
+def main_reply_keyboard() -> ReplyKeyboardMarkup:
+    """Keep the daily safe command surface available below the input field."""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="/scan"), KeyboardButton(text="/scanstatus")],
+            [KeyboardButton(text="/review"), KeyboardButton(text="/stretch")],
+            [KeyboardButton(text="/saved"), KeyboardButton(text="/jobs")],
+            [KeyboardButton(text="/settings"), KeyboardButton(text="/help")],
+        ],
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder="Выберите действие или введите команду",
+    )
 
 
 def job_keyboard(

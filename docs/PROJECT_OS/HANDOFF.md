@@ -1,5 +1,11 @@
 # Handoff
 
+## Current checkpoint — P0 Telegram persistent ReplyKeyboard (2026-10-20)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `0a2ea82`, clean starting worktree. The unstaged increment adds a compact 4×2 persistent/resizable reply keyboard to authorized `/start` and `/help` responses. Its buttons send the exact existing `/scan`, `/scanstatus`, `/review`, `/stretch`, `/saved`, `/jobs`, `/settings` and `/help` commands. Existing Command handlers, owner/private-chat boundary and inline edit-in-place navigation are unchanged; no parallel text router or Mini App work was added.
+
+Expanded Telegram handler/navigation tests pass **248 passed, 1 skipped**; compileall, repository secret scan and `git diff --check` pass. No database, Docker, production/runtime, credential, private Telegram artifact, notification or real message was accessed. Leave all code/docs unstaged for DevHub; do not run `git add`, commit or push. Next gated step is DevHub checkpoint/CI followed by isolated visual Telegram acceptance, not production deployment.
+
 ## Current checkpoint — PR #56 Relocation-first discovery-cache CI correction (2026-10-20)
 
 At exact base HEAD `6bdf944`, the Job Bank independent-profile regression still

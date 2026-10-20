@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-20 P0 Telegram persistent command keyboard
+- `/start` and `/help` now attach the first persistent, resizable Telegram reply keyboard for the existing safe daily commands: scan, scan status, Good/Stretch review, saved/jobs lists, settings and help. Every button sends the exact ordinary slash command; command handlers and the existing inline vacancy/status navigation are unchanged.
+- The keyboard is limited to the existing private-chat owner flow. Mini App, Web GUI, matching, data, runtime and external messages were not changed.
+- Telegram handler/navigation regression gate: 248 passed, 1 skipped. Compileall, repository secret scan and `git diff --check` passed.
+
 ## 2026-10-20 P0 release-readiness and mixed employer policy
 - Release candidate code is locally integrated on `wip/telegram-pilot-20261019`; Telegram Pilot, Employer Career Watch, grouped source notices, employer policy and Career/Relocation query lanes pass a current focused integration gate (430 passed, 1 skipped). Policy/scoring regressions pass separately (86 passed); compileall, secret scan and diff check pass.
 - Fixed a policy composition defect: an ALLOW override for one tag such as betting no longer overrides a separate BLOCK tag such as verified Russian military/defense. Overrides remain category-scoped; exact-employer choices remain strongest; civilian state-owned employers such as RZD are not blocked by ownership alone.

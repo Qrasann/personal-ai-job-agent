@@ -40,7 +40,7 @@ from app.sources.telegram_watch import change_subscription, consume_channel_post
 from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_details, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
-from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
+from app.telegram.ui import jobs_keyboard, main_reply_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import relocation_first_allows, source_enabled
 from app.search.user_preferences import parse_salary_command, update_blacklist, update_employer_policy, update_salary
@@ -251,7 +251,11 @@ async def start(message: Message) -> None:
         )
         return
     await bootstrap_user(existing.telegram_chat_id, existing.display_name)
-    await message.answer(_main_menu_text(), parse_mode="HTML")
+    await message.answer(
+        _main_menu_text(),
+        parse_mode="HTML",
+        reply_markup=main_reply_keyboard(),
+    )
 
 
 @router.message(Command("help"))
@@ -259,7 +263,11 @@ async def help_command(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
-    await message.answer(_main_menu_text(), parse_mode="HTML")
+    await message.answer(
+        _main_menu_text(),
+        parse_mode="HTML",
+        reply_markup=main_reply_keyboard(),
+    )
 
 
 @router.message(Command("register"))

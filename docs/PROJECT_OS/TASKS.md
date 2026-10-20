@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-20 — P0 Telegram persistent ReplyKeyboard
+- [x] Add one compact persistent `ReplyKeyboardMarkup` to authorized `/start` and `/help` responses without replacing the existing inline status/review/vacancy navigation.
+- [x] Use exact existing slash-command payloads for `/scan`, `/scanstatus`, `/review`, `/stretch`, `/saved`, `/jobs`, `/settings` and `/help`; keep every ordinary command handler available.
+- [x] Cover persistence/layout, attachment and button-to-registered-command compatibility; run the expanded Telegram handler/navigation gate (248 passed, 1 skipped).
+- [ ] Perform isolated visual Telegram acceptance only after the normal checkpoint/release gates. Mini App remains deferred; production/runtime is unchanged.
+
 ## 2026-10-20 — P0 release-readiness and mixed-category employer policy
 - [x] Verify local branch/HEAD/worktree and compare the integrated change set with `feature/v3.5.7-international-market-coverage`; preserve the clean starting tree and production runtime.
 - [x] Review Telegram Pilot, Employer Career Watch, grouped notifications, employer policy and Career/Relocation query-lane integration using existing evidence plus a current focused gate.

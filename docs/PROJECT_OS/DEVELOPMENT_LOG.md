@@ -3131,3 +3131,9 @@ Read-only inspection found PR #54 merged into `feature/v3.5.7` at `a1debc9`, whi
 - Fixed mixed employer-category precedence: a category ALLOW no longer bypasses a different category BLOCK. Added a regression for betting + Russian military/defense tags.
 - Verified 86 policy/scoring tests and 430 focused integration tests (1 skipped), compileall, secret scan and diff check. No schema, database, runtime, volume or external-message change.
 - Left the verified changes unstaged for DevHub checkpointing as required. Exact-head PostgreSQL CI, secret scan and Docker build remain the publication gate; backup and rollback verification remain deployment gates.
+
+## 2026-10-20 — first persistent Telegram command keyboard
+
+- Added a compact persistent/resizable `ReplyKeyboardMarkup` to authorized `/start` and `/help` replies. The eight buttons contain exact existing slash commands for search, status, Good/Stretch review, saved/jobs lists, settings and help, so ordinary typed commands and the existing handlers remain the single execution path.
+- Left the established inline `/scanstatus`, `/review` and `/job` edit-in-place controls unchanged. No Mini App, Web, matching, schema, runtime, private Telegram data or external-message behavior changed.
+- Added regressions for keyboard layout/persistence, start/help attachment and correspondence between every button and a registered Command handler. Expanded Telegram handler/navigation tests: 248 passed, 1 skipped; compileall, repository secret scan and `git diff --check` passed.
