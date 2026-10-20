@@ -1,5 +1,17 @@
 # Decisions
 
+## 2026-10-20 — Web GUI frozen indefinitely (superseding execution priority)
+
+**Owner instruction:** Freeze Web GUI development for an **indefinite** period. Only an explicit later owner instruction can lift this freeze; completion of milestones, release readiness, test status or passage of time cannot.
+
+- **Do not** add Web GUI features, redesign it, improve its UX, run new rollout initiatives or schedule Web-only owner acceptance.
+- **Preserve** existing implementation, tests, artifacts, data and documented evidence; no deletion or rewrite.
+- **Exception:** narrowly scoped critical security, compatibility or data-integrity fixes required to protect existing behavior, without new product scope.
+- **Telegram is the primary active UI.** Continue approved Telegram UX, vacancy watchers, worldwide relocation, Candidate Facts, Resume/Application/Recruiter/Interview Agents and other agreed roadmap capabilities.
+- **Telegram Mini App is deferred separately** and must not be automatically started in place of Web GUI.
+- **Decision precedence:** overrides the earlier DEC-011 Web-GUI-primary role and the Web-GUI-first rollout sequence in DEC-015. Retain those records as historical decisions, not active instructions. The shared-data product vision and all unrelated owner approvals remain intact.
+- No code, runtime, production database or deployment change is authorized by this decision alone.
+
 ## 2026-10-14 — no raw network exception payloads in logs
 
 Telegram startup and HH chat poll diagnostics report exception class and
