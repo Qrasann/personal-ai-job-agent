@@ -383,6 +383,7 @@ def test_jobbank_respects_disabled_source_and_independent_profiles(monkeypatch):
 
     monkeypatch.setattr(services, "_user_context", fake_context)
     monkeypatch.setattr(services.repo, "get_state", AsyncMock(return_value="false"))
+    monkeypatch.setattr(services.repo, "set_state", AsyncMock())
     monkeypatch.setattr(services, "build_source_plan", lambda *a, **k: [SimpleNamespace(source_id="jobbank", implemented=True)])
     monkeypatch.setattr(services, "JobBankSource", FakeJobBank)
     monkeypatch.setattr(services, "vacancy_allowed", lambda *a, **k: True)
@@ -390,7 +391,7 @@ def test_jobbank_respects_disabled_source_and_independent_profiles(monkeypatch):
     monkeypatch.setattr(services, "ingest_and_match", ingest)
     services._DISCOVERY_CACHE.clear()
     summary = asyncio.run(services.scan_for_user(object(), 7, force_refresh=True))
-    assert contexts == [["warehouse worker"]]
+    assert contexts == [["SRE", "warehouse worker"]]
     assert matched == [12]
     assert not summary["searches"]["11"]["sources"]
     assert summary["searches"]["12"]["sources"]["jobbank"]["found"] == 1

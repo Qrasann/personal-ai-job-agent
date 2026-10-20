@@ -1,5 +1,20 @@
 # Handoff
 
+## Current checkpoint — PR #56 Relocation-first discovery-cache CI correction (2026-10-20)
+
+At exact base HEAD `6bdf944`, the Job Bank independent-profile regression still
+expected Relocation-first to discard its configured IT query when an Any Job
+role was present. Current `discovery_queries` behavior, the adjacent profile
+regression, `ROADMAP.md`, `BRIEF.md`, and `TASKS.md` all require both tracks,
+interleaved without cross-profile cache mixing. Updated only the stale expected
+query list from `["warehouse worker"]` to `["SRE", "warehouse worker"]`; source
+disablement, profile identity, implementation, cache keys, and runtime behavior
+are unchanged. The checkout had no `.venv`, so tests used the existing read-only
+sibling repository virtualenv: the named regression passed (1), the full search
+preference suite plus that regression passed (41), and adjacent provider/cache
+tests passed (7). The repository secret scan and `git diff --check` passed. No
+Docker, database, service, network, private data, staging, or commit was used.
+
 ## Current checkpoint — P0 release-readiness and employer-policy composition (2026-10-20)
 
 Branch `wip/telegram-pilot-20261019`, HEAD `9ae256d`; the starting worktree was clean. Local `origin/wip/telegram-pilot-20261019` remains at `ade5235`, so the latest checked-in Telegram pilot/query-lane commits are not represented by that tracking ref. A fresh `gh pr view 56` failed because `api.github.com` was unreachable. The last evidenced remote state in this repository is Draft PR #56 with exact-head CI passing on older checkpoint `a8103f5`; do not claim current remote mergeability or CI.
