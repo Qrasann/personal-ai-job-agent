@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-20 P0 release-readiness and mixed employer policy
+- Release candidate code is locally integrated on `wip/telegram-pilot-20261019`; Telegram Pilot, Employer Career Watch, grouped source notices, employer policy and Career/Relocation query lanes pass a current focused integration gate (430 passed, 1 skipped). Policy/scoring regressions pass separately (86 passed); compileall, secret scan and diff check pass.
+- Fixed a policy composition defect: an ALLOW override for one tag such as betting no longer overrides a separate BLOCK tag such as verified Russian military/defense. Overrides remain category-scoped; exact-employer choices remain strongest; civilian state-owned employers such as RZD are not blocked by ownership alone.
+- No schema change is present (`CURRENT_SCHEMA_VERSION=8`). Release is not ready to deploy yet: local HEAD and the working fix are newer than the last locally known PR #56 head/CI, GitHub API was unreachable for a fresh PR check, and production Telegram/runtime acceptance remains outstanding. Exact-head PostgreSQL CI, secret scan and Docker build are required after DevHub checkpoints/publishes the work. Before any authorized production change, take and verify a backup and prepare rollback to the prior image/commit; no deploy, migration or runtime change was performed.
+
 ## 2026-10-20 Search Quality IT/Any Job query lanes
 - Career-first keeps only its configured DevOps/Infrastructure/Linux/SRE queries. Relocation-first no longer loses the IT track when broader Any Job roles are configured: it alternates IT and Any Job queries so bounded adapters receive both, with normalized duplicate removal.
 - The default Career-first list now explicitly includes Site Reliability Engineer. Match Score, thresholds and hiring-evidence rules did not change; missing visa/sponsorship/relocation evidence remains unknown.

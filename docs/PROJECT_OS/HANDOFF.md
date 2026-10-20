@@ -1,5 +1,17 @@
 # Handoff
 
+## Current checkpoint — P0 release-readiness and employer-policy composition (2026-10-20)
+
+Branch `wip/telegram-pilot-20261019`, HEAD `9ae256d`; the starting worktree was clean. Local `origin/wip/telegram-pilot-20261019` remains at `ade5235`, so the latest checked-in Telegram pilot/query-lane commits are not represented by that tracking ref. A fresh `gh pr view 56` failed because `api.github.com` was unreachable. The last evidenced remote state in this repository is Draft PR #56 with exact-head CI passing on older checkpoint `a8103f5`; do not claim current remote mergeability or CI.
+
+Release-readiness review covered Telegram Pilot, Employer Career Watch, grouped source notifications, employer policy, relocation evidence and the independent Career-first / Relocation-first query lanes. A real safety defect was found and fixed in the working tree: a manual ALLOW on one category (for example betting) previously returned early and could suppress a separate default military BLOCK on the same employer. Category choices are now evaluated independently and combined with BLOCK > WARN > ALLOW. Exact-employer decisions still have highest priority, betting/casino remains owner-selectable, and civilian state ownership alone (including RZD) remains allowed.
+
+Verification: policy/scoring package **86 passed**; focused P0 integration package **430 passed, 1 skipped**; compileall, repository history/worktree secret scan and `git diff --check` passed. One initial test failure was environmental: this session has `umask 0077`, while a permission-negative fixture expects ordinary `0022`; rerunning with CI-compatible `0022` passed and product permission enforcement itself was unchanged. No private post body, network source, database, Docker volume, production bot, notification, application or employer message was used.
+
+Release state: code behavior is ready for exact-head CI, but deployment is **not ready**. DevHub must checkpoint the unstaged fix/docs (this task must not run `git add` or `git commit`) and publish the latest branch head, then PR #56 needs Python tests against isolated PostgreSQL, secret scan and Docker build on that exact head. `CURRENT_SCHEMA_VERSION` remains 8 and this increment adds no migration. Before any separately authorized production update, verify a production backup, schema/config compatibility, prior image/commit rollback target and smoke/rollback commands. Production Telegram pilot/runtime acceptance remains open; no deploy or merge is authorized in this task.
+
+Next priority: after DevHub checkpoint and exact-head CI, perform authorized isolated Telegram/runtime smoke acceptance for the three approved public channels and notification recovery behavior; if that cannot be authorized, continue offline false-negative/source usefulness review without weakening score or evidence rules.
+
 ## Current checkpoint — Search Quality IT/Any Job query lanes (2026-10-20)
 
 Branch `wip/telegram-pilot-20261019`, starting HEAD `95b4c9c`. A red regression showed that Relocation-first discarded the configured IT query list whenever broader `relocation_queries` existed. Working code leaves Career-first dedicated to DevOps/Infrastructure/Linux/SRE and alternates normalized IT + Any Job roles for Relocation-first, so bounded adapters receive both tracks; cross-list duplicates consume one slot. The checked-in defaults now explicitly include Site Reliability Engineer. Match Score, thresholds, geography and evidence semantics are unchanged, and absent visa/sponsorship/relocation evidence remains unknown.

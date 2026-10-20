@@ -3124,3 +3124,10 @@ Read-only inspection found PR #54 merged into `feature/v3.5.7` at `a1debc9`, whi
 - Reviewed the real posts locally. Eighteen candidate resumes used a channel metadata preamble before an explicit `#резюме` tag; the old start-only classifier scored them and created all 11 Good plus 5 Stretch rows.
 - Added bounded-header recognition for explicit candidate tags and regressions through both watcher and pilot analysis. The unchanged sample now reports 18 non-vacancies, 42 vacancy candidates, 1 Good, 0 Stretch, 41 filtered and no canonical duplicates.
 - Expanded Telegram tests passed 132 with 1 skipped; compileall, secret scan and diff check passed. No private artifact, runtime, database, notification or external message changed.
+
+## 2026-10-20 — P0 release-readiness and employer-policy composition
+
+- Audited the current WIP against the release base across Telegram Pilot, Employer Career Watch, source notices, employer policy, relocation evidence and dual query lanes. GitHub API was unavailable, so remote PR #56 state was not inferred from stale evidence.
+- Fixed mixed employer-category precedence: a category ALLOW no longer bypasses a different category BLOCK. Added a regression for betting + Russian military/defense tags.
+- Verified 86 policy/scoring tests and 430 focused integration tests (1 skipped), compileall, secret scan and diff check. No schema, database, runtime, volume or external-message change.
+- Left the verified changes unstaged for DevHub checkpointing as required. Exact-head PostgreSQL CI, secret scan and Docker build remain the publication gate; backup and rollback verification remain deployment gates.

@@ -70,34 +70,24 @@ def decision(company: str, industry_tags: object, settings: dict | None = None) 
     category_overrides = overrides.get("categories")
     category_overrides = category_overrides if isinstance(category_overrides, dict) else {}
     category_defaults = defaults.get("categories") if isinstance(defaults.get("categories"), dict) else {}
-    # A user's explicit category decision also supersedes owner defaults.
-    manual_values = [
-        str(category_overrides[category]).casefold()
-        for category in categories
-        if category in category_overrides and str(category_overrides[category]).casefold() in VALUES
-    ]
-    if "block" in manual_values:
-        return "block", "решение пользователя для категории: block"
-    if "allow" in manual_values:
-        return "allow", "решение пользователя для категории: allow"
-    if "warn" in manual_values:
-        return "warn", "решение пользователя для категории: warn"
-
     default_employers = _exact_map(defaults.get("employers"))
     if name and default_employers.get(name) == "block":
         return "block", "работодатель в подтверждённом списке предпочтений владельца"
 
     choices = []
     for category in categories:
+        manual = category in category_overrides
         value = str(category_overrides.get(category, category_defaults.get(category, "allow"))).casefold()
         if value in VALUES:
-            choices.append((value, category))
-    if "block" in {value for value, _ in choices}:
-        value, category = next(pair for pair in choices if pair[0] == "block")
-        return value, f"категория {category}: block"
-    if "warn" in {value for value, _ in choices}:
-        value, category = next(pair for pair in choices if pair[0] == "warn")
-        return value, f"категория {category}: нужна ручная проверка"
+            choices.append((value, category, manual))
+    if "block" in {value for value, _, _ in choices}:
+        value, category, manual = next(pair for pair in choices if pair[0] == "block")
+        prefix = "решение пользователя для категории" if manual else "категория"
+        return value, f"{prefix} {category}: block"
+    if "warn" in {value for value, _, _ in choices}:
+        value, category, manual = next(pair for pair in choices if pair[0] == "warn")
+        prefix = "решение пользователя для категории" if manual else "категория"
+        return value, f"{prefix} {category}: нужна ручная проверка"
     return "allow", None
 
 

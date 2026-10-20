@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-20 — P0 release-readiness and mixed-category employer policy
+- [x] Verify local branch/HEAD/worktree and compare the integrated change set with `feature/v3.5.7-international-market-coverage`; preserve the clean starting tree and production runtime.
+- [x] Review Telegram Pilot, Employer Career Watch, grouped notifications, employer policy and Career/Relocation query-lane integration using existing evidence plus a current focused gate.
+- [x] Fix mixed-category precedence so an ALLOW for betting/casino cannot suppress a separate military/direct-war/government BLOCK; retain exact-employer override priority and civilian state-owned ALLOW.
+- [x] Pass policy/scoring tests (86) and the focused P0 integration set (430 passed, 1 skipped), plus compileall, secret scan and `git diff --check`.
+- [ ] DevHub must checkpoint/publish the unstaged code/docs, then obtain exact-head PR #56 Python/PostgreSQL, secret-scan and Docker-build CI. GitHub API was unreachable during this review, so Draft/mergeability/check status was not freshly verified.
+- [ ] Before any separately authorized deployment: verify a production backup, confirm schema v8/config compatibility, record the prior image/commit, and test the rollback/smoke sequence. No migration is introduced by this increment.
+
 ## 2026-10-20 — Search Quality IT/Any Job query lanes
 - [x] Reproduce that Relocation-first discarded all configured IT queries whenever Any Job relocation roles existed, while Career-first correctly remained on its own role list.
 - [x] Alternate normalized IT and Any Job queries for Relocation-first so bounded adapters retain both tracks; leave Career-first dedicated to DevOps/Infrastructure/Linux/SRE and add the missing explicit SRE default.

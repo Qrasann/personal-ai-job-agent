@@ -65,6 +65,17 @@ def test_manual_category_choice_overrides_owner_category_default():
     assert decision("Betsson Group", ["betting"], cfg)[0] == "block"
 
 
+def test_category_allow_does_not_override_separate_blocked_category():
+    cfg = update_policy({}, "category", "allow", "betting")
+
+    action, reason = decision(
+        "Mixed Tags Employer", ["betting", "russian_military_defense"], cfg,
+    )
+
+    assert action == "block"
+    assert "russian_military_defense" in reason
+
+
 @pytest.mark.parametrize("strategy", ["career_first", "relocation_first"])
 @pytest.mark.parametrize("category", ["russian_military_defense", "verified_direct_war_tie", "russian_government_body"])
 def test_verified_russian_restriction_categories_apply_to_both_search_directions(strategy, category):
