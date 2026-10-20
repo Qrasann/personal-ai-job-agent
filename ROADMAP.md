@@ -1,5 +1,11 @@
 # Roadmap
 
+## Owner decision — 2026-10-20: Web GUI FROZEN INDEFINITELY
+
+**Current binding decision (overrides older Web-GUI-first priorities, including the Web GUI portion of DEC-011/DEC-015):** Freeze all Web GUI feature development, redesign, UX expansion, deployment/rollout planning and user-acceptance initiatives without any sunset date. Resume only after a new **explicit owner decision**; no automatic resumption when other roadmap stages complete. The existing Web GUI MVP, code, tests, documentation and evidence must be preserved. Only truly critical security, data-integrity or compatibility fixes needed to protect existing functionality may be undertaken; do not expand its scope under a maintenance label.
+
+**Telegram is the primary active product interface.** Keep Telegram button-first UX and the original end-to-end AI job-search/application/recruiter/interview vision on the roadmap, together with all approved newer discovery, relocation, AI Router and safety capabilities. Telegram Mini App remains deferred and must **not** become an automatic Web GUI replacement. Do not schedule Web GUI releases or create Web GUI acceptance/deployment blockers for unrelated Telegram/backend stages. Historical Web GUI decisions and implementation records below are retained for audit but superseded on priority and execution by this decision.
+
 ## Current owner execution priorities — 2026-10-18
 
 This update changes execution order; it does not cancel or weaken DEC-001–015 or any previously approved product requirement. Evidence levels remain separate: code, fixtures/tests, confirmed real vacancies, owner acceptance and production release are not interchangeable.
