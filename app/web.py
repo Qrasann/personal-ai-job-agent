@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import html
+from html.parser import HTMLParser
 import json
 import logging
 import os
@@ -49,6 +50,69 @@ def safe_link(value: str | None) -> str:
         return value if parsed.scheme == "https" and parsed.hostname and not parsed.username and not parsed.password and (parsed.port is None or 1 <= parsed.port <= 65535) else ""
     except ValueError:
         return ""
+
+
+class _TelegramMarkupSanitizer(HTMLParser):
+    """Keep only the Telegram tags safe to reuse in the owner web view."""
+
+    _TAGS = {"b": "strong", "strong": "strong", "i": "em", "em": "em", "code": "code", "pre": "pre"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self.stack: list[str | None] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.casefold()
+        if tag == "br":
+            self.parts.append("<br>")
+            return
+        if tag == "a":
+            href = next((value for name, value in attrs if name.casefold() == "href"), None)
+            safe_href = _safe_markup_link(href)
+            self.stack.append("a" if safe_href else None)
+            if safe_href:
+                self.parts.append(f'<a href="{e(safe_href)}" rel="noopener noreferrer">')
+            return
+        rendered = self._TAGS.get(tag)
+        self.stack.append(rendered)
+        if rendered:
+            self.parts.append(f"<{rendered}>")
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.handle_starttag(tag, attrs)
+
+    def handle_endtag(self, _tag: str) -> None:
+        if self.stack:
+            rendered = self.stack.pop()
+            if rendered:
+                self.parts.append(f"</{rendered}>")
+
+    def handle_data(self, data: str) -> None:
+        self.parts.append(e(data))
+
+    def render(self, value: str) -> str:
+        self.feed(value)
+        self.close()
+        return "".join(self.parts)
+
+
+def _safe_markup_link(value: str | None) -> str:
+    try:
+        parsed = urlsplit(value or "")
+        if not value or len(value) > 2048 or any(c.isspace() or c == "\\" for c in value):
+            return ""
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
+            return ""
+        if parsed.port is not None and not 1 <= parsed.port <= 65535:
+            return ""
+        return value
+    except ValueError:
+        return ""
+
+
+def safe_telegram_markup(value: str) -> str:
+    return _TelegramMarkupSanitizer().render(value)
 
 
 def layout(page: str, body: str, *, notice: str = "") -> web.Response:
@@ -635,8 +699,8 @@ async def application_detail(request: web.Request) -> web.Response:
     events = await repo.application_status_history(user.id, app_id)
     content = render_application_export(application, events)
     statuses = "".join(f'<option value="{e(status)}">{e(status)}</option>' for status in sorted(repo.MANUAL_APPLICATION_STATUSES))
-    update = form("/action/application", "Отметить статус вручную", f'<input type="hidden" name="id" value="{app_id}"><select name="status">{statuses}</select>')
-    body = f'<section><p>Статус: {e(application.status)}. Изменение статуса не отправляет заявку.</p>{update}<p><a href="/application/{app_id}/export">Скачать полный пакет</a></p><pre>{e(content[:100_000])}</pre>{"<p>Предпросмотр сокращён; экспорт содержит полный пакет.</p>" if len(content) > 100_000 else ""}</section>'
+    update = form("/action/application", "Отметить статус вручную", f'<input type="hidden" name="id" value="{e(app_id)}"><select name="status">{statuses}</select>')
+    body = f'<section><p>Статус: {e(application.status)}. Изменение статуса не отправляет заявку.</p>{update}<p><a href="/application/{e(app_id)}/export">Скачать полный пакет</a></p><pre>{e(content[:100_000])}</pre>{"<p>Предпросмотр сокращён; экспорт содержит полный пакет.</p>" if len(content) > 100_000 else ""}</section>'
     return layout("applications", body.replace("{csrf}", e(request.app["csrf"])))
 
 
@@ -657,9 +721,9 @@ async def job_detail(request: web.Request) -> web.Response:
     match = payload["match"]
     payload["url"] = safe_link(payload.get("url"))
     # The Telegram renderer already escapes posting text and restricts source links.
-    detail = render_job_details(payload).replace("\n", "<br>")
-    buttons = form("/action/match", "Сохранить", f'<input type="hidden" name="id" value="{match.id}"><input type="hidden" name="status" value="saved">') if match.status not in {"saved", "prepared"} else ""
-    buttons += form("/action/prepare", "Подготовить пакет", f'<input type="hidden" name="id" value="{match.id}">')
+    detail = safe_telegram_markup(render_job_details(payload)).replace("\n", "<br>")
+    buttons = form("/action/match", "Сохранить", f'<input type="hidden" name="id" value="{e(match.id)}"><input type="hidden" name="status" value="saved">') if match.status not in {"saved", "prepared"} else ""
+    buttons += form("/action/prepare", "Подготовить пакет", f'<input type="hidden" name="id" value="{e(match.id)}">')
     body = f'<section>{detail}<p>{buttons}</p></section>'
     return layout("jobs", body.replace("{csrf}", e(request.app["csrf"])))
 

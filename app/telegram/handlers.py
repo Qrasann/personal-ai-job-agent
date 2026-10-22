@@ -10,7 +10,7 @@ from datetime import datetime
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import CallbackQuery, Message
 from aiogram.types import BufferedInputFile
 
 from app.search.source_summary import render_filter_reason_counts, render_source_dashboard, scan_outcome, select_scan_dashboard
@@ -27,23 +27,23 @@ from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
 from app.domain.text_limits import utf16_length
-from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS
+from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS, update_policy as update_employer_policy
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
 from app.knowledge.profile import load_profile
 from app.matching.language_fit import normalize_cefr
 from app.agents.interview import build_interview_plan
-from app.services import ScanAlreadyRunning, apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, coordinated_scan_for_user, scan_hh_chats, hh_client
-from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
+from app.services import ScanAlreadyRunning, apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, coordinated_scan_for_user, scan_hh_chats, hh_client
+from app.sources.adapters.telegram_ingest import parse_forwarded_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_details, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, main_reply_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import relocation_first_allows, source_enabled
-from app.search.user_preferences import parse_salary_command, update_blacklist, update_employer_policy, update_salary
+from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,

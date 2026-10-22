@@ -41,7 +41,7 @@ from app.sources.adapters.georgia import JobsGESource, HRGESource
 from app.sources.adapters.employer_career_watch import EmployerCareerWatchSource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
-from app.sources.network_errors import TRANSPORT_ERROR_TYPES, transport_failure_category
+from app.sources.network_errors import transport_failure_category
 from app.search.source_summary import aggregate_source, normalize_attempt, scan_outcome
 from app.sources.diagnostics import classify_source_error, diagnostic
 from app.sources.notice_policy import (

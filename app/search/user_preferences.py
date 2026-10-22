@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import re
 
-from app.domain.employer_policy import update_policy as update_employer_policy
-
 
 SALARY_KINDS = {"current", "desired", "minimum"}
 _CURRENCY = re.compile(r"^[A-Z]{3}$")
