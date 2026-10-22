@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 Search Reliability — Arbeitnow geography correction
+- Confirmed offline in `app/sources/adapters/arbeitnow.py`: every non-remote city-only location inherited `country=DE` from the board origin (`parsed_country or "DE"`), even without vacancy-level country evidence. This could misclassify geography and affect relocation filtering/prioritization.
+- The adapter now preserves the supplied city for display but leaves country unknown unless `parse_city_country` resolves an explicit country. Explicit `City, Country` labels keep their existing behavior; remote scope, Match Score and thresholds are unchanged.
+- Added regressions for the existing `Berlin` city-only fixture and an arbitrary `Paris` city-only listing. No relocation/visa/work-authorization claim was added. Targeted pytest is pending because the repository `.venv` interpreter is stale and network is unavailable for rebuilding dependencies; `py_compile` and `git diff --check` passed.
+
 ## 2026-10-23 DevHub single-orchestrator preparation
 - Effective AI-DevHub project policy is now `allow_worker=true`, `allow_dirty=false`, `publish=false`, `production=false` for `/mnt/Storage/AI-Job-Bot/dev` on `wip/telegram-pilot-20261019`. The previous `publish=true` setting was corrected; no delivery or push was run.
 - DevHub is the only orchestrator. Its runner is stopped because the current interactive Codex process owns the dirty worktree; the separate `codex-main-runner` remains inactive. All nine historical tasks are DONE; the new non-duplicate P0 Search Reliability/source-usefulness task #10 is queued.

@@ -1,5 +1,9 @@
 # Roadmap
 
+## Search Reliability/source usefulness — 2026-10-23
+
+Confirmed and corrected one source-specific geography false positive: Arbeitnow's non-remote city-only labels no longer inherit Germany from the board origin. The city remains visible, while country stays unknown until the vacancy label contains explicit parseable country evidence. This protects Relocation-first filtering and geography diagnostics without changing Match Score, thresholds, remote scope or eligibility semantics. Offline regressions cover city-only and explicit city-country labels; live source usefulness remains unverified.
+
 ## Search Quality query-lane increment — 2026-10-20
 
 Career-first remains a dedicated DevOps/Infrastructure/Linux/SRE lane. Relocation-first now keeps both configured IT queries and broader Any Job queries by alternating the two lists before bounded source adapters consume them; case-insensitive duplicates do not spend another request slot. The checked-in defaults now name Site Reliability Engineer explicitly. This changes discovery coverage, not Match Score, thresholds or evidence semantics: absent visa, sponsorship and relocation evidence remains unknown. On the unchanged private offline Telegram sample, both profiles were measured separately and the aggregate stayed 18 non-vacancies / 42 vacancy candidates / 1 Good / 41 filtered.

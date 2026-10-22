@@ -52,8 +52,9 @@ def test_arbeitnow_maps_german_role_aliases_and_explicit_support():
 
     assert len(jobs) == 1
     assert jobs[0].title == "Lagermitarbeiter (m/w/d)"
-    assert jobs[0].country == "DE"
+    assert jobs[0].country is None
     assert jobs[0].city == "Berlin"
+    assert jobs[0].raw["location_resolution"] is None
     assert jobs[0].visa_sponsorship is True
     assert jobs[0].relocation is True
     assert jobs[0].description == "Visa support and relocation assistance are provided."
@@ -69,6 +70,18 @@ def test_arbeitnow_splits_explicit_city_country_location_label():
     assert (job.city, job.country) == ("Berlin", "DE")
     assert job.raw["source_location"] == "Berlin, Germany"
     assert job.raw["location_resolution"] == "provider_location_city_country"
+
+
+def test_arbeitnow_city_only_location_does_not_infer_country_from_board_origin():
+    job = ArbeitnowSource.parse_payload({"data": [{
+        "slug": "city-only-1", "title": "DevOps Engineer",
+        "location": "Paris", "remote": False,
+    }]}, SourceContext(user_id=1, queries=["DevOps"]))[0]
+
+    assert job.city == "Paris"
+    assert job.country is None
+    assert job.raw["source_location"] == "Paris"
+    assert job.raw["location_resolution"] is None
 
 
 def test_arbeitnow_remote_free_form_location_does_not_confirm_work_country():

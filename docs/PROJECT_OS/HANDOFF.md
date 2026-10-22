@@ -1,5 +1,11 @@
 # Handoff
 
+## Current checkpoint — 2026-10-23 Arbeitnow geography correction
+
+The first small non-duplicate P0 Search Reliability increment is implemented in the working tree. Offline code/test inspection confirmed that `ArbeitnowSource` assigned `country="DE"` to every non-remote city-only label, using the board origin rather than vacancy evidence. The fix keeps the city label for display and leaves country unknown unless the location explicitly parses as `City, Country`; explicit country labels and remote scope remain unchanged. Regression coverage updates the existing Berlin fixture and adds Paris city-only coverage.
+
+Verification status: code diff and test intent were inspected; targeted pytest could not execute because the available sibling `.venv` has a stale interpreter path, while `uv` cannot rebuild dependencies without network/DNS. Available `py_compile` and `git diff --check` passed. Run `tests/test_arbeitnow.py` with a usable repository environment. No production/runtime, PostgreSQL/volume, credentials, Telegram data, external source or message was touched. The next unfinished item is the remaining offline false-negative/source-usefulness review; preserve unknown geography and do not change score thresholds.
+
 ## Current checkpoint — DevHub single-orchestrator handoff (2026-10-23)
 
 AI-DevHub is the only authorized orchestrator for this project. Its effective

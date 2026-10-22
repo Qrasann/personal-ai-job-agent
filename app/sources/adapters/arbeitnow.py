@@ -75,7 +75,10 @@ class ArbeitnowSource(JobSource):
             remote = row.get("remote") is True
             location = str(row.get("location") or "").strip()
             parsed_city, parsed_country = parse_city_country(location) if not remote else (None, None)
-            physical_country = None if remote else parsed_country or "DE"
+            # The board is German, but that is not vacancy-level location
+            # evidence.  Keep a provider city label for display while leaving
+            # country unknown unless the posting supplies a parseable country.
+            physical_country = None if remote else parsed_country
             city = None if remote else parsed_city or location or None
             jobs.append(
                 NormalizedJob(
