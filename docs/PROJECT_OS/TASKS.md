@@ -1,5 +1,15 @@
 # Tasks
 
+## 2026-10-22 — P0 richer matched/missing-skill Requirements context
+
+- [x] Load the existing profile-scoped `compare_facts` result for the Requirements tab and
+  show a bounded list of skills present/missing in Candidate Facts without changing scoring,
+  facts or eligibility semantics.
+- [x] Add renderer and callback regressions; targeted Telegram/comparison gate: 124 passed,
+  compileall, deterministic Ruff baseline, secret scan and `git diff --check` passed.
+- [ ] Complete isolated visual Telegram before/after acceptance after the normal release gates;
+  no production/runtime or Mini App work is included.
+
 ## 2026-10-20 — P0 Telegram persistent ReplyKeyboard
 - [x] Add one compact persistent `ReplyKeyboardMarkup` to authorized `/start` and `/help` responses without replacing the existing inline status/review/vacancy navigation.
 - [x] Use exact existing slash-command payloads for `/scan`, `/scanstatus`, `/review`, `/stretch`, `/saved`, `/jobs`, `/settings` and `/help`; keep every ordinary command handler available.
@@ -113,7 +123,9 @@
 - [x] Prevent stale notified Good rows for currently non-actionable titles from presenting as current Good or showing the historical numeric score in `/review`; show a repeat-review warning without mutating stored rows.
 - [ ] **P1:** add verified adapter-specific applicant-count capture where a permitted source truly exposes it, then optional secondary ordering behind fit/freshness; do not alter Match Score or make count primary.
 - [x] Add the persistent ReplyKeyboardMarkup control layer while preserving every ordinary command; the dev checkpoint covers the owner-only `/start` and `/help` flow with 248 handler/navigation tests passing.
-- [ ] Add the richer matched/missing-skill summary and complete isolated visual Telegram before/after acceptance.
+- [x] Add the richer matched/missing-skill summary in the Requirements tab; preserve the
+  separate visual acceptance gate below.
+- [ ] Complete isolated visual Telegram before/after acceptance.
 - [ ] Extend employer/legal evidence with official dated references for candidate citizenship/residence/work-authorization decisions; no automated legal conclusion or candidate-data transfer.
 - [ ] Resume the authorized read-only pilot for exactly `@devops_jobs_feed`, `@itjobsgeorgia` and `@vgrecruitingit` as soon as local API credentials and interactive owner sign-in are present; do not join or read private chats.
 

@@ -1,5 +1,23 @@
 # Handoff
 
+## Current checkpoint — richer Requirements skill context (2026-10-22)
+
+Branch `wip/telegram-pilot-20261019`, HEAD `807d4de`. The Requirements tab now loads the
+existing profile-scoped `get_vacancy_comparison` path and renders a bounded summary of skills
+found/missing in Candidate Facts. It does not mutate facts, scoring, eligibility or vacancy
+data; the explicit disclaimer keeps unknown experience from becoming an automatic claim.
+Other `/job` tabs still use the lighter detail loader, and malformed callback/profile scoping
+behavior remains unchanged.
+
+Verification: `tests/test_telegram_compact_vacancy.py` plus `tests/test_fact_comparison.py` —
+76 passed; navigation plus the same comparison/compact tests — 124 passed; compileall,
+deterministic Ruff `E4,E7,E9,F`, gitleaks patch/commit scan and `git diff --check` passed.
+The disposable dependency environment was `/tmp/jobbot-dev-venv.BWfSQW`; no system packages,
+database, Docker, production runtime, Telegram or external source were touched. The local
+checkpoint backup is `/tmp/codex-universal-job-dev-req-summary-20261022.St1dP7` (mode 700).
+The existing `.serena/` files remain untracked and untouched. Next: isolated visual Telegram
+before/after acceptance only after normal release gates; do not claim it from renderer tests.
+
 ## Current checkpoint — P0 Telegram persistent ReplyKeyboard (2026-10-20)
 
 Branch `wip/telegram-pilot-20261019`, starting HEAD `0a2ea82`, clean starting worktree. The unstaged increment adds a compact 4×2 persistent/resizable reply keyboard to authorized `/start` and `/help` responses. Its buttons send the exact existing `/scan`, `/scanstatus`, `/review`, `/stretch`, `/saved`, `/jobs`, `/settings` and `/help` commands. Existing Command handlers, owner/private-chat boundary and inline edit-in-place navigation are unchanged; no parallel text router or Mini App work was added.
