@@ -1,5 +1,57 @@
 # Handoff
 
+## Current checkpoint — DevHub single-orchestrator handoff (2026-10-23)
+
+AI-DevHub is the only authorized orchestrator for this project. Its effective
+user config now registers `/mnt/Storage/AI-Job-Bot/dev` on branch
+`wip/telegram-pilot-20261019`, with `allow_worker=true`, `allow_dirty=false`,
+`publish=false`, and `production=false`. The project was already registered and
+the worker permission was re-asserted idempotently through `devhub projects`.
+The prior unsafe `publish=true` value was corrected; no delivery/push path was
+run. The separate `scripts/codex-main-runner` and its systemd template remain
+inactive alternatives and were not started.
+
+DevHub status/doctor/projects/tasks and `monitor` are healthy; runner is stopped,
+the nine historical tasks are `DONE`, and the new non-duplicate P0 task #10
+(`Search Reliability and source usefulness`) is `QUEUED`. The current interactive
+Codex process holds the worktree writer. The dev worktree remains dirty at HEAD `427d8b5`, so
+`allow_dirty=false` correctly blocks worker startup. Because the active DevHub
+checkpoint policy forbids staging/committing this WIP in the current session. The
+safe handoff is: finish this interactive session, verify the preserved WIP and its
+tests, then run `devhub checkpoint bootstrap ai-job-agent`; this uses the verified
+DevHub checkpoint pipeline without a Codex turn and leaves `.serena/**` untracked.
+Only after that succeeds should `devhub start` run task #10. `/mnt/Storage/AI-Job-Bot/repo`, production, databases, volumes and external
+messages were untouched.
+
+## Current checkpoint — safe Codex Main continuation controller (2026-10-23)
+
+Worktree remains `wip/telegram-pilot-20261019` at HEAD `427d8b5`, with all prior
+unstaged application/docs/tests and untracked `.serena/` preserved. Existing DevHub
+was inspected: its AI Job Agent worker is enabled (`allow_worker=true`) with
+`allow_dirty=false`, `publish=false`, and its normal runner does not resume this Main session. The
+legacy `jobcodex-smart` launcher targets `/home/roma/job-agent-release-v352`, so it
+was not reused.
+
+Added `scripts/codex_main_runner.py`, `scripts/codex-main-runner`, and the uninstalled
+template `scripts/systemd/codex-main-runner.service`. The controller requires an
+explicit session ID (never guesses `--last`), takes a per-user flock/PID lease,
+blocks when another Codex process references this worktree, runs exactly one
+`codex exec resume` subprocess at a time, records atomic state plus event/log files,
+and stops on rate-limit/auth/blocker/error/no-progress/turn limits. It never runs
+git add/commit/reset/checkout, push/merge/deploy, production/database/volume actions,
+or external messages. `start` only forks the bounded runner; no continuous loop was
+started in this session.
+
+Verification: `uv run --isolated --with pytest --with pytest-asyncio pytest -q
+tests/test_codex_main_runner.py` => **4 passed**; `python3 -m py_compile
+scripts/codex_main_runner.py`, `CODEX_MAIN_SESSION_ID=test-session
+scripts/codex-main-runner dry-run`, `scripts/codex-main-runner status`, and
+`git diff --check` passed. Doctor/status detected the currently active interactive
+Codex processes in this worktree, so an actual run would safely refuse to start.
+Systemd was not installed/enabled. Next safe step: owner reviews the exact session ID,
+then optionally installs the template with a non-empty environment override and runs
+one bounded turn; do not use `start` while interactive Main is active.
+
 ## Current checkpoint — richer Requirements skill context (2026-10-22)
 
 Branch `wip/telegram-pilot-20261019`, HEAD `807d4de`. The Requirements tab now loads the
@@ -1663,3 +1715,61 @@ checkpoint, then resume the authorized three-channel pilot and P0 employer pipel
 The broader non-integration runner was attempted and again hung after 5%; it was
 interrupted and is not a pass. Do not repeat it as part of this checkpoint unless
 actively diagnosing the separately queued hang.
+
+## 2026-10-23 — autonomous continuation checkpoint
+
+Working tree: `/mnt/Storage/AI-Job-Bot/dev`, branch
+`wip/telegram-pilot-20261019`, HEAD `427d8b5`, ahead of origin by three commits.
+The pre-existing untracked `.serena/` directory is preserved. PR-00 reconciliation
+found the local source-notice, notification-deduplication, employer-policy and
+Telegram keyboard work already present; do not duplicate it or copy files from
+`/repo`.
+
+Targeted exact-head gate: `140 passed, 3 skipped` for source diagnostics/isolation,
+notice policy, notification delivery, Telegram start/menu and job navigation. The
+repository `.venv` is unusable because its interpreter points to a removed legacy
+path; the gate used disposable `uv --isolated` dependencies. No production runtime,
+database, volumes, Telegram session or external message was touched.
+
+Next continuation point: add the smallest missing P0 regression contract around
+relocation/remote evidence and false-positive matching, then run targeted tests,
+compile/secret/diff gates, commit locally, and update this handoff again.
+
+The first matching slice is now complete in the working tree: Relocation-first
+recognizes configured destination-country vacancies as the relocation track even
+when support evidence is absent. It preserves unknown support (`relocation_score`
+42), confirmed support, and authorization restrictions. Added destination and
+non-destination regressions in `tests/test_technical_score_v2.py`. The focused
+matching/relocation gate passed 149 tests; import-order lint, compileall and diff
+check passed. Ruff's existing B023/FLY002 findings remain outside this change.
+Because DevHub policy forbids local staging/commits, the code and docs remain
+unstaged for automatic checkpointing. Next exact continuation is the false-positive
+matching corpus (salary, sponsorship, volunteer/EOI and unsuitable roles).
+
+The next safe U03 slice is also complete: `/blacklist preview add|remove|clear|undo`
+renders a before/after proposal without saving, and `/blacklist undo` restores the
+last word-list mutation across the existing all-profile scope. Existing add/remove/
+clear commands remain intact; no vacancy or application history is deleted. Added
+pure preference regressions and Telegram compatibility checks; targeted gate passed
+62 tests. The full offline suite had already passed 1437 tests with 23 skips and 7
+warnings before this slice. Ruff import-order output includes pre-existing style
+findings in the touched legacy modules; compileall and diff check remain clean.
+Continue with the false-positive matching corpus, then the six-section Telegram
+navigation design; do not expand blacklist to job/company identity until S01 storage
+semantics are specified.
+
+Added direct handler regressions for the new blacklist preview (no persistence before
+confirmation) and undo across all search profiles: 19 focused preference/Telegram
+tests passed. The full suite remains green at 1439 passed, 23 skipped, 7 warnings
+after the six-section keyboard change. `scripts/secret-scan.sh`, compileall and
+`git diff --check` passed. Current working tree is intentionally unstaged because
+the DevHub checkpoint policy forbids local commits; preserve `.serena/` and all
+current edits at the next checkpoint.
+
+The persistent keyboard was then aligned with the approved top-level UX: six
+existing safe sections (`/jobs`, `/jobs relocation`, `/applications`, `/resumes`,
+`/facts`, `/settings`) plus a separate `/scanstatus` row. It does not add handlers,
+duplicate inline vacancy/status controls, or expand Mini App scope. Typed slash
+commands remain unchanged. Telegram/navigation regressions passed 84 tests;
+compileall and diff check passed. Run the full suite once after this keyboard-only
+change, then continue with the false-positive matching corpus.

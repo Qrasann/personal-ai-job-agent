@@ -46,10 +46,10 @@ def test_main_reply_keyboard_is_compact_persistent_command_navigation():
     assert keyboard.resize_keyboard is True
     assert keyboard.one_time_keyboard is not True
     assert [[button.text for button in row] for row in keyboard.keyboard] == [
-        ["/scan", "/scanstatus"],
-        ["/review", "/stretch"],
-        ["/saved", "/jobs"],
-        ["/settings", "/help"],
+        ["/jobs", "/jobs relocation"],
+        ["/applications", "/resumes"],
+        ["/facts", "/settings"],
+        ["/scanstatus"],
     ]
 
 
@@ -81,7 +81,7 @@ def test_reply_keyboard_commands_keep_registered_slash_handlers():
         for button in row
     }
 
-    assert button_commands <= registered
+    assert {command.split()[0] for command in button_commands} <= registered
 
 
 def test_start_and_help_attach_the_same_persistent_keyboard(monkeypatch):

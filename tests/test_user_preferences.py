@@ -4,6 +4,7 @@ from app.database.models import Job, SearchProfile
 from app.matching.engine import score_job
 from app.search.user_preferences import (
     parse_salary_command,
+    preview_blacklist,
     update_blacklist,
     update_salary,
 )
@@ -56,3 +57,22 @@ def test_sector_preferences_use_allow_warn_block_policy_instead_of_blacklist_ter
     assert decision("Betsson", ["betting"], settings)[0] == "allow"
     settings = update_policy(settings, "employer", "warn", "Betsson Group")
     assert decision("Betsson Group", ["betting"], settings)[0] == "warn"
+
+
+def test_blacklist_preview_is_non_mutating_and_undo_restores_previous_terms():
+    settings = update_blacklist({}, "add", "Fraud")
+    preview = preview_blacklist(settings, "add", "Agency")
+
+    assert preview["before"] == ["Fraud"]
+    assert preview["after"] == ["Fraud", "Agency"]
+    assert settings["exclude_terms"] == ["Fraud"]
+    assert update_blacklist(settings, "add", "Agency")["exclude_terms"] == ["Fraud", "Agency"]
+    assert update_blacklist(update_blacklist(settings, "add", "Agency"), "undo")["exclude_terms"] == ["Fraud"]
+
+
+def test_blacklist_preview_and_undo_are_safe_when_no_previous_change_exists():
+    settings = {"exclude_terms": ["Fraud"]}
+    preview = preview_blacklist(settings, "undo")
+
+    assert preview["before"] == preview["after"] == ["Fraud"]
+    assert update_blacklist(settings, "undo")["exclude_terms"] == ["Fraud"]

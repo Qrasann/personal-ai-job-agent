@@ -1,9 +1,40 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 DevHub single-orchestrator preparation
+- Effective AI-DevHub project policy is now `allow_worker=true`, `allow_dirty=false`, `publish=false`, `production=false` for `/mnt/Storage/AI-Job-Bot/dev` on `wip/telegram-pilot-20261019`. The previous `publish=true` setting was corrected; no delivery or push was run.
+- DevHub is the only orchestrator. Its runner is stopped because the current interactive Codex process owns the dirty worktree; the separate `codex-main-runner` remains inactive. All nine historical tasks are DONE; the new non-duplicate P0 Search Reliability/source-usefulness task #10 is queued.
+- DevHub now preflights writer/dirty-worktree blockers before spawning `_run`; the regression is covered in the DevHub suite (48 passed, 2 subtests).
+- Safe bootstrap is blocked only by the preserved dirty WIP plus the no-commit checkpoint policy. After this session ends, DevHub must verify/checkpoint the WIP before worker execution; `allow_dirty` must remain false.
+
+## 2026-10-23 safe Codex Main continuation controller
+- Existing DevHub remains the bounded autonomous runner. Its AI Job Agent project is now explicitly enabled for workers (`allow_worker=true`) while retaining `allow_dirty=false`, `publish=false`, and `production=false`; it starts bounded `codex exec` tasks rather than resuming this Main session. The legacy `jobcodex-smart` launcher targets a different repository and has no lock/checkpoint contract.
+- Added an unstaged, dev-only `scripts/codex_main_runner.py` adapter plus `scripts/codex-main-runner` and an uninstalled user-systemd template. It requires an explicit `CODEX_MAIN_SESSION_ID`/`--session`, serializes one `codex exec resume` turn with an advisory active-process check and flock, records state/events/logs under `~/.local/state/ai-job-agent/codex-main-runner`, stops on blockers/rate limits/auth/errors/no-progress, and never stages or commits.
+- Safe validation only: `tests/test_codex_main_runner.py` 4 passed; `py_compile`, `doctor`/dry-run, status and `git diff --check` passed. No runner turn was started; current interactive Codex processes were detected and therefore would block a real run. Systemd was not installed/enabled.
+
 ## 2026-10-20 P0 Telegram persistent command keyboard
 - `/start` and `/help` now attach the first persistent, resizable Telegram reply keyboard for the existing safe daily commands: scan, scan status, Good/Stretch review, saved/jobs lists, settings and help. Every button sends the exact ordinary slash command; command handlers and the existing inline vacancy/status navigation are unchanged.
 - The keyboard is limited to the existing private-chat owner flow. Mini App, Web GUI, matching, data, runtime and external messages were not changed.
 - Telegram handler/navigation regression gate: 248 passed, 1 skipped. Compileall, repository secret scan and `git diff --check` passed.
+
+## 2026-10-23 autonomous continuation baseline
+- Safe development candidate remains `wip/telegram-pilot-20261019` at `427d8b5`, ahead of `origin/wip/telegram-pilot-20261019` by three commits; the only pre-existing worktree change is untracked `.serena/`, preserved.
+- Local dev already contains the source-notice grouping and cross-profile canonical notification fixes represented by the current PR #56 line; no duplicate implementation was added. `/repo` and the running `repo` compose project remain outside this work.
+- Targeted baseline gate on the exact dev tree: `140 passed, 3 skipped` across source summaries/isolation, notice policy, notification delivery, Telegram start/menu and navigation tests. The repository `.venv` interpreter is stale, so the gate used an isolated `uv` environment; no dependency files or runtime state changed.
+- Next safe increment is the remaining search/matching regression contract, starting with truthful relocation/remote evidence and false-positive protection. Production deployment, database writes, Telegram access and external applications remain disabled.
+
+## 2026-10-23 P0 relocation lane correction
+- Relocation-first now treats a vacancy in an explicitly configured destination country as a relocation lane even when the posting contains no visa or relocation offer. This restores destination-country candidates without inventing legal/support evidence or changing score weights.
+- Unknown support remains conservative (`relocation_score=42`); confirmed support and authorization restrictions retain their existing semantics. Non-destination foreign vacancies keep their prior unscoped behavior.
+- Matching/relocation regression gate: 149 passed. Import-order lint, compileall and `git diff --check` passed. Full Ruff still reports pre-existing B023/FLY002 findings outside this slice.
+
+## 2026-10-23 P0 blacklist safety slice
+- The existing all-profile word blacklist now supports a non-mutating `preview` command and reversible `undo`; ordinary add/remove/clear slash commands remain compatible. The previous term list is stored as a small preference snapshot, while vacancy/application history is untouched.
+- Blacklist/Telegram compatibility gate: 62 passed. Full offline suite with the relocation slice before this change: 1437 passed, 23 skipped, 7 warnings. The disposable test environment includes `pytest-asyncio`; no production or runtime state was used.
+
+## 2026-10-23 P0 six-section reply navigation
+- The persistent reply keyboard now mirrors the approved top-level structure using only existing safe slash handlers: Vacancies (`/jobs`), Relocation (`/jobs relocation`), Applications, CV Studio (`/resumes`), Profile (`/facts`), Settings, plus a separate `/scanstatus` action. Existing typed commands, inline vacancy/status navigation and Mini App scope are unchanged.
+- Telegram/navigation gate after the keyboard update: 84 passed; compileall and `git diff --check` passed. Full suite rerun is the next gate.
+- Direct blacklist handler regressions now cover preview-without-write and all-profile undo: 19 focused tests passed. Final offline gate for the current tree: 1439 passed, 23 skipped, 7 warnings; secret scan passed.
 
 ## 2026-10-20 P0 release-readiness and mixed employer policy
 - Release candidate code is locally integrated on `wip/telegram-pilot-20261019`; Telegram Pilot, Employer Career Watch, grouped source notices, employer policy and Career/Relocation query lanes pass a current focused integration gate (430 passed, 1 skipped). Policy/scoring regressions pass separately (86 passed); compileall, secret scan and diff check pass.

@@ -43,6 +43,14 @@ def update_salary(settings: dict, kind: str, currency: str, amount: int | None) 
 def update_blacklist(settings: dict, action: str, term: str = "") -> dict:
     result = dict(settings)
     terms = [str(item).strip() for item in result.get("exclude_terms", []) if str(item).strip()]
+    if action == "undo":
+        previous = result.pop("_blacklist_undo", None)
+        if isinstance(previous, list):
+            result["exclude_terms"] = [str(item).strip() for item in previous if str(item).strip()]
+        return result
+    if action not in {"add", "remove", "clear"}:
+        raise ValueError("Действие blacklist должно быть add, remove, clear или undo.")
+    result["_blacklist_undo"] = list(terms)
     if action == "add" and term.strip():
         if term.strip().casefold() in {"betting", "gambling", "букмек", "букмекер", "казино", "casino", "igaming", "crypto casino", "crypto", "web3", "blockchain"}:
             raise ValueError("Отраслевые предпочтения настраиваются через /employerpolicy category <категория> allow|warn|block.")
@@ -54,3 +62,15 @@ def update_blacklist(settings: dict, action: str, term: str = "") -> dict:
         terms = []
     result["exclude_terms"] = terms
     return result
+
+
+def preview_blacklist(settings: dict, action: str, term: str = "") -> dict:
+    """Return a before/after preview without mutating persisted preferences."""
+    current = [str(item).strip() for item in (settings.get("exclude_terms") or []) if str(item).strip()]
+    preview_settings = dict(settings)
+    if action == "undo":
+        previous = preview_settings.get("_blacklist_undo")
+        after = [str(item).strip() for item in previous if str(item).strip()] if isinstance(previous, list) else current
+    else:
+        after = update_blacklist(preview_settings, action, term).get("exclude_terms", current)
+    return {"action": action, "term": term.strip(), "before": current, "after": list(after)}

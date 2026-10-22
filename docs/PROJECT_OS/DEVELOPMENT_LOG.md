@@ -3137,3 +3137,56 @@ Read-only inspection found PR #54 merged into `feature/v3.5.7` at `a1debc9`, whi
 - Added a compact persistent/resizable `ReplyKeyboardMarkup` to authorized `/start` and `/help` replies. The eight buttons contain exact existing slash commands for search, status, Good/Stretch review, saved/jobs lists, settings and help, so ordinary typed commands and the existing handlers remain the single execution path.
 - Left the established inline `/scanstatus`, `/review` and `/job` edit-in-place controls unchanged. No Mini App, Web, matching, schema, runtime, private Telegram data or external-message behavior changed.
 - Added regressions for keyboard layout/persistence, start/help attachment and correspondence between every button and a registered Command handler. Expanded Telegram handler/navigation tests: 248 passed, 1 skipped; compileall, repository secret scan and `git diff --check` passed.
+
+## 2026-10-23 — PR-00 candidate reconciliation
+
+Re-checked the safe dev copy at `427d8b5` and confirmed it is three commits ahead
+of the remote PR #56 line. Existing source-notice grouping, canonical cross-profile
+notification handling, employer policy and persistent keyboard changes were already
+present, so no duplicate implementation was made. The focused baseline gate passed
+140 tests with 3 skips in a disposable isolated uv environment because the stored
+repository venv has a stale interpreter path. No runtime, database, volume,
+Telegram or external-message action occurred. Next is the missing relocation/remote
+and false-positive matching regression slice.
+
+## 2026-10-23 — Relocation-first destination lane
+
+Relocation-first scoring previously promoted a posting to the relocation lane only
+when its text contained positive support evidence. A configured destination-country
+posting with unknown visa/relocation facts therefore fell into the unscoped lane
+and could disappear from useful relocation results. The matcher now adds the
+relocation lane for an explicitly configured destination country only; it does not
+change weights, infer eligibility, or turn unknown evidence into a benefit. Added
+destination/non-destination regressions. Matching and relocation tests: 149 passed;
+import lint, compileall and diff check passed. Local commit remains prohibited by
+the DevHub checkpoint policy.
+
+## 2026-10-23 — reversible word blacklist preview
+
+Added a bounded U03 slice to the existing all-profile word blacklist. Owners can
+preview add/remove/clear/undo without a database write, then confirm through the
+ordinary slash command; the last mutation can be undone by restoring a preference
+snapshot. No job, saved item, application or history row is deleted. Existing
+commands remain compatible. Targeted preference/Telegram tests: 62 passed. The
+previous full offline gate passed 1437 tests, 23 skipped, 7 warnings. Legacy import
+ordering warnings remain documented rather than mass-formatting unrelated modules.
+
+Added direct Telegram handler regressions for blacklist preview (no write before
+confirmation) and undo across every search profile: 19 focused tests passed. The
+full suite remains green at 1439 passed, 23 skipped, 7 warnings after the keyboard
+change; secret scan, compileall and diff check passed.
+
+## 2026-10-23 — six-section persistent navigation
+
+Updated the existing persistent ReplyKeyboardMarkup to the approved compact top
+level: Vacancies, Relocation, Applications, CV Studio, Profile and Settings, plus a
+separate Search/Status action. Every button sends an already registered safe slash
+command, including `/jobs relocation`; inline vacancy/status navigation and typed
+commands remain untouched. Telegram/navigation regressions: 84 passed; compileall
+and diff check passed. No Mini App, runtime, database or outbound message change.
+## 2026-10-23 — bounded Codex Main continuation controller
+
+Inspected the existing DevHub runner, local launchers and Codex CLI. DevHub already has locks, leases, bounded batches and recovery, but its AI Job Agent project is disabled for workers and its normal path starts fresh `codex exec` tasks; the legacy launcher points at another repository. Added a narrow dev-only controller around explicit `codex exec resume`, with a single-process flock/PID guard, active-worktree Codex detection, bounded turns, no-progress and blocker/rate-limit/auth stops, atomic recovery state, event/log files and a non-installed user-systemd template. The controller never stages, commits, resets, publishes, deploys or touches runtime data. Four controller regressions passed, plus compile check, safe doctor/status and diff check. No Codex turn was started.
+## 2026-10-23 — prepare DevHub as the sole AI Job Agent orchestrator
+
+Inspected the actual AI-DevHub CLI/docs/state and the AI Job Agent worktree. The project was already registered and `allow_worker=true`; corrected the effective project policy from `publish=true` to the required safe `publish=false`, preserving `allow_dirty=false` and `production=false`. Re-asserted worker permission idempotently through the existing CLI. Added a minimal DevHub pre-spawn guard so a busy writer or disallowed dirty worktree is refused before `_run` is created, plus a bounded `checkpoint bootstrap` handoff that excludes `.serena/**`; regressions are covered. `devhub doctor` passed, AI-DevHub tests passed 50 plus 2 subtests, and monitor/status showed no worker while the interactive Codex writer is active. The dev targeted gate passed 18 tests with project requirements, compileall, secret scan and diff check. The five historical P0 fingerprints were verified as existing, then one genuinely open Search Reliability/source-usefulness task #10 was queued without duplication. Dirty WIP checkpointing remains blocked by the active writer; no production/runtime, delivery, push or external message was touched.

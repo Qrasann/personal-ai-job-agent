@@ -5,14 +5,16 @@ from dataclasses import dataclass, field
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
+from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS
+from app.domain.employer_policy import decision as employer_decision
 from app.domain.role_text import role_tokens
-from app.matching.technical_score import score_technical_v2
+from app.geo.countries import normalize_country
 from app.matching.recommendation import build_recommendation_breakdown
+from app.matching.technical_score import score_technical_v2
 from app.search.preferences import discovery_queries, search_strategy
-from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS, decision as employer_decision
 
 # Bump whenever score, fit-lane, cap, or exclusion semantics change.
-MATCH_ASSESSMENT_VERSION = 3
+MATCH_ASSESSMENT_VERSION = 4
 
 
 @dataclass(slots=True)
@@ -93,6 +95,27 @@ def _enabled_tracks(settings: dict) -> set[str]:
     if modes.get("relocation", True):
         enabled.add("relocation")
     return enabled
+
+
+def _relocation_country_match(job: Job, settings: dict) -> bool:
+    """Treat a configured destination as a relocation lane, not as support proof.
+
+    Relocation-first searches must still score ordinary destination-country
+    postings when the employer says nothing about visa or moving assistance.
+    The evidence remains unknown and keeps its existing conservative score; this
+    helper only prevents those postings from falling into the unscoped lane.
+    """
+    if search_strategy(settings) != "relocation_first":
+        return False
+    country = normalize_country(str(job.country or ""))
+    if not country:
+        return False
+    configured = {
+        normalized
+        for value in (settings.get("target_countries") or [])
+        if (normalized := normalize_country(str(value)))
+    }
+    return country in configured
 
 
 _YEAR_WORDS = {
@@ -438,6 +461,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     signals = analyze_job_signals(job)
     enabled = _enabled_tracks(settings)
     viable = signals.tracks & enabled
+    if "relocation" in enabled and _relocation_country_match(job, settings):
+        viable.add("relocation")
     if signals.tracks and not viable:
         return MatchResult(0, 0, 0, 0, 0, "Режим этой вакансии выключен", chosen_resume, "disabled", "skip")
 

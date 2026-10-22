@@ -7,13 +7,13 @@ from aiogram.types import (
 
 
 def main_reply_keyboard() -> ReplyKeyboardMarkup:
-    """Keep the daily safe command surface available below the input field."""
+    """Expose the six approved sections plus the separate search/status action."""
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="/scan"), KeyboardButton(text="/scanstatus")],
-            [KeyboardButton(text="/review"), KeyboardButton(text="/stretch")],
-            [KeyboardButton(text="/saved"), KeyboardButton(text="/jobs")],
-            [KeyboardButton(text="/settings"), KeyboardButton(text="/help")],
+            [KeyboardButton(text="/jobs"), KeyboardButton(text="/jobs relocation")],
+            [KeyboardButton(text="/applications"), KeyboardButton(text="/resumes")],
+            [KeyboardButton(text="/facts"), KeyboardButton(text="/settings")],
+            [KeyboardButton(text="/scanstatus")],
         ],
         resize_keyboard=True,
         is_persistent=True,

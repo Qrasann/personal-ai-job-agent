@@ -1,5 +1,21 @@
 # Tasks
 
+## 2026-10-23 — AI-DevHub sole orchestrator preparation
+- [x] Verify the real DevHub project, queue, locks/lease, recovery/checkpoint policy and inactive runner.
+- [x] Enforce the safe effective project policy: `allow_worker=true`, `allow_dirty=false`, `publish=false`, `production=false`; preserve exact dev path and branch.
+- [x] Confirm no parallel worker or systemd `codex-main-runner`; keep the alternative controller inactive.
+- [x] Add and test the DevHub pre-spawn writer/dirty-worktree guard and bounded WIP bootstrap checkpoint; DevHub suite now passes 50 plus 2 subtests.
+- [x] Run DevHub doctor/status/monitor, AI Job Agent targeted tests (18 passed), compileall, secret scan and diff check.
+- [x] Sync the five historical P0 fingerprints without creating duplicates; queue one genuinely open Search Reliability/source-usefulness task as DevHub task #10.
+- [ ] After the interactive writer exits, let DevHub checkpoint this preserved dirty WIP. Do not use `allow_dirty=true`, fabricate duplicate P0 tasks, or run worker concurrently with Main.
+
+## 2026-10-23 — safe Codex Main continuation controller
+- [x] Verify existing DevHub/launcher capabilities and confirm no safe Main-specific resume runner is configured for this dirty dev worktree.
+- [x] Add a single-turn-at-a-time explicit-session controller with lock, active-process guard, bounded continuation, blocker/no-progress stops, atomic state and separate logs/events.
+- [x] Add an uninstalled user-systemd template and management commands (`start`, `status`, `stop`, `logs`, `doctor`, `dry-run`); do not start the continuous loop in this session.
+- [x] Run controller regressions (4 passed), compile check, safe doctor/status and `git diff --check`; preserve all existing unstaged changes and DevHub no-commit policy.
+- [ ] Owner may later install/configure the template and start a bounded run only after selecting and verifying the exact Main session ID.
+
 ## 2026-10-22 — P0 richer matched/missing-skill Requirements context
 
 - [x] Load the existing profile-scoped `compare_facts` result for the Requirements tab and
@@ -2256,3 +2272,29 @@ remains open. Historical counts below belong to their recorded stages.
 - [x] Recognize unambiguous candidate tags within the bounded header and add watcher plus analyzer regressions. Corrected real-sample result: 18 non-vacancies, 42 vacancy candidates, 1 Good, 0 Stretch, 41 filtered, 0 duplicates.
 - [ ] Review filtered real vacancies for false negatives and add conservative exact-template company/title/location parsing where the post itself supplies evidence. Do not infer country from channel identity.
 - [ ] Validate live watch/restart/catch-up separately; the offline sample does not prove runtime delivery acceptance.
+
+## 2026-10-23 — autonomous continuation baseline
+
+- [x] Re-verified dev candidate `427d8b5` and preserved the existing untracked `.serena/` worktree entry.
+- [x] Ran the exact-head targeted baseline: 140 passed, 3 skipped using an isolated uv environment because the checked-in repository venv has a stale interpreter path.
+- [ ] Continue with the next independent P0: add missing relocation/remote and false-positive matching regressions without changing thresholds or live runtime.
+
+## 2026-10-23 — relocation lane correction
+
+- [x] Mark configured destination-country postings as Relocation-first candidates without promoting unknown visa/relocation evidence.
+- [x] Add regressions for destination-country and non-destination-country behavior; matching/relocation gate: 149 passed.
+- [ ] Continue with the next independent P0 false-positive/matching corpus slice.
+
+## 2026-10-23 — blacklist safety slice
+
+- [x] Add non-mutating `/blacklist preview ...` for the current word scope.
+- [x] Add reversible `/blacklist undo` without deleting jobs, saved items or history.
+- [x] Preserve ordinary add/remove/clear command compatibility; targeted gate: 62 passed.
+- [ ] Extend the model to typed job/company/role scopes only after canonical identity and persistence design are approved.
+
+## 2026-10-23 — six-section reply navigation
+
+- [x] Align the persistent keyboard with the approved six sections plus separate Search/Status using existing commands only.
+- [x] Preserve slash-command registration and inline details navigation; Telegram/navigation gate: 84 passed.
+- [ ] Validate the full suite and then continue to the false-positive matching corpus.
+- [x] Validate the current full offline tree: 1439 passed, 23 skipped, 7 warnings; secret scan passed.

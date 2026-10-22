@@ -58,3 +58,45 @@ def test_blacklist_view_does_not_claim_legacy_sector_terms_are_active(monkeypatc
     assert "senior devops" in response
     assert "gambling" not in response
     assert "/employerpolicy" in response
+
+
+def test_blacklist_preview_does_not_write_and_exposes_confirmation(monkeypatch):
+    searches = [SimpleNamespace(id=11, settings={"exclude_terms": ["Fraud"]})]
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+    update = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+    message = SimpleNamespace(text="/blacklist preview add Agency", answer=AsyncMock())
+
+    asyncio.run(handlers.blacklist_command(message))
+
+    update.assert_not_awaited()
+    response = message.answer.await_args.args[0]
+    assert "Было: Fraud" in response
+    assert "Станет: Fraud, Agency" in response
+    assert "Подтвердить: /blacklist add Agency" in response
+
+
+def test_blacklist_undo_writes_all_search_profiles(monkeypatch):
+    searches = [
+        SimpleNamespace(id=11, settings={"exclude_terms": ["Fraud"], "_blacklist_undo": []}),
+        SimpleNamespace(id=12, settings={"exclude_terms": ["Fraud"], "_blacklist_undo": []}),
+    ]
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+    writes = []
+
+    async def update(search_id, settings):
+        writes.append((search_id, settings))
+
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+    message = SimpleNamespace(text="/blacklist undo", answer=AsyncMock())
+
+    asyncio.run(handlers.blacklist_command(message))
+
+    assert [search_id for search_id, _ in writes] == [11, 12]
+    assert all(settings["exclude_terms"] == [] for _, settings in writes)
+    assert all("_blacklist_undo" not in settings for _, settings in writes)
+    assert "отменено" in message.answer.await_args.args[0]

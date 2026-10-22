@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Job Agent bounded Codex Main continuation
+
+[Service]
+Type=oneshot
+WorkingDirectory=/mnt/Storage/AI-Job-Bot/dev
+Environment=CODEX_MAIN_SESSION_ID=
+ExecStart=/usr/bin/python3 /mnt/Storage/AI-Job-Bot/dev/scripts/codex_main_runner.py run --max-turns=1
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/Storage/AI-Job-Bot/dev /home/roma/.local/state/ai-job-agent
+Restart=no
+
+[Install]
+WantedBy=default.target

@@ -43,7 +43,7 @@ from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, main_reply_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import relocation_first_allows, source_enabled
-from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
+from app.search.user_preferences import parse_salary_command, preview_blacklist, update_blacklist, update_salary
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
@@ -450,16 +450,28 @@ async def blacklist_command(message: Message) -> None:
     cfg = searches[0].settings or {}
     if len(parts) == 1:
         terms = [str(term) for term in (cfg.get("exclude_terms") or []) if str(term).casefold() not in LEGACY_INDUSTRY_EXCLUSIONS]
-        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nОтраслевые решения: /employerpolicy\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nОчистить: /blacklist clear")
+        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nОтраслевые решения: /employerpolicy\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nПредпросмотр: /blacklist preview add|remove|clear <слово>\nОчистить: /blacklist clear · отменить последнее: /blacklist undo")
         return
     action = parts[1].casefold()
     term = parts[2].strip() if len(parts) == 3 else ""
-    if action not in {"add", "remove", "clear"} or (action != "clear" and not term):
-        await message.answer("Формат: /blacklist add|remove <слово> или /blacklist clear")
+    if action == "preview":
+        preview_parts = term.split(maxsplit=1)
+        preview_action = preview_parts[0].casefold() if preview_parts else ""
+        preview_term = preview_parts[1].strip() if len(preview_parts) == 2 else ""
+        if preview_action not in {"add", "remove", "clear", "undo"} or (preview_action not in {"clear", "undo"} and not preview_term):
+            await message.answer("Формат: /blacklist preview add|remove <слово>, preview clear или preview undo")
+            return
+        preview = preview_blacklist(cfg, preview_action, preview_term)
+        before = ", ".join(preview["before"]) or "нет"
+        after = ", ".join(preview["after"]) or "нет"
+        await message.answer(f"Предпросмотр blacklist (без сохранения):\nБыло: {before}\nСтанет: {after}\nПодтвердить: /blacklist {preview_action}" + (f" {preview_term}" if preview_term else ""))
+        return
+    if action not in {"add", "remove", "clear", "undo"} or (action not in {"clear", "undo"} and not term):
+        await message.answer("Формат: /blacklist add|remove <слово>, /blacklist clear или /blacklist undo")
         return
     for search in searches:
         await repo.update_search_settings(search.id, update_blacklist(search.settings or {}, action, term))
-    await message.answer("✅ Blacklist обновлён.")
+    await message.answer("✅ Blacklist обновлён." if action != "undo" else "↩️ Последнее изменение blacklist отменено.")
 
 
 @router.message(Command("employerpolicy"))
