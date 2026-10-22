@@ -490,6 +490,56 @@ def _concise_match_reason(match) -> str:
     return _clip("; ".join(useful[:2]), 240)
 
 
+def _skill_summary_lines(comparison) -> list[str]:
+    """Render a bounded, evidence-only skill summary for the requirements tab."""
+    if comparison is None:
+        return []
+    total = int(getattr(comparison, "total", 0) or 0)
+    lines = ["", "🧩 <b>Навыки и Candidate Facts</b>"]
+    if not total:
+        lines.append("Поддерживаемый словарь не распознал технические требования.")
+        return lines
+
+    present = int(getattr(comparison, "present", 0) or 0)
+    lines.append(f"Найдено в Candidate Facts: <b>{present}/{total}</b>")
+    matched = [
+        str(item.skill)
+        for item in getattr(comparison, "requirements", ())
+        if getattr(item, "status", "") != "missing"
+    ]
+    missing = [
+        str(item.skill)
+        for item in getattr(comparison, "requirements", ())
+        if getattr(item, "status", "") == "missing"
+    ]
+
+    def names(values: list[str]) -> str:
+        limit = 6
+        visible = ", ".join(html.escape(value) for value in values[:limit])
+        remainder = len(values) - limit
+        return visible + (f"; ещё {remainder}" if remainder > 0 else "")
+
+    if matched:
+        lines.append("✅ Есть в Candidate Facts: " + names(matched))
+    if missing:
+        lines.append("❌ Не найдено в Candidate Facts: " + names(missing))
+    alternatives = (
+        getattr(comparison, "alternative_groups", ())
+        + getattr(comparison, "preferred_alternative_groups", ())
+    )
+    if alternatives:
+        compact = "; ".join(
+            " или ".join(html.escape(str(skill)) for skill in group)
+            for group in alternatives[:3]
+        )
+        lines.append("🔀 Альтернативы: " + _clip(compact, 300))
+    lines.append(
+        "Список основан только на распознанных терминах и Candidate Facts; "
+        "опыт не добавляется автоматически."
+    )
+    return lines
+
+
 def render_job_summary(payload: dict) -> str:
     value = _job_card_values(payload)
     match = value["match"]
@@ -519,7 +569,8 @@ def render_job_section(payload: dict, section: str) -> str:
         lines = [heading, "📌 <b>Требования</b>", f"Опыт: {html.escape(value['experience'])}"]
         applicant_location = clean_html_text(str(details.get("applicant_location") or ""))
         lines.append("География кандидата: " + html.escape(applicant_location or value["remote_scope"] or "не указана"))
-        lines.append("Совпадающие и недостающие навыки: кнопка «Сравнить с профилем» на краткой карточке.")
+        lines.extend(_skill_summary_lines(payload.get("comparison")))
+        lines.append("Полное сравнение и тип опыта: кнопка «Сравнить с профилем» на краткой карточке.")
         return "\n".join(lines)
     if section == "desc":
         description = _escape_with_utf16_limit(value["description"], 3200)

@@ -2089,7 +2089,8 @@ async def jobtab_callback(callback: CallbackQuery) -> None:
     section, job_id, search_profile_id = identifiers
     try:
         search_filter = {"search_profile_id": search_profile_id} if search_profile_id is not None else {}
-        payload = await get_vacancy_details(user.id, job_id, **search_filter)
+        loader = get_vacancy_comparison if section == "req" else get_vacancy_details
+        payload = await loader(user.id, job_id, **search_filter)
         selected_id = getattr(payload.get("match"), "search_profile_id", None)
         if selected_id is not None:
             search_profile_id = selected_id
