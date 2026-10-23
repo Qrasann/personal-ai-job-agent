@@ -85,6 +85,13 @@ Confirmation creates a new draft after checking the exact parent digest; it neve
 mutates the approved parent or copies an external provider binding. Draft approval
 remains a separate explicit action. Gate: 108 behavioral + 1 isolated PostgreSQL test.
 
+## 2026-10-23 — C01 Modern/PDF export
+
+Added ATS/Modern switches for DOCX and PDF. Renderers consume only approved stored
+fields, escape markup and add no inferred facts. ReportLab embeds a locally available
+Noto Sans/DejaVu Sans font; missing fonts fail closed. RU/EN PDF extraction and Modern
+DOCX styling are regression-tested. Focused gate: 109 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

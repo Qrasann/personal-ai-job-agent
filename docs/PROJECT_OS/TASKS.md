@@ -17,7 +17,8 @@
 - [x] Exclude draft versions from automatic selection and reject them in prepare/apply safety boundaries; focused gate: 178 passed.
 - [x] Add owner-scoped approved-version TXT and simple ATS-friendly DOCX export without inferred content; focused gate: 106 passed.
 - [x] Add bounded grounded text diff, one-time confirmation, immutable parent and new draft lineage with stale-preview protection; 108 unit/behavioral + 1 PostgreSQL test passed.
-- [ ] Add Modern template and PDF export.
+- [x] Add ATS/Modern DOCX/PDF export with escaped stored content and tested RU/EN extraction; focused gate: 109 passed.
+- [ ] Run isolated end-to-end C01 owner acceptance and verify renderer/font availability in the release image.
 
 ## 2026-10-23 — P0 U03 structured blacklist core
 

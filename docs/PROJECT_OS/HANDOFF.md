@@ -1,5 +1,17 @@
 # Handoff
 
+## Current checkpoint — P0 C01 Modern/PDF export (2026-10-23)
+
+`/resumeexport <id> txt|docx|pdf [ats|modern]` now supports simple ATS and styled
+Modern output. Both formats are deterministic renderers over the approved stored
+name/role/language/content and escape markup; they do not generate claims. PDF uses
+the new bounded ReportLab dependency and embeds local Noto Sans or DejaVu Sans.
+RU/EN PDF text extraction was verified with pypdf. Missing Unicode fonts fail closed.
+
+CV/import/navigation gate: **109 passed**. C01 code slices are complete enough for
+isolated owner acceptance; release image font/dependency compatibility remains a gate.
+Production/runtime and external transmission remain untouched.
+
 ## Current checkpoint — P0 C01 grounded CV editing (2026-10-23)
 
 `/resumeedit <id> <full new text>` now renders an escaped bounded unified diff and

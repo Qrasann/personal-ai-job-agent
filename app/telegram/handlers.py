@@ -1251,7 +1251,7 @@ async def resumes(message: Message) -> None:
         f"{r.source} — {'✅ approved' if version_metadata(r.rules)['status'] == 'approved' else '📝 draft'}"
         for r in rows
     )
-    text += "\n\n/resumeedit &lt;id&gt; &lt;новый текст&gt; · /resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt; · /resumeexport &lt;id&gt; txt|docx"
+    text += "\n\n/resumeedit &lt;id&gt; &lt;новый текст&gt; · /resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt; · /resumeexport &lt;id&gt; txt|docx|pdf [ats|modern]"
     await message.answer(text, parse_mode="HTML")
 
 
@@ -1292,8 +1292,12 @@ async def resume_export_command(message: Message) -> None:
     if not user:
         return
     parts = (message.text or "").split()
-    if len(parts) != 3 or not parts[1].isdigit() or parts[2].casefold() not in {"txt", "docx"}:
-        await message.answer("Использование: /resumeexport <resume_id> txt|docx")
+    if (
+        len(parts) not in {3, 4} or not parts[1].isdigit()
+        or parts[2].casefold() not in {"txt", "docx", "pdf"}
+        or (len(parts) == 4 and parts[3].casefold() not in {"ats", "modern"})
+    ):
+        await message.answer("Использование: /resumeexport <resume_id> txt|docx|pdf [ats|modern]")
         return
     profile = await repo.active_profile(user.id)
     resume = await repo.get_profile_resume(profile.id, int(parts[1])) if profile else None
@@ -1301,13 +1305,14 @@ async def resume_export_command(message: Message) -> None:
         await message.answer("❌ Резюме не найдено в твоём профиле.")
         return
     try:
-        filename, content = export_resume(resume, parts[2])
+        style = parts[3] if len(parts) == 4 else "ats"
+        filename, content = export_resume(resume, parts[2], style)
     except ValueError as exc:
         await message.answer("❌ " + str(exc))
         return
     await message.answer_document(
         BufferedInputFile(content, filename=filename),
-        caption=f"Approved CV #{resume.id} · {parts[2].upper()}",
+        caption=f"Approved CV #{resume.id} · {parts[2].upper()} · {style.upper()}",
     )
 
 

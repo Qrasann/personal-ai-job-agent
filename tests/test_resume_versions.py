@@ -87,9 +87,31 @@ def test_approved_resume_exports_exact_text_to_txt_and_ats_friendly_docx():
     assert txt.decode() == resume.content
 
     docx_name, docx = export_resume(resume, "docx")
-    assert docx_name == "SRE-EN.docx"
+    assert docx_name == "SRE-EN-ats.docx"
     rendered = "\n".join(paragraph.text for paragraph in Document(io.BytesIO(docx)).paragraphs)
     assert rendered == "SRE / EN\nSite Reliability Engineer · EN\nSummary\nLinux & Kubernetes"
+
+
+def test_modern_docx_and_pdf_preserve_ru_en_text_without_new_claims():
+    from docx import Document
+    from pypdf import PdfReader
+
+    resume = SimpleNamespace(
+        id=5, name="SRE RU", role="Инженер надёжности", language="ru",
+        content="Опыт\nLinux и Kubernetes", rules={},
+    )
+    docx_name, docx = export_resume(resume, "docx", "modern")
+    assert docx_name == "SRE-RU-modern.docx"
+    doc = Document(io.BytesIO(docx))
+    assert "Опыт\nLinux и Kubernetes" in "\n".join(item.text for item in doc.paragraphs)
+    assert str(doc.paragraphs[0].runs[0].font.color.rgb) == "1F4E79"
+
+    pdf_name, pdf = export_resume(resume, "pdf", "modern")
+    assert pdf_name == "SRE-RU-modern.pdf"
+    assert pdf.startswith(b"%PDF-")
+    extracted = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(pdf)).pages)
+    assert "Инженер надёжности" in extracted
+    assert "Linux и Kubernetes" in extracted
 
 
 def test_draft_or_empty_resume_cannot_be_exported():
