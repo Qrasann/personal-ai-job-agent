@@ -1,3 +1,10 @@
+## 2026-10-23 — full suite, exact-SHA CI and image/PostgreSQL smoke
+
+Full isolated suite passed 1506 tests. Compile, secret scan and diff checks passed. Draft
+PR #56 run 40009706784 completed green on code SHA `bc63a12` across Python, secret and
+Docker jobs. Its labeled image initialized schema v11 and persisted/read one synthetic
+Application event in a separate tmpfs database, which was then dropped.
+
 ## 2026-10-23 — release-image PDF renderer
 
 The first rebuilt image reproduced C01's fail-closed missing-Unicode-font path. Added

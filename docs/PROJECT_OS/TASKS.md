@@ -8,7 +8,7 @@
 - [x] Rehearse custom dump/list/checksum/actual restore on synthetic tmpfs data and verify previous v8 image read/write against additive v11 schema.
 - [ ] Take and restore-check a fresh private production backup immediately before release; isolated rehearsal is not a substitute.
 - [x] Build the release image and verify ReportLab 4.5.1 + DejaVu Sans, exact RU/EN PDF extraction, non-root UID and healthcheck; resume gate: 10 passed.
-- [ ] Verify exact-SHA CI and isolated smoke before production.
+- [x] Verify full isolated PostgreSQL suite (1506 passed), exact-code-SHA `bc63a12` CI (Python/secret/Docker green) and release-image schema-v11/Application smoke.
 
 ## 2026-10-23 — P0 R01 per-application approval
 

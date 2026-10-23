@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 release gate — full suite, CI and image smoke
+- Full local suite against isolated PostgreSQL passes **1506 tests**. Compile, repository-history secret scan and diff checks pass.
+- Draft PR #56 CI is green on exact code commit `bc63a12`: Python checks, secret scan and Docker build. The exact labeled image also initialized schema v11 in a separate tmpfs database and persisted/read one synthetic Application event. No external provider or production state was used.
+
 ## 2026-10-23 release gate — CV renderer image
 - The release image previously contained ReportLab but no allowed Unicode font, so PDF export correctly failed closed. The Dockerfile now installs the minimal DejaVu core package.
 - A rebuilt non-root image generated a Modern PDF and pypdf extracted exact RU/EN text; ReportLab 4.5.1, font path, healthcheck and UID 10001 were verified. Resume gate: **10 passed**.

@@ -1,5 +1,15 @@
 # Handoff
 
+## Current checkpoint — release-ready code gates (2026-10-23)
+
+Full isolated PostgreSQL suite: **1506 passed**. Compile, history secret scan and diff
+checks pass. Draft PR #56 CI run `40009706784` is green on exact code SHA `bc63a12`
+(Python checks, secret scan, Docker build). The exact labeled image initialized schema
+v11 in a separate tmpfs database and persisted/read a synthetic `prepared/system` event.
+No provider or production state was touched. Remaining deployment gate: create a fresh
+private production backup, restore-check it in isolation, record current image/config,
+then perform the documented controlled update and private smoke; do not release before it.
+
 ## Current checkpoint — release-image PDF renderer (2026-10-23)
 
 The release image reproduced a missing-font failure despite ReportLab being installed.
