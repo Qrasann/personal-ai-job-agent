@@ -1,3 +1,10 @@
+## 2026-10-23 — worldwide physical location evidence
+
+Live Employer Watch provenance exposed unknown `Office Based - London, UK`. Added a small
+global physical-country alias layer independent of search markets and stripped only the
+exact provider office wrapper. Home/remote regional labels remain unknown. Focused gate:
+57 passed. This post-release code is not yet deployed.
+
 ## 2026-10-23 — production rollout f786aa1
 
 Preserved the divergent runtime checkout and deployed the verified release through a
@@ -8,6 +15,7 @@ owner data, disabled outbound automation and rollback tag passed smoke. Runtime 
 The first scan exposed a missing watchlist because the legacy data-directory bind masked
 image assets; the overlay now preserves personal profile/countries as file binds and uses
 the release watchlist from the image.
+The corrected startup scan completed successfully without repeating that source error.
 
 ## 2026-10-23 — fresh production backup and restored-copy migration rehearsal
 

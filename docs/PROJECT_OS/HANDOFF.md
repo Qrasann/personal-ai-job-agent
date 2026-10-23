@@ -1,5 +1,18 @@
 # Handoff
 
+## Current checkpoint — P0 worldwide office location evidence (2026-10-23)
+
+The first production scan provided a reproducible loss: official Greenhouse location
+`Office Based - London, UK` was retained in source provenance but canonical country/city
+were unknown. Physical evidence normalization was incorrectly limited to selectable search
+markets. Global aliases now resolve observed GB/US/SG/CN/TW/IN/IL/AU labels, and only the
+exact `Office Based -` wrapper is removed. Home Based/Remote/APAC remain unknown and imply
+neither work authorization nor relocation. Geo/employer gate: **57 passed**.
+
+Production still runs healthy release `f786aa1`; this new code is not deployed. Next P0:
+continue measured source usefulness/location gaps using the completed scan, then run normal
+release gates before a later rollout. No employer action is authorized.
+
 ## Current checkpoint — production f786aa1 running (2026-10-23)
 
 Production runs version **3.5.7**, release Git SHA **f786aa1a2eeeb4792fa30643a1d8d5e9005e5947**,
@@ -23,10 +36,9 @@ read-only binds and uses the versioned watchlist from the image; storage remains
 named volume. Matching hashes verify both personal files were preserved. No runtime file
 was rewritten.
 
-The corrected startup scan is processing source requests while health/polling/retry jobs
-remain good. Confirm its completion and absence of the prior watchlist error, then select
-the next independent P0 from ROADMAP. Do not use guarded `job-agent update` until runtime
-Git ownership/topology is deliberately resolved.
+The corrected startup scan completed successfully with Employer Career Watch active and no
+repeat of the watchlist error. Do not use guarded `job-agent update` until runtime Git
+ownership/topology is deliberately resolved.
 
 ## Current checkpoint — production backup verified; rollout safely blocked (2026-10-23)
 

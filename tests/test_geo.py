@@ -8,11 +8,14 @@ def test_country_aliases():
     assert normalize_country("GE") == "GE"
     assert normalize_country("Грузия") == "GE"
     assert normalize_country("Moldova") == "MD"
+    assert normalize_country("UK") == "GB"
+    assert normalize_country("Singapore") == "SG"
 
 
 def test_conservative_city_country_resolution_uses_exact_supported_suffixes():
     assert parse_city_country("Berlin, Germany") == ("Berlin", "DE")
     assert parse_city_country("Tbilisi, Georgia") == ("Tbilisi", "GE")
+    assert parse_city_country("London, UK") == ("London", "GB")
     for ambiguous in (
         "Atlanta, Georgia", "Savannah, Georgia", "Atlanta, Georgia, USA",
         "Berlin / Amsterdam, Germany", "Remote, Germany", "EMEA",

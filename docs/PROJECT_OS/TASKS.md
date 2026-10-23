@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-23 — P0 worldwide physical location evidence
+
+- [x] Reproduce live loss: official `Office Based - London, UK` provenance yielded unknown country.
+- [x] Normalize observed worldwide physical country labels separately from selectable search markets and unwrap only exact `Office Based -` provider text.
+- [x] Preserve Home Based/Remote/APAC as unknown; geo/employer gate: 57 passed.
+
 ## 2026-10-23 — production rollout f786aa1
 
 - [x] Inventory and preserve the divergent runtime checkout, two local commits and three untracked/backup files.
@@ -7,7 +13,7 @@
 - [x] Verify healthy container, zero restarts, Telegram `getMe` and polling, schema v11, retained owner/facts/CVs, disabled auto-apply/reply and no Application/event creation.
 - [x] Correct the private overlay after the legacy `/app/data` bind hid the versioned employer watchlist; preserve profile/countries as read-only file binds.
 - [x] Retain the pre-release image as `job-agent-rollback:pre-f786aa1` and retain the verified private backup.
-- [ ] Observe the first scheduled scan to completion and continue the next P0 roadmap task; no real application or employer message is authorized.
+- [x] Observe the corrected first scheduled scan to successful completion; no real application or employer message occurred.
 
 ## 2026-10-23 — open release gates after C01/R01/R02
 

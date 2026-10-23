@@ -134,7 +134,13 @@ class EmployerCareerWatchSource(JobSource):
                 or (isinstance(location_value, dict) and location_value.get("remote") is True)
                 or bool(re.search(r"\bremote\b", source_location, re.I))
             )
-            city, country = parse_city_country(source_location) if not is_remote else (None, None)
+            # Canonical's Greenhouse feed wraps physical offices in an exact
+            # presentation prefix. Strip only that wrapper; home/remote and
+            # regional labels remain unresolved eligibility-wise.
+            physical_location = re.sub(
+                r"^office\s+based\s*-\s*", "", source_location, flags=re.I,
+            )
+            city, country = parse_city_country(physical_location) if not is_remote else (None, None)
             location_resolution = None
             if employer.ats == "smartrecruiters" and isinstance(location_value, dict) and not is_remote:
                 structured_country = normalize_country(str(location_value.get("country") or ""))

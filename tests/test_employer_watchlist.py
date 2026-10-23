@@ -113,6 +113,32 @@ def test_employer_watch_resolves_exact_country_only_office_without_city_guess():
     assert jobs[0].raw["industry_tags"] == ["betting", "gambling"]
 
 
+def test_employer_watch_resolves_office_based_provider_wrapper_only():
+    employer = next(item for item in load_employer_watchlist().employers if item.id == "canonical")
+    context = SourceContext(user_id=1, queries=["Linux"])
+    host = next(iter(employer.allowed_hosts))
+    payload = {"jobs": [
+        {
+            "id": "office-london", "title": "Linux Support Engineer",
+            "absolute_url": f"https://{host}/jobs/office-london",
+            "location": {"name": "Office Based - London, UK"},
+        },
+        {
+            "id": "home-apac", "title": "Linux Support Engineer",
+            "absolute_url": f"https://{host}/jobs/home-apac",
+            "location": {"name": "Home Based - APAC"},
+        },
+    ]}
+
+    jobs = EmployerCareerWatchSource.parse_board_payload(employer, payload, context)
+
+    assert (jobs[0].city, jobs[0].country) == ("London", "GB")
+    assert jobs[0].raw["source_location"] == "Office Based - London, UK"
+    assert jobs[0].raw["location_resolution"] == "provider_location_city_country"
+    assert jobs[1].city is None and jobs[1].country is None
+    assert jobs[1].raw["location_resolution"] is None
+
+
 def test_employer_watch_fetches_bounded_public_ats_boards(monkeypatch) -> None:
     employers = [item for item in load_employer_watchlist().employers if item.api_url]
     calls = []
