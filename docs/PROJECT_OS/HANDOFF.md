@@ -1,5 +1,17 @@
 # Handoff
 
+## Current checkpoint — P0 R01 fail-closed application entrypoint (2026-10-23)
+
+The Telegram `apply:` callback no longer calls `apply_match` or any provider API. Its
+first action now prepares/reuses the immutable application package, renders that exact
+saved preview and states that no external submission occurred. This aligns the button
+with the approved “first click prepares” UX and closes the previous direct-send gap.
+
+Navigation/HH/package gate: **57 passed, 2 skipped** (isolated PostgreSQL URL omitted
+for this focused run). R01 remains partial: no provider call should be exposed again
+until a one-time expiring confirmation binds exact vacancy, CV snapshot, letter and
+channel. No external action was performed.
+
 ## Current checkpoint — P0 C01 Modern/PDF export (2026-10-23)
 
 `/resumeexport <id> txt|docx|pdf [ats|modern]` now supports simple ATS and styled

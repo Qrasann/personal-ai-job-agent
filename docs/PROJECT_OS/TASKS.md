@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-23 — P0 R01 per-application approval
+
+- [x] Remove direct provider submission from the first Telegram `apply:` action; prepare/reuse and show the immutable package instead.
+- [x] State explicitly that no external action occurred; keep package history and manual URL workflow available.
+- [ ] Add a one-time, expiring confirmation bound to the exact frozen vacancy/CV/letter/channel before re-enabling any authorized provider call.
+
 ## 2026-10-23 — P0 R02 immutable Application CRM events
 
 - [x] Add additive schema-v9 provenance, structured evidence and idempotency keys; preserve old rows as explicit `legacy` events.

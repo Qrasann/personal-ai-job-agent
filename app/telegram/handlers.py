@@ -39,7 +39,7 @@ from app.geo.countries import all_supported_countries, country_config, normalize
 from app.knowledge.profile import load_profile
 from app.matching.language_fit import normalize_cefr
 from app.agents.interview import build_interview_plan
-from app.services import ScanAlreadyRunning, apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, coordinated_scan_for_user, scan_hh_chats, hh_client
+from app.services import ScanAlreadyRunning, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, coordinated_scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
 from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
@@ -2550,52 +2550,18 @@ async def apply_callback(callback: CallbackQuery, bot: Bot) -> None:
         await callback.answer("Неверный идентификатор отклика.", show_alert=True)
         return
     match_id = int(raw_match_id)
-    await callback.answer("Отправляю…")
+    await callback.answer("Готовлю пакет для проверки…")
     try:
-        result = await apply_match(bot, match_id, user.id)
-        status = result.get("status")
-        if status == "sent":
-            text = f"✅ HH подтвердил отправку отклика. Запись #{result.get('application_id', '?')} в /applications."
-        elif status == "external":
-            text = (
-                "↗ HH направил на внешнюю форму работодателя. "
-                "Отклик ещё не подтверждён как отправленный: заверши его вручную. "
-                f"Запись #{result.get('application_id', '?')} сохранена в /applications; "
-                "адрес перехода доступен в экспорте через /application <id> export."
-            )
-        else:
-            text = (
-                "⚠️ Статус отправки HH неизвестен. Перед повтором проверь кабинет HH "
-                "и /applications, чтобы не отправить повторный отклик."
-            )
-        await callback.message.answer(text, parse_mode=None)
-        await callback.message.edit_reply_markup(reply_markup=None)
-    except Exception as exc:
-        # Only our own predictable user-facing RuntimeErrors may be shown.
-        # Provider, database and parser exceptions may carry sensitive details.
-        safe_prefixes = (
-            "Match не найден",
-            "HH private applicant API доступен только owner-профилю",
-            "Вакансия не найдена",
-            "Для этой вакансии нет HH-источника",
-            "HH private applicant API отключён",
-            "Для выбранного профиля нет HH resume ID",
-            "HH owner не найден или отключён",
-            "Повторный HH-отклик заблокирован:",
-            "HH не подтвердил результат попытки #",
-            "Статус HH попытки #",
-        )
-        detail = str(exc)
-        if isinstance(exc, RuntimeError) and detail.startswith(safe_prefixes):
-            message = detail
-        else:
-            issue = classify_source_error(exc, stage="processing")
-            message = (
-                "Не удалось завершить HH-отклик. Проверь /applications "
-                f"и кабинет HH перед повтором. Код: {issue['code']}."
-            )
+        preview = await _prepare_saved_preview(match_id, user.id)
+        await callback.message.answer(preview, parse_mode="HTML", disable_web_page_preview=True)
         await callback.message.answer(
-            "⚠️ " + html.escape(message), parse_mode="HTML",
+            "🔒 Внешняя отправка не выполнялась. Проверь точный пакет в /applications. "
+            "Отправка через интеграцию останется заблокированной до отдельного "
+            "подтверждения конкретного CV, письма, вакансии и канала."
+        )
+    except Exception as exc:
+        await callback.message.answer(
+            _prepare_error_text(exc, package_saved=False), parse_mode="HTML",
         )
 
 

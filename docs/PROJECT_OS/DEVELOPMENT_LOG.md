@@ -92,6 +92,13 @@ fields, escape markup and add no inferred facts. ReportLab embeds a locally avai
 Noto Sans/DejaVu Sans font; missing fonts fail closed. RU/EN PDF extraction and Modern
 DOCX styling are regression-tested. Focused gate: 109 passed.
 
+## 2026-10-23 — R01 fail-closed application entrypoint
+
+Removed provider submission from the initial Telegram `apply:` callback. It now only
+creates/reuses and displays the immutable package, followed by an explicit no-send
+notice. The underlying provider service is no longer reachable from Telegram pending
+an exact-package one-time confirmation design. Gate: 57 passed, 2 DB tests skipped.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

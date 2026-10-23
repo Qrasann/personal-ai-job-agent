@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 R01 fail-closed application entrypoint
+- Telegram `apply:` no longer invokes the HH submission service. It prepares/reuses the immutable package, displays the exact saved preview and explicitly states that no external action occurred.
+- Provider sending remains unavailable from Telegram until a one-time confirmation binds the exact vacancy, CV snapshot, letter and channel. Navigation/HH/package gate: 57 passed, 2 PostgreSQL tests skipped without the test URL in this focused run.
+
 ## 2026-10-23 P0 C01 Modern/PDF export
 - Approved CV export now supports ATS or Modern DOCX/PDF. Both templates use only stored name/role/language/content; PDF embeds a local Noto Sans/DejaVu Sans Unicode font and preserves tested RU/EN extraction through pypdf.
 - `reportlab` is now an explicit bounded dependency. Missing runtime Unicode fonts fail closed with a clear error. CV/import/navigation gate: 109 passed.

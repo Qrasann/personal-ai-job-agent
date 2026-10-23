@@ -577,27 +577,23 @@ def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkey
     assert "Пакет #42" in message.answer_document.await_args.kwargs["caption"]
 
 
-@pytest.mark.parametrize(("result", "expected_text"), [
-    ({"status": "sent"}, "подтвердил отправку"),
-    ({"status": "external"}, "ещё не подтверждён"),
-    ({"status": "unknown"}, "Статус отправки HH неизвестен"),
-])
-def test_apply_callback_distinguishes_external_redirect_from_submission(monkeypatch, result, expected_text):
+def test_apply_callback_only_prepares_exact_package_and_never_claims_submission(monkeypatch):
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    apply = AsyncMock(return_value=result)
-    monkeypatch.setattr(handlers, "apply_match", apply)
+    prepare = AsyncMock(return_value="EXACT PACKAGE PREVIEW")
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
     msg = SimpleNamespace(
         chat=SimpleNamespace(id=777),
         answer=AsyncMock(),
-        edit_reply_markup=AsyncMock(),
     )
     callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
 
     asyncio.run(handlers.apply_callback(callback, object()))
 
-    assert expected_text in msg.answer.await_args.args[0]
-    apply.assert_awaited_once()
-    msg.edit_reply_markup.assert_awaited_once_with(reply_markup=None)
+    prepare.assert_awaited_once_with(25, 7)
+    assert msg.answer.await_args_list[0].args[0] == "EXACT PACKAGE PREVIEW"
+    notice = msg.answer.await_args_list[1].args[0]
+    assert "Внешняя отправка не выполнялась" in notice
+    assert "отдельного подтверждения" in notice
 
 
 def test_external_application_and_history_do_not_claim_provider_receipt():
@@ -622,32 +618,16 @@ def test_external_application_and_history_do_not_claim_provider_receipt():
 @pytest.mark.parametrize("bad_match_id", ["apply:abc", "apply:-2", "apply:0", "apply:" + "9" * 100])
 def test_hh_apply_callback_rejects_malformed_match_id(monkeypatch, bad_match_id):
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    attempt = AsyncMock()
-    monkeypatch.setattr(handlers, "apply_match", attempt)
+    prepare = AsyncMock()
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
     msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
     callback = SimpleNamespace(data=bad_match_id, message=msg, answer=AsyncMock())
 
     asyncio.run(handlers.apply_callback(callback, object()))
 
     callback.answer.assert_awaited_once_with("Неверный идентификатор отклика.", show_alert=True)
-    attempt.assert_not_awaited()
+    prepare.assert_not_awaited()
     msg.answer.assert_not_awaited()
-
-
-@pytest.mark.parametrize(("error", "public_text"), [
-    (RuntimeError("Повторный HH-отклик заблокирован: запись #22"), "Повторный HH-отклик заблокирован"),
-    (RuntimeError("HH не подтвердил результат попытки #96"), "HH не подтвердил результат"),
-])
-def test_hh_apply_callback_displays_only_controlled_actionable_errors(monkeypatch, error, public_text):
-    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers, "apply_match", AsyncMock(side_effect=error))
-    msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
-    callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
-
-    asyncio.run(handlers.apply_callback(callback, object()))
-
-    assert public_text in msg.answer.await_args.args[0]
-    assert msg.answer.await_args.kwargs["parse_mode"] == "HTML"
 
 
 @pytest.mark.parametrize("error", [
@@ -657,7 +637,7 @@ def test_hh_apply_callback_displays_only_controlled_actionable_errors(monkeypatc
 ])
 def test_hh_apply_callback_never_echoes_untrusted_error_payload(monkeypatch, error):
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers, "apply_match", AsyncMock(side_effect=error))
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", AsyncMock(side_effect=error))
     msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
     callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
 
