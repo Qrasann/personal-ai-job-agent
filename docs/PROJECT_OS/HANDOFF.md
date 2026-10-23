@@ -9,7 +9,8 @@ I/O; stale/tampered packages and replay fail before provider access. Submission 
 only frozen fields and the existing reservation/outcome ledger blocks duplicates and
 ambiguous retries. Gate: **59 passed, 2 skipped**.
 
-HEAD after checkpoint is recorded by Git; next task is isolated R01 owner acceptance
+Implementation checkpoint: `9477b44` on `wip/telegram-pilot-20261019`; this HANDOFF is
+its immediate documentation successor. Next task is isolated R01 owner acceptance
 with a non-production provider fixture, then the next unblocked P0 roadmap item.
 Open release gates remain: 19 async/web tests, backup+restore, v8→v9→v10 compatibility,
 rollback, exact-SHA CI and release-image ReportLab/fonts. No real submission occurred.
