@@ -3,9 +3,14 @@
 ## 2026-10-23 — P0 Search Reliability/source usefulness
 - [x] Confirm the Arbeitnow city-only geography false positive from offline adapter/tests: board origin was incorrectly used as vacancy country evidence.
 - [x] Preserve city display while removing the inferred `DE` country; keep explicit `City, Country` parsing unchanged and add regressions.
-- [ ] Run the targeted pytest gate when a usable repository interpreter/dependency environment is available; do not claim live-source or production acceptance.
-- [x] Run available local static checks: `py_compile` and `git diff --check` passed.
+- [x] Run targeted and related offline gates: Arbeitnow/geo/source suites **113 passed**; full offline suite **1447 passed, 23 skipped**.
+- [x] Run compileall, `git diff --check` and repository secret scan; no live-source or production acceptance claimed.
 - [ ] Continue the next independent false-negative/source-usefulness review without changing Match Score or thresholds absent evidence.
+
+## 2026-10-23 — DevHub recovery correctness follow-up
+- [x] Reproduce the SIGTERM/fast-`DONE` race in an isolated DevHub runner test.
+- [x] Force stopped runs to `PAUSED_CONTEXT` before checkpointing; verify **51 passed, 2 subtests**.
+- [ ] Leave the DevHub fix unstaged for owner/DevHub checkpoint; do not start a worker while Main owns the AI Job Agent tree.
 
 ## 2026-10-23 — AI-DevHub sole orchestrator preparation
 - [x] Verify the real DevHub project, queue, locks/lease, recovery/checkpoint policy and inactive runner.

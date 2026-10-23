@@ -1,5 +1,27 @@
 # Handoff
 
+## Current checkpoint — Arbeitnow WIP and DevHub stop-race guard (2026-10-23)
+
+The current dev branch is `wip/telegram-pilot-20261019` at `be60f70` (ahead of
+origin by five commits). The only AI Job Agent modifications are the preserved
+Arbeitnow adapter/test WIP: country-only provider labels no longer become an
+invented city, and `tests/test_arbeitnow.py` passes **23 tests**. Keep the WIP;
+do not reset, clean, stash, stage or commit it in this session.
+
+AI-DevHub is stopped and remains the sole orchestrator. Its task #12 is marked
+DONE by a prior interrupted worker run, but it has no verified checkpoint and
+left the WIP above; treat that status as historical/inconsistent, not as proof
+of delivery. A DevHub regression now prevents a SIGTERM-racing `DONE` result
+from entering checkpointing or DONE; the full DevHub suite is **51 passed, 2
+subtests**. The fix and test are unstaged in `/mnt/Storage/AI-DevHub`.
+
+Next handoff: after this interactive writer exits, run `devhub doctor`, verify
+the exact diff and `tests/test_arbeitnow.py`, then run
+`devhub checkpoint bootstrap ai-job-agent`. Only after that verified checkpoint
+should `devhub start` be considered. Do not run either command while this Main
+session still owns the worktree; no production/runtime, DB/volume, external
+message, push or merge is authorized.
+
 ## Current checkpoint — 2026-10-23 Arbeitnow geography correction
 
 The first small non-duplicate P0 Search Reliability increment is implemented in the working tree. Offline code/test inspection confirmed that `ArbeitnowSource` assigned `country="DE"` to every non-remote city-only label, using the board origin rather than vacancy evidence. The fix keeps the city label for display and leaves country unknown unless the location explicitly parses as `City, Country`; explicit country labels and remote scope remain unchanged. Regression coverage updates the existing Berlin fixture and adds Paris city-only coverage.

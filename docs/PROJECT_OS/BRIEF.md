@@ -1,5 +1,27 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 current continuation state
+
+The dev worktree is `wip/telegram-pilot-20261019` at `be60f70`, with the
+preserved Arbeitnow country-only location WIP still uncommitted. The targeted
+`tests/test_arbeitnow.py` gate passes **23 tests**. The change keeps a supplied
+country-only label as country evidence while leaving `city` unset; it does not
+invent relocation or legal eligibility.
+
+AI-DevHub remains the sole orchestrator and is currently stopped while this
+interactive writer owns the worktree. Tasks #10 and #11 are checkpointed DONE.
+Task #12 was interrupted during a bounded worker turn and is recorded DONE by
+the older runner state despite having left the above WIP; do not treat that
+state as a verified checkpoint. Preserve the files, review them, then use the
+safe `devhub checkpoint bootstrap ai-job-agent` handoff only after this session
+ends. `allow_worker=true`, `allow_dirty=false`, `publish=false`, and
+`production=false` remain required.
+
+The DevHub stop-race guard is being verified in AI-DevHub: a SIGTERM racing a
+fast `DONE` result now forces `PAUSED_CONTEXT` before any checkpoint. No worker,
+production/runtime, database/volume, external source, Telegram or employer
+message was started or changed in this continuation.
+
 ## 2026-10-23 P0 Search Reliability — Arbeitnow geography correction
 - Confirmed offline in `app/sources/adapters/arbeitnow.py`: every non-remote city-only location inherited `country=DE` from the board origin (`parsed_country or "DE"`), even without vacancy-level country evidence. This could misclassify geography and affect relocation filtering/prioritization.
 - The adapter now preserves the supplied city for display but leaves country unknown unless `parse_city_country` resolves an explicit country. Explicit `City, Country` labels keep their existing behavior; remote scope, Match Score and thresholds are unchanged.

@@ -1,3 +1,17 @@
+## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
+
+The interactive continuation found task #12 recorded `DONE` after its runner was
+stopped while leaving an uncheckpointed Arbeitnow WIP. DevHub now treats a stop
+request as authoritative even if Codex races to return `DONE`, entering
+`PAUSED_CONTEXT` before checkpointing; an isolated regression prevents a false
+completion. AI-DevHub suite: 51 passed, 2 subtests.
+
+The preserved Arbeitnow WIP removes the board-origin `DE` fallback for
+country-only labels while retaining explicit city/country parsing. Targeted
+source/geo/diagnostic tests: 113 passed; full offline suite: 1447 passed, 23
+skipped. No score, threshold, legal eligibility, runtime, database, Telegram
+or external-message behavior changed.
+
 ## 2026-10-23 — remove Arbeitnow board-origin geography inference
 
 Offline inspection confirmed a source-specific geography defect: every non-remote Arbeitnow posting with a city-only label received `country=DE` through a board-origin fallback, although the posting did not provide country evidence. That could incorrectly satisfy country filters or bias Relocation-first prioritization. The adapter now retains the city for display and leaves country unknown until an explicit parseable country is present; remote handling and explicit `City, Country` parsing are unchanged. Added regressions for city-only Berlin/Paris labels. Match Score, thresholds and relocation/visa/work-authorization semantics were not changed. The targeted pytest gate could not run in this shell: the local sibling interpreter has a stale shebang, and rebuilding an isolated environment requires unavailable network access.

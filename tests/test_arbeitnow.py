@@ -72,6 +72,17 @@ def test_arbeitnow_splits_explicit_city_country_location_label():
     assert job.raw["location_resolution"] == "provider_location_city_country"
 
 
+def test_arbeitnow_country_only_location_does_not_invent_city():
+    job = ArbeitnowSource.parse_payload({"data": [{
+        "slug": "country-only-1", "title": "DevOps Engineer",
+        "location": "Germany", "remote": False,
+    }]}, SourceContext(user_id=1, queries=["DevOps"]))[0]
+
+    assert (job.city, job.country) == (None, "DE")
+    assert job.raw["source_location"] == "Germany"
+    assert job.raw["location_resolution"] == "provider_location_country"
+
+
 def test_arbeitnow_city_only_location_does_not_infer_country_from_board_origin():
     job = ArbeitnowSource.parse_payload({"data": [{
         "slug": "city-only-1", "title": "DevOps Engineer",

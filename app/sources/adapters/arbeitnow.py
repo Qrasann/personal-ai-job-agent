@@ -79,7 +79,16 @@ class ArbeitnowSource(JobSource):
             # evidence.  Keep a provider city label for display while leaving
             # country unknown unless the posting supplies a parseable country.
             physical_country = None if remote else parsed_country
-            city = None if remote else parsed_city or location or None
+            # A country-only label is valid country evidence but not a city.
+            # Do not fall back to the raw label when the shared parser already
+            # resolved it as a country-only location.
+            city = None if remote else parsed_city or (location if not parsed_country else None)
+            location_resolution = None
+            if parsed_country:
+                location_resolution = (
+                    "provider_location_city_country" if parsed_city
+                    else "provider_location_country"
+                )
             jobs.append(
                 NormalizedJob(
                     source=ArbeitnowSource.source_id,
@@ -99,7 +108,7 @@ class ArbeitnowSource(JobSource):
                     skills=tags,
                     published_at=published.isoformat() if published else None,
                     raw={**row, "source_location": location or None,
-                         "location_resolution": "provider_location_city_country" if parsed_country else None},
+                         "location_resolution": location_resolution},
                 )
             )
         return jobs
