@@ -126,6 +126,21 @@ def test_remoteok_matches_all_specific_query_tokens_across_title_and_tags(monkey
     assert [job.source_job_id for job in jobs] == ["1", "3"]
 
 
+def test_remoteok_matches_standard_sre_abbreviation_for_site_reliability_query(monkeypatch):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[
+            {"id": 1, "position": "SRE", "tags": []},
+            {"id": 2, "position": "Site Reliability Engineer", "tags": []},
+            {"id": 3, "position": "Software Engineer", "tags": ["reliability"]},
+        ], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    jobs = asyncio.run(RemoteOKSource().discover(SourceContext(
+        user_id=1, queries=["Site Reliability Engineer"]
+    )))
+    assert [job.source_job_id for job in jobs] == ["1", "2"]
+
+
 def test_remoteok_does_not_turn_unspecified_country_eligibility_into_worldwide(monkeypatch):
     async def get(self, url, **kwargs):
         return httpx.Response(

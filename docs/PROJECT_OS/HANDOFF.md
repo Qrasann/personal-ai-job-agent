@@ -1,5 +1,23 @@
 # Handoff
 
+## Current checkpoint — P0 Remote OK SRE recall (2026-10-23)
+
+At clean HEAD `142cb27`, added a narrow Remote OK discovery alias so the
+Career-first `Site Reliability Engineer` query also matches standard `SRE`
+titles. The regression keeps `Software Engineer` with a merely related
+`reliability` tag excluded; no score, threshold, Relocation-first, geography or
+eligibility semantics changed.
+
+Focused pytest could not run: no repository/system pytest is available and
+`uv` cannot resolve PyPI because DNS/network access is unavailable. Run
+`tests/test_remoteok.py` and the related source gate in a usable environment.
+`py_compile` and `git diff --check` remain required before checkpointing. No
+production/runtime, database, Telegram or external-message action was used.
+
+Next: verify the focused Remote OK/source tests, then continue the next
+independent P0 source-usefulness slice; U02 live Telegram acceptance remains
+blocked here.
+
 ## Current checkpoint — P0 U02 Telegram navigation (2026-10-23)
 
 Starting from clean commit `7bb2aca` on `wip/telegram-pilot-20261019`, U02 was

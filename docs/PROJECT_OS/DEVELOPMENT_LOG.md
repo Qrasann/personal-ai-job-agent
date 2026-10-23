@@ -1,3 +1,13 @@
+## 2026-10-23 — Remote OK SRE title recall
+
+Remote OK discovery required all literal query tokens and therefore missed the
+standard `SRE` abbreviation for the configured `Site Reliability Engineer`
+Career-first query. Added only that explicit alias alternative and a regression
+that keeps an unrelated software/reliability role out. Match Score, thresholds,
+Relocation-first behavior and eligibility evidence are unchanged. The focused
+pytest gate is pending because local pytest is unavailable and isolated uv
+dependency resolution is blocked by DNS.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

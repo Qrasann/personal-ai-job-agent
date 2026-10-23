@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 Search Reliability — Remote OK SRE recall
+- Remote OK discovery now accepts the standard `SRE` title abbreviation as a narrow alternative for the configured `Site Reliability Engineer` Career-first query. Ordinary token matching remains unchanged, so unrelated reliability/software roles stay excluded.
+- Added an offline regression for the abbreviation and unrelated-role guard. Focused pytest is pending because no usable local pytest environment is available and the isolated dependency fallback cannot resolve PyPI/DNS.
+
 ## 2026-10-23 P0 U02 Telegram navigation
 - Details now edits the existing review/list message instead of sending a second message; detail-load failures answer with a sanitized alert and leave the current card intact.
 - Queue navigation edit operations are serialized per Telegram message and failed edits preserve the current screen. Existing profile-scoped Details/Requirements navigation remains intact.

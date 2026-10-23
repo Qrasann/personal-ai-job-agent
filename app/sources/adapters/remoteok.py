@@ -12,6 +12,11 @@ from app.sources.base import JobSource, SourceContext
 from app.sources.diagnostics import SourceInvalidResponse
 
 
+_ROLE_QUERY_ALIASES = {
+    frozenset({"site", "reliability", "engineer"}): frozenset({"sre"}),
+}
+
+
 class RemoteOKSource(JobSource):
     source_id = "remoteok"
     name = "Remote OK"
@@ -54,7 +59,11 @@ class RemoteOKSource(JobSource):
         for query in queries:
             tokens = role_tokens(query)
             meaningful = tokens - generic_role_tokens
-            meaningful_queries.append(meaningful or tokens)
+            required = meaningful or tokens
+            meaningful_queries.append(required)
+            alias = _ROLE_QUERY_ALIASES.get(frozenset(tokens))
+            if alias:
+                meaningful_queries.append(set(alias))
         out: list[NormalizedJob] = []
         for row in payload:
             if not isinstance(row, dict) or not row.get("id"):

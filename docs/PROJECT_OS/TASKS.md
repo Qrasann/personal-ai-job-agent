@@ -5,7 +5,8 @@
 - [x] Preserve city display while removing the inferred `DE` country; keep explicit `City, Country` parsing unchanged and add regressions.
 - [x] Run targeted and related offline gates: Arbeitnow/geo/source suites **113 passed**; full offline suite **1447 passed, 23 skipped**.
 - [x] Run compileall, `git diff --check` and repository secret scan; no live-source or production acceptance claimed.
-- [ ] Continue the next independent false-negative/source-usefulness review without changing Match Score or thresholds absent evidence.
+- [x] Add a narrow Remote OK `Site Reliability Engineer` → `SRE` recall alternative with an unrelated-role regression; Match Score and thresholds unchanged.
+- [ ] Re-run the focused Remote OK/source gates when a usable pytest environment is available.
 
 ## 2026-10-23 — DevHub recovery correctness follow-up
 - [x] Reproduce the SIGTERM/fast-`DONE` race in an isolated DevHub runner test.
