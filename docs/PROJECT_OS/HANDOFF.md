@@ -1,5 +1,18 @@
 # Handoff
 
+## Current checkpoint — P0 R02 application deadlines/reminders (2026-10-23)
+
+Additive schema v10 adds owner-scoped `application_reminders`. Telegram creation
+requires an ISO datetime with explicit offset and stores naive UTC consistently with
+the current DB convention. `/reminders` lists pending items with escaped notes;
+`/reminddone` is owner-scoped and idempotent. Duplicate concurrent creation locks the
+parent Application and returns one existing pending row. No scheduler, Telegram push,
+provider integration or employer communication was enabled.
+
+Isolated migration/repository/application gate: **82 passed**. Next critical-path
+work can return to partial C01 grounded editing/export; real incoming HR integration
+remains externally gated. Production schema/runtime remains unchanged.
+
 ## Current checkpoint — P0 R02 provider-event intake (2026-10-23)
 
 The CRM status vocabulary now includes provider receipt, employer response,

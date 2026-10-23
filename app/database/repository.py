@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.database.db import SessionLocal
 from app.database.models import (
     Application,
+    ApplicationReminder,
     ApplicationStatusEvent,
     CandidateFact,
     CandidateProfile,
@@ -1060,6 +1061,61 @@ async def application_status_history(user_id: int, application_id: int) -> list[
             .order_by(ApplicationStatusEvent.id)
         )
         return list(rows)
+
+
+async def add_application_reminder(
+    user_id: int, application_id: int, due_at: datetime, note: str,
+) -> ApplicationReminder | None:
+    note = " ".join(note.split())
+    if not note or len(note) > 500:
+        raise ValueError("Текст напоминания должен содержать от 1 до 500 символов.")
+    async with SessionLocal() as session:
+        application = await session.scalar(select(Application.id).where(
+            Application.id == application_id, Application.user_id == user_id,
+        ).with_for_update())
+        if application is None:
+            return None
+        existing = await session.scalar(select(ApplicationReminder).where(
+            ApplicationReminder.application_id == application_id,
+            ApplicationReminder.user_id == user_id,
+            ApplicationReminder.due_at == due_at,
+            ApplicationReminder.note == note,
+            ApplicationReminder.status == "pending",
+        ).limit(1))
+        if existing is not None:
+            return existing
+        item = ApplicationReminder(
+            application_id=application_id, user_id=user_id,
+            due_at=due_at, note=note, status="pending",
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
+async def list_application_reminders(user_id: int, limit: int = 20) -> list[ApplicationReminder]:
+    async with SessionLocal() as session:
+        rows = await session.scalars(select(ApplicationReminder).where(
+            ApplicationReminder.user_id == user_id,
+            ApplicationReminder.status == "pending",
+        ).order_by(ApplicationReminder.due_at, ApplicationReminder.id).limit(max(1, min(limit, 100))))
+        return list(rows)
+
+
+async def complete_application_reminder(user_id: int, reminder_id: int) -> bool:
+    async with SessionLocal() as session:
+        item = await session.scalar(select(ApplicationReminder).where(
+            ApplicationReminder.id == reminder_id,
+            ApplicationReminder.user_id == user_id,
+        ).with_for_update())
+        if item is None:
+            return False
+        if item.status == "done":
+            return True
+        item.status = "done"
+        await session.commit()
+        return True
 
 
 async def message_seen(user_id: int, message_id: str, source: str) -> bool:

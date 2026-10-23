@@ -64,6 +64,13 @@ provider-only event boundary that validates owner, Application source and status
 namespaces replay keys and preserves newer state on duplicate delivery. Manual
 Telegram updates remain explicitly `manual_user`. Focused gate: 54 passed.
 
+## 2026-10-23 — R02 application deadlines/reminders
+
+Added schema v10 local reminders linked to owner and Application. The parser refuses
+timezone-free or past deadlines, normalizes explicit offsets to UTC, and bounds note
+length. Parent-row locking deduplicates concurrent identical pending reminders;
+completion and listing are owner-scoped. PostgreSQL/application gate: 82 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

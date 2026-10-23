@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 9
+CURRENT_SCHEMA_VERSION = 10
 
 
 @dataclass(frozen=True)
@@ -126,6 +126,20 @@ MIGRATIONS: tuple[Migration, ...] = (
             "DROP TRIGGER IF EXISTS application_status_events_immutable ON application_status_events",
             "CREATE TRIGGER application_status_events_immutable BEFORE UPDATE OR DELETE ON application_status_events "
             "FOR EACH ROW EXECUTE FUNCTION reject_application_status_event_mutation()",
+        ),
+    ),
+    Migration(
+        version=10,
+        name="application_reminders",
+        statements=(
+            "CREATE TABLE IF NOT EXISTS application_reminders ("
+            "id SERIAL PRIMARY KEY, application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE, "
+            "user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, "
+            "due_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, note TEXT NOT NULL DEFAULT '', "
+            "status VARCHAR(32) NOT NULL DEFAULT 'pending', "
+            "created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP)",
+            "CREATE INDEX IF NOT EXISTS ix_application_reminders_user_due "
+            "ON application_reminders(user_id, status, due_at)",
         ),
     ),
 )

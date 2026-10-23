@@ -117,7 +117,7 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6, 7, 8, 9]
+        assert applied == [5, 6, 7, 8, 9, 10]
         async with engine.begin() as conn:
             assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
@@ -178,7 +178,7 @@ async def _application_history_restrict_migration_flow(monkeypatch):
                 "AND conrelid = 'applications'::regclass"
             ))
             assert "ON DELETE CASCADE" in before
-            assert await apply_migrations(conn) == [8, 9]
+            assert await apply_migrations(conn) == [8, 9, 10]
             after = await conn.scalar(text(
                 "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
                 "WHERE conname = 'applications_job_id_fkey' "
@@ -407,6 +407,20 @@ async def _application_event_provenance_flow(monkeypatch):
             "kind": "incoming_provider_event",
         }
         assert (await repo.get_application(user.id, application.id)).status == "assessment"
+
+        due_at = datetime(2026, 11, 1, 6, 0)
+        reminders = await asyncio.gather(
+            repo.add_application_reminder(user.id, application.id, due_at, "Check employer reply"),
+            repo.add_application_reminder(user.id, application.id, due_at, "Check employer reply"),
+        )
+        assert reminders[0].id == reminders[1].id
+        pending = await repo.list_application_reminders(user.id)
+        assert [(item.application_id, item.due_at, item.note) for item in pending] == [
+            (application.id, due_at, "Check employer reply"),
+        ]
+        assert not await repo.complete_application_reminder(user.id + 1, pending[0].id)
+        assert await repo.complete_application_reminder(user.id, pending[0].id)
+        assert await repo.list_application_reminders(user.id) == []
 
         event_id = history[1].id
         async with test_session() as session:

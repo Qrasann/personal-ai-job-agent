@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 R02 application deadlines/reminders
+- Additive schema v10 stores owner-scoped application reminders. `/application <id> remind <ISO datetime with offset> <note>` requires an explicit timezone and stores UTC; `/reminders` escapes private notes and `/reminddone` completes a reminder.
+- Identical concurrent pending reminders serialize on the parent Application and reuse one row. No scheduler or outbound notification was enabled. PostgreSQL/application gate: 82 passed.
+
 ## 2026-10-23 P0 R02 provider-event intake
 - Application CRM now distinguishes employer response, assessment, receipt and closed stages. A repository boundary accepts provider events only for the matching owner/application/source and requires a provider-scoped idempotency key.
 - Replayed provider events are acknowledged without reverting newer CRM state; provider provenance cannot be supplied through the user-facing manual status command. Focused UI/repository/PostgreSQL gate: 54 passed.

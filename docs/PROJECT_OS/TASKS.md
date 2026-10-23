@@ -7,7 +7,8 @@
 - [x] Serialize status changes and ignore replayed event keys without reverting current state; isolated PostgreSQL/application gate: 79 passed.
 - [x] Show event provenance in Telegram history and package export without exposing arbitrary evidence payloads.
 - [x] Add a provider-event repository boundary with owner/source validation, provider-scoped replay keys and CRM response/assessment/receipt/closed stages; focused gate: 54 passed.
-- [ ] Connect verified incoming HR integrations and add deadlines/reminders as separate increments.
+- [x] Add owner-scoped local deadlines/reminders with explicit timezone, UTC storage, duplicate protection and completion; PostgreSQL/application gate: 82 passed.
+- [ ] Connect verified incoming HR integrations only after a provider contract/credentials are available; no integration was enabled.
 
 ## 2026-10-23 — P0 C01 CV version approval foundation
 

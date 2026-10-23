@@ -214,6 +214,18 @@ class ApplicationStatusEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
+class ApplicationReminder(Base):
+    __tablename__ = "application_reminders"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("applications.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    due_at: Mapped[datetime] = mapped_column(DateTime)
+    note: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(32), default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+
+
 class SeenMessage(Base):
     __tablename__ = "seen_messages"
     __table_args__ = (UniqueConstraint("user_id", "source", "message_id", name="uq_user_source_message"),)

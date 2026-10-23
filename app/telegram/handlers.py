@@ -26,6 +26,7 @@ from app.config import settings
 from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
+from app.domain.application_reminders import parse_reminder_due
 from app.domain.blacklist import matching_blacklist_rule
 from app.domain.resume_versions import version_metadata
 from app.domain.text_limits import utf16_length
@@ -1907,12 +1908,65 @@ async def applications_command(message: Message) -> None:
     await message.answer(render_applications(applications), parse_mode="HTML")
 
 
+@router.message(Command("reminders"))
+async def application_reminders_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    rows = await repo.list_application_reminders(user.id)
+    if not rows:
+        await message.answer("⏰ Активных напоминаний по откликам нет.")
+        return
+    lines = ["⏰ <b>Напоминания по откликам</b>", ""]
+    for item in rows:
+        lines.append(
+            f"#{item.id} · отклик #{item.application_id} · {item.due_at:%Y-%m-%d %H:%M} UTC\n"
+            f"{html.escape(item.note)}"
+        )
+    lines.extend(["", "Завершить: /reminddone &lt;id&gt;"])
+    await message.answer("\n".join(lines), parse_mode="HTML")
+
+
+@router.message(Command("reminddone"))
+async def application_reminder_done_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if len(parts) != 2 or not parts[1].isdigit():
+        await message.answer("Использование: /reminddone <reminder_id>")
+        return
+    completed = await repo.complete_application_reminder(user.id, int(parts[1]))
+    await message.answer("✅ Напоминание завершено." if completed else "❌ Напоминание не найдено.")
+
+
 @router.message(Command("application"))
 async def application_status_command(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
-    parts = (message.text or "").split()
+    raw = message.text or ""
+    reminder_parts = raw.split(maxsplit=4)
+    if len(reminder_parts) >= 3 and reminder_parts[2].casefold() == "remind":
+        if len(reminder_parts) != 5 or not reminder_parts[1].isdigit():
+            await message.answer(
+                "Использование: /application <id> remind 2026-11-01T09:00+03:00 <что проверить>"
+            )
+            return
+        try:
+            due_at = parse_reminder_due(reminder_parts[3])
+            reminder = await repo.add_application_reminder(
+                user.id, int(reminder_parts[1]), due_at, reminder_parts[4],
+            )
+        except ValueError as exc:
+            await message.answer("❌ " + str(exc))
+            return
+        await message.answer(
+            f"⏰ Напоминание #{reminder.id} сохранено на {reminder.due_at:%Y-%m-%d %H:%M} UTC."
+            if reminder else "❌ Отклик не найден в твоём профиле."
+        )
+        return
+    parts = raw.split()
     if len(parts) != 3 or not parts[1].isdigit():
         await message.answer(
             "Использование: /application <id> history|export|reviewed|submitted|response|assessment|interview|offer|rejected|withdrawn|closed"
