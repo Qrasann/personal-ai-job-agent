@@ -1,24 +1,39 @@
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
 )
 
+LEGACY_REPLY_KEYBOARD_REMOVED_STATE = "telegram:legacy_reply_keyboard_removed:v1"
 
-def main_reply_keyboard() -> ReplyKeyboardMarkup:
-    """Expose the six approved sections plus the separate search/status action."""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="/jobs"), KeyboardButton(text="/jobs relocation")],
-            [KeyboardButton(text="/applications"), KeyboardButton(text="/resumes")],
-            [KeyboardButton(text="/facts"), KeyboardButton(text="/settings")],
-            [KeyboardButton(text="/scanstatus")],
+
+def main_menu_keyboard() -> InlineKeyboardMarkup:
+    """Six product sections plus the separate search/status action."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💼 Вакансии", callback_data="menu:vacancies"),
+                InlineKeyboardButton(text="✈️ Релокация", callback_data="menu:relocation"),
+            ],
+            [
+                InlineKeyboardButton(text="📨 Отклики", callback_data="menu:applications"),
+                InlineKeyboardButton(text="📄 CV Studio", callback_data="menu:cv"),
+            ],
+            [
+                InlineKeyboardButton(text="🧠 Профиль", callback_data="menu:profile"),
+                InlineKeyboardButton(text="⚙️ Настройки", callback_data="menu:settings"),
+            ],
+            [InlineKeyboardButton(text="🔎 Поиск / Статус", callback_data="menu:search")],
         ],
-        resize_keyboard=True,
-        is_persistent=True,
-        input_field_placeholder="Выберите действие или введите команду",
     )
+
+
+def menu_section_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="⬅ Назад", callback_data="menu:main"),
+            InlineKeyboardButton(text="🏠 Главная", callback_data="menu:main"),
+        ],
+    ])
 
 
 def job_keyboard(
@@ -99,7 +114,10 @@ def vacancy_section_keyboard(job_id: int, *, search_profile_id: int | None = Non
 def scan_status_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📋 Детали источников", callback_data="scanstatus:details")],
-        [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
+        [
+            InlineKeyboardButton(text="⬅ Назад", callback_data="menu:search"),
+            InlineKeyboardButton(text="🏠 Главная", callback_data="menu:main"),
+        ],
     ])
 
 
@@ -139,6 +157,7 @@ def stretch_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="⬅ Назад", callback_data=f"stretch_prev:{match_id}"),
                 InlineKeyboardButton(text="➡ Следующая", callback_data=f"stretch_next:{match_id}"),
             ],
+            [InlineKeyboardButton(text="🏠 Главная", callback_data="menu:main")],
         ]
     )
 
@@ -151,5 +170,6 @@ def saved_keyboard(match_id: int, job_id: int) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="⬅ Назад", callback_data=f"saved_prev:{match_id}"),
                 InlineKeyboardButton(text="➡ Следующая", callback_data=f"saved_next:{match_id}"),
             ],
+            [InlineKeyboardButton(text="🏠 Главная", callback_data="menu:main")],
         ]
     )

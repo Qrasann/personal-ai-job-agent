@@ -139,4 +139,4 @@ def test_saved_keyboard_has_details_back_and_next():
         for row in keyboard.inline_keyboard
         for button in row
     ]
-    assert callbacks == ["details:31", "saved_prev:401", "saved_next:401"]
+    assert callbacks == ["details:31", "saved_prev:401", "saved_next:401", "menu:main"]
