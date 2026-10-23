@@ -29,7 +29,7 @@ def test_saved_command_shows_first_saved_match(monkeypatch):
     handlers.repo.saved_matches.assert_awaited_once_with(7, None)
     text = message.answer.await_args.args[0]
     assert "Platform Engineer" in text
-    assert "88/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 2" in text
     assert message.answer.await_args.kwargs["reply_markup"] is not None
 
@@ -71,7 +71,7 @@ def test_saved_next_callback_shows_next_match(monkeypatch):
     handlers.repo.saved_matches.assert_awaited_once_with(7, None)
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
-    assert "81/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "2 из 2" in text
     assert message.edit_text.await_args.kwargs["reply_markup"] is not None
 

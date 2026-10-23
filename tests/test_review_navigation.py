@@ -76,7 +76,7 @@ def test_previous_callback_edits_to_previous_match(
     text = message.edit_text.await_args.args[0]
     assert expected_header in text
     assert "First Engineer" in text
-    assert "88/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 2" in text
     assert message.edit_text.await_args.kwargs["reply_markup"] is not None
 
