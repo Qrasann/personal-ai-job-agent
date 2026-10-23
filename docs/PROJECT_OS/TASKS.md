@@ -6,9 +6,10 @@
 - [x] Run the formerly blocked async/web tests with cached `pytest-asyncio` and isolated tmpfs PostgreSQL: 29 passed.
 - [x] Verify exact isolated v8→v9→v10→v11 upgrade, data preservation, idempotency and immutable-history guard; combined gate: 36 passed.
 - [x] Rehearse custom dump/list/checksum/actual restore on synthetic tmpfs data and verify previous v8 image read/write against additive v11 schema.
-- [ ] Take and restore-check a fresh private production backup immediately before release; isolated rehearsal is not a substitute.
+- [x] Create a fresh private schema-v8 production backup (0600), list and fully restore it to tmpfs, compare representative counts, migrate the copy to v11 and smoke current/previous-image writes.
 - [x] Build the release image and verify ReportLab 4.5.1 + DejaVu Sans, exact RU/EN PDF extraction, non-root UID and healthcheck; resume gate: 10 passed.
 - [x] Verify full isolated PostgreSQL suite (1506 passed), exact-code-SHA `bc63a12` CI (Python/secret/Docker green) and release-image schema-v11/Application smoke.
+- [ ] Resolve the dirty/divergent runtime checkout without deleting its three pre-existing files; guarded `job-agent update` cannot run while it is ahead 2 and untracked. Then perform controlled rollout/private Telegram smoke.
 
 ## 2026-10-23 — P0 R01 per-application approval
 

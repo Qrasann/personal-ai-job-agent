@@ -1,5 +1,20 @@
 # Handoff
 
+## Current checkpoint — production backup verified; rollout safely blocked (2026-10-23)
+
+A fresh private schema-v8 custom dump exists outside both repositories with mode 0600.
+`pg_restore --list` passed; a full tmpfs restore exactly matched representative counts
+(1 user, 26 facts, 6 CVs, 2473 jobs, 2474 matches, 0 Applications/events). The restored
+copy migrated to v11, accepted a current-image synthetic event, accepted a previous-v8
+image event and current code read that event as `legacy`. Production DB was read-only.
+
+The running image is still the recorded pre-release image; no service was restarted.
+Runtime checkout `/mnt/Storage/AI-Job-Bot/repo` is on `work/telegram-georgia-location`,
+ahead 2, with three pre-existing untracked/backup files. The guarded updater therefore
+cannot run. Do not clean/stash/overwrite these files or bypass the safeguard. Resolve that
+checkout ownership/topology first, then use the recorded image as rollback target and run
+private Telegram smoke. Code gates are green; PR #56 remains Draft.
+
 ## Current checkpoint — release-ready code gates (2026-10-23)
 
 Full isolated PostgreSQL suite: **1506 passed**. Compile, history secret scan and diff

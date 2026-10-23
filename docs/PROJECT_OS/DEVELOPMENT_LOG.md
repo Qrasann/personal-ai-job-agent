@@ -1,3 +1,11 @@
+## 2026-10-23 — fresh production backup and restored-copy migration rehearsal
+
+Created a mode-0600 private runtime dump outside Git, verified its catalog and restored it
+fully to tmpfs. Counts matched schema-v8 production exactly. The copy upgraded to v11 and
+passed current and previous-image read/write smoke. Runtime remained read-only. Rollout
+stopped because the runtime checkout is ahead 2 with three pre-existing untracked files;
+the standard updater's dirty-tree refusal was not bypassed.
+
 ## 2026-10-23 — full suite, exact-SHA CI and image/PostgreSQL smoke
 
 Full isolated suite passed 1506 tests. Compile, secret scan and diff checks passed. Draft

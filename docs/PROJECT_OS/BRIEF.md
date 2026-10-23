@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 release gate — production backup/restore rehearsal
+- A fresh private custom-format backup of the read-only runtime schema v8 was created outside both repositories with mode 0600, listed successfully and fully restored into tmpfs PostgreSQL. Representative counts matched exactly: 1 user, 26 facts, 6 CVs, 2473 jobs, 2474 matches and no Applications/events.
+- The restored copy upgraded to v11 and passed current-image plus previous-v8-image read/write smoke. Runtime remained untouched. Deployment is blocked because its checkout is ahead 2 with three pre-existing untracked/backup files; the guarded updater must not be bypassed or the files altered.
+
 ## 2026-10-23 release gate — full suite, CI and image smoke
 - Full local suite against isolated PostgreSQL passes **1506 tests**. Compile, repository-history secret scan and diff checks pass.
 - Draft PR #56 CI is green on exact code commit `bc63a12`: Python checks, secret scan and Docker build. The exact labeled image also initialized schema v11 in a separate tmpfs database and persisted/read one synthetic Application event. No external provider or production state was used.
