@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-23 — P0 Source Usefulness remaining ATS recall
+
+- [x] Reproduce and fix `SRE` loss in Lever and Employer Career Watch under the `Site Reliability Engineer` query.
+- [x] Add unrelated-role regressions and pass extended ATS gate (113), compile and diff checks.
+
 ## 2026-10-23 — P0 Source Usefulness ATS recall
 
 - [x] Reproduce Greenhouse and SmartRecruiters dropping `SRE` for the configured `Site Reliability Engineer` query.

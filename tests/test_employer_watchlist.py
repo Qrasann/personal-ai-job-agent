@@ -78,6 +78,19 @@ def test_employer_watch_is_a_global_common_search_source_with_provenance() -> No
     assert job.raw["relocation_evidence"] == "unknown"
 
 
+def test_employer_watch_matches_sre_alias_without_related_reliability_role():
+    context = SourceContext(user_id=1, current_country="RU", target_countries=["GE"], queries=["Site Reliability Engineer"])
+    employer = next(item for item in load_employer_watchlist().employers if item.ats == "greenhouse")
+    host = next(iter(employer.allowed_hosts))
+    jobs = EmployerCareerWatchSource.parse_board_payload(employer, {
+        "jobs": [
+            {"id": 123, "title": "SRE", "absolute_url": f"https://{host}/jobs/123", "location": {"name": "Amsterdam, Netherlands"}},
+            {"id": 124, "title": "Software Engineer", "absolute_url": f"https://{host}/jobs/124", "location": {"name": "Amsterdam, Netherlands"}},
+        ]
+    }, context)
+    assert [job.raw["provider_id"] for job in jobs] == ["123"]
+
+
 def test_employer_watch_resolves_exact_country_only_office_without_city_guess():
     employer = next(
         item for item in load_employer_watchlist().employers

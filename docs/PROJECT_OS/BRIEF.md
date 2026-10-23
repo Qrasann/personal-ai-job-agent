@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 Source Usefulness — remaining ATS SRE recall
+- Lever and Employer Career Watch had the same literal-token loss for `SRE` under the `Site Reliability Engineer` query. Added the narrow exact alias and unrelated-role regressions; salary, remote scope, geography and hiring evidence remain unchanged.
+- Extended ATS gate: 113 passed; compile and diff checks passed.
+
 ## 2026-10-23 P0 Source Usefulness — ATS SRE recall
 - Greenhouse and SmartRecruiters used literal query-token matching and dropped standard `SRE` titles for the configured `Site Reliability Engineer` query. Added the same narrow alias already validated for RemoteOK; unrelated Software Engineer/reliability roles remain excluded.
 - Targeted ATS/query gate: 132 passed; `py_compile` and `git diff --check` passed. Salary, geography, remote scope, authorization, visa and relocation evidence are unchanged.

@@ -25,6 +25,7 @@ class LeverSource(JobSource):
     page_size = 100
     request_timeout_seconds = 15.0
     user_agent = "PersonalAIJobAgent/3.5.7 (public job discovery)"
+    _ROLE_QUERY_ALIASES = {frozenset({"site", "reliability", "engineer"}): {"sre"}}
 
     @staticmethod
     def _tokens(text: str) -> set[str]:
@@ -42,7 +43,8 @@ class LeverSource(JobSource):
         for query in queries:
             query_tokens = cls._tokens(query)
             meaningful = query_tokens - generic or query_tokens
-            if meaningful and title_tokens & meaningful:
+            aliases = cls._ROLE_QUERY_ALIASES.get(frozenset(query_tokens), set())
+            if meaningful and (title_tokens & meaningful or title_tokens & aliases):
                 return True
         return False
 

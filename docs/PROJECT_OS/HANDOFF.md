@@ -1,5 +1,19 @@
 # Handoff
 
+## Current checkpoint — P0 remaining ATS SRE recall (2026-10-23)
+
+The source-usefulness slice now also covers Lever and Employer Career Watch.
+Both previously required literal query tokens and dropped standard `SRE`
+titles; both now use the same exact alias as Greenhouse/SmartRecruiters and
+RemoteOK. Related Software Engineer/reliability rows remain excluded.
+
+Extended ATS regression gate: **113 passed**; compile and `git diff --check`
+passed. The worktree is ready for a checkpoint commit. Async/web tests remain
+open because `pytest-asyncio` is unavailable in the usable local environment.
+
+Next: inspect Remotive/Himalayas query matching for a reproducible SRE or other
+role-normalization loss, then continue S01/G01/M01 source usefulness.
+
 ## Current checkpoint — P0 ATS SRE recall (2026-10-23)
 
 At clean `70e1df2`, source-usefulness reproduction showed Greenhouse and

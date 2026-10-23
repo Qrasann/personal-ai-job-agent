@@ -16,6 +16,10 @@ the exact three-token alias and regressions for a matching SRE plus an unrelated
 Software Engineer/reliability row. Targeted ATS/query tests: 132 passed; no
 score, geography, salary or eligibility semantics changed.
 
+Lever and Employer Career Watch shared the same confirmed recall loss. The
+exact `Site Reliability Engineer` → `SRE` alias was added with unrelated-role
+coverage. Extended ATS gate: 113 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

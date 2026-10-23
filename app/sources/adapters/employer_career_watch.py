@@ -30,6 +30,7 @@ class EmployerCareerWatchSource(JobSource):
     timeout_seconds = 8.0
     max_rows_per_board = 500
     already_covered_employers = {"collectly", "devexperts"}
+    _ROLE_QUERY_ALIASES = {frozenset({"site", "reliability", "engineer"}): {"sre"}}
 
     @staticmethod
     def _safe_url(value: object, employer) -> str | None:
@@ -58,7 +59,8 @@ class EmployerCareerWatchSource(JobSource):
         for query in queries:
             tokens = set(re.findall(r"[\w+#.-]+", query.casefold()))
             meaningful = tokens - generic or tokens
-            if meaningful and title_tokens.intersection(meaningful):
+            aliases = EmployerCareerWatchSource._ROLE_QUERY_ALIASES.get(frozenset(tokens), set())
+            if meaningful and (title_tokens.intersection(meaningful) or title_tokens.intersection(aliases)):
                 return True
         return False
 
