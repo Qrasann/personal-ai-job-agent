@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 release gate — CV renderer image
+- The release image previously contained ReportLab but no allowed Unicode font, so PDF export correctly failed closed. The Dockerfile now installs the minimal DejaVu core package.
+- A rebuilt non-root image generated a Modern PDF and pypdf extracted exact RU/EN text; ReportLab 4.5.1, font path, healthcheck and UID 10001 were verified. Resume gate: **10 passed**.
+
 ## 2026-10-23 release gate — backup/restore and previous-image rollback
 - A custom-format dump of a synthetic v10 fixture was listed, checksummed and restored into a separate tmpfs database; schema/data counts and immutable trigger matched. This rehearses the mechanism but does not replace a fresh private production backup before release.
 - Rollback testing found fresh v10 lacked database defaults needed by a v8 writer. Additive schema v11 and model server defaults fix this. Previous commit `2c134d1` then read existing data and wrote a new event on v11; current code read it as `legacy`. Focused application/schema gate: **36 passed**.

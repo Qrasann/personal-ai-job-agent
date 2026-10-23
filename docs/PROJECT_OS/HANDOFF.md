@@ -1,5 +1,13 @@
 # Handoff
 
+## Current checkpoint — release-image PDF renderer (2026-10-23)
+
+The release image reproduced a missing-font failure despite ReportLab being installed.
+`fonts-dejavu-core` is now installed by the Dockerfile. Rebuilt image smoke generated a
+Modern PDF and extracted exact Russian and English text with pypdf; ReportLab 4.5.1,
+DejaVuSans.ttf, non-root UID 10001 and healthcheck were verified. Resume gate: **10 passed**.
+Next: full isolated suite and exact-commit CI/publication gate. Production remains untouched.
+
 ## Current checkpoint — rollback-compatible schema v11 (2026-10-23)
 
 An isolated custom-format backup was listed, checksummed and restored with matching v10

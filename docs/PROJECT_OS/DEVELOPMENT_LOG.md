@@ -1,3 +1,10 @@
+## 2026-10-23 — release-image PDF renderer
+
+The first rebuilt image reproduced C01's fail-closed missing-Unicode-font path. Added
+Debian's minimal DejaVu core fonts, rebuilt, and generated/extracted exact RU/EN text from
+a Modern PDF inside the non-root image. ReportLab 4.5.1 and the healthcheck were present;
+resume tests passed 10/10.
+
 ## 2026-10-23 — rollback compatibility and schema v11
 
 Rehearsed a PostgreSQL custom dump/list/checksum/restore using synthetic data. A detached
