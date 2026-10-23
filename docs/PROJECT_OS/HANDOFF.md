@@ -1,5 +1,24 @@
 # Handoff
 
+## Current checkpoint — P0 U01 quick-review score disclosure (2026-10-23)
+
+Branch `wip/telegram-pilot-20261019`; the clean base was `3436399`. The review,
+Stretch and Saved queue cards now hide numeric Match scores and direct the owner
+to Details for assessment, while retaining concise fit, paid-status, geography
+and foreign-hire context. This implements the remaining small U01 disclosure
+slice without changing scoring, eligibility or stored matches.
+
+Verification: focused `tests/test_review_cards.py` and
+`tests/test_telegram_compact_vacancy.py` — **14 passed**; `py_compile` and
+`git diff --check` passed. The repository sibling Python environment was used
+because the local `.venv` is absent/stale and network dependency rebuilds are
+unavailable. No database, Docker, production runtime, Telegram session,
+notification, application or employer message was touched.
+
+Next: U02 isolated edit-in-place Back/Next/Details/cursor acceptance, or the
+remaining offline source-funnel false-negative slice if the runtime gate is
+blocked. Do not deploy or send external messages.
+
 ## Current checkpoint — Arbeitnow WIP and DevHub stop-race guard (2026-10-23)
 
 The current dev branch is `wip/telegram-pilot-20261019` at `be60f70` (ahead of

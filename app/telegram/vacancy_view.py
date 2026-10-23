@@ -431,7 +431,7 @@ def render_queue_card(
                 "🎯 Сохранённая оценка может быть устаревшей; актуальные правила исключают эту роль."
                 if stale_good_reason else "🎯 Сохранённая оценка устарела. Запусти /scan, чтобы обновить её."
             )
-            if stale_good else f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>"
+            if stale_good else "🎯 Подходит по текущему профилю — открой «Подробнее» для оценки"
         ),
     ]
 

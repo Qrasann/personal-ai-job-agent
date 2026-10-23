@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 Telegram U01 quick-review score disclosure
+- Review, Stretch and Saved queue cards no longer expose the numeric Match score in the quick-review message; they retain the lane, concise reason and truthful paid/geography markers and direct the owner to Details for numeric assessment.
+- Added a regression proving the score is hidden from the queue card while the Details path remains the score surface. Focused Telegram gate: 14 passed; compile and `git diff --check` passed.
+
 ## 2026-10-23 current continuation state
 
 The dev worktree is `wip/telegram-pilot-20261019` at `be60f70`, with the

@@ -3208,3 +3208,8 @@ Inspected the existing DevHub runner, local launchers and Codex CLI. DevHub alre
 ## 2026-10-23 — prepare DevHub as the sole AI Job Agent orchestrator
 
 Inspected the actual AI-DevHub CLI/docs/state and the AI Job Agent worktree. The project was already registered and `allow_worker=true`; corrected the effective project policy from `publish=true` to the required safe `publish=false`, preserving `allow_dirty=false` and `production=false`. Re-asserted worker permission idempotently through the existing CLI. Added a minimal DevHub pre-spawn guard so a busy writer or disallowed dirty worktree is refused before `_run` is created, plus a bounded `checkpoint bootstrap` handoff that excludes `.serena/**`; regressions are covered. `devhub doctor` passed, AI-DevHub tests passed 50 plus 2 subtests, and monitor/status showed no worker while the interactive Codex writer is active. The dev targeted gate passed 18 tests with project requirements, compileall, secret scan and diff check. The five historical P0 fingerprints were verified as existing, then one genuinely open Search Reliability/source-usefulness task #10 was queued without duplication. Dirty WIP checkpointing remains blocked by the active writer; no production/runtime, delivery, push or external message was touched.
+# 2026-10-23 — P0 U01 quick-review score disclosure
+
+- Changed `render_queue_card` so Good/Stretch/Saved quick-review cards show a short fit label instead of the numeric Match score; Details remains the numeric score view.
+- Added regression coverage in `tests/test_review_cards.py`.
+- Verification: 14 focused Telegram tests passed via the repository sibling Python environment; `py_compile` and `git diff --check` passed. No runtime, database, Telegram or external message was used.

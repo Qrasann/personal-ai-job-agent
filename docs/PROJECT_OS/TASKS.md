@@ -2310,3 +2310,8 @@ remains open. Historical counts below belong to their recorded stages.
 - [x] Preserve slash-command registration and inline details navigation; Telegram/navigation gate: 84 passed.
 - [ ] Validate the full suite and then continue to the false-positive matching corpus.
 - [x] Validate the current full offline tree: 1439 passed, 23 skipped, 7 warnings; secret scan passed.
+# 2026-10-23 — P0 U01 quick-review disclosure
+
+- [x] Hide numeric Match scores from Good/Stretch/Saved quick-review cards; keep score in Details and preserve truthful concise context.
+- [x] Add regression and pass focused Telegram gate (14), compile and diff checks.
+- [ ] Continue U02 acceptance: verify edit-in-place Back/Next/Details cursor behavior in isolated Telegram/runtime smoke; production remains unchanged.

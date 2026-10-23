@@ -42,7 +42,8 @@ def test_review_card_shows_rich_match_context():
     assert "120 000–160 000 ₽" in text
     assert "Тверь" in text
     assert "Гибрид" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
+    assert "82/100" not in text
     assert "Отклики: Нет открытых данных" in text
     assert "Иностранный найм" in text
     assert "Tech 86" not in text
