@@ -32,6 +32,21 @@ PREPARED_MATCH_SNAPSHOT_KEY = "_prepared_match_id"
 MANUAL_APPLICATION_STATUSES = frozenset({
     "reviewed", "submitted", "interview", "offer", "rejected", "withdrawn",
 })
+APPLICATION_EVENT_PROVENANCE = frozenset({"legacy", "system", "manual_user", "provider"})
+
+
+def _application_event(
+    item: Application, status: str, *, provenance: str, evidence: dict | None = None,
+    event_key: str | None = None,
+) -> ApplicationStatusEvent:
+    if provenance not in APPLICATION_EVENT_PROVENANCE:
+        raise ValueError("Некорректный источник события отклика")
+    if event_key is not None and (not event_key.strip() or len(event_key) > 128):
+        raise ValueError("Некорректный ключ события отклика")
+    return ApplicationStatusEvent(
+        application_id=item.id, user_id=item.user_id, status=status,
+        provenance=provenance, evidence=dict(evidence or {}), event_key=event_key,
+    )
 
 
 class FactUpdateConflict(ValueError):
@@ -755,10 +770,9 @@ async def save_application(**kwargs) -> Application:
         item = Application(**kwargs)
         session.add(item)
         await session.flush()
-        session.add(ApplicationStatusEvent(
-            application_id=item.id,
-            user_id=item.user_id,
-            status=item.status,
+        session.add(_application_event(
+            item, item.status, provenance="system",
+            evidence={"kind": "application_created"}, event_key="initial",
         ))
         await session.commit()
         await session.refresh(item)
@@ -807,8 +821,9 @@ async def save_prepared_application(
         item = Application(user_id=user_id, status="prepared", **kwargs)
         session.add(item)
         await session.flush()
-        session.add(ApplicationStatusEvent(
-            application_id=item.id, user_id=user_id, status="prepared",
+        session.add(_application_event(
+            item, "prepared", provenance="system",
+            evidence={"kind": "prepared_package", "match_id": match_id}, event_key="prepared",
         ))
         match.status = "prepared"
         await session.commit()
@@ -872,8 +887,9 @@ async def reserve_hh_application(
         )
         session.add(item)
         await session.flush()
-        session.add(ApplicationStatusEvent(
-            application_id=item.id, user_id=user_id, status="sending",
+        session.add(_application_event(
+            item, "sending", provenance="provider",
+            evidence={"provider": "hh", "kind": "attempt_reserved"}, event_key="hh:attempt",
         ))
         await session.commit()
         await session.refresh(item)
@@ -915,8 +931,9 @@ async def finish_hh_application(
         item.status = status
         item.source_application_id = source_application_id if status == "sent" else None
         item.external_url = external_url
-        session.add(ApplicationStatusEvent(
-            application_id=item.id, user_id=user_id, status=status,
+        session.add(_application_event(
+            item, status, provenance="provider",
+            evidence={"provider": "hh", "kind": "provider_outcome"}, event_key="hh:outcome",
         ))
         await session.commit()
 
@@ -942,7 +959,11 @@ async def get_application(user_id: int, application_id: int) -> Application | No
         )
 
 
-async def set_application_status(user_id: int, application_id: int, status: str) -> bool:
+async def set_application_status(
+    user_id: int, application_id: int, status: str, *,
+    provenance: str = "manual_user", evidence: dict | None = None,
+    event_key: str | None = None,
+) -> bool:
     if status not in MANUAL_APPLICATION_STATUSES:
         return False
     async with SessionLocal() as session:
@@ -955,13 +976,19 @@ async def set_application_status(user_id: int, application_id: int, status: str)
         )
         if not item:
             return False
+        if event_key is not None:
+            duplicate = await session.scalar(select(ApplicationStatusEvent.id).where(
+                ApplicationStatusEvent.application_id == item.id,
+                ApplicationStatusEvent.event_key == event_key,
+            ))
+            if duplicate is not None:
+                return True
         if item.status == status:
             return True
         item.status = status
-        session.add(ApplicationStatusEvent(
-            application_id=item.id,
-            user_id=item.user_id,
-            status=status,
+        session.add(_application_event(
+            item, status, provenance=provenance,
+            evidence=evidence or {"kind": "manual_status"}, event_key=event_key,
         ))
         await session.commit()
         return True

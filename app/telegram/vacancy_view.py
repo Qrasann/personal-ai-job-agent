@@ -1133,11 +1133,23 @@ def render_application_history(events: list) -> str:
     if not events:
         return "История статусов пуста."
     lines = ["🕓 <b>История статусов</b>", ""]
+    provenance_labels = {
+        "manual_user": "ручная отметка владельца",
+        "provider": "событие провайдера",
+        "system": "системное событие",
+        "legacy": "источник старой записи неизвестен",
+    }
     for event in events:
         timestamp = getattr(event, "created_at", None)
         timestamp_text = timestamp.strftime("%Y-%m-%d %H:%M UTC") if timestamp else "время неизвестно"
         label = labels.get(event.status, event.status)
-        lines.append(f"{html.escape(timestamp_text)} — {html.escape(label)}")
+        provenance = provenance_labels.get(getattr(event, "provenance", "legacy"), "источник неизвестен")
+        evidence = getattr(event, "evidence", None) or {}
+        provider = f" · {evidence['provider']}" if isinstance(evidence, dict) and evidence.get("provider") else ""
+        lines.append(
+            f"{html.escape(timestamp_text)} — {html.escape(label)} "
+            f"[{html.escape(provenance + provider)}]"
+        )
     return "\n".join(lines)
 
 
@@ -1196,7 +1208,8 @@ def render_application_export(application, events: list | None = None) -> str:
         for event in events:
             timestamp = getattr(event, "created_at", None)
             timestamp_text = timestamp.strftime("%Y-%m-%d %H:%M UTC") if timestamp else "time unknown"
-            lines.append(f"{timestamp_text} — {event.status}")
+            provenance = getattr(event, "provenance", "legacy")
+            lines.append(f"{timestamp_text} — {event.status} — provenance: {provenance}")
     return "\n".join(lines)
 
 

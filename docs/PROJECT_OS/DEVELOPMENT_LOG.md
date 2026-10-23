@@ -47,6 +47,16 @@ external provider binding, and require owner approval. Legacy CVs remain approve
 for compatibility; draft copies are excluded from automatic matching selection and
 rejected at both prepare and external-apply boundaries. Focused gate: 178 passed.
 
+## 2026-10-23 — R02 immutable Application CRM events
+
+Added additive schema v9 event provenance, structured evidence and replay keys.
+Repository writes label system/manual/provider origins; migrated rows are explicitly
+legacy. Row locking plus a partial unique index provides repeat-event protection.
+PostgreSQL blocks selective mutation/deletion of history while allowing deletion of
+the complete parent ledger for a future authorized privacy workflow. PostgreSQL and
+application gate: 79 passed; full offline: 1453 passed, 24 skipped, with 19 known
+pytest-asyncio-dependent tests not runnable in the available environment.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

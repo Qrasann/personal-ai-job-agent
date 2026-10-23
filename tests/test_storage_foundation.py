@@ -6,8 +6,8 @@ from app.database.models import (
 
 
 def test_schema_versions_and_migrations_are_declared():
-    assert CURRENT_SCHEMA_VERSION == 8
-    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5, 6, 7, 8]
+    assert CURRENT_SCHEMA_VERSION == 9
+    assert [m.version for m in MIGRATIONS] == [1, 2, 3, 4, 5, 6, 7, 8, 9]
     assert MIGRATIONS[0].name == "profile_storage_foundation"
     assert MIGRATIONS[1].name == "candidate_fact_experience_type"
     assert MIGRATIONS[2].name == "candidate_fact_confidence_provenance"
@@ -17,6 +17,8 @@ def test_schema_versions_and_migrations_are_declared():
     assert MIGRATIONS[6].name == "application_vacancy_snapshot"
     assert MIGRATIONS[7].name == "protect_application_history_on_job_delete"
     assert "ON DELETE RESTRICT" in MIGRATIONS[7].statements[1]
+    assert MIGRATIONS[8].name == "application_event_provenance_immutability"
+    assert any("CREATE TRIGGER application_status_events_immutable" in statement for statement in MIGRATIONS[8].statements)
 
 
 def test_foundation_models_have_soft_delete_metadata():
@@ -46,6 +48,9 @@ def test_application_status_event_model_is_append_only_record_shape():
     assert hasattr(ApplicationStatusEvent, "application_id")
     assert hasattr(ApplicationStatusEvent, "user_id")
     assert hasattr(ApplicationStatusEvent, "status")
+    assert hasattr(ApplicationStatusEvent, "provenance")
+    assert hasattr(ApplicationStatusEvent, "evidence")
+    assert hasattr(ApplicationStatusEvent, "event_key")
     assert hasattr(ApplicationStatusEvent, "created_at")
 
 

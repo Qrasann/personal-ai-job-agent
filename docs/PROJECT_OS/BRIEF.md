@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 R02 immutable Application CRM events
+- Schema v9 adds explicit event provenance (`system`, `manual_user`, `provider`, migrated `legacy`), structured evidence and optional idempotency keys. Telegram history and text export disclose provenance without dumping evidence payloads.
+- PostgreSQL enforces unique per-application event keys and rejects direct history UPDATE/DELETE. Deleting the complete parent ledger remains available for a future owner-authorized privacy workflow. Application/PostgreSQL gate: 79 passed; full offline: 1453 passed, 24 skipped, with the known 19 pytest-asyncio-dependent failures still open.
+
 ## 2026-10-23 P0 C01 CV version approval foundation
 - Added migration-free CV lineage/state in `ResumeProfile.rules`: existing CVs remain compatible, duplicated versions are drafts, and approval is explicit and timestamped. `/resumes` discloses state; `/resumeduplicate` and `/resumeapprove` are owner-profile scoped.
 - Draft CVs are excluded from automatic resume selection and rejected defensively by both package preparation and external-apply paths. Import/diff/matching/Telegram/HH safety gate: 178 passed. Editing/export formats and full CV Studio remain open.

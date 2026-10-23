@@ -208,6 +208,9 @@ class ApplicationStatusEvent(Base):
     application_id: Mapped[int] = mapped_column(ForeignKey("applications.id", ondelete="CASCADE"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     status: Mapped[str] = mapped_column(String(64))
+    provenance: Mapped[str] = mapped_column(String(32), default="legacy")
+    evidence: Mapped[dict] = mapped_column(JSONB, default=dict)
+    event_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 

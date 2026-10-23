@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 8
+CURRENT_SCHEMA_VERSION = 9
 
 
 @dataclass(frozen=True)
@@ -107,6 +107,25 @@ MIGRATIONS: tuple[Migration, ...] = (
             "ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_job_id_fkey",
             "ALTER TABLE applications ADD CONSTRAINT applications_job_id_fkey "
             "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE RESTRICT",
+        ),
+    ),
+    Migration(
+        version=9,
+        name="application_event_provenance_immutability",
+        statements=(
+            "ALTER TABLE application_status_events ADD COLUMN IF NOT EXISTS provenance VARCHAR(32) NOT NULL DEFAULT 'legacy'",
+            "ALTER TABLE application_status_events ADD COLUMN IF NOT EXISTS evidence JSONB NOT NULL DEFAULT '{}'::jsonb",
+            "ALTER TABLE application_status_events ADD COLUMN IF NOT EXISTS event_key VARCHAR(128) NULL",
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_application_status_event_key "
+            "ON application_status_events(application_id, event_key) WHERE event_key IS NOT NULL",
+            "CREATE OR REPLACE FUNCTION reject_application_status_event_mutation() RETURNS trigger "
+            "LANGUAGE plpgsql AS $$ BEGIN "
+            "IF TG_OP = 'DELETE' AND NOT EXISTS (SELECT 1 FROM applications WHERE id = OLD.application_id) "
+            "THEN RETURN OLD; END IF; "
+            "RAISE EXCEPTION 'application status history is immutable'; END; $$",
+            "DROP TRIGGER IF EXISTS application_status_events_immutable ON application_status_events",
+            "CREATE TRIGGER application_status_events_immutable BEFORE UPDATE OR DELETE ON application_status_events "
+            "FOR EACH ROW EXECUTE FUNCTION reject_application_status_event_mutation()",
         ),
     ),
 )

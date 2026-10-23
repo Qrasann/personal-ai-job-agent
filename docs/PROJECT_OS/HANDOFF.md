@@ -1,5 +1,23 @@
 # Handoff
 
+## Current checkpoint — P0 R02 immutable Application CRM events (2026-10-23)
+
+Additive schema v9 extends `application_status_events` with provenance, JSON evidence
+and an optional idempotency key. Existing rows migrate as `legacy`; new preparation,
+manual and HH events are labeled `system`, `manual_user` or `provider`. Status writes
+remain row-locked, and replaying the same event key is acknowledged without appending
+or reverting state. A partial unique index closes concurrent duplicate insertion.
+
+A PostgreSQL trigger rejects direct event UPDATE/DELETE. It permits FK cascade only
+after the complete parent Application is deliberately deleted, preserving a future
+owner-authorized privacy deletion path. History/export disclose provenance but do not
+render arbitrary evidence JSON. Isolated application/PostgreSQL gate: **79 passed**.
+Full offline suite: **1453 passed, 24 skipped, 19 failed** only because the available
+environment still lacks `pytest-asyncio`; those async/web gates remain open.
+
+Next R02 increments: verified incoming HR/provider events and deadlines/reminders.
+Production migration, deploy, runtime DB and external actions were not performed.
+
 ## Current checkpoint — P0 C01 CV version approval foundation (2026-10-23)
 
 CV versions now use migration-free `cv_version_v1` metadata inside the existing

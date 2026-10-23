@@ -610,8 +610,13 @@ def test_external_application_and_history_do_not_claim_provider_receipt():
     rendered = render_applications([entry])
     assert "отправка не подтверждена" in rendered
 
-    event = SimpleNamespace(status="external", created_at=None)
-    assert "отправка не подтверждена" in render_application_history([event])
+    event = SimpleNamespace(
+        status="external", created_at=None, provenance="provider",
+        evidence={"provider": "hh"},
+    )
+    history = render_application_history([event])
+    assert "отправка не подтверждена" in history
+    assert "событие провайдера · hh" in history
 
 
 @pytest.mark.parametrize("bad_match_id", ["apply:abc", "apply:-2", "apply:0", "apply:" + "9" * 100])

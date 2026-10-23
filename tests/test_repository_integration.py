@@ -117,13 +117,13 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6, 7, 8]
+        assert applied == [5, 6, 7, 8, 9]
         async with engine.begin() as conn:
             assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
         assert events is not None
-        assert [(event.status, event.created_at) for event in events] == [
-            ("submitted", datetime(2025, 1, 2, 3, 4)),
+        assert [(event.status, event.created_at, event.provenance, event.evidence) for event in events] == [
+            ("submitted", datetime(2025, 1, 2, 3, 4), "legacy", {}),
         ]
         loaded = await repo.get_application(user.id, application_id)
         assert loaded.resume_snapshot == ""
@@ -178,7 +178,7 @@ async def _application_history_restrict_migration_flow(monkeypatch):
                 "AND conrelid = 'applications'::regclass"
             ))
             assert "ON DELETE CASCADE" in before
-            assert await apply_migrations(conn) == [8]
+            assert await apply_migrations(conn) == [8, 9]
             after = await conn.scalar(text(
                 "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
                 "WHERE conname = 'applications_job_id_fkey' "
@@ -340,6 +340,74 @@ async def _application_status_rollback_flow(monkeypatch):
         history = await repo.application_status_history(user.id, application.id)
         assert saved.status == "prepared"
         assert [item.status for item in history] == ["prepared"]
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_application_event_provenance_idempotency_and_database_immutability(monkeypatch):
+    _require_test_database()
+    asyncio.run(_application_event_provenance_flow(monkeypatch))
+
+
+async def _application_event_provenance_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+            await apply_migrations(conn)
+        user = await repo.create_user("event-provenance-user", "Event Provenance")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="event-test", source_job_id="1", title="Linux role",
+        ))
+        application = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="event-test", status="prepared",
+        )
+        assert await repo.set_application_status(
+            user.id, application.id, "reviewed", provenance="manual_user",
+            evidence={"kind": "telegram_callback"}, event_key="telegram:update:100",
+        )
+        assert await repo.set_application_status(user.id, application.id, "interview")
+        # A replay of the exact event is acknowledged without reverting state or appending history.
+        assert await repo.set_application_status(
+            user.id, application.id, "reviewed", provenance="manual_user",
+            evidence={"kind": "telegram_callback"}, event_key="telegram:update:100",
+        )
+        history = await repo.application_status_history(user.id, application.id)
+        assert [(event.status, event.provenance, event.event_key) for event in history] == [
+            ("prepared", "system", "initial"),
+            ("reviewed", "manual_user", "telegram:update:100"),
+            ("interview", "manual_user", None),
+        ]
+        assert (await repo.get_application(user.id, application.id)).status == "interview"
+
+        event_id = history[1].id
+        async with test_session() as session:
+            with pytest.raises(DBAPIError, match="immutable"):
+                await session.execute(text(
+                    "UPDATE application_status_events SET status = 'tampered' WHERE id = :id"
+                ), {"id": event_id})
+                await session.commit()
+            await session.rollback()
+        async with test_session() as session:
+            with pytest.raises(DBAPIError, match="immutable"):
+                await session.execute(text(
+                    "DELETE FROM application_status_events WHERE id = :id"
+                ), {"id": event_id})
+                await session.commit()
+            await session.rollback()
+        # Deliberate deletion of the whole parent ledger remains possible for a
+        # future owner-authorized privacy workflow; its FK cascade is not a
+        # mutation of one selectively chosen history event.
+        async with engine.begin() as conn:
+            await conn.execute(text("DELETE FROM applications WHERE id = :id"), {"id": application.id})
+            remaining = await conn.scalar(text(
+                "SELECT count(*) FROM application_status_events WHERE application_id = :id"
+            ), {"id": application.id})
+            assert remaining == 0
     finally:
         await engine.dispose()
 
