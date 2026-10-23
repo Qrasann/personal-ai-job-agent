@@ -3,7 +3,7 @@ from datetime import datetime
 
 from app.database.time_utils import utcnow_naive
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -208,8 +208,8 @@ class ApplicationStatusEvent(Base):
     application_id: Mapped[int] = mapped_column(ForeignKey("applications.id", ondelete="CASCADE"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     status: Mapped[str] = mapped_column(String(64))
-    provenance: Mapped[str] = mapped_column(String(32), default="legacy")
-    evidence: Mapped[dict] = mapped_column(JSONB, default=dict)
+    provenance: Mapped[str] = mapped_column(String(32), default="legacy", server_default="legacy")
+    evidence: Mapped[dict] = mapped_column(JSONB, default=dict, server_default=text("'{}'::jsonb"))
     event_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 

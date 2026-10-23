@@ -117,7 +117,7 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6, 7, 8, 9, 10]
+        assert applied == [5, 6, 7, 8, 9, 10, 11]
         async with engine.begin() as conn:
             assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
@@ -140,12 +140,12 @@ def test_v7_to_v8_job_delete_protects_application_history(monkeypatch):
 
 
 @pytest.mark.integration
-def test_v8_to_v10_preserves_application_history_and_adds_guards(monkeypatch):
+def test_v8_to_v11_preserves_application_history_and_adds_guards(monkeypatch):
     _require_test_database()
-    asyncio.run(_v8_to_v10_application_migration_flow(monkeypatch))
+    asyncio.run(_v8_to_v11_application_migration_flow(monkeypatch))
 
 
-async def _v8_to_v10_application_migration_flow(monkeypatch):
+async def _v8_to_v11_application_migration_flow(monkeypatch):
     engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
     test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     monkeypatch.setattr(repo, "SessionLocal", test_session)
@@ -180,9 +180,9 @@ async def _v8_to_v10_application_migration_flow(monkeypatch):
                     {"version": version, "name": f"v{version}"},
                 )
 
-            assert await apply_migrations(conn) == [9, 10]
+            assert await apply_migrations(conn) == [9, 10, 11]
             assert await apply_migrations(conn) == []
-            assert await conn.scalar(text("SELECT max(version) FROM schema_migrations")) == 10
+            assert await conn.scalar(text("SELECT max(version) FROM schema_migrations")) == 11
             reminder_table = await conn.scalar(text("SELECT to_regclass('public.application_reminders')"))
             assert reminder_table == "application_reminders"
 
@@ -196,6 +196,19 @@ async def _v8_to_v10_application_migration_flow(monkeypatch):
         assert [(item.status, item.provenance, item.evidence) for item in history] == [
             ("prepared", "legacy", {}),
         ]
+
+        async with engine.begin() as conn:
+            # Simulate the v8 ORM, which omits all v9 columns on INSERT.
+            await conn.execute(text(
+                "INSERT INTO application_status_events "
+                "(application_id,user_id,status,created_at) "
+                "VALUES (:application_id,:user_id,'reviewed',CURRENT_TIMESTAMP)"
+            ), {"application_id": application.id, "user_id": owner.id})
+            rollback_row = (await conn.execute(text(
+                "SELECT provenance,evidence FROM application_status_events "
+                "WHERE application_id=:id AND status='reviewed'"
+            ), {"id": application.id})).one()
+            assert tuple(rollback_row) == ("legacy", {})
 
         with pytest.raises(DBAPIError, match="application status history is immutable"):
             async with engine.begin() as conn:
@@ -246,7 +259,7 @@ async def _application_history_restrict_migration_flow(monkeypatch):
                 "AND conrelid = 'applications'::regclass"
             ))
             assert "ON DELETE CASCADE" in before
-            assert await apply_migrations(conn) == [8, 9, 10]
+            assert await apply_migrations(conn) == [8, 9, 10, 11]
             after = await conn.scalar(text(
                 "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
                 "WHERE conname = 'applications_job_id_fkey' "

@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 10
+CURRENT_SCHEMA_VERSION = 11
 
 
 @dataclass(frozen=True)
@@ -140,6 +140,16 @@ MIGRATIONS: tuple[Migration, ...] = (
             "created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP)",
             "CREATE INDEX IF NOT EXISTS ix_application_reminders_user_due "
             "ON application_reminders(user_id, status, due_at)",
+        ),
+    ),
+    Migration(
+        version=11,
+        name="application_event_rollback_defaults",
+        statements=(
+            # Previous application images do not know these v9 columns and omit
+            # them on INSERT. Database defaults keep that rollback path writable.
+            "ALTER TABLE application_status_events ALTER COLUMN provenance SET DEFAULT 'legacy'",
+            "ALTER TABLE application_status_events ALTER COLUMN evidence SET DEFAULT '{}'::jsonb",
         ),
     ),
 )

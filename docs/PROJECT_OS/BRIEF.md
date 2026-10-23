@@ -1,7 +1,11 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
-## 2026-10-23 release gate — schema v8→v9→v10
-- An exact isolated v8 fixture now upgrades through migrations 9 and 10 without losing the frozen vacancy, CV, letter or status history. Existing events become explicit `legacy` provenance; the immutable-history trigger and reminders table are installed.
+## 2026-10-23 release gate — backup/restore and previous-image rollback
+- A custom-format dump of a synthetic v10 fixture was listed, checksummed and restored into a separate tmpfs database; schema/data counts and immutable trigger matched. This rehearses the mechanism but does not replace a fresh private production backup before release.
+- Rollback testing found fresh v10 lacked database defaults needed by a v8 writer. Additive schema v11 and model server defaults fix this. Previous commit `2c134d1` then read existing data and wrote a new event on v11; current code read it as `legacy`. Focused application/schema gate: **36 passed**.
+
+## 2026-10-23 release gate — schema v8→v9→v10→v11
+- An exact isolated v8 fixture now upgrades through migrations 9–11 without losing the frozen vacancy, CV, letter or status history. Existing events become explicit `legacy` provenance; the immutable-history trigger and reminders table are installed.
 - Reapplying migrations is a no-op and direct history mutation is rejected. Repository/application/schema gate: **36 passed**. Production was not accessed.
 
 ## 2026-10-23 release gate — async/web tests

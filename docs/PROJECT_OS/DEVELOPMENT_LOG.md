@@ -1,7 +1,14 @@
-## 2026-10-23 — schema v8→v9→v10 acceptance
+## 2026-10-23 — rollback compatibility and schema v11
+
+Rehearsed a PostgreSQL custom dump/list/checksum/restore using synthetic data. A detached
+v8 writer could read v10 but failed to insert events because fresh-schema v9 columns had
+no server defaults. Added schema v11 and matching model defaults; the v8 writer then
+created an event and current code read it with `legacy` provenance. Focused gate: 36 passed.
+
+## 2026-10-23 — schema v8→v9→v10→v11 acceptance
 
 Added an isolated PostgreSQL regression that reconstructs the v8 application surface,
-upgrades through migrations 9/10, verifies exact package/history preservation, migration
+upgrades through migrations 9–11, verifies exact package/history preservation, migration
 idempotency, reminder creation and immutable event enforcement. Combined gate: 36 passed.
 
 ## 2026-10-23 — async/web release gate closed

@@ -4,8 +4,10 @@
 
 - [x] Combined isolated PostgreSQL application/CV gate: 153 passed.
 - [x] Run the formerly blocked async/web tests with cached `pytest-asyncio` and isolated tmpfs PostgreSQL: 29 passed.
-- [x] Verify exact isolated v8→v9→v10 upgrade, data preservation, idempotency and immutable-history guard; combined gate: 36 passed.
-- [ ] Verify backup + actual restore, previous-image rollback with additive schema, renderer fonts/dependencies, exact-SHA CI and isolated smoke before production.
+- [x] Verify exact isolated v8→v9→v10→v11 upgrade, data preservation, idempotency and immutable-history guard; combined gate: 36 passed.
+- [x] Rehearse custom dump/list/checksum/actual restore on synthetic tmpfs data and verify previous v8 image read/write against additive v11 schema.
+- [ ] Take and restore-check a fresh private production backup immediately before release; isolated rehearsal is not a substitute.
+- [ ] Verify renderer fonts/dependencies, exact-SHA CI and isolated smoke before production.
 
 ## 2026-10-23 — P0 R01 per-application approval
 

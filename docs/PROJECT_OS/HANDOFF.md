@@ -1,12 +1,23 @@
 # Handoff
 
-## Current checkpoint — v8→v9→v10 compatibility (2026-10-23)
+## Current checkpoint — rollback-compatible schema v11 (2026-10-23)
 
-An exact isolated v8 PostgreSQL fixture upgrades through 9 and 10 while preserving the
+An isolated custom-format backup was listed, checksummed and restored with matching v10
+schema/data/trigger evidence. Testing previous commit `2c134d1` against that additive
+schema exposed missing database defaults for mandatory v9 event fields. Schema v11 now
+adds those defaults, and fresh models declare them too. The v8 code then read the restored
+package, inserted a new Application event, and current code read it as `legacy`. Focused
+gate: **36 passed**. Synthetic restore/worktree were removed. A fresh private production
+backup+restore check is still mandatory immediately before release; next local gates are
+release-image ReportLab/fonts and exact-SHA CI/smoke.
+
+## Current checkpoint — v8→v9→v10→v11 compatibility (2026-10-23)
+
+An exact isolated v8 PostgreSQL fixture upgrades through 9–11 while preserving the
 frozen vacancy, CV snapshot/provider ID, exact letter and status event. The legacy event
 is labeled `legacy`; reminders and immutable-history enforcement are installed; rerun is
 a no-op. Combined repository/application/schema gate: **36 passed**. Next release gate:
-actual isolated backup/restore, then previous-image compatibility and release-image/CI.
+release-image/CI checks. Production was not accessed.
 
 ## Current checkpoint — async/web release gate (2026-10-23)
 
