@@ -11,7 +11,8 @@
 - [x] Remove direct provider submission from the first Telegram `apply:` action; prepare/reuse and show the immutable package instead.
 - [x] State explicitly that no external action occurred; keep package history and manual URL workflow available.
 - [x] Add a 10-minute one-time owner-bound confirmation digest over exact frozen vacancy/CV/letter/channel and reject stale/replayed tokens before provider access; gate: 59 passed, 2 skipped.
-- [ ] Perform isolated owner acceptance with a non-production provider fixture; every real submission still requires approval of the displayed package.
+- [x] Perform isolated PostgreSQL acceptance with a mocked provider: exact frozen payload once, durable `sending → sent`, repeat blocked; combined gate: 62 passed.
+- [ ] Every real submission still requires owner approval of the displayed package; production acceptance remains prohibited until release gates pass.
 
 ## 2026-10-23 — P0 R02 immutable Application CRM events
 

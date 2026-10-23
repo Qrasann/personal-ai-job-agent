@@ -1,5 +1,18 @@
 # Handoff
 
+## Current checkpoint — P0 R01 isolated acceptance (2026-10-23)
+
+An isolated PostgreSQL test now covers frozen package → approval boundary → mocked HH
+provider → durable attempt. The fixture received the exact source posting ID, provider
+resume ID and letter once; history persisted `sending → sent`. A repeated attempt was
+rejected before a second provider call. Combined R01 package/navigation/provider gate:
+**62 passed**. No real provider, production DB or outbound action was used.
+
+Next unblocked P0 should be selected from the canonical roadmap after the release gates;
+do not repeat C01/R01/R02 audits. Open gates remain the 19 pytest-asyncio tests,
+backup+actual restore, schema v8→v9→v10 compatibility, previous-image rollback,
+exact-SHA CI and release-image ReportLab/fonts.
+
 ## Current checkpoint — P0 R01 exact-package confirmation (2026-10-23)
 
 Prepared HH packages can now expose a one-time owner-bound confirmation valid for ten

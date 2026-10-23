@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 R01 isolated acceptance
+- Isolated PostgreSQL acceptance exercised an exact frozen package through the one-time approval boundary into a mocked HH provider. The provider received the frozen source job ID, resume ID and letter exactly once; durable history is `sending → sent`.
+- A repeated submission attempt was rejected without a second provider call. Combined R01 package/navigation/provider gate: 62 passed. No real provider or production state was used.
+
 ## 2026-10-23 P0 R01 exact-package confirmation
 - A prepared HH package now receives a 10-minute, one-time, owner-bound confirmation. Its digest binds application/job IDs, frozen vacancy, CV snapshot/provider resume ID, exact letter and channel.
 - Confirmation consumes the token before I/O; stale/tampered packages and replay are rejected before provider access. Existing reservation/outcome ledger remains the idempotency boundary. Gate: 59 passed, 2 DB tests skipped in the focused run.

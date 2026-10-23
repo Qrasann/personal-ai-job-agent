@@ -107,6 +107,13 @@ only frozen fields; stale digest and replay never reach the provider. Existing D
 reservation/outcome handling remains the durable duplicate boundary. Gate: 59 passed,
 2 isolated-DB tests skipped in this focused run; no real submission was made.
 
+## 2026-10-23 — R01 isolated acceptance
+
+Added an isolated PostgreSQL end-to-end fixture using a mocked HH provider. It proves
+the exact frozen source posting ID, provider resume ID and letter are sent once, the
+attempt records `sending → sent`, and replay does not call the provider again. Combined
+R01 gate: 62 passed. No live credentials, provider or production state was involved.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was
