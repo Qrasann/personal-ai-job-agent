@@ -9,6 +9,7 @@ from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS
 from app.domain.employer_policy import decision as employer_decision
 from app.domain.blacklist import matching_blacklist_rule
 from app.domain.role_text import role_tokens
+from app.domain.resume_versions import version_metadata
 from app.geo.countries import normalize_country
 from app.matching.recommendation import build_recommendation_breakdown
 from app.matching.technical_score import score_technical_v2
@@ -61,6 +62,7 @@ def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
         resume
         for resume in resumes
         if resume.active is not False and getattr(resume, "deleted_at", None) is None
+        and version_metadata(getattr(resume, "rules", None))["status"] == "approved"
     ]
     if not available:
         return None

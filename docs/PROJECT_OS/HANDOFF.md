@@ -1,5 +1,18 @@
 # Handoff
 
+## Current checkpoint — P0 C01 CV version approval foundation (2026-10-23)
+
+CV versions now use migration-free `cv_version_v1` metadata inside the existing
+`ResumeProfile.rules` JSON. Existing rows are treated as approved for compatibility;
+new `/resumeduplicate` copies retain exact content and parent id but are drafts until
+owner-scoped `/resumeapprove`. Drafts are excluded from automatic resume selection.
+The old version remains intact for comparison/rollback.
+
+Import/diff/matching/Telegram gate: **164 passed**; compile and diff checks passed.
+This is partial C01: content editing with local diff, templates and PDF/DOCX/TXT
+exports remain open. PostgreSQL persistence is not claimed in this environment.
+Next independent critical-path check: one concrete R02 ledger/history gap.
+
 ## Current checkpoint — P0 U03 structured blacklist controls (2026-10-23)
 
 Structured rules are now manageable through `/blacklist rule`: read-only preview,

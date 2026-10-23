@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 C01 CV version approval foundation
+- Added migration-free CV lineage/state in `ResumeProfile.rules`: existing CVs remain compatible, duplicated versions are drafts, and approval is explicit and timestamped. `/resumes` discloses state; `/resumeduplicate` and `/resumeapprove` are owner-profile scoped.
+- Draft CVs are excluded from automatic resume selection, so unapproved copies cannot silently enter newly scored application preparation. Import/diff/matching/Telegram gate: 164 passed. Editing/export formats and full CV Studio remain open.
+
 ## 2026-10-23 P0 U03 structured blacklist controls
 - `/blacklist rule` now supports preview/confirm-style apply, all-profile default or explicit profile scope, permanent/date-bounded rules, disable/remove and per-profile undo. Preview is read-only and reports matching changes among the latest 50 vacancies per selected profile.
 - Rule parsing/update and Telegram persistence gates pass with the matching/policy suite: 99 passed. No vacancy status, source setting, history, CV or application is mutated by blacklist management.

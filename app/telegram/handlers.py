@@ -27,6 +27,7 @@ from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
 from app.domain.blacklist import matching_blacklist_rule
+from app.domain.resume_versions import version_metadata
 from app.domain.text_limits import utf16_length
 from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS, update_policy as update_employer_policy
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
@@ -1226,8 +1227,44 @@ async def resumes(message: Message) -> None:
         return
     profile = await repo.active_profile(user.id)
     rows = await repo.list_resumes(profile.id) if profile else []
-    text = "📄 <b>Резюме</b>\n\n" + "\n".join(f"{r.id}. {html.escape(r.name)} — {html.escape(r.role)} — {r.language} — {r.source}" for r in rows)
+    text = "📄 <b>Резюме</b>\n\n" + "\n".join(
+        f"{r.id}. {html.escape(r.name)} — {html.escape(r.role)} — {r.language} — "
+        f"{r.source} — {'✅ approved' if version_metadata(r.rules)['status'] == 'approved' else '📝 draft'}"
+        for r in rows
+    )
+    text += "\n\n/resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt;"
     await message.answer(text, parse_mode="HTML")
+
+
+@router.message(Command("resumeduplicate"))
+async def resume_duplicate_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) != 3 or not parts[1].isdigit() or not parts[2].strip() or len(parts[2].strip()) > 128:
+        await message.answer("Использование: /resumeduplicate <resume_id> <новое имя>")
+        return
+    profile = await repo.active_profile(user.id)
+    item = await repo.duplicate_resume_version(profile.id, int(parts[1]), parts[2]) if profile else None
+    await message.answer(
+        f"📝 Создан draft CV #{item.id}. Проверь содержимое и утверди: /resumeapprove {item.id}"
+        if item else "❌ Резюме не найдено в твоём профиле."
+    )
+
+
+@router.message(Command("resumeapprove"))
+async def resume_approve_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if len(parts) != 2 or not parts[1].isdigit():
+        await message.answer("Использование: /resumeapprove <resume_id>")
+        return
+    profile = await repo.active_profile(user.id)
+    approved = await repo.approve_resume_version(profile.id, int(parts[1])) if profile else False
+    await message.answer("✅ Версия CV утверждена." if approved else "❌ Резюме не найдено в твоём профиле.")
 
 
 @router.message(Command("scan"))

@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-23 — P0 C01 CV version approval foundation
+
+- [x] Add migration-free parent lineage and explicit draft/approved metadata while treating pre-versioning CVs compatibly.
+- [x] Add owner-scoped duplicate/approve commands and disclose state in `/resumes`.
+- [x] Exclude draft versions from automatic resume selection; focused gate: 164 passed.
+- [ ] Add grounded editing/diff approval, ATS/Modern templates and RU/EN PDF/DOCX/TXT exports; verify PostgreSQL persistence in the isolated DB gate.
+
 ## 2026-10-23 — P0 U03 structured blacklist core
 
 - [x] Add five migration-free structured rule kinds: vacancy, company, company+role, role and phrase.

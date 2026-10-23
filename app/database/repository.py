@@ -21,6 +21,7 @@ from app.database.models import (
     SeenMessage,
     User,
 )
+from app.domain.resume_versions import approved_version_rules, draft_version_rules
 from app.domain.jobs import NormalizedJob
 from app.domain.relocation_evidence import build_relocation_evidence
 from app.domain.source_posting import posting_snapshot_digest, snapshot_source_posting
@@ -231,6 +232,49 @@ async def list_resumes(profile_id: int) -> list[ResumeProfile]:
     async with SessionLocal() as session:
         rows = await session.scalars(select(ResumeProfile).where(ResumeProfile.profile_id == profile_id, ResumeProfile.active.is_(True), ResumeProfile.deleted_at.is_(None)).order_by(ResumeProfile.id))
         return list(rows)
+
+
+async def duplicate_resume_version(profile_id: int, resume_id: int, name: str) -> ResumeProfile | None:
+    """Create an owner-scoped draft version while retaining the exact parent."""
+    if not name.strip() or len(name.strip()) > 128:
+        raise ValueError("Имя версии CV должно содержать от 1 до 128 символов.")
+    async with SessionLocal() as session:
+        source = await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ))
+        if source is None:
+            return None
+        item = ResumeProfile(
+            profile_id=profile_id,
+            name=name.strip(),
+            language=source.language,
+            role=source.role,
+            source="version",
+            content=source.content,
+            rules=draft_version_rules(source.rules, parent_id=source.id),
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
+async def approve_resume_version(profile_id: int, resume_id: int) -> bool:
+    async with SessionLocal() as session:
+        item = await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ).with_for_update())
+        if item is None:
+            return False
+        item.rules = approved_version_rules(item.rules)
+        await session.commit()
+        return True
 
 
 async def list_search_profiles(profile_id: int) -> list[SearchProfile]:

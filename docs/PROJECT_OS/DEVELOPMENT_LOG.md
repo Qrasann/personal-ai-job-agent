@@ -39,6 +39,14 @@ updates. Telegram supports bounded affected-vacancy preview, explicit applicatio
 all-profile default or selected-profile scope, UTC date expiry, disable/remove and
 undo. A date-only expiry remains active through that date. Cumulative gate: 99 passed.
 
+## 2026-10-23 — C01 CV version approval foundation
+
+Used the existing CV `rules` JSON to add parent lineage and explicit draft/approved
+state without a migration. New copies preserve parent content, do not inherit an
+external provider binding, and require owner approval. Legacy CVs remain approved
+for compatibility; draft copies are excluded from automatic matching selection.
+Focused import/diff/matching/Telegram gate: 164 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was
