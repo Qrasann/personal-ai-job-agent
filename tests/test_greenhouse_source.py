@@ -50,6 +50,17 @@ def test_greenhouse_returns_only_role_relevant_jobs_in_selected_target_country()
     assert jobs[0].relocation is None
 
 
+def test_greenhouse_matches_sre_alias_without_admitting_related_reliability_role():
+    jobs = GreenhouseSource.parse_payload(
+        {"jobs": [
+            listing(1, "SRE", "Tbilisi, Georgia"),
+            listing(2, "Software Engineer", "Tbilisi, Georgia", "reliability tooling"),
+        ]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Site Reliability Engineer"]),
+    )
+    assert [job.source_job_id for job in jobs] == ["lineate:1"]
+
+
 def test_greenhouse_parses_armenia_only_when_am_is_selected():
     payload = {"jobs": [listing(99, "Data Engineer", "Yerevan, Yerevan, Armenia")]}
 

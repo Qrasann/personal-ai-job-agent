@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-23 — P0 Source Usefulness ATS recall
+
+- [x] Reproduce Greenhouse and SmartRecruiters dropping `SRE` for the configured `Site Reliability Engineer` query.
+- [x] Add narrow aliases and unrelated-role regressions; do not change scoring, geography or eligibility evidence.
+- [x] Targeted ATS/query gate: 132 passed; compile and diff checks passed.
+
 ## 2026-10-23 — source gate verification after U02
 
 - [x] Verify RemoteOK SRE recall in the available sibling Python environment: 32 passed.

@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 Source Usefulness — ATS SRE recall
+- Greenhouse and SmartRecruiters used literal query-token matching and dropped standard `SRE` titles for the configured `Site Reliability Engineer` query. Added the same narrow alias already validated for RemoteOK; unrelated Software Engineer/reliability roles remain excluded.
+- Targeted ATS/query gate: 132 passed; `py_compile` and `git diff --check` passed. Salary, geography, remote scope, authorization, visa and relocation evidence are unchanged.
+
 ## 2026-10-23 source-gate continuation
 - RemoteOK SRE recall is checkpointed; related adapter/diagnostic/scan tests pass (198). Stale U01 score assertions were aligned without changing product code; offline non-async suite passes 1430 with 23 skips and 19 async tests deselected because `pytest-asyncio` is unavailable.
 - Job Bank B01 retry, partial-result preservation and 403/429 source-stop behavior were reviewed with existing regressions; no new defect was reproduced.

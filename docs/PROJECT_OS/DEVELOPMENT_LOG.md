@@ -8,6 +8,14 @@ Relocation-first behavior and eligibility evidence are unchanged. The focused
 pytest gate is pending because local pytest is unavailable and isolated uv
 dependency resolution is blocked by DNS.
 
+## 2026-10-23 — official ATS SRE title recall
+
+Greenhouse and SmartRecruiters had independent literal-token role matchers and
+lost `SRE` postings for the configured `Site Reliability Engineer` query. Added
+the exact three-token alias and regressions for a matching SRE plus an unrelated
+Software Engineer/reliability row. Targeted ATS/query tests: 132 passed; no
+score, geography, salary or eligibility semantics changed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

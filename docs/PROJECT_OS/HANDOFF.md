@@ -1,5 +1,21 @@
 # Handoff
 
+## Current checkpoint — P0 ATS SRE recall (2026-10-23)
+
+At clean `70e1df2`, source-usefulness reproduction showed Greenhouse and
+SmartRecruiters dropped standard `SRE` titles when queried as `Site Reliability
+Engineer`. Both adapters now use a narrow exact alias for that three-token query
+only; unrelated `Software Engineer` rows with reliability wording remain out.
+No salary, geography, remote eligibility, authorization, visa or relocation
+evidence changed.
+
+Targeted Greenhouse/SmartRecruiters/RemoteOK/search-preference gate: **132
+passed**; compile and `git diff --check` passed. No live source, runtime,
+database, Telegram or external message was used.
+
+Next: inspect the next independent query/normalization loss in the remaining
+official ATS adapters; preserve the async/web pytest gate as open.
+
 ## Current checkpoint — RemoteOK/source gate and offline regression cleanup (2026-10-23)
 
 RemoteOK SRE recall is committed at `8a4f1b0`; stale U01 score assertions in
