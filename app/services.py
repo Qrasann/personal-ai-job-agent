@@ -19,6 +19,7 @@ from app.database.db import user_scan_lease
 from app.domain.application_package import snapshot_vacancy
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
+from app.domain.resume_versions import version_metadata
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
 from app.domain.vacancy_availability import publication_age_bucket
 from app.geo.countries import normalize_country
@@ -54,6 +55,11 @@ from app.search.preferences import discovery_queries, job_priority, source_enabl
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
+
+
+def _require_approved_resume(resume) -> None:
+    if resume is not None and version_metadata(getattr(resume, "rules", None))["status"] != "approved":
+        raise RuntimeError("Выбранная версия CV ещё не утверждена. Проверь /resumes и используй /resumeapprove.")
 
 
 def _versioned_assessment(result) -> dict:
@@ -1046,6 +1052,7 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
     facts = await repo.list_facts(match.profile_id)
     resumes = await repo.list_resumes(match.profile_id)
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
+    _require_approved_resume(chosen)
     cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
     comparison = compare_facts(job.description or "", facts)
     resume_diff = compare_resume_coverage(
@@ -1091,6 +1098,7 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
     facts = await repo.list_facts(match.profile_id)
     resumes = await repo.list_resumes(match.profile_id)
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
+    _require_approved_resume(chosen)
     hh_resume_id = (chosen.external_id if chosen and chosen.source == "hh" else None) or settings.hh_resume_id
     if not hh_resume_id:
         raise RuntimeError("Для выбранного профиля нет HH resume ID")

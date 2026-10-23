@@ -5,10 +5,11 @@
 CV versions now use migration-free `cv_version_v1` metadata inside the existing
 `ResumeProfile.rules` JSON. Existing rows are treated as approved for compatibility;
 new `/resumeduplicate` copies retain exact content and parent id but are drafts until
-owner-scoped `/resumeapprove`. Drafts are excluded from automatic resume selection.
+owner-scoped `/resumeapprove`. Drafts are excluded from automatic resume selection
+and rejected again at both package-preparation and external-apply boundaries.
 The old version remains intact for comparison/rollback.
 
-Import/diff/matching/Telegram gate: **164 passed**; compile and diff checks passed.
+Import/diff/matching/Telegram/HH safety gate: **178 passed**; compile and diff checks passed.
 This is partial C01: content editing with local diff, templates and PDF/DOCX/TXT
 exports remain open. PostgreSQL persistence is not claimed in this environment.
 Next independent critical-path check: one concrete R02 ledger/history gap.

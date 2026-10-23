@@ -44,8 +44,8 @@ undo. A date-only expiry remains active through that date. Cumulative gate: 99 p
 Used the existing CV `rules` JSON to add parent lineage and explicit draft/approved
 state without a migration. New copies preserve parent content, do not inherit an
 external provider binding, and require owner approval. Legacy CVs remain approved
-for compatibility; draft copies are excluded from automatic matching selection.
-Focused import/diff/matching/Telegram gate: 164 passed.
+for compatibility; draft copies are excluded from automatic matching selection and
+rejected at both prepare and external-apply boundaries. Focused gate: 178 passed.
 
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
