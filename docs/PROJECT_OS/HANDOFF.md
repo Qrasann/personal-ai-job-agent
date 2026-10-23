@@ -1,5 +1,17 @@
 # Handoff
 
+## Current checkpoint — P0 C01 grounded CV editing (2026-10-23)
+
+`/resumeedit <id> <full new text>` now renders an escaped bounded unified diff and
+stores only a short-lived owner-scoped preview. `/resumeeditconfirm` atomically creates
+a new draft row after verifying the exact parent-content digest. The approved parent,
+its content and provider binding are untouched; replay and stale previews are rejected.
+The new revision remains unusable until explicit `/resumeapprove`.
+
+CV/edit gate: **108 passed**; isolated PostgreSQL parent/lineage/stale-preview test:
+**1 passed**. Next C01 stage: Modern template and PDF export. Production/runtime and
+external providers were not touched.
+
 ## Current checkpoint — P0 C01 approved CV export (2026-10-23)
 
 `/resumeexport <id> txt|docx` now resolves CVs through the active owner profile and

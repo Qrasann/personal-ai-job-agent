@@ -19,6 +19,7 @@ from app.sources.diagnostics import classify_source_error, legacy_diagnostic
 from app.candidates.bootstrap import bootstrap_user
 from app.candidates.import_review import plan_fact_import
 from app.candidates.resume_export import export_resume
+from app.candidates.resume_edit import content_digest, render_resume_text_diff, validate_resume_edit
 from app.candidates.importer import (
     MAX_DOCUMENT_BYTES, ResumeImportError, extract_resume_text,
     guess_language, propose_facts, resume_fingerprint, review_proposals,
@@ -91,6 +92,7 @@ _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
 _RESUME_IMPORT_TTL_SECONDS = 15 * 60
 _MAX_PENDING_RESUME_IMPORTS = 64
 _MAX_PENDING_RESUME_IMPORTS_PER_USER = 8
+_PENDING_RESUME_EDITS: dict[str, dict] = {}
 
 
 def _store_pending_resume_import(token: str, pending: dict) -> None:
@@ -113,6 +115,21 @@ def _store_pending_resume_import(token: str, pending: dict) -> None:
         oldest = min(candidates, key=lambda item: item[1].get("created_at", 0))[0]
         _PENDING_RESUME_IMPORTS.pop(oldest, None)
     _PENDING_RESUME_IMPORTS[token] = pending
+
+
+def _store_pending_resume_edit(token: str, pending: dict) -> None:
+    now = time.time()
+    for key, value in list(_PENDING_RESUME_EDITS.items()):
+        if now - float(value.get("created_at", 0)) > _RESUME_IMPORT_TTL_SECONDS:
+            _PENDING_RESUME_EDITS.pop(key, None)
+    while True:
+        owned = [(key, value) for key, value in _PENDING_RESUME_EDITS.items() if value.get("user_id") == pending["user_id"]]
+        if len(owned) < 3 and len(_PENDING_RESUME_EDITS) < _MAX_PENDING_RESUME_IMPORTS:
+            break
+        candidates = owned if len(owned) >= 3 else list(_PENDING_RESUME_EDITS.items())
+        oldest = min(candidates, key=lambda item: item[1].get("created_at", 0))[0]
+        _PENDING_RESUME_EDITS.pop(oldest, None)
+    _PENDING_RESUME_EDITS[token] = pending
 
 
 def _render_search_profiles(searches: dict, *, limit: int = 900) -> str:
@@ -1234,7 +1251,7 @@ async def resumes(message: Message) -> None:
         f"{r.source} — {'✅ approved' if version_metadata(r.rules)['status'] == 'approved' else '📝 draft'}"
         for r in rows
     )
-    text += "\n\n/resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt; · /resumeexport &lt;id&gt; txt|docx"
+    text += "\n\n/resumeedit &lt;id&gt; &lt;новый текст&gt; · /resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt; · /resumeexport &lt;id&gt; txt|docx"
     await message.answer(text, parse_mode="HTML")
 
 
@@ -1291,6 +1308,68 @@ async def resume_export_command(message: Message) -> None:
     await message.answer_document(
         BufferedInputFile(content, filename=filename),
         caption=f"Approved CV #{resume.id} · {parts[2].upper()}",
+    )
+
+
+@router.message(Command("resumeedit"))
+async def resume_edit_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) != 3 or not parts[1].isdigit():
+        await message.answer("Использование: /resumeedit <resume_id> <полный новый текст CV>")
+        return
+    profile = await repo.active_profile(user.id)
+    resume = await repo.get_profile_resume(profile.id, int(parts[1])) if profile else None
+    if resume is None:
+        await message.answer("❌ Резюме не найдено в твоём профиле.")
+        return
+    try:
+        proposed = validate_resume_edit(resume.content or "", parts[2])
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    token = uuid.uuid4().hex[:12]
+    _store_pending_resume_edit(token, {
+        "user_id": user.id, "profile_id": profile.id, "resume_id": resume.id,
+        "expected_digest": content_digest(resume.content or ""),
+        "content": proposed, "created_at": time.time(),
+    })
+    diff = html.escape(render_resume_text_diff(resume.content or "", proposed))
+    await message.answer(
+        f"📝 <b>Предпросмотр изменений CV #{resume.id}</b>\n<pre>{diff}</pre>\n"
+        f"Создать новую draft-версию: /resumeeditconfirm {token}",
+        parse_mode="HTML",
+    )
+
+
+@router.message(Command("resumeeditconfirm"))
+async def resume_edit_confirm_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    pending = _PENDING_RESUME_EDITS.get(parts[1]) if len(parts) == 2 else None
+    if not pending or pending.get("user_id") != user.id or time.time() - pending.get("created_at", 0) > _RESUME_IMPORT_TTL_SECONDS:
+        await message.answer("❌ Предпросмотр правки не найден или истёк.")
+        return
+    token = parts[1]
+    if _PENDING_RESUME_EDITS.pop(token, None) is None:
+        await message.answer("❌ Правка уже обрабатывается.")
+        return
+    try:
+        item = await repo.create_resume_revision(
+            pending["profile_id"], pending["resume_id"],
+            expected_content_digest=pending["expected_digest"], content=pending["content"],
+        )
+    except Exception:
+        _PENDING_RESUME_EDITS.setdefault(token, pending)
+        await message.answer("❌ Не удалось сохранить draft. Повтори подтверждение.")
+        return
+    await message.answer(
+        f"📝 Draft CV #{item.id} создан. Исходная версия не изменена. После проверки: /resumeapprove {item.id}"
+        if item else "❌ Исходное резюме больше недоступно."
     )
 
 

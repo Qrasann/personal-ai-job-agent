@@ -451,6 +451,51 @@ async def _application_event_provenance_flow(monkeypatch):
 
 
 @pytest.mark.integration
+def test_resume_revision_preserves_parent_and_rejects_stale_preview(monkeypatch):
+    _require_test_database()
+    asyncio.run(_resume_revision_flow(monkeypatch))
+
+
+async def _resume_revision_flow(monkeypatch):
+    from app.candidates.resume_edit import content_digest
+    from app.domain.resume_versions import version_metadata
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        user = await repo.create_user("resume-revision-owner", "Resume Owner")
+        profile = await repo.ensure_default_profile(user.id)
+        parent = await repo.add_resume(
+            profile.id, "SRE EN", "en", "SRE", "Linux\nDocker",
+            source="hh", external_id="provider-resume-1",
+        )
+        revision = await repo.create_resume_revision(
+            profile.id, parent.id,
+            expected_content_digest=content_digest(parent.content),
+            content="Linux\nKubernetes",
+        )
+        assert revision.content == "Linux\nKubernetes"
+        assert revision.source == "version"
+        assert revision.external_id is None
+        assert version_metadata(revision.rules) == {"status": "draft", "parent_id": parent.id}
+        unchanged = await repo.get_profile_resume(profile.id, parent.id)
+        assert (unchanged.content, unchanged.source, unchanged.external_id) == (
+            "Linux\nDocker", "hh", "provider-resume-1",
+        )
+        with pytest.raises(RuntimeError, match="после предпросмотра"):
+            await repo.create_resume_revision(
+                profile.id, parent.id,
+                expected_content_digest=content_digest("stale"), content="Other",
+            )
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
 def test_incomplete_source_location_does_not_replace_canonical_fingerprint(monkeypatch):
     _require_test_database()
     asyncio.run(_incomplete_source_identity_flow(monkeypatch))

@@ -78,6 +78,13 @@ stored text byte-for-byte after UTF-8 encoding; DOCX uses a minimal ATS-friendly
 layout and introduces no model-generated content. Draft/empty CVs are refused and
 filenames sanitized. Focused CV/import/navigation gate: 106 passed.
 
+## 2026-10-23 — C01 grounded CV editing
+
+Added an owner-scoped edit preview with bounded unified diff and one-time confirmation.
+Confirmation creates a new draft after checking the exact parent digest; it never
+mutates the approved parent or copies an external provider binding. Draft approval
+remains a separate explicit action. Gate: 108 behavioral + 1 isolated PostgreSQL test.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

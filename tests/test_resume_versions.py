@@ -8,6 +8,7 @@ import pytest
 
 from app.domain.resume_versions import approved_version_rules, draft_version_rules, version_metadata
 from app.candidates.resume_export import export_resume
+from app.candidates.resume_edit import content_digest, render_resume_text_diff, validate_resume_edit
 from app.database.models import Job, ResumeProfile
 from app.matching.engine import choose_resume
 from app.telegram import handlers
@@ -116,3 +117,43 @@ def test_resume_export_command_uses_owner_scoped_lookup(monkeypatch):
     message.answer.assert_not_awaited()
     document = message.answer_document.await_args.args[0]
     assert document.filename == "SRE.txt"
+
+
+def test_resume_edit_validation_and_diff_are_grounded_in_exact_text():
+    proposed = validate_resume_edit("Linux\nDocker", "Linux\nKubernetes")
+    diff = render_resume_text_diff("Linux\nDocker", proposed)
+    assert "-Docker" in diff
+    assert "+Kubernetes" in diff
+    assert content_digest("Linux") != content_digest("linux")
+    with pytest.raises(ValueError, match="совпадает"):
+        validate_resume_edit("Linux", " Linux ")
+
+
+def test_resume_edit_preview_does_not_write_and_confirmation_creates_draft(monkeypatch):
+    handlers._PENDING_RESUME_EDITS.clear()
+    resume = SimpleNamespace(id=4, content="Linux\nDocker")
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "get_profile_resume", AsyncMock(return_value=resume))
+    create = AsyncMock(return_value=SimpleNamespace(id=9))
+    monkeypatch.setattr(handlers.repo, "create_resume_revision", create)
+    preview_message = SimpleNamespace(
+        text="/resumeedit 4 Linux\nKubernetes", answer=AsyncMock(),
+    )
+
+    asyncio.run(handlers.resume_edit_command(preview_message))
+
+    create.assert_not_awaited()
+    rendered = preview_message.answer.await_args.args[0]
+    assert "-Docker" in rendered and "+Kubernetes" in rendered
+    token = next(iter(handlers._PENDING_RESUME_EDITS))
+    confirm = SimpleNamespace(text=f"/resumeeditconfirm {token}", answer=AsyncMock())
+    asyncio.run(handlers.resume_edit_confirm_command(confirm))
+    create.assert_awaited_once_with(
+        7, 4, expected_content_digest=content_digest("Linux\nDocker"), content="Linux\nKubernetes",
+    )
+    assert "/resumeapprove 9" in confirm.answer.await_args.args[0]
+
+    replay = SimpleNamespace(text=f"/resumeeditconfirm {token}", answer=AsyncMock())
+    asyncio.run(handlers.resume_edit_confirm_command(replay))
+    assert "не найден или истёк" in replay.answer.await_args.args[0]

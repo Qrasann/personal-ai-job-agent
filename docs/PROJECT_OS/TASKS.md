@@ -16,7 +16,8 @@
 - [x] Add owner-scoped duplicate/approve commands and disclose state in `/resumes`.
 - [x] Exclude draft versions from automatic selection and reject them in prepare/apply safety boundaries; focused gate: 178 passed.
 - [x] Add owner-scoped approved-version TXT and simple ATS-friendly DOCX export without inferred content; focused gate: 106 passed.
-- [ ] Add grounded editing/diff approval, Modern template and PDF export; verify remaining CV persistence paths in the isolated DB gate.
+- [x] Add bounded grounded text diff, one-time confirmation, immutable parent and new draft lineage with stale-preview protection; 108 unit/behavioral + 1 PostgreSQL test passed.
+- [ ] Add Modern template and PDF export.
 
 ## 2026-10-23 — P0 U03 structured blacklist core
 

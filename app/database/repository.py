@@ -282,6 +282,42 @@ async def duplicate_resume_version(profile_id: int, resume_id: int, name: str) -
         return item
 
 
+async def create_resume_revision(
+    profile_id: int,
+    resume_id: int,
+    *,
+    expected_content_digest: str,
+    content: str,
+) -> ResumeProfile | None:
+    """Create a draft revision without mutating or rebinding the parent CV."""
+    from app.candidates.resume_edit import content_digest
+
+    async with SessionLocal() as session:
+        source = await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ).with_for_update())
+        if source is None:
+            return None
+        if content_digest(source.content or "") != expected_content_digest:
+            raise RuntimeError("CV изменился после предпросмотра. Создай diff заново.")
+        item = ResumeProfile(
+            profile_id=profile_id,
+            name=f"{source.name} (revision)",
+            language=source.language,
+            role=source.role,
+            source="version",
+            content=content,
+            rules=draft_version_rules(source.rules, parent_id=source.id),
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
 async def approve_resume_version(profile_id: int, resume_id: int) -> bool:
     async with SessionLocal() as session:
         item = await session.scalar(select(ResumeProfile).where(

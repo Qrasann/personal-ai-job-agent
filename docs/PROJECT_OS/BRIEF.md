@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 C01 grounded CV editing
+- `/resumeedit <id> <full text>` creates a bounded, escaped unified diff without writing. A one-time owner-scoped confirmation creates a new draft revision with parent lineage; the original CV and provider binding remain unchanged, and stale previews are rejected by content digest.
+- The revision still requires `/resumeapprove` before matching, package preparation, apply or export. CV/edit gate: 108 passed; isolated PostgreSQL invariant: 1 passed.
+
 ## 2026-10-23 P0 C01 approved CV export
 - `/resumeexport <id> txt|docx` performs an owner-scoped export of approved, non-empty CV versions only. TXT preserves exact stored text; DOCX uses a simple ATS-friendly structure and adds no inferred claims.
 - Draft CVs remain blocked. PDF and Modern visual templates remain open until a suitable renderer/design is implemented and tested. CV/import/navigation gate: 106 passed.
