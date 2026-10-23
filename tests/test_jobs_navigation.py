@@ -581,6 +581,12 @@ def test_apply_callback_only_prepares_exact_package_and_never_claims_submission(
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
     prepare = AsyncMock(return_value="EXACT PACKAGE PREVIEW")
     monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    package = SimpleNamespace(
+        id=91, job_id=42, resume_id=4, resume_snapshot="CV", resume_external_id="hh-resume",
+        vacancy_snapshot={"source_id": "hh", "source_job_id": "hh-42"},
+        message="Letter", source_id="hh",
+    )
+    monkeypatch.setattr(handlers.repo, "prepared_application_for_match", AsyncMock(return_value=package))
     msg = SimpleNamespace(
         chat=SimpleNamespace(id=777),
         answer=AsyncMock(),
@@ -592,8 +598,32 @@ def test_apply_callback_only_prepares_exact_package_and_never_claims_submission(
     prepare.assert_awaited_once_with(25, 7)
     assert msg.answer.await_args_list[0].args[0] == "EXACT PACKAGE PREVIEW"
     notice = msg.answer.await_args_list[1].args[0]
-    assert "Внешняя отправка не выполнялась" in notice
-    assert "отдельного подтверждения" in notice
+    assert "Внешняя отправка ещё не выполнялась" in notice
+    assert msg.answer.await_args_list[1].kwargs["reply_markup"]
+
+
+def test_apply_confirmation_is_one_time_and_bound_to_frozen_package(monkeypatch):
+    handlers._PENDING_APPLICATION_APPROVALS.clear()
+    handlers._PENDING_APPLICATION_APPROVALS["token"] = {
+        "user_id": 7, "match_id": 25, "application_id": 91, "channel": "hh",
+        "digest": "exact-digest", "created_at": handlers.time.time(),
+    }
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    send = AsyncMock(return_value={"status": "sent", "application_id": 92})
+    monkeypatch.setattr(handlers, "apply_frozen_application", send)
+    msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock(), edit_reply_markup=AsyncMock())
+    callback = SimpleNamespace(data="applyconfirm:token", message=msg, answer=AsyncMock())
+    bot = object()
+    asyncio.run(handlers.apply_confirm_callback(callback, bot))
+    send.assert_awaited_once_with(
+        bot, match_id=25, application_id=91,
+        user_id=7, channel="hh", expected_digest="exact-digest",
+    )
+    assert "token" not in handlers._PENDING_APPLICATION_APPROVALS
+
+    replay = SimpleNamespace(data="applyconfirm:token", message=msg, answer=AsyncMock())
+    asyncio.run(handlers.apply_confirm_callback(replay, object()))
+    replay.answer.assert_awaited_once_with("Подтверждение истекло или уже использовано.", show_alert=True)
 
 
 def test_external_application_and_history_do_not_claim_provider_receipt():

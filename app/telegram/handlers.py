@@ -10,7 +10,7 @@ from datetime import datetime
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.types import BufferedInputFile
 
 from app.search.source_summary import render_filter_reason_counts, render_source_dashboard, scan_outcome, select_scan_dashboard
@@ -28,6 +28,7 @@ from app.config import settings
 from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
+from app.domain.application_approval import application_package_digest
 from app.domain.application_reminders import parse_reminder_due
 from app.domain.blacklist import matching_blacklist_rule
 from app.domain.resume_versions import version_metadata
@@ -39,7 +40,7 @@ from app.geo.countries import all_supported_countries, country_config, normalize
 from app.knowledge.profile import load_profile
 from app.matching.language_fit import normalize_cefr
 from app.agents.interview import build_interview_plan
-from app.services import ScanAlreadyRunning, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, coordinated_scan_for_user, scan_hh_chats, hh_client
+from app.services import ScanAlreadyRunning, apply_frozen_application, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, coordinated_scan_for_user, scan_hh_chats, hh_client
 from app.sources.adapters.telegram_ingest import parse_forwarded_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
 from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
@@ -93,6 +94,7 @@ _RESUME_IMPORT_TTL_SECONDS = 15 * 60
 _MAX_PENDING_RESUME_IMPORTS = 64
 _MAX_PENDING_RESUME_IMPORTS_PER_USER = 8
 _PENDING_RESUME_EDITS: dict[str, dict] = {}
+_PENDING_APPLICATION_APPROVALS: dict[str, dict] = {}
 
 
 def _store_pending_resume_import(token: str, pending: dict) -> None:
@@ -2554,15 +2556,59 @@ async def apply_callback(callback: CallbackQuery, bot: Bot) -> None:
     try:
         preview = await _prepare_saved_preview(match_id, user.id)
         await callback.message.answer(preview, parse_mode="HTML", disable_web_page_preview=True)
-        await callback.message.answer(
-            "🔒 Внешняя отправка не выполнялась. Проверь точный пакет в /applications. "
-            "Отправка через интеграцию останется заблокированной до отдельного "
-            "подтверждения конкретного CV, письма, вакансии и канала."
-        )
+        package = await repo.prepared_application_for_match(match_id, user.id)
+        snapshot = package.vacancy_snapshot or {} if package else {}
+        if package and package.source_id == "hh" and package.resume_external_id and snapshot.get("source_job_id"):
+            now = time.time()
+            for old_token, old in list(_PENDING_APPLICATION_APPROVALS.items()):
+                if now - old.get("created_at", 0) > 600 or old.get("user_id") == user.id:
+                    _PENDING_APPLICATION_APPROVALS.pop(old_token, None)
+            token = uuid.uuid4().hex[:12]
+            _PENDING_APPLICATION_APPROVALS[token] = {
+                "user_id": user.id, "match_id": match_id, "application_id": package.id,
+                "channel": "hh", "digest": application_package_digest(package, "hh"),
+                "created_at": now,
+            }
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[[
+                InlineKeyboardButton(text="✅ Подтвердить точную отправку", callback_data=f"applyconfirm:{token}"),
+            ]])
+            await callback.message.answer(
+                "🔒 Внешняя отправка ещё не выполнялась. Подтверждение ниже одноразовое и действует 10 минут.",
+                reply_markup=keyboard,
+            )
+        else:
+            await callback.message.answer("🔒 Внешняя отправка не выполнялась. Используй сохранённый пакет и официальный канал вручную.")
     except Exception as exc:
         await callback.message.answer(
             _prepare_error_text(exc, package_saved=False), parse_mode="HTML",
         )
+
+
+@router.callback_query(F.data.startswith("applyconfirm:"))
+async def apply_confirm_callback(callback: CallbackQuery, bot: Bot) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    token = (callback.data or "").partition(":")[2]
+    pending = _PENDING_APPLICATION_APPROVALS.get(token)
+    if not user or not pending or pending["user_id"] != user.id or time.time() - pending["created_at"] > 600:
+        _PENDING_APPLICATION_APPROVALS.pop(token, None)
+        await callback.answer("Подтверждение истекло или уже использовано.", show_alert=True)
+        return
+    if _PENDING_APPLICATION_APPROVALS.pop(token, None) is None:
+        await callback.answer("Подтверждение уже используется.", show_alert=True)
+        return
+    await callback.answer("Отправляю подтверждённый пакет…")
+    try:
+        result = await apply_frozen_application(bot, **{
+            key: pending[key] for key in ("match_id", "application_id", "user_id", "channel")
+        }, expected_digest=pending["digest"])
+    except Exception:
+        await callback.message.answer("⚠️ Отправка не подтверждена. Проверь /applications и кабинет провайдера перед повтором.")
+        return
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer(
+        "✅ Провайдер подтвердил отправку." if result.get("status") == "sent"
+        else "⚠️ Провайдер не подтвердил отправку; проверь /applications."
+    )
 
 
 @router.callback_query(F.data.startswith("sendreply:"))

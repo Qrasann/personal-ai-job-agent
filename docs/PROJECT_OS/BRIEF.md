@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 R01 exact-package confirmation
+- A prepared HH package now receives a 10-minute, one-time, owner-bound confirmation. Its digest binds application/job IDs, frozen vacancy, CV snapshot/provider resume ID, exact letter and channel.
+- Confirmation consumes the token before I/O; stale/tampered packages and replay are rejected before provider access. Existing reservation/outcome ledger remains the idempotency boundary. Gate: 59 passed, 2 DB tests skipped in the focused run.
+
 ## 2026-10-23 P0 R01 fail-closed application entrypoint
 - Telegram `apply:` no longer invokes the HH submission service. It prepares/reuses the immutable package, displays the exact saved preview and explicitly states that no external action occurred.
 - Provider sending remains unavailable from Telegram until a one-time confirmation binds the exact vacancy, CV snapshot, letter and channel. Navigation/HH/package gate: 57 passed, 2 PostgreSQL tests skipped without the test URL in this focused run.

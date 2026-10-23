@@ -17,6 +17,7 @@ from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.database.db import user_scan_lease
 from app.domain.application_package import snapshot_vacancy
+from app.domain.application_approval import application_package_digest
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
 from app.domain.resume_versions import version_metadata
@@ -1154,6 +1155,54 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
             f"Статус HH попытки #{attempt.id} не удалось сохранить. "
             "Проверь /applications и кабинет HH; повторная отправка небезопасна."
         ) from None
+    return {**result, "application_id": attempt.id} if isinstance(result, dict) else {
+        "status": "unknown", "application_id": attempt.id,
+    }
+
+
+async def apply_frozen_application(
+    bot: Bot, *, match_id: int, application_id: int, user_id: int,
+    channel: str, expected_digest: str,
+) -> dict:
+    """Submit exactly one previously reviewed immutable package."""
+    if channel != "hh":
+        raise RuntimeError("Канал отправки не поддерживается")
+    package = await repo.get_application(user_id, application_id)
+    if not package or package.status not in {"prepared", "reviewed"}:
+        raise RuntimeError("Подтверждённый пакет не найден или уже обработан")
+    snapshot = package.vacancy_snapshot or {}
+    if str(snapshot.get(repo.PREPARED_MATCH_SNAPSHOT_KEY)) != str(match_id):
+        raise RuntimeError("Пакет не соответствует выбранной вакансии")
+    if application_package_digest(package, channel) != expected_digest:
+        raise RuntimeError("Пакет изменился после подтверждения")
+    owner_chat = settings.telegram_admin_chat_id.strip()
+    owner = await repo.get_user_by_chat(owner_chat) if owner_chat else None
+    if not owner or owner.id != user_id or not hh_client.private_api_available:
+        raise RuntimeError("HH private applicant API недоступен для подтверждённого owner-профиля")
+    source_job_id = str(snapshot.get("source_job_id") or "")
+    if snapshot.get("source_id") != "hh" or not source_job_id or not package.resume_external_id:
+        raise RuntimeError("В пакете нет подтверждённого HH канала или resume ID")
+    attempt = await repo.reserve_hh_application(
+        user_id=user_id, job_id=package.job_id, source_job_id=source_job_id,
+        resume_id=package.resume_id, resume_snapshot=package.resume_snapshot,
+        resume_external_id=package.resume_external_id,
+        vacancy_snapshot=dict(snapshot), message=package.message,
+    )
+    try:
+        result = await hh_client.apply(source_job_id, package.resume_external_id, package.message)
+    except Exception:
+        try:
+            await repo.finish_hh_application(
+                user_id=user_id, application_id=attempt.id, match_id=match_id, status="unknown",
+            )
+        finally:
+            raise RuntimeError(f"HH не подтвердил результат попытки #{attempt.id}.") from None
+    outcome = result.get("status") if isinstance(result, dict) else "unknown"
+    await repo.finish_hh_application(
+        user_id=user_id, application_id=attempt.id, match_id=match_id, status=outcome,
+        source_application_id=result.get("negotiation_id") if isinstance(result, dict) else None,
+        external_url=result.get("external_url") if isinstance(result, dict) else None,
+    )
     return {**result, "application_id": attempt.id} if isinstance(result, dict) else {
         "status": "unknown", "application_id": attempt.id,
     }

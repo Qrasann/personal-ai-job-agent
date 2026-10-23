@@ -241,6 +241,41 @@ def test_hh_applicant_credential_requires_configured_owner(monkeypatch):
     lookup.assert_not_awaited()
 
 
+def test_frozen_application_submission_uses_exact_digest_and_payload(monkeypatch):
+    from app.domain.application_approval import application_package_digest
+
+    package = SimpleNamespace(
+        id=90, user_id=1, job_id=42, resume_id=5, resume_snapshot="Exact CV",
+        resume_external_id="hh-resume", message="Exact letter", status="prepared",
+        vacancy_snapshot={"_prepared_match_id": 17, "source_id": "hh", "source_job_id": "hh-job"},
+    )
+    monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "owner-chat")
+    monkeypatch.setattr(services.repo, "get_application", AsyncMock(return_value=package))
+    monkeypatch.setattr(services.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=1)))
+    reserve = AsyncMock(return_value=SimpleNamespace(id=96))
+    finish = AsyncMock()
+    monkeypatch.setattr(services.repo, "reserve_hh_application", reserve)
+    monkeypatch.setattr(services.repo, "finish_hh_application", finish)
+    send = AsyncMock(return_value={"status": "sent", "negotiation_id": "receipt"})
+    monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=send))
+
+    result = asyncio.run(services.apply_frozen_application(
+        object(), match_id=17, application_id=90, user_id=1, channel="hh",
+        expected_digest=application_package_digest(package, "hh"),
+    ))
+
+    send.assert_awaited_once_with("hh-job", "hh-resume", "Exact letter")
+    assert reserve.await_args.kwargs["resume_snapshot"] == "Exact CV"
+    assert result["application_id"] == 96
+
+    with pytest.raises(RuntimeError, match="изменился"):
+        asyncio.run(services.apply_frozen_application(
+            object(), match_id=17, application_id=90, user_id=1,
+            channel="hh", expected_digest="stale",
+        ))
+    assert send.await_count == 1
+
+
 def test_hh_chat_polling_log_does_not_include_exception_payload(monkeypatch, caplog):
     secret = "token=private-value"
     monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "owner-chat")

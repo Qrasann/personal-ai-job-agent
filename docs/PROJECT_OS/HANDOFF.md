@@ -1,5 +1,19 @@
 # Handoff
 
+## Current checkpoint — P0 R01 exact-package confirmation (2026-10-23)
+
+Prepared HH packages can now expose a one-time owner-bound confirmation valid for ten
+minutes. The SHA-256 digest binds application/job IDs, frozen vacancy, exact CV text
+and provider resume ID, exact letter and channel. Confirmation removes the token before
+I/O; stale/tampered packages and replay fail before provider access. Submission uses
+only frozen fields and the existing reservation/outcome ledger blocks duplicates and
+ambiguous retries. Gate: **59 passed, 2 skipped**.
+
+HEAD after checkpoint is recorded by Git; next task is isolated R01 owner acceptance
+with a non-production provider fixture, then the next unblocked P0 roadmap item.
+Open release gates remain: 19 async/web tests, backup+restore, v8→v9→v10 compatibility,
+rollback, exact-SHA CI and release-image ReportLab/fonts. No real submission occurred.
+
 ## Open release gates after C01/R01/R02 (2026-10-23)
 
 - Combined isolated PostgreSQL C01/R01/R02 gate passes **153 tests**; this verifies

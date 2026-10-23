@@ -99,6 +99,14 @@ creates/reuses and displays the immutable package, followed by an explicit no-se
 notice. The underlying provider service is no longer reachable from Telegram pending
 an exact-package one-time confirmation design. Gate: 57 passed, 2 DB tests skipped.
 
+## 2026-10-23 — R01 exact-package confirmation
+
+Added a ten-minute one-time owner token whose digest binds the frozen vacancy, CV,
+provider resume ID, letter and HH channel. Confirmation consumes before I/O and sends
+only frozen fields; stale digest and replay never reach the provider. Existing DB
+reservation/outcome handling remains the durable duplicate boundary. Gate: 59 passed,
+2 isolated-DB tests skipped in this focused run; no real submission was made.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was
