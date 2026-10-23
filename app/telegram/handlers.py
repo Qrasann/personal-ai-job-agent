@@ -1915,7 +1915,7 @@ async def application_status_command(message: Message) -> None:
     parts = (message.text or "").split()
     if len(parts) != 3 or not parts[1].isdigit():
         await message.answer(
-            "Использование: /application <id> history|export|reviewed|submitted|interview|offer|rejected|withdrawn"
+            "Использование: /application <id> history|export|reviewed|submitted|response|assessment|interview|offer|rejected|withdrawn|closed"
         )
         return
     status = parts[2].casefold()
@@ -1945,7 +1945,7 @@ async def application_status_command(message: Message) -> None:
         return
     if status not in repo.MANUAL_APPLICATION_STATUSES:
         await message.answer(
-            "Допустимые статусы: reviewed, submitted, interview, offer, rejected, withdrawn"
+            "Допустимые статусы: reviewed, submitted, response, assessment, interview, offer, rejected, withdrawn, closed"
         )
         return
     updated = await repo.set_application_status(user.id, int(parts[1]), status)

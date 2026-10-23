@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 R02 provider-event intake
+- Application CRM now distinguishes employer response, assessment, receipt and closed stages. A repository boundary accepts provider events only for the matching owner/application/source and requires a provider-scoped idempotency key.
+- Replayed provider events are acknowledged without reverting newer CRM state; provider provenance cannot be supplied through the user-facing manual status command. Focused UI/repository/PostgreSQL gate: 54 passed.
+
 ## 2026-10-23 P0 R02 immutable Application CRM events
 - Schema v9 adds explicit event provenance (`system`, `manual_user`, `provider`, migrated `legacy`), structured evidence and optional idempotency keys. Telegram history and text export disclose provenance without dumping evidence payloads.
 - PostgreSQL enforces unique per-application event keys and rejects direct history UPDATE/DELETE. Deleting the complete parent ledger remains available for a future owner-authorized privacy workflow. Application/PostgreSQL gate: 79 passed; full offline: 1453 passed, 24 skipped, with the known 19 pytest-asyncio-dependent failures still open.

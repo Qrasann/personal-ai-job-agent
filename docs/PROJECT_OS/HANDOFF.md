@@ -1,5 +1,17 @@
 # Handoff
 
+## Current checkpoint — P0 R02 provider-event intake (2026-10-23)
+
+The CRM status vocabulary now includes provider receipt, employer response,
+assessment and closed stages. `record_provider_application_status` requires an
+owner-scoped Application whose exact source matches the provider, an allowed status,
+and a provider-namespaced idempotency key. A replay is acknowledged without adding
+history or reverting a later manual/provider state. Telegram manual status commands
+cannot claim provider provenance. Focused UI/repository/PostgreSQL gate: **54 passed**.
+
+No external webhook/account was enabled. Next R02 increment is local deadlines and
+reminders; actual incoming integration remains gated by a verified provider contract.
+
 ## Current checkpoint — P0 R02 immutable Application CRM events (2026-10-23)
 
 Additive schema v9 extends `application_status_events` with provenance, JSON evidence

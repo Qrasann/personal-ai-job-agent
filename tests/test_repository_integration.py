@@ -384,6 +384,30 @@ async def _application_event_provenance_flow(monkeypatch):
         ]
         assert (await repo.get_application(user.id, application.id)).status == "interview"
 
+        assert not await repo.record_provider_application_status(
+            user.id, application.id, provider="other", status="response", event_key="evt-1",
+        )
+        assert await repo.record_provider_application_status(
+            user.id, application.id, provider="event-test", status="response", event_key="evt-1",
+            evidence={"provider_event_type": "employer_reply"},
+        )
+        assert await repo.set_application_status(user.id, application.id, "assessment")
+        # Provider replay is idempotent even after the local CRM has advanced.
+        assert await repo.record_provider_application_status(
+            user.id, application.id, provider="event-test", status="response", event_key="evt-1",
+        )
+        history = await repo.application_status_history(user.id, application.id)
+        assert [(event.status, event.provenance, event.event_key) for event in history[-2:]] == [
+            ("response", "provider", "provider:event-test:evt-1"),
+            ("assessment", "manual_user", None),
+        ]
+        assert history[-2].evidence == {
+            "provider_event_type": "employer_reply",
+            "provider": "event-test",
+            "kind": "incoming_provider_event",
+        }
+        assert (await repo.get_application(user.id, application.id)).status == "assessment"
+
         event_id = history[1].id
         async with test_session() as session:
             with pytest.raises(DBAPIError, match="immutable"):

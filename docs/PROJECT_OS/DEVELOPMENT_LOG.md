@@ -57,6 +57,13 @@ the complete parent ledger for a future authorized privacy workflow. PostgreSQL 
 application gate: 79 passed; full offline: 1453 passed, 24 skipped, with 19 known
 pytest-asyncio-dependent tests not runnable in the available environment.
 
+## 2026-10-23 — R02 provider-event intake
+
+Expanded CRM stages for receipt, employer response, assessment and closure. Added a
+provider-only event boundary that validates owner, Application source and status,
+namespaces replay keys and preserves newer state on duplicate delivery. Manual
+Telegram updates remain explicitly `manual_user`. Focused gate: 54 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

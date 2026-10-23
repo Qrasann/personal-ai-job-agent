@@ -6,7 +6,8 @@
 - [x] Protect event rows from direct UPDATE/DELETE in PostgreSQL while retaining whole-ledger privacy deletion semantics.
 - [x] Serialize status changes and ignore replayed event keys without reverting current state; isolated PostgreSQL/application gate: 79 passed.
 - [x] Show event provenance in Telegram history and package export without exposing arbitrary evidence payloads.
-- [ ] Add verified incoming HR events, deadlines/reminders and provider-specific receipt evidence as separate increments.
+- [x] Add a provider-event repository boundary with owner/source validation, provider-scoped replay keys and CRM response/assessment/receipt/closed stages; focused gate: 54 passed.
+- [ ] Connect verified incoming HR integrations and add deadlines/reminders as separate increments.
 
 ## 2026-10-23 — P0 C01 CV version approval foundation
 

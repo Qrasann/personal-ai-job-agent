@@ -30,7 +30,11 @@ from app.candidates.fact_types import normalize_experience_type
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
 PREPARED_MATCH_SNAPSHOT_KEY = "_prepared_match_id"
 MANUAL_APPLICATION_STATUSES = frozenset({
-    "reviewed", "submitted", "interview", "offer", "rejected", "withdrawn",
+    "reviewed", "submitted", "response", "assessment", "interview", "offer",
+    "rejected", "withdrawn", "closed",
+})
+PROVIDER_APPLICATION_STATUSES = frozenset({
+    "received", "response", "assessment", "interview", "offer", "rejected", "closed",
 })
 APPLICATION_EVENT_PROVENANCE = frozenset({"legacy", "system", "manual_user", "provider"})
 
@@ -989,6 +993,49 @@ async def set_application_status(
         session.add(_application_event(
             item, status, provenance=provenance,
             evidence=evidence or {"kind": "manual_status"}, event_key=event_key,
+        ))
+        await session.commit()
+        return True
+
+
+async def record_provider_application_status(
+    user_id: int,
+    application_id: int,
+    *,
+    provider: str,
+    status: str,
+    event_key: str,
+    evidence: dict | None = None,
+) -> bool:
+    """Append one authenticated provider event, safely acknowledging replays."""
+    provider = provider.strip().casefold()
+    scoped_key = f"provider:{provider}:{event_key.strip()}"
+    if (
+        status not in PROVIDER_APPLICATION_STATUSES
+        or not provider or len(provider) > 64
+        or not event_key.strip() or len(scoped_key) > 128
+    ):
+        return False
+    async with SessionLocal() as session:
+        item = await session.scalar(select(Application).where(
+            Application.id == application_id,
+            Application.user_id == user_id,
+            Application.source_id == provider,
+        ).with_for_update())
+        if item is None:
+            return False
+        duplicate = await session.scalar(select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == item.id,
+            ApplicationStatusEvent.event_key == scoped_key,
+        ))
+        if duplicate is not None:
+            return True
+        item.status = status
+        event_evidence = dict(evidence or {})
+        event_evidence.update({"provider": provider, "kind": "incoming_provider_event"})
+        session.add(_application_event(
+            item, status, provenance="provider",
+            evidence=event_evidence, event_key=scoped_key,
         ))
         await session.commit()
         return True

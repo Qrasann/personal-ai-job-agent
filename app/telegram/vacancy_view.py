@@ -1087,10 +1087,14 @@ def render_applications(applications: list) -> str:
         "prepared": "черновик",
         "reviewed": "проверен",
         "submitted": "отправлен вручную",
+        "received": "получение подтверждено провайдером",
+        "response": "ответ работодателя",
+        "assessment": "тестовое задание",
         "interview": "интервью",
         "offer": "оффер",
         "rejected": "отказ",
         "withdrawn": "снят",
+        "closed": "закрыт",
         "sent": "отправлен",
         "sending": "попытка начата — результат не подтверждён",
         "external": "внешняя форма — отправка не подтверждена",
@@ -1112,7 +1116,7 @@ def render_applications(applications: list) -> str:
         if snippet:
             lines.append(html.escape(snippet))
         lines.append("")
-    lines.append("Статус: /application <id> reviewed|submitted|interview|offer|rejected|withdrawn · История: /application <id> history")
+    lines.append("Статус: /application <id> reviewed|submitted|response|assessment|interview|offer|rejected|withdrawn|closed · История: /application <id> history")
     return "\n".join(lines)
 
 
@@ -1121,10 +1125,14 @@ def render_application_history(events: list) -> str:
         "prepared": "черновик создан",
         "reviewed": "отмечен как проверенный",
         "submitted": "отмечен отправленным вручную",
+        "received": "провайдер подтвердил получение",
+        "response": "зафиксирован ответ работодателя",
+        "assessment": "зафиксировано тестовое задание",
         "interview": "отмечено интервью",
         "offer": "отмечен оффер",
         "rejected": "отмечен отказ",
         "withdrawn": "отмечен снятым",
+        "closed": "отмечен закрытым",
         "sent": "отправлен",
         "sending": "HH-попытка зарезервирована; результат не подтверждён",
         "external": "переход на внешнюю форму, отправка не подтверждена",
