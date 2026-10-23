@@ -24,6 +24,14 @@ Remotive and Himalayas were checked next and had the same literal-token gap.
 The narrow alias was added with title-only unrelated-role regressions; their
 remote scope and market identity semantics were preserved. Gate: 66 passed.
 
+## 2026-10-23 — U03 structured blacklist core
+
+Added five structured rule kinds to profile JSON settings: vacancy, company,
+company+role, role and phrase. Identity rules are exact; phrase is the only
+free-text containment rule. Disabled, expired and malformed rules remain inert.
+The matcher applies active rules before legacy word exclusions without schema
+migration or mutation of vacancy/application history. Focused gate: 94 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

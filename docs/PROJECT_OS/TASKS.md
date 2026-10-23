@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-23 — P0 U03 structured blacklist core
+
+- [x] Add five migration-free structured rule kinds: vacancy, company, company+role, role and phrase.
+- [x] Use exact normalized identity matching and reserve substring matching for explicit phrase rules.
+- [x] Ignore disabled/expired/malformed rules and preserve legacy terms/history; focused gate: 94 passed.
+- [ ] Add command preview/confirm/undo, all-profile default, optional profile scope and affected-vacancy preview.
+
 ## 2026-10-23 — P0 Source Usefulness SRE recall across remote sources
 
 - [x] Reproduce and fix `SRE` loss in Remotive and Himalayas under the configured `Site Reliability Engineer` query.

@@ -1,5 +1,20 @@
 # Handoff
 
+## Current checkpoint — P0 U03 structured blacklist core (2026-10-23)
+
+Starting from clean `badd8ef`, added a migration-free `blacklist_rules` domain
+contract in search-profile JSON settings. It supports the five approved levels:
+vacancy, company, company+role, role and phrase/condition. Identity levels use
+exact normalized matching; only phrase rules use text containment. Disabled,
+expired and malformed rules do not block. Existing `exclude_terms`, employer
+policy, saved/skipped statuses, CVs and applications remain unchanged.
+
+Focused matching/preferences/employer-policy gate: **94 passed**; compile and
+`git diff --check` passed. No database, runtime or external action was used.
+
+Next U03 slice: safe command parser and preview/confirm/undo persistence across
+all profiles by default, then expiry/profile-scope UX and affected-vacancy preview.
+
 ## Current checkpoint — P0 SRE recall across source adapters (2026-10-23)
 
 The confirmed `Site Reliability Engineer` → `SRE` source-usefulness loss is now

@@ -1,4 +1,5 @@
 import pytest
+from datetime import UTC, datetime
 
 from app.database.models import Job, SearchProfile
 from app.matching.engine import score_job
@@ -8,6 +9,7 @@ from app.search.user_preferences import (
     update_blacklist,
     update_salary,
 )
+from app.domain.blacklist import matching_blacklist_rule
 
 
 def test_salary_command_validates_and_updates_scoring_minimum():
@@ -76,3 +78,44 @@ def test_blacklist_preview_and_undo_are_safe_when_no_previous_change_exists():
 
     assert preview["before"] == preview["after"] == ["Fraud"]
     assert update_blacklist(settings, "undo")["exclude_terms"] == ["Fraud"]
+
+
+@pytest.mark.parametrize("kind,value", [
+    ("vacancy", "job-fingerprint"),
+    ("company", "Example Corp"),
+    ("company_role", "Example Corp|DevOps Engineer"),
+    ("role", "DevOps Engineer"),
+    ("phrase", "night shifts only"),
+])
+def test_structured_blacklist_five_levels_block_only_explicit_matches(kind, value):
+    job = Job(
+        id=42, fingerprint="job-fingerprint", title="DevOps Engineer",
+        company="Example Corp", description="Linux. Night shifts only.", country="US",
+    )
+    settings = {"blacklist_rules": [{"kind": kind, "value": value}]}
+    assert matching_blacklist_rule(job, settings)["kind"] == kind
+    assert score_job(job, SearchProfile(id=1, profile_id=1, settings=settings), [], []).fit == "skip"
+
+
+def test_structured_blacklist_exact_rules_do_not_use_accidental_substrings():
+    job = Job(
+        fingerprint="job-1234", title="Senior DevOps Engineer",
+        company="Example Corporation", description="Ordinary role", country="US",
+    )
+    settings = {"blacklist_rules": [
+        {"kind": "vacancy", "value": "job-12"},
+        {"kind": "company", "value": "Example"},
+        {"kind": "role", "value": "DevOps Engineer"},
+        {"kind": "company_role", "value": "Example|Senior DevOps Engineer"},
+    ]}
+    assert matching_blacklist_rule(job, settings) is None
+
+
+def test_structured_blacklist_ignores_disabled_expired_and_invalid_rules():
+    job = Job(fingerprint="job", title="DevOps Engineer", company="Example", description="blocked phrase")
+    settings = {"blacklist_rules": [
+        {"kind": "phrase", "value": "blocked phrase", "enabled": False},
+        {"kind": "phrase", "value": "blocked phrase", "expires_at": "2026-10-22T00:00:00Z"},
+        {"kind": "phrase", "value": "blocked phrase", "expires_at": "invalid"},
+    ]}
+    assert matching_blacklist_rule(job, settings, now=datetime(2026, 10, 23, tzinfo=UTC)) is None

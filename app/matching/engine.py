@@ -7,6 +7,7 @@ from app.agents.job_signals import analyze_job_signals
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
 from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS
 from app.domain.employer_policy import decision as employer_decision
+from app.domain.blacklist import matching_blacklist_rule
 from app.domain.role_text import role_tokens
 from app.geo.countries import normalize_country
 from app.matching.recommendation import build_recommendation_breakdown
@@ -449,6 +450,14 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     employer_action, employer_reason = employer_decision(job.company, industry_tags, settings)
     if employer_action == "block":
         return MatchResult(0, 0, 0, 0, 0, "Исключено по политике работодателя: " + str(employer_reason), chosen_resume, "unknown", "skip")
+
+    structured_blacklist = matching_blacklist_rule(job, settings)
+    if structured_blacklist:
+        return MatchResult(
+            0, 0, 0, 0, 0,
+            "Исключено по blacklist: " + str(structured_blacklist["kind"]),
+            chosen_resume, "excluded", "skip",
+        )
 
     # Existing saved profiles may still carry the old sector terms. Sector
     # preferences now belong to the explicit ALLOW/WARN/BLOCK policy.

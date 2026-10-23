@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 U03 structured blacklist core
+- Added migration-free structured blacklist rules in search-profile JSON settings for vacancy, company, company+role, role and phrase/condition. Exact identity matching prevents accidental substring blocks; only explicit phrase rules inspect vacancy text.
+- Disabled, expired and malformed rules are ignored; legacy `exclude_terms` remains compatible. Matching/scoring/policy gate: 94 passed; compile and diff checks passed.
+
 ## 2026-10-23 P0 Source Usefulness — remote ATS SRE recall complete
 - Remotive and Himalayas had the same literal-token loss for `SRE` under `Site Reliability Engineer`; added the exact alias and unrelated-role regressions. Remote scope, target-country identity, salary, authorization, visa and relocation evidence remain unchanged.
 - Remotive/Himalayas gate: 66 passed; compile and diff checks passed.
