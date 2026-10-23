@@ -1,5 +1,18 @@
 # Handoff
 
+## Current checkpoint — P0 U03 structured blacklist controls (2026-10-23)
+
+Structured rules are now manageable through `/blacklist rule`: read-only preview,
+explicit apply, all profiles by default, optional id/kind/name scope, permanent or
+date-bounded expiry, disable/remove and per-profile undo. Preview checks at most the
+latest 50 unique matches per selected profile and labels that bound; it never writes.
+Blacklist actions do not change saved/skipped statuses or source enablement.
+
+Focused parser/handler and cumulative matching/policy gate: **99 passed**; compile
+and `git diff --check` passed. No runtime, database, source or outbound action used.
+Next critical-path stage is C01 + R02: inspect the existing CV Studio/version and
+immutable application-ledger gaps before a focused implementation slice.
+
 ## Current checkpoint — P0 U03 structured blacklist core (2026-10-23)
 
 Starting from clean `badd8ef`, added a migration-free `blacklist_rules` domain

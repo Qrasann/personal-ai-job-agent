@@ -100,3 +100,53 @@ def test_blacklist_undo_writes_all_search_profiles(monkeypatch):
     assert all(settings["exclude_terms"] == [] for _, settings in writes)
     assert all("_blacklist_undo" not in settings for _, settings in writes)
     assert "отменено" in message.answer.await_args.args[0]
+
+
+def test_structured_blacklist_preview_lists_affected_jobs_without_writing(monkeypatch):
+    searches = [SimpleNamespace(id=11, kind="career", name="Career-first", settings={})]
+    job = SimpleNamespace(id=42, fingerprint="fp", title="DevOps Engineer", company="Example Corp", description="")
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+    monkeypatch.setattr(handlers.repo, "latest_matches", AsyncMock(return_value=[(SimpleNamespace(), job)]))
+    update = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+    message = SimpleNamespace(
+        text="/blacklist rule preview add company Example Corp --profile career", answer=AsyncMock(),
+    )
+
+    asyncio.run(handlers.blacklist_command(message))
+
+    update.assert_not_awaited()
+    response = message.answer.await_args.args[0]
+    assert "затронуто среди последних 50/профиль: 1" in response
+    assert "DevOps Engineer — Example Corp" in response
+    assert "Подтвердить: /blacklist rule add company Example Corp --profile career" in response
+
+
+def test_structured_blacklist_confirm_defaults_to_all_profiles_and_undo_is_scoped(monkeypatch):
+    searches = [
+        SimpleNamespace(id=11, kind="career", name="Career-first", settings={}),
+        SimpleNamespace(id=12, kind="relocation", name="Relocation-first", settings={}),
+    ]
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers.repo, "list_search_profiles", AsyncMock(return_value=searches))
+    update = AsyncMock()
+    monkeypatch.setattr(handlers.repo, "update_search_settings", update)
+
+    asyncio.run(handlers.blacklist_command(SimpleNamespace(
+        text="/blacklist rule add role DevOps Engineer", answer=AsyncMock(),
+    )))
+    assert [call.args[0] for call in update.await_args_list] == [11, 12]
+    assert all(call.args[1]["blacklist_rules"][0]["value"] == "DevOps Engineer" for call in update.await_args_list)
+
+    update.reset_mock()
+    searches[0].settings = handlers.update_blacklist_rule({}, "add", "role", "DevOps Engineer")
+    searches[1].settings = handlers.update_blacklist_rule({}, "add", "role", "DevOps Engineer")
+    asyncio.run(handlers.blacklist_command(SimpleNamespace(
+        text="/blacklist rule undo --profile relocation", answer=AsyncMock(),
+    )))
+    update.assert_awaited_once()
+    assert update.await_args.args[0] == 12
+    assert update.await_args.args[1]["blacklist_rules"] == []

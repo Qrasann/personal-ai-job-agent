@@ -4,9 +4,12 @@ from datetime import UTC, datetime
 from app.database.models import Job, SearchProfile
 from app.matching.engine import score_job
 from app.search.user_preferences import (
+    parse_blacklist_rule_command,
     parse_salary_command,
     preview_blacklist,
+    preview_blacklist_rule,
     update_blacklist,
+    update_blacklist_rule,
     update_salary,
 )
 from app.domain.blacklist import matching_blacklist_rule
@@ -119,3 +122,32 @@ def test_structured_blacklist_ignores_disabled_expired_and_invalid_rules():
         {"kind": "phrase", "value": "blocked phrase", "expires_at": "invalid"},
     ]}
     assert matching_blacklist_rule(job, settings, now=datetime(2026, 10, 23, tzinfo=UTC)) is None
+
+
+def test_structured_blacklist_command_parses_scope_expiry_and_quoted_value():
+    command = parse_blacklist_rule_command(
+        '/blacklist rule preview add company "Example Corp" --profile career --until 2026-12-01'
+    )
+    assert command == {
+        "preview": True, "action": "add", "kind": "company", "value": "Example Corp",
+        "profile_scope": "career", "expires_at": "2026-12-02T00:00:00Z",
+    }
+
+
+def test_structured_blacklist_update_is_reversible_and_preview_is_non_mutating():
+    settings = {"blacklist_rules": [{"kind": "company", "value": "Existing", "enabled": True}]}
+    preview = preview_blacklist_rule(settings, "add", "role", "DevOps Engineer")
+    assert settings == {"blacklist_rules": [{"kind": "company", "value": "Existing", "enabled": True}]}
+    assert [rule["kind"] for rule in preview["after"]] == ["company", "role"]
+
+    updated = update_blacklist_rule(settings, "add", "role", "DevOps Engineer")
+    disabled = update_blacklist_rule(updated, "disable", "role", "devops engineer")
+    assert disabled["blacklist_rules"][1]["enabled"] is False
+    assert update_blacklist_rule(disabled, "undo")["blacklist_rules"][1]["enabled"] is True
+
+
+def test_structured_blacklist_remove_and_malformed_company_role():
+    settings = update_blacklist_rule({}, "add", "company", "Example")
+    assert update_blacklist_rule(settings, "remove", "company", "example")["blacklist_rules"] == []
+    with pytest.raises(ValueError, match="Компания"):
+        parse_blacklist_rule_command("/blacklist rule add company_role MissingSeparator")

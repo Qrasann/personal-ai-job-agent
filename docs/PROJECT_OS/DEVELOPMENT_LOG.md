@@ -32,6 +32,13 @@ free-text containment rule. Disabled, expired and malformed rules remain inert.
 The matcher applies active rules before legacy word exclusions without schema
 migration or mutation of vacancy/application history. Focused gate: 94 passed.
 
+## 2026-10-23 — U03 structured blacklist controls
+
+Added a side-effect-free structured command parser and reversible JSON-settings
+updates. Telegram supports bounded affected-vacancy preview, explicit application,
+all-profile default or selected-profile scope, UTC date expiry, disable/remove and
+undo. A date-only expiry remains active through that date. Cumulative gate: 99 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

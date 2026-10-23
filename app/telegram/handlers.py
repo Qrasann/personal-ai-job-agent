@@ -26,6 +26,7 @@ from app.config import settings
 from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
+from app.domain.blacklist import matching_blacklist_rule
 from app.domain.text_limits import utf16_length
 from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS, update_policy as update_employer_policy
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
@@ -43,7 +44,15 @@ from app.telegram.source_display import manual_source_line
 from app.telegram.ui import jobs_keyboard, main_reply_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import relocation_first_allows, source_enabled
-from app.search.user_preferences import parse_salary_command, preview_blacklist, update_blacklist, update_salary
+from app.search.user_preferences import (
+    parse_blacklist_rule_command,
+    parse_salary_command,
+    preview_blacklist,
+    preview_blacklist_rule,
+    update_blacklist,
+    update_blacklist_rule,
+    update_salary,
+)
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
@@ -463,11 +472,77 @@ async def blacklist_command(message: Message) -> None:
     if not searches:
         await message.answer("❌ Профиль поиска не найден.")
         return
-    parts = (message.text or "").split(maxsplit=2)
+    text = message.text or ""
+    if len(text.split()) > 1 and text.split()[1].casefold() == "rule":
+        try:
+            command = parse_blacklist_rule_command(text)
+        except ValueError as exc:
+            await message.answer("❌ " + str(exc))
+            return
+        scope = command["profile_scope"].casefold()
+        selected = searches if scope == "all" else [
+            search for search in searches
+            if scope in {str(search.id), str(search.kind).casefold(), str(search.name).casefold()}
+        ]
+        if not selected:
+            await message.answer("❌ Профиль не найден. Используй all, id, kind или точное имя профиля.")
+            return
+        if command["preview"]:
+            affected: list[str] = []
+            for search in selected:
+                before_settings = search.settings or {}
+                after_settings = preview_blacklist_rule(
+                    before_settings,
+                    command["action"], command["kind"], command["value"],
+                    expires_at=command["expires_at"],
+                )["settings"]
+                rows = await repo.latest_matches(user.id, limit=50, include_filtered=True, search_profile_id=search.id)
+                for _, job in rows:
+                    before = matching_blacklist_rule(job, before_settings)
+                    after = matching_blacklist_rule(job, after_settings)
+                    if bool(before) != bool(after):
+                        label = f"{job.title} — {job.company}".strip(" —")
+                        if label not in affected:
+                            affected.append(label)
+            base = f"/blacklist rule {command['action']}"
+            if command["action"] != "undo":
+                base += f" {command['kind']} {command['value']}"
+            if command["profile_scope"] != "all":
+                base += f" --profile {command['profile_scope']}"
+            if command["expires_at"]:
+                base += f" --until {command['expires_at']}"
+            sample = "\n".join(f"• {item}" for item in affected[:5]) or "нет среди последних вакансий"
+            await message.answer(
+                "Предпросмотр structured blacklist (без сохранения)\n"
+                f"Профили: {len(selected)} · затронуто среди последних 50/профиль: {len(affected)}\n{sample}\n"
+                f"Подтвердить: {base}"
+            )
+            return
+        for search in selected:
+            updated = update_blacklist_rule(
+                search.settings or {}, command["action"], command["kind"], command["value"],
+                expires_at=command["expires_at"],
+            )
+            await repo.update_search_settings(search.id, updated)
+        await message.answer(
+            "↩️ Последнее structured blacklist изменение отменено."
+            if command["action"] == "undo"
+            else f"✅ Structured blacklist обновлён для профилей: {len(selected)}."
+        )
+        return
+    parts = text.split(maxsplit=2)
     cfg = searches[0].settings or {}
     if len(parts) == 1:
         terms = [str(term) for term in (cfg.get("exclude_terms") or []) if str(term).casefold() not in LEGACY_INDUSTRY_EXCLUSIONS]
-        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nОтраслевые решения: /employerpolicy\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nПредпросмотр: /blacklist preview add|remove|clear <слово>\nОчистить: /blacklist clear · отменить последнее: /blacklist undo")
+        rules = [rule for rule in (cfg.get("blacklist_rules") or []) if isinstance(rule, dict)]
+        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет")
+            + f"\nStructured rules: {len(rules)}"
+            + "\nОтраслевые решения: /employerpolicy"
+            + "\nНовое правило: /blacklist rule preview add company <название>"
+            + "\nТипы: vacancy, company, company_role, role, phrase; scope: --profile all|id|kind; срок: --until YYYY-MM-DD"
+            + "\nОтключить/удалить: /blacklist rule preview disable|remove <тип> <значение>"
+            + "\nОтменить: /blacklist rule preview undo"
+            + "\nLegacy: /blacklist add|remove <слово> · preview · clear · undo")
         return
     action = parts[1].casefold()
     term = parts[2].strip() if len(parts) == 3 else ""
