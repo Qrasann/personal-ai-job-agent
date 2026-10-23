@@ -1,5 +1,15 @@
 # Tasks
 
+## 2026-10-23 — P0 Telegram persistent-keyboard removal
+
+- [x] Remove all persistent ReplyKeyboard construction/restoration from handlers.
+- [x] Add one-time startup and command-path `ReplyKeyboardRemove`, persisting only successful delivery.
+- [x] Register current Bot commands and native Menu button; make `/start` and `/menu` open six inline sections plus Search/Status.
+- [x] Preserve edit-in-place Back/Home navigation, owner authorization, callback serialization and edit-failure recovery.
+- [x] Add regressions and pass the expanded Telegram/navigation gate: 238 passed, 1 skipped.
+- [x] Run full isolated PostgreSQL suite: 1515 passed.
+- [ ] Complete exact-SHA CI, fresh backup/restore and controlled production smoke before deployment.
+
 ## 2026-10-23 — P0 worldwide physical location evidence
 
 - [x] Reproduce live loss: official `Office Based - London, UK` provenance yielded unknown country.

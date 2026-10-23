@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 Telegram persistent-keyboard removal
+- Removed every application use of persistent `ReplyKeyboardMarkup`; `/start` and new `/menu` open the six-section inline main menu plus separate Search/Status action.
+- Startup sends a one-time `ReplyKeyboardRemove` to each active user and records success; failed deliveries remain retryable. Native Telegram Menu commands are refreshed without removing fallback slash handlers.
+- Section, scan, review, saved and vacancy navigation keeps one editable inline work message with authorization and callback locking/error recovery. Telegram/navigation gate: **238 passed, 1 skipped**; full isolated PostgreSQL suite: **1515 passed**. Code checkpoint: `ee1c77c`; production remains on `f786aa1` pending exact-SHA CI and rollout gates.
+
 ## 2026-10-23 P0 Location Intelligence — worldwide office labels
 - Production source evidence confirmed that official Greenhouse `Office Based - London, UK` remained unknown because physical-country normalization was limited to selectable search markets and did not remove the provider's exact office wrapper.
 - Worldwide evidence aliases now cover observed GB/US/SG/CN/TW/IN/IL/AU labels independently of market selection. Only `Office Based -` is unwrapped; Home Based/Remote/APAC remain unknown. Geo/employer-policy gate: **57 passed**.

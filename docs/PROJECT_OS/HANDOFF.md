@@ -1,5 +1,21 @@
 # Handoff
 
+## Current checkpoint — Telegram reply keyboard removed (2026-10-23)
+
+Functional checkpoint `ee1c77c` removes the persistent Telegram ReplyKeyboard. `/start`
+and `/menu` now send a six-section inline menu plus Search/Status; the native Telegram
+command menu is registered at startup. Existing active users receive one successful,
+state-tracked `ReplyKeyboardRemove`; unreachable users remain retryable. Fallback commands,
+private-chat authorization and edit-in-place callback locking/recovery remain in place.
+
+Expanded Telegram/navigation gate: **238 passed, 1 skipped**; full isolated PostgreSQL
+suite: **1515 passed**; compile and diff checks pass. Production still runs `f786aa1` and
+has not received this fix. Next: push/CI on the exact documentation-inclusive SHA, then a fresh private production backup,
+restore verification, immutable release-image smoke and app-only rollout. Preserve the
+runtime checkout and volumes; no database migration is needed. After rollout verify the
+running image revision, schema 11, Telegram command menu, keyboard-removal state, polling,
+health and rollback image. No employer action is authorized.
+
 ## Current checkpoint — P0 worldwide office location evidence (2026-10-23)
 
 The first production scan provided a reproducible loss: official Greenhouse location

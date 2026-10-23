@@ -1,3 +1,13 @@
+## 2026-10-23 — Telegram persistent-keyboard removal
+
+Replaced the obsolete persistent ReplyKeyboard with the native Telegram command menu and
+an inline six-section `/menu`/`/start` workspace. Added one-time startup cleanup for active
+users using `ReplyKeyboardRemove`; the completion marker is written only after successful
+delivery. Main-section callbacks retain private owner authorization and serialized
+edit-in-place behavior. Expanded Telegram/navigation gate: 238 passed, 1 skipped. Code
+checkpoint: `ee1c77c`; full isolated PostgreSQL suite passed 1515 tests. Production remains
+unchanged pending exact-SHA CI and rollout gates.
+
 ## 2026-10-23 — worldwide physical location evidence
 
 Live Employer Watch provenance exposed unknown `Office Based - London, UK`. Added a small
