@@ -1,5 +1,21 @@
 # Handoff
 
+## Current checkpoint — P0 SRE recall across source adapters (2026-10-23)
+
+The confirmed `Site Reliability Engineer` → `SRE` source-usefulness loss is now
+covered in RemoteOK, Greenhouse, SmartRecruiters, Lever, Employer Career Watch,
+Remotive and Himalayas. Each change is an exact query alias; unrelated title-only
+roles remain excluded. No salary, remote eligibility, geography, authorization,
+visa or relocation evidence semantics changed.
+
+Remotive/Himalayas targeted gate: **66 passed**; cumulative ATS gate remains
+**113 passed**; compile and `git diff --check` passed. No live source, runtime,
+database, Telegram or external message was used.
+
+Next independent P0: measure another concrete query/normalization loss or
+Candidate Fit false-negative across Career-first, Relocation-first IT and Any
+Job; async/web tests remain an open environment gate.
+
 ## Current checkpoint — P0 remaining ATS SRE recall (2026-10-23)
 
 The source-usefulness slice now also covers Lever and Employer Career Watch.

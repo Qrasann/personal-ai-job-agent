@@ -20,6 +20,10 @@ Lever and Employer Career Watch shared the same confirmed recall loss. The
 exact `Site Reliability Engineer` → `SRE` alias was added with unrelated-role
 coverage. Extended ATS gate: 113 passed.
 
+Remotive and Himalayas were checked next and had the same literal-token gap.
+The narrow alias was added with title-only unrelated-role regressions; their
+remote scope and market identity semantics were preserved. Gate: 66 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was

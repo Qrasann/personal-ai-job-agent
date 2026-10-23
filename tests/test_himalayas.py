@@ -72,6 +72,17 @@ def test_himalayas_keeps_only_selected_location_restrictions_and_preserves_salar
     assert worldwide.url.startswith("https://himalayas.app/")
 
 
+def test_himalayas_matches_sre_alias_without_related_reliability_role():
+    jobs = HimalayasSource.parse_payload(
+        {"jobs": [
+            listing("sre", "SRE", []),
+            listing("software", "Software Engineer", []),
+        ]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Site Reliability Engineer"]),
+    )
+    assert [job.source_job_id for job in jobs] == ["sre"]
+
+
 def test_himalayas_remote_eligibility_countries_are_not_work_country_evidence():
     jobs = HimalayasSource.parse_payload(
         {"jobs": [listing("scope-only", "Infrastructure Engineer", ["Georgia"])]},

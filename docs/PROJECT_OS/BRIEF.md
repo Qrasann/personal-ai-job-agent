@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 Source Usefulness — remote ATS SRE recall complete
+- Remotive and Himalayas had the same literal-token loss for `SRE` under `Site Reliability Engineer`; added the exact alias and unrelated-role regressions. Remote scope, target-country identity, salary, authorization, visa and relocation evidence remain unchanged.
+- Remotive/Himalayas gate: 66 passed; compile and diff checks passed.
+
 ## 2026-10-23 P0 Source Usefulness — remaining ATS SRE recall
 - Lever and Employer Career Watch had the same literal-token loss for `SRE` under the `Site Reliability Engineer` query. Added the narrow exact alias and unrelated-role regressions; salary, remote scope, geography and hiring evidence remain unchanged.
 - Extended ATS gate: 113 passed; compile and diff checks passed.

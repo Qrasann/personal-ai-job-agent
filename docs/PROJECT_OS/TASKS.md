@@ -1,5 +1,10 @@
 # Tasks
 
+## 2026-10-23 — P0 Source Usefulness SRE recall across remote sources
+
+- [x] Reproduce and fix `SRE` loss in Remotive and Himalayas under the configured `Site Reliability Engineer` query.
+- [x] Preserve remote-scope/market identity and add unrelated-role regressions; Remotive/Himalayas gate: 66 passed.
+
 ## 2026-10-23 — P0 Source Usefulness remaining ATS recall
 
 - [x] Reproduce and fix `SRE` loss in Lever and Employer Career Watch under the `Site Reliability Engineer` query.

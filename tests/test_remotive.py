@@ -57,6 +57,14 @@ def test_remotive_keeps_worldwide_and_selected_markets_but_rejects_country_only_
     assert all(job.visa_sponsorship is None and job.relocation is None for job in jobs)
 
 
+def test_remotive_matches_sre_alias_without_related_reliability_role():
+    jobs = RemotiveSource.parse_payload(
+        {"jobs": [posting(1, "SRE", "Worldwide"), posting(2, "Software Engineer", "Worldwide")]},
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Site Reliability Engineer"]),
+    )
+    assert [job.source_job_id for job in jobs] == ["1"]
+
+
 @pytest.mark.parametrize("qualifier", ["USA", "U.S.A.", "U.S.", "United States", "United States of America"])
 def test_remotive_disambiguates_georgia_us_state_from_georgia_country(qualifier):
     location = f"Georgia, {qualifier}"
