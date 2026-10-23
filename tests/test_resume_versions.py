@@ -1,9 +1,13 @@
 import asyncio
+import io
 from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import pytest
+
 from app.domain.resume_versions import approved_version_rules, draft_version_rules, version_metadata
+from app.candidates.resume_export import export_resume
 from app.database.models import Job, ResumeProfile
 from app.matching.engine import choose_resume
 from app.telegram import handlers
@@ -68,3 +72,47 @@ def test_resume_duplicate_and_approve_are_owner_profile_scoped(monkeypatch):
     asyncio.run(handlers.resume_approve_command(approve_message))
     approve.assert_awaited_once_with(7, 12)
     assert "утверждена" in approve_message.answer.await_args.args[0]
+
+
+def test_approved_resume_exports_exact_text_to_txt_and_ats_friendly_docx():
+    from docx import Document
+
+    resume = SimpleNamespace(
+        id=4, name="SRE / EN", role="Site Reliability Engineer", language="en",
+        content="Summary\nLinux & Kubernetes", rules=approved_version_rules({}, now=datetime(2026, 10, 23, tzinfo=UTC)),
+    )
+    txt_name, txt = export_resume(resume, "txt")
+    assert txt_name == "SRE-EN.txt"
+    assert txt.decode() == resume.content
+
+    docx_name, docx = export_resume(resume, "docx")
+    assert docx_name == "SRE-EN.docx"
+    rendered = "\n".join(paragraph.text for paragraph in Document(io.BytesIO(docx)).paragraphs)
+    assert rendered == "SRE / EN\nSite Reliability Engineer · EN\nSummary\nLinux & Kubernetes"
+
+
+def test_draft_or_empty_resume_cannot_be_exported():
+    draft = SimpleNamespace(name="Draft", content="Private", rules=draft_version_rules({}, parent_id=1))
+    with pytest.raises(ValueError, match="утверди"):
+        export_resume(draft, "txt")
+    empty = SimpleNamespace(name="Empty", content="", rules={})
+    with pytest.raises(ValueError, match="нет текста"):
+        export_resume(empty, "docx")
+
+
+def test_resume_export_command_uses_owner_scoped_lookup(monkeypatch):
+    resume = SimpleNamespace(id=4, name="SRE", role="SRE", language="en", content="Linux", rules={})
+    monkeypatch.setattr(handlers, "_require_user", AsyncMock(return_value=SimpleNamespace(id=5)))
+    monkeypatch.setattr(handlers.repo, "active_profile", AsyncMock(return_value=SimpleNamespace(id=7)))
+    lookup = AsyncMock(return_value=resume)
+    monkeypatch.setattr(handlers.repo, "get_profile_resume", lookup)
+    message = SimpleNamespace(
+        text="/resumeexport 4 txt", answer=AsyncMock(), answer_document=AsyncMock(),
+    )
+
+    asyncio.run(handlers.resume_export_command(message))
+
+    lookup.assert_awaited_once_with(7, 4)
+    message.answer.assert_not_awaited()
+    document = message.answer_document.await_args.args[0]
+    assert document.filename == "SRE.txt"

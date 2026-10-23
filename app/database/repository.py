@@ -1200,6 +1200,16 @@ async def get_resume(resume_id: int) -> ResumeProfile | None:
         return await session.get(ResumeProfile, resume_id)
 
 
+async def get_profile_resume(profile_id: int, resume_id: int) -> ResumeProfile | None:
+    async with SessionLocal() as session:
+        return await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ))
+
+
 async def set_fact_experience_type(profile_id: int, fact_id: int, experience_type: str) -> bool:
     normalized_type = normalize_experience_type(experience_type)
     if not normalized_type:

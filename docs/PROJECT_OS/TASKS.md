@@ -15,7 +15,8 @@
 - [x] Add migration-free parent lineage and explicit draft/approved metadata while treating pre-versioning CVs compatibly.
 - [x] Add owner-scoped duplicate/approve commands and disclose state in `/resumes`.
 - [x] Exclude draft versions from automatic selection and reject them in prepare/apply safety boundaries; focused gate: 178 passed.
-- [ ] Add grounded editing/diff approval, ATS/Modern templates and RU/EN PDF/DOCX/TXT exports; verify PostgreSQL persistence in the isolated DB gate.
+- [x] Add owner-scoped approved-version TXT and simple ATS-friendly DOCX export without inferred content; focused gate: 106 passed.
+- [ ] Add grounded editing/diff approval, Modern template and PDF export; verify remaining CV persistence paths in the isolated DB gate.
 
 ## 2026-10-23 — P0 U03 structured blacklist core
 

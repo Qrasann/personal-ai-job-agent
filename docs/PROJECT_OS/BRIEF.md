@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 C01 approved CV export
+- `/resumeexport <id> txt|docx` performs an owner-scoped export of approved, non-empty CV versions only. TXT preserves exact stored text; DOCX uses a simple ATS-friendly structure and adds no inferred claims.
+- Draft CVs remain blocked. PDF and Modern visual templates remain open until a suitable renderer/design is implemented and tested. CV/import/navigation gate: 106 passed.
+
 ## 2026-10-23 P0 R02 application deadlines/reminders
 - Additive schema v10 stores owner-scoped application reminders. `/application <id> remind <ISO datetime with offset> <note>` requires an explicit timezone and stores UTC; `/reminders` escapes private notes and `/reminddone` completes a reminder.
 - Identical concurrent pending reminders serialize on the parent Application and reuse one row. No scheduler or outbound notification was enabled. PostgreSQL/application gate: 82 passed.

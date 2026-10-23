@@ -18,6 +18,7 @@ from app.sources.diagnostics import classify_source_error, legacy_diagnostic
 
 from app.candidates.bootstrap import bootstrap_user
 from app.candidates.import_review import plan_fact_import
+from app.candidates.resume_export import export_resume
 from app.candidates.importer import (
     MAX_DOCUMENT_BYTES, ResumeImportError, extract_resume_text,
     guess_language, propose_facts, resume_fingerprint, review_proposals,
@@ -1233,7 +1234,7 @@ async def resumes(message: Message) -> None:
         f"{r.source} — {'✅ approved' if version_metadata(r.rules)['status'] == 'approved' else '📝 draft'}"
         for r in rows
     )
-    text += "\n\n/resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt;"
+    text += "\n\n/resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt; · /resumeexport &lt;id&gt; txt|docx"
     await message.answer(text, parse_mode="HTML")
 
 
@@ -1266,6 +1267,31 @@ async def resume_approve_command(message: Message) -> None:
     profile = await repo.active_profile(user.id)
     approved = await repo.approve_resume_version(profile.id, int(parts[1])) if profile else False
     await message.answer("✅ Версия CV утверждена." if approved else "❌ Резюме не найдено в твоём профиле.")
+
+
+@router.message(Command("resumeexport"))
+async def resume_export_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if len(parts) != 3 or not parts[1].isdigit() or parts[2].casefold() not in {"txt", "docx"}:
+        await message.answer("Использование: /resumeexport <resume_id> txt|docx")
+        return
+    profile = await repo.active_profile(user.id)
+    resume = await repo.get_profile_resume(profile.id, int(parts[1])) if profile else None
+    if resume is None:
+        await message.answer("❌ Резюме не найдено в твоём профиле.")
+        return
+    try:
+        filename, content = export_resume(resume, parts[2])
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    await message.answer_document(
+        BufferedInputFile(content, filename=filename),
+        caption=f"Approved CV #{resume.id} · {parts[2].upper()}",
+    )
 
 
 @router.message(Command("scan"))

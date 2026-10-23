@@ -1,5 +1,16 @@
 # Handoff
 
+## Current checkpoint — P0 C01 approved CV export (2026-10-23)
+
+`/resumeexport <id> txt|docx` now resolves CVs through the active owner profile and
+exports approved, non-empty versions only. TXT is the exact stored UTF-8 text. DOCX
+uses a deliberately simple ATS-friendly heading/metadata/body structure and does not
+generate or infer claims. Filenames are sanitized. Draft and empty CVs are rejected.
+
+CV/import/diff/navigation gate: **106 passed**; compile and diff checks passed.
+PDF, Modern visual template and grounded edit/diff approval remain partial C01 work.
+No CV was transmitted externally and no production/runtime data was touched.
+
 ## Current checkpoint — P0 R02 application deadlines/reminders (2026-10-23)
 
 Additive schema v10 adds owner-scoped `application_reminders`. Telegram creation

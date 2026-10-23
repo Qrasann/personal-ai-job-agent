@@ -71,6 +71,13 @@ timezone-free or past deadlines, normalizes explicit offsets to UTC, and bounds 
 length. Parent-row locking deduplicates concurrent identical pending reminders;
 completion and listing are owner-scoped. PostgreSQL/application gate: 82 passed.
 
+## 2026-10-23 — C01 approved CV export
+
+Added owner-scoped explicit TXT/DOCX export for approved CV versions. TXT preserves
+stored text byte-for-byte after UTF-8 encoding; DOCX uses a minimal ATS-friendly
+layout and introduces no model-generated content. Draft/empty CVs are refused and
+filenames sanitized. Focused CV/import/navigation gate: 106 passed.
+
 ## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
 
 The interactive continuation found task #12 recorded `DONE` after its runner was
