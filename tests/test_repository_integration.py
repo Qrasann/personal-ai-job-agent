@@ -139,6 +139,74 @@ def test_v7_to_v8_job_delete_protects_application_history(monkeypatch):
     asyncio.run(_application_history_restrict_migration_flow(monkeypatch))
 
 
+@pytest.mark.integration
+def test_v8_to_v10_preserves_application_history_and_adds_guards(monkeypatch):
+    _require_test_database()
+    asyncio.run(_v8_to_v10_application_migration_flow(monkeypatch))
+
+
+async def _v8_to_v10_application_migration_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        owner = await repo.create_user("v8-upgrade-owner", "V8 Upgrade Owner")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="v8-upgrade-job", title="Platform Engineer",
+            company="Upgrade Example", description="Preserve this application",
+        ))
+        application = await repo.save_application(
+            user_id=owner.id, job_id=job.id, source_id="hh", status="prepared",
+            message="Exact approved letter", resume_snapshot="Exact CV snapshot",
+            resume_external_id="resume-v8",
+            vacancy_snapshot={"title": "Platform Engineer", "source_job_id": "v8-upgrade-job"},
+        )
+
+        async with engine.begin() as conn:
+            # Reconstruct the exact additive surface expected before migrations 9 and 10.
+            await conn.execute(text("DROP TABLE application_reminders"))
+            await conn.execute(text("DROP TRIGGER IF EXISTS application_status_events_immutable ON application_status_events"))
+            await conn.execute(text("DROP INDEX IF EXISTS uq_application_status_event_key"))
+            await conn.execute(text("ALTER TABLE application_status_events DROP COLUMN event_key"))
+            await conn.execute(text("ALTER TABLE application_status_events DROP COLUMN evidence"))
+            await conn.execute(text("ALTER TABLE application_status_events DROP COLUMN provenance"))
+            for version in range(1, 9):
+                await conn.execute(
+                    text("INSERT INTO schema_migrations(version,name,applied_at) "
+                         "VALUES (:version,:name,CURRENT_TIMESTAMP)"),
+                    {"version": version, "name": f"v{version}"},
+                )
+
+            assert await apply_migrations(conn) == [9, 10]
+            assert await apply_migrations(conn) == []
+            assert await conn.scalar(text("SELECT max(version) FROM schema_migrations")) == 10
+            reminder_table = await conn.scalar(text("SELECT to_regclass('public.application_reminders')"))
+            assert reminder_table == "application_reminders"
+
+        loaded = await repo.get_application(owner.id, application.id)
+        assert loaded is not None
+        assert loaded.message == "Exact approved letter"
+        assert loaded.resume_snapshot == "Exact CV snapshot"
+        assert loaded.resume_external_id == "resume-v8"
+        assert loaded.vacancy_snapshot["source_job_id"] == "v8-upgrade-job"
+        history = await repo.application_status_history(owner.id, application.id)
+        assert [(item.status, item.provenance, item.evidence) for item in history] == [
+            ("prepared", "legacy", {}),
+        ]
+
+        with pytest.raises(DBAPIError, match="application status history is immutable"):
+            async with engine.begin() as conn:
+                await conn.execute(
+                    text("UPDATE application_status_events SET status='tampered' WHERE application_id=:id"),
+                    {"id": application.id},
+                )
+    finally:
+        await engine.dispose()
+
+
 async def _application_history_restrict_migration_flow(monkeypatch):
     from sqlalchemy.exc import IntegrityError
 

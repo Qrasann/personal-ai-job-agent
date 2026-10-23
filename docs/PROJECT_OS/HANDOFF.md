@@ -1,5 +1,13 @@
 # Handoff
 
+## Current checkpoint — v8→v9→v10 compatibility (2026-10-23)
+
+An exact isolated v8 PostgreSQL fixture upgrades through 9 and 10 while preserving the
+frozen vacancy, CV snapshot/provider ID, exact letter and status event. The legacy event
+is labeled `legacy`; reminders and immutable-history enforcement are installed; rerun is
+a no-op. Combined repository/application/schema gate: **36 passed**. Next release gate:
+actual isolated backup/restore, then previous-image compatibility and release-image/CI.
+
 ## Current checkpoint — async/web release gate (2026-10-23)
 
 The missing dependency was recovered from the local uv cache into the existing sibling

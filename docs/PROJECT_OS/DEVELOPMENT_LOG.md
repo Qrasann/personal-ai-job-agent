@@ -1,3 +1,9 @@
+## 2026-10-23 — schema v8→v9→v10 acceptance
+
+Added an isolated PostgreSQL regression that reconstructs the v8 application surface,
+upgrades through migrations 9/10, verifies exact package/history preservation, migration
+idempotency, reminder creation and immutable event enforcement. Combined gate: 36 passed.
+
 ## 2026-10-23 — async/web release gate closed
 
 Recovered `pytest-asyncio 1.4.0` from the local uv cache into the non-production sibling

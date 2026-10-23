@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 release gate — schema v8→v9→v10
+- An exact isolated v8 fixture now upgrades through migrations 9 and 10 without losing the frozen vacancy, CV, letter or status history. Existing events become explicit `legacy` provenance; the immutable-history trigger and reminders table are installed.
+- Reapplying migrations is a no-op and direct history mutation is rejected. Repository/application/schema gate: **36 passed**. Production was not accessed.
+
 ## 2026-10-23 release gate — async/web tests
 - The previously unavailable `pytest-asyncio` dependency was restored from the local uv cache into the existing sibling test venv; no global or production environment changed.
 - All three affected files pass against isolated tmpfs PostgreSQL: **29 passed**. The former 19-test async/web blocker is closed; schema compatibility, backup/restore, rollback, release-image and exact-SHA CI gates remain open.
