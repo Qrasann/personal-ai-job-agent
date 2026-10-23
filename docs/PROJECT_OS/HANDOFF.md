@@ -1,5 +1,33 @@
 # Handoff
 
+## Current checkpoint — production f786aa1 running (2026-10-23)
+
+Production runs version **3.5.7**, release Git SHA **f786aa1a2eeeb4792fa30643a1d8d5e9005e5947**,
+image `sha256:2a724ce024d09b0219dc3e0c65f07438ec6534c402131de71466c1f3a5e4bd31`.
+The app container is healthy with zero restarts; Telegram `getMe` and polling passed for
+the configured bot. PostgreSQL is healthy at schema 11. Counts after migration: 1 user,
+26 facts, 6 CVs, 0 Applications and 0 status events. Auto-apply, auto-reply and private HH
+remain disabled. No employer action occurred.
+
+Deployment used a private Compose overlay selecting `job-agent-release:f786aa1`; only
+`repo-app-1` was recreated. Runtime checkout, its two ahead commits, three untracked files,
+PostgreSQL container and both named volumes were untouched. Rollback image
+`job-agent-rollback:pre-f786aa1` points to previous image `sha256:ad8e2230…`; the verified
+private mode-0600 backup remains available. To rollback, use the same private overlay
+pattern with that image, recreate only app with `--no-build`, and do not downgrade schema;
+v8-image writes on additive v11 were rehearsed successfully.
+
+Initial source smoke exposed that the legacy whole-directory `/app/data` bind hid the
+release employer watchlist. The overlay now retains runtime profile/countries as individual
+read-only binds and uses the versioned watchlist from the image; storage remains the same
+named volume. Matching hashes verify both personal files were preserved. No runtime file
+was rewritten.
+
+The corrected startup scan is processing source requests while health/polling/retry jobs
+remain good. Confirm its completion and absence of the prior watchlist error, then select
+the next independent P0 from ROADMAP. Do not use guarded `job-agent update` until runtime
+Git ownership/topology is deliberately resolved.
+
 ## Current checkpoint — production backup verified; rollout safely blocked (2026-10-23)
 
 A fresh private schema-v8 custom dump exists outside both repositories with mode 0600.

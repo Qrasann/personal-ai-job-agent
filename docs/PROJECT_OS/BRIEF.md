@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 production rollout — release f786aa1
+- Production app was switched without modifying the dirty runtime checkout by using a private Compose overlay and immutable image `job-agent-release:f786aa1` (`sha256:2a724ce0…`). The existing PostgreSQL and storage volumes were preserved; only the app container was recreated.
+- Runtime is version 3.5.7, healthy with zero restarts. Telegram `getMe`/polling succeeded for the configured bot, automatic apply/reply remain disabled, and schema is 11 with 1 user, 26 facts, 6 CVs and no Applications/events. Previous image `sha256:ad8e2230…` is retained as `job-agent-rollback:pre-f786aa1`; the verified private backup is retained.
+- Initial smoke found the legacy whole-directory data bind hid the release employer watchlist. The private overlay now preserves personal profile/country files as individual read-only binds and uses versioned image assets; no runtime file was rewritten.
+
 ## 2026-10-23 release gate — production backup/restore rehearsal
 - A fresh private custom-format backup of the read-only runtime schema v8 was created outside both repositories with mode 0600, listed successfully and fully restored into tmpfs PostgreSQL. Representative counts matched exactly: 1 user, 26 facts, 6 CVs, 2473 jobs, 2474 matches and no Applications/events.
 - The restored copy upgraded to v11 and passed current-image plus previous-v8-image read/write smoke. Runtime remained untouched. Deployment is blocked because its checkout is ahead 2 with three pre-existing untracked/backup files; the guarded updater must not be bypassed or the files altered.

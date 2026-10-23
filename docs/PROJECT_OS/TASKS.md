@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-23 — production rollout f786aa1
+
+- [x] Inventory and preserve the divergent runtime checkout, two local commits and three untracked/backup files.
+- [x] Deploy exact release `f786aa1` through an immutable image/private Compose overlay without changing runtime Git, PostgreSQL container or named volumes.
+- [x] Verify healthy container, zero restarts, Telegram `getMe` and polling, schema v11, retained owner/facts/CVs, disabled auto-apply/reply and no Application/event creation.
+- [x] Correct the private overlay after the legacy `/app/data` bind hid the versioned employer watchlist; preserve profile/countries as read-only file binds.
+- [x] Retain the pre-release image as `job-agent-rollback:pre-f786aa1` and retain the verified private backup.
+- [ ] Observe the first scheduled scan to completion and continue the next P0 roadmap task; no real application or employer message is authorized.
+
 ## 2026-10-23 — open release gates after C01/R01/R02
 
 - [x] Combined isolated PostgreSQL application/CV gate: 153 passed.
@@ -9,7 +18,7 @@
 - [x] Create a fresh private schema-v8 production backup (0600), list and fully restore it to tmpfs, compare representative counts, migrate the copy to v11 and smoke current/previous-image writes.
 - [x] Build the release image and verify ReportLab 4.5.1 + DejaVu Sans, exact RU/EN PDF extraction, non-root UID and healthcheck; resume gate: 10 passed.
 - [x] Verify full isolated PostgreSQL suite (1506 passed), exact-code-SHA `bc63a12` CI (Python/secret/Docker green) and release-image schema-v11/Application smoke.
-- [ ] Resolve the dirty/divergent runtime checkout without deleting its three pre-existing files; guarded `job-agent update` cannot run while it is ahead 2 and untracked. Then perform controlled rollout/private Telegram smoke.
+- [x] Preserve the dirty/divergent runtime checkout and deploy through a private immutable-image overlay; no checkout file was changed or removed.
 
 ## 2026-10-23 — P0 R01 per-application approval
 

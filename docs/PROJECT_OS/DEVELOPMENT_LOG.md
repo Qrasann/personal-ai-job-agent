@@ -1,3 +1,14 @@
+## 2026-10-23 — production rollout f786aa1
+
+Preserved the divergent runtime checkout and deployed the verified release through a
+private immutable-image Compose overlay. Only the app container was recreated; DB/storage
+volumes and PostgreSQL stayed in place. Health, Telegram identity/polling, schema 11,
+owner data, disabled outbound automation and rollback tag passed smoke. Runtime version is
+3.5.7 at release SHA f786aa1; no application or employer message was sent.
+The first scan exposed a missing watchlist because the legacy data-directory bind masked
+image assets; the overlay now preserves personal profile/countries as file binds and uses
+the release watchlist from the image.
+
 ## 2026-10-23 — fresh production backup and restored-copy migration rehearsal
 
 Created a mode-0600 private runtime dump outside Git, verified its catalog and restored it
