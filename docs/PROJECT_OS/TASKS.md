@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-23 — source gate verification after U02
+
+- [x] Verify RemoteOK SRE recall in the available sibling Python environment: 32 passed.
+- [x] Verify related source/diagnostic/scan regressions: 198 passed; no new Job Bank B01 defect reproduced.
+- [x] Align stale U01 score assertions in review navigation/saved workflow tests; non-async offline suite: 1430 passed, 23 skipped, 19 deselected.
+- [ ] Install/use an environment with `pytest-asyncio` for the remaining async/web gate; network/DNS currently blocks dependency rebuild.
+
 ## 2026-10-23 — P0 Search Reliability/source usefulness
 - [x] Confirm the Arbeitnow city-only geography false positive from offline adapter/tests: board origin was incorrectly used as vacancy country evidence.
 - [x] Preserve city display while removing the inferred `DE` country; keep explicit `City, Country` parsing unchanged and add regressions.

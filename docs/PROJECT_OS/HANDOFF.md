@@ -1,5 +1,23 @@
 # Handoff
 
+## Current checkpoint — RemoteOK/source gate and offline regression cleanup (2026-10-23)
+
+RemoteOK SRE recall is committed at `8a4f1b0`; stale U01 score assertions in
+navigation/saved tests were aligned and committed at `0c3a651`. The current
+branch is clean at the start of this documentation checkpoint.
+
+Verification: RemoteOK **32 passed**; related source diagnostics/adapter/scan
+gate **198 passed**; offline non-async suite **1430 passed, 23 skipped, 19
+deselected**. The full run had no product failures after the assertion update;
+19 async/web tests remain unexecuted because the available sibling environment
+lacks `pytest-asyncio`, and network/DNS prevents rebuilding dependencies.
+`py_compile` and `git diff --check` passed. Job Bank B01 retry/partial/403/429
+coverage was reviewed and needs no code change.
+
+Next independent P0 remains PR02 source usefulness / S01+G01+M01 evidence
+improvement with a concrete reproducer; do not alter production, database,
+Telegram sessions or external messages.
+
 ## Current checkpoint — P0 Remote OK SRE recall (2026-10-23)
 
 At clean HEAD `142cb27`, added a narrow Remote OK discovery alias so the
