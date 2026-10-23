@@ -1,5 +1,16 @@
 # Handoff
 
+## Open release gates after C01/R01/R02 (2026-10-23)
+
+- Combined isolated PostgreSQL C01/R01/R02 gate passes **153 tests**; this verifies
+  additive schema v9/v10 migration behavior in the test DB, not production rollout.
+- The **19 async/web tests** requiring `pytest-asyncio` remain open in the primary
+  offline environment; do not reinterpret their environment failures as passes.
+- Before release: verify production-compatible backup and actual restore, schema
+  v8→v9→v10 compatibility, rollback to the previous application image while the
+  additive schema remains present, and ReportLab/Noto-or-DejaVu availability in the
+  built image. Then run exact-SHA CI and isolated smoke. No production migration yet.
+
 ## Current checkpoint — P0 R01 fail-closed application entrypoint (2026-10-23)
 
 The Telegram `apply:` callback no longer calls `apply_match` or any provider API. Its

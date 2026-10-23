@@ -1,5 +1,11 @@
 # Tasks
 
+## 2026-10-23 — open release gates after C01/R01/R02
+
+- [x] Combined isolated PostgreSQL application/CV gate: 153 passed.
+- [ ] Run the 19 pytest-asyncio-dependent async/web tests in a complete environment.
+- [ ] Verify backup + actual restore, v8→v9→v10 compatibility, previous-image rollback with additive schema, renderer fonts/dependencies, exact-SHA CI and isolated smoke before production.
+
 ## 2026-10-23 — P0 R01 per-application approval
 
 - [x] Remove direct provider submission from the first Telegram `apply:` action; prepare/reuse and show the immutable package instead.
