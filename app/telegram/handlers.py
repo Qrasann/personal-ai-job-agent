@@ -58,6 +58,23 @@ router = Router()
 router.message.filter(F.chat.type == "private")
 router.callback_query.filter(F.message.chat.type == "private")
 _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
+_NAVIGATION_LOCKS: dict[tuple[int, int], asyncio.Lock] = {}
+
+
+def _navigation_lock(callback) -> asyncio.Lock:
+    message = callback.message
+    key = (int(message.chat.id), int(getattr(message, "message_id", 0) or 0))
+    return _NAVIGATION_LOCKS.setdefault(key, asyncio.Lock())
+
+
+async def _edit_navigation_card(callback, text: str, keyboard) -> bool:
+    async with _navigation_lock(callback):
+        try:
+            await callback.message.edit_text(text, parse_mode="HTML", reply_markup=keyboard)
+        except Exception:
+            await callback.answer("Не удалось обновить карточку. Попробуй ещё раз.", show_alert=True)
+            return False
+    return True
 _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
 _RESUME_IMPORT_TTL_SECONDS = 15 * 60
 _MAX_PENDING_RESUME_IMPORTS = 64
@@ -1849,29 +1866,34 @@ async def chats(message: Message, bot: Bot) -> None:
 async def _navigate_previous_queue(
     callback, queue_loader, renderer, keyboard_factory, first_message: str
 ) -> None:
-    user = await repo.get_user_by_chat(callback.message.chat.id)
-    if not user:
-        return
-    raw_id = callback.data.split(":", 1)[1]
-    if not raw_id.isdigit():
-        await callback.answer("Некорректный ID", show_alert=True)
-        return
-    match = await repo.get_match(int(raw_id))
-    if not match or match.user_id != user.id:
-        await callback.answer("Вакансия не найдена", show_alert=True)
-        return
-    rows = await queue_loader(user.id, None)
-    picked = _pick_previous_review(rows, match.id)
-    if not picked:
-        await callback.answer(first_message, show_alert=True)
-        return
-    index, (previous_match, job) = picked
-    await callback.message.edit_text(
-        renderer(previous_match, job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=keyboard_factory(previous_match.id, job.id),
-    )
-    await callback.answer()
+    async with _navigation_lock(callback):
+        user = await repo.get_user_by_chat(callback.message.chat.id)
+        if not user:
+            return
+        raw_id = callback.data.split(":", 1)[1]
+        if not raw_id.isdigit():
+            await callback.answer("Некорректный ID", show_alert=True)
+            return
+        match = await repo.get_match(int(raw_id))
+        if not match or match.user_id != user.id:
+            await callback.answer("Вакансия не найдена", show_alert=True)
+            return
+        rows = await queue_loader(user.id, None)
+        picked = _pick_previous_review(rows, match.id)
+        if not picked:
+            await callback.answer(first_message, show_alert=True)
+            return
+        index, (previous_match, job) = picked
+        try:
+            await callback.message.edit_text(
+                renderer(previous_match, job, index + 1, len(rows)),
+                parse_mode="HTML",
+                reply_markup=keyboard_factory(previous_match.id, job.id),
+            )
+        except Exception:
+            await callback.answer("Не удалось обновить карточку. Попробуй ещё раз.", show_alert=True)
+            return
+        await callback.answer()
 
 
 @router.callback_query(F.data.startswith("review_prev:"))
@@ -1914,11 +1936,12 @@ async def stretch_next_callback(callback: CallbackQuery) -> None:
         await callback.answer("Больше Stretch-вакансий нет", show_alert=True)
         return
     index, (next_match, next_job) = picked
-    await callback.message.edit_text(
+    if not await _edit_navigation_card(
+        callback,
         _render_stretch_card(next_match, next_job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=stretch_keyboard(next_match.id, next_job.id),
-    )
+        stretch_keyboard(next_match.id, next_job.id),
+    ):
+        return
     await callback.answer()
 
 
@@ -1977,11 +2000,12 @@ async def saved_next_callback(callback: CallbackQuery) -> None:
         await callback.answer("Больше сохранённых вакансий нет", show_alert=True)
         return
     index, (next_match, job) = picked
-    await callback.message.edit_text(
+    if not await _edit_navigation_card(
+        callback,
         _render_saved_card(next_match, job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=saved_keyboard(next_match.id, job.id),
-    )
+        saved_keyboard(next_match.id, job.id),
+    ):
+        return
     await callback.answer()
 
 
@@ -2004,11 +2028,12 @@ async def review_next_callback(callback: CallbackQuery) -> None:
         await callback.answer("Больше вакансий нет", show_alert=True)
         return
     index, (next_match, next_job) = picked
-    await callback.message.edit_text(
+    if not await _edit_navigation_card(
+        callback,
         _render_review_card(next_match, next_job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=review_keyboard(next_match.id, next_job.id),
-    )
+        review_keyboard(next_match.id, next_job.id),
+    ):
+        return
     await callback.answer()
 
 
@@ -2064,7 +2089,7 @@ async def details_callback(callback: CallbackQuery) -> None:
         selected_id = getattr(payload.get("match"), "search_profile_id", None)
         if selected_id is not None:
             search_filter = {"search_profile_id": selected_id}
-        await callback.message.answer(
+        await callback.message.edit_text(
             render_job_summary(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
@@ -2072,9 +2097,7 @@ async def details_callback(callback: CallbackQuery) -> None:
         )
     except Exception as exc:
         issue = classify_source_error(exc, stage="detail_request")
-        await callback.message.answer(
-            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}", parse_mode="HTML"
-        )
+        await callback.answer(f"{issue['message']} ({issue['code']})", show_alert=True)
 
 
 def _jobtab_identifiers(data: str) -> tuple[str, int, int | None] | None:

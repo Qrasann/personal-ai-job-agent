@@ -1,5 +1,22 @@
 # Handoff
 
+## Current checkpoint — P0 U02 Telegram navigation (2026-10-23)
+
+Starting from clean commit `7bb2aca` on `wip/telegram-pilot-20261019`, U02 was
+implemented without repeating U01. Details now edits the existing Telegram
+working message and keeps it unchanged when detail loading fails; queue edit
+operations are serialized per message to reduce concurrent callback races and
+failed edits return a sanitized alert. Review, Stretch, Saved and profile-scoped
+Details/Requirements navigation remain covered.
+
+Verification: targeted navigation/compact/review tests — **88 passed**;
+`py_compile` and `git diff --check` passed. No runtime, database, Telegram
+session, notification, application or employer message was used.
+
+The working tree contains the U02 code/tests/docs and is ready for the owner’s
+manual commit if Git metadata is unavailable. Next: isolated visual/runtime
+acceptance of edit-in-place Back/Next/Details; do not deploy or send messages.
+
 ## Current checkpoint — P0 U01 quick-review score disclosure (2026-10-23)
 
 Branch `wip/telegram-pilot-20261019`; the clean base was `3436399`. The review,

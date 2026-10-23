@@ -2315,3 +2315,9 @@ remains open. Historical counts below belong to their recorded stages.
 - [x] Hide numeric Match scores from Good/Stretch/Saved quick-review cards; keep score in Details and preserve truthful concise context.
 - [x] Add regression and pass focused Telegram gate (14), compile and diff checks.
 - [ ] Continue U02 acceptance: verify edit-in-place Back/Next/Details cursor behavior in isolated Telegram/runtime smoke; production remains unchanged.
+# 2026-10-23 — P0 U02 Telegram navigation
+
+- [x] Make Details edit the current working message and preserve the current card on detail-load/edit failure.
+- [x] Serialize queue-card edits per Telegram message; preserve review/stretch/saved position and profile filters.
+- [x] Update U01 score-disclosure regressions and pass focused navigation gate (88), compile and diff checks.
+- [ ] Runtime visual acceptance remains separate; no production Telegram access or deployment.

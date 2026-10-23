@@ -164,6 +164,18 @@ def test_jobtab_callback_rejects_malformed_payload_before_lookup(monkeypatch):
     assert callback.answer.await_args.kwargs["show_alert"] is True
 
 
+def test_details_callback_keeps_current_message_on_load_error(monkeypatch):
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    monkeypatch.setattr(handlers, "get_vacancy_details", AsyncMock(side_effect=RuntimeError("provider")))
+    message = SimpleNamespace(chat=SimpleNamespace(id=10), edit_text=AsyncMock())
+    callback = SimpleNamespace(data="details:42", message=message, answer=AsyncMock())
+
+    asyncio.run(handlers.details_callback(callback))
+
+    message.edit_text.assert_not_awaited()
+    assert callback.answer.await_args.kwargs["show_alert"] is True
+
+
 def test_scanstatus_details_callback_edits_same_message(monkeypatch):
     state = {"status": "completed", "summary": {"sources": {"hh": {"found": 2}}}}
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))

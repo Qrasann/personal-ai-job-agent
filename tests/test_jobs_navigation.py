@@ -249,14 +249,14 @@ def test_details_callback_forwards_the_profile_that_produced_the_score(monkeypat
     monkeypatch.setattr(handlers, "render_job_summary", lambda payload: "Scoped card")
     callback = SimpleNamespace(
         data="details:25:4", answer=AsyncMock(),
-        message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=AsyncMock()),
+        message=SimpleNamespace(chat=SimpleNamespace(id=10), edit_text=AsyncMock()),
     )
 
     asyncio.run(handlers.details_callback(callback))
 
     details.assert_awaited_once_with(7, 25, search_profile_id=4)
-    assert callback.message.answer.await_args.args[0] == "Scoped card"
-    keyboard = callback.message.answer.await_args.kwargs["reply_markup"]
+    assert callback.message.edit_text.await_args.args[0] == "Scoped card"
+    keyboard = callback.message.edit_text.await_args.kwargs["reply_markup"]
     callbacks = {
         button.callback_data
         for row in keyboard.inline_keyboard

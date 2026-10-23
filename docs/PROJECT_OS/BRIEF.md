@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 P0 U02 Telegram navigation
+- Details now edits the existing review/list message instead of sending a second message; detail-load failures answer with a sanitized alert and leave the current card intact.
+- Queue navigation edit operations are serialized per Telegram message and failed edits preserve the current screen. Existing profile-scoped Details/Requirements navigation remains intact.
+- Focused navigation/compact/review gate: 88 passed; compile and `git diff --check` passed. No runtime or Telegram session was used.
+
 ## 2026-10-23 P0 Telegram U01 quick-review score disclosure
 - Review, Stretch and Saved queue cards no longer expose the numeric Match score in the quick-review message; they retain the lane, concise reason and truthful paid/geography markers and direct the owner to Details for numeric assessment.
 - Added a regression proving the score is hidden from the queue card while the Details path remains the score surface. Focused Telegram gate: 14 passed; compile and `git diff --check` passed.

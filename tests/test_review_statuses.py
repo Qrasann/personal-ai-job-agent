@@ -92,7 +92,7 @@ def test_review_command_shows_first_notified_match(monkeypatch):
     assert len(message.answers) == 1
     text, kwargs = message.answers[0]
     assert "DevOps Engineer" in text
-    assert "78/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
     assert kwargs["reply_markup"] is not None
 
@@ -280,7 +280,7 @@ def test_review_next_callback_edits_to_next_match(monkeypatch):
     handlers.repo.review_matches.assert_awaited_once_with(7, None)
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "2 из 2" in text
 
 
@@ -308,7 +308,7 @@ def test_review_save_callback_shows_next_match(monkeypatch):
     asyncio.run(handlers.review_save_callback(callback))
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
 
 
@@ -331,7 +331,7 @@ def test_review_skip_callback_shows_next_match(monkeypatch):
     asyncio.run(handlers.review_skip_callback(callback))
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
 
 
@@ -424,7 +424,7 @@ def test_stretch_command_shows_first_stretch_match(monkeypatch):
     text, kwargs = message.answers[0]
     assert "Stretch-вакансии" in text
     assert "DevOps Engineer" in text
-    assert "70/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
     assert kwargs["reply_markup"] is not None
 
@@ -447,7 +447,7 @@ def test_stretch_next_callback_edits_to_next_match(monkeypatch):
     text = message.edit_text.await_args.args[0]
     assert "Stretch-вакансии" in text
     assert "Linux Engineer" in text
-    assert "69/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "2 из 2" in text
 
 def test_stretch_save_callback_stays_in_stretch_queue(monkeypatch):
