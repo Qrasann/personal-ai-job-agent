@@ -1,3 +1,9 @@
+## 2026-10-23 — async/web release gate closed
+
+Recovered `pytest-asyncio 1.4.0` from the local uv cache into the non-production sibling
+venv and ran the previously blocked scan dashboard, scan lease and web workspace files
+against isolated tmpfs PostgreSQL: 29 passed. Production/runtime remained untouched.
+
 ## 2026-10-23 — Remote OK SRE title recall
 
 Remote OK discovery required all literal query tokens and therefore missed the

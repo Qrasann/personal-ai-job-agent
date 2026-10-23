@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-23 release gate — async/web tests
+- The previously unavailable `pytest-asyncio` dependency was restored from the local uv cache into the existing sibling test venv; no global or production environment changed.
+- All three affected files pass against isolated tmpfs PostgreSQL: **29 passed**. The former 19-test async/web blocker is closed; schema compatibility, backup/restore, rollback, release-image and exact-SHA CI gates remain open.
+
 ## 2026-10-23 P0 R01 isolated acceptance
 - Isolated PostgreSQL acceptance exercised an exact frozen package through the one-time approval boundary into a mocked HH provider. The provider received the frozen source job ID, resume ID and letter exactly once; durable history is `sending → sent`.
 - A repeated submission attempt was rejected without a second provider call. Combined R01 package/navigation/provider gate: 62 passed. No real provider or production state was used.

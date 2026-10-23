@@ -1,5 +1,13 @@
 # Handoff
 
+## Current checkpoint — async/web release gate (2026-10-23)
+
+The missing dependency was recovered from the local uv cache into the existing sibling
+test venv. All affected scan/dashboard/lease/web tests pass against isolated tmpfs
+PostgreSQL: **29 passed**. No production environment or data changed. The former
+19-test blocker is closed; next gate is isolated v8→v9→v10 compatibility, followed by
+actual backup/restore, previous-image rollback, release-image and exact-SHA CI checks.
+
 ## Current checkpoint — P0 R01 isolated acceptance (2026-10-23)
 
 An isolated PostgreSQL test now covers frozen package → approval boundary → mocked HH
