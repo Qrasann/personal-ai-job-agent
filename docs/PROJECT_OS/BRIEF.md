@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-24 P0 Relocation-first engineering-manager false Good
+- Production sent `Linux Enablement - Software Engineering Manager` as Relocation-first Good (73/100): the measured manager guard was Career-only despite global senior/lead fail-closed policy.
+- Explicit Software/Engineering Manager titles now use the shared senior gate in both strategies; desktop/support jobs remain available to Relocation-first. Assessment version is now 6. Matching/review gate: **157 passed**. Code checkpoint: `a0c5985`; production unchanged.
+
 ## 2026-10-24 P0 Employer Watch inventory refresh
 - Read-only probe confirmed all 13 official watchlist endpoints available; production's five per-profile TLS/timeouts were transient and partial results were preserved.
 - Betsson provider ID `8200701` is removed upstream. The reviewed slot now points to current official Malta DevOps ID `8025783`; work authorization, sponsorship and relocation remain unknown. Employer/source gate: **144 passed**. Code checkpoint: `cc36e59`; production unchanged.
@@ -10,7 +14,7 @@
 
 ## 2026-10-24 P0 Job Bank onsite/remote evidence
 - Production data reproduced Job Bank onsite postings being classified as remote solely from “no option to work remotely” or physical “Remote location”. This overwrote the Relocation-first destination lane and lowered geography scores.
-- Exact non-remote forms no longer create remote-work evidence; destination-country postings stay relocation candidates. Match assessment version is 5 so old scores are visibly stale. Sponsorship/work authorization/relocation evidence is unchanged.
+- Exact non-remote forms no longer create remote-work evidence; destination-country postings stay relocation candidates. Match assessment version was advanced as part of the post-release scoring fixes so old scores are visibly stale. Sponsorship/work authorization/relocation evidence is unchanged.
 - Related Job Bank/remote/matching/discovery gate: **324 passed**. Code checkpoint: `20df7a6`; production remains on `8dc5a51`.
 
 ## 2026-10-24 production rollout — Telegram UX `8dc5a51`

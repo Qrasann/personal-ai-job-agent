@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-24 — P0 Relocation-first engineering-manager false Good
+
+- [x] Reproduce the production notification for an explicit Software Engineering Manager title in Relocation-first.
+- [x] Route only explicit technical Engineering Manager titles through the global senior gate; preserve Relocation-first desktop/support visibility.
+- [x] Advance assessment version to 6 and pass matching/review gate: 157 passed.
+- [ ] Re-measure notified Relocation-first rows after a later gated release/rescan.
+
 ## 2026-10-24 — P0 Employer Watch inventory refresh
 
 - [x] Probe all 13 approved official endpoints read-only; all are currently reachable.

@@ -1,3 +1,11 @@
+## 2026-10-24 — Relocation-first engineering-manager false Good
+
+Sampled the three newest production notifications and reproduced an explicit Software
+Engineering Manager title classified Good at 73/100 in Relocation-first. The known manager
+filter was Career-only. Added that exact technical manager title class to the global
+senior gate while preserving relocation desktop/support rows; assessment version is 6.
+Matching/review gate: 157 passed. Code checkpoint: `a0c5985`; production unchanged.
+
 ## 2026-10-24 — Employer Watch inventory refresh
 
 The production scan preserved 34 Employer Watch results but recorded five TLS/timeouts per
@@ -20,7 +28,8 @@ Production Relocation-first data showed that Job Bank's standard onsite refusal 
 no option to work remotely” and its physical “Remote location” label both triggered the
 generic remote lane. Added a shared narrow remote-work detector that removes only explicit
 refusals/physical wording before matching; destination-country Any Job rows now retain
-relocation geography. Assessment version advanced to 5. Related gate: 324 passed; no
+relocation geography. Assessment version advanced for stale-score invalidation (and was
+subsequently advanced again by the manager-title fix). Related gate: 324 passed; no
 production change or external action occurred. Code checkpoint: `20df7a6`.
 
 ## 2026-10-24 — production Telegram UX rollout `8dc5a51`

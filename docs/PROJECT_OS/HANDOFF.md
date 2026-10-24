@@ -1,5 +1,16 @@
 # Handoff
 
+## Current development checkpoint — engineering-manager false Good closed (2026-10-24)
+
+Code checkpoint `a0c5985` fixes a production-confirmed Relocation-first false Good:
+`Linux Enablement - Software Engineering Manager` was notified at 73/100 because the
+manager-title guard was Career-only. Explicit Software/Engineering Manager titles now use
+the existing global senior/lead gate; desktop support remains visible in Relocation-first.
+Assessment version is 6. Matching/review gate: **157 passed**. This code is not deployed;
+production remains healthy on `8dc5a51`. Next: batch post-release fixes through full
+isolated PostgreSQL + exact-SHA CI/release gates, or continue another independently
+confirmed source-quality issue. No employer action occurred.
+
 ## Current development checkpoint — Employer Watch inventory current (2026-10-24)
 
 Code checkpoint `cc36e59` follows a read-only probe of all 13 approved official endpoints:
@@ -26,7 +37,7 @@ Code checkpoint `20df7a6` fixes a production-reproduced Relocation-first evidenc
 Job Bank's explicit “no option to work remotely” and physical “Remote location” no longer
 create a remote-work lane. Destination-country postings remain relocation candidates;
 work authorization, sponsorship and relocation support are not inferred. Assessment
-version 5 makes persisted prior scores stale until rescanned. Related gate: **324 passed**.
+the post-release assessment-version change makes persisted prior scores stale until rescanned. Related gate: **324 passed**.
 
 This post-release code is not deployed. Production remains healthy on Telegram UX SHA
 `8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4`; its fresh backup and rollback artifacts
