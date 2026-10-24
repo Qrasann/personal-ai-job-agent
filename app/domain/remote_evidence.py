@@ -28,6 +28,28 @@ _WITHDRAWN_REQUIREMENT = re.compile(
     r"\b(?:not (?:required|mandatory|necessary)|no (?:such )?requirement|"
     r"only (?:preferred|a preference)|(?:is|are) optional)\b", re.I,
 )
+_NON_REMOTE_WORK = re.compile(
+    r"\b(?:there is )?no (?:option|opportunity) to work remotely\b|"
+    r"\bno remote (?:work|working)\b|"
+    r"\bremote(?:ly)? (?:work|working) (?:is )?not "
+    r"(?:available|offered|permitted|possible)\b|"
+    r"\bremote location\b|"
+    r"\b(?:не )?удал[её]нн\w* работ\w* не (?:предусмотрен\w*|доступн\w*|возможн\w*)\b|"
+    r"\bне удал[её]нн\w* работ\w*\b",
+    re.I,
+)
+_REMOTE_WORK = re.compile(r"\bremote(?:ly)?\b|\bудал[её]н\w*\b", re.I)
+
+
+def has_remote_work_evidence(*values: str | None) -> bool:
+    """Recognize remote work without treating explicit onsite text as remote.
+
+    Job boards commonly include either “no option to work remotely” or
+    “remote location” in otherwise onsite postings. Those phrases describe a
+    refusal or physical remoteness, not a remote-work arrangement.
+    """
+    text = " ".join(clean_html_text(value or "") for value in values)
+    return bool(_REMOTE_WORK.search(_NON_REMOTE_WORK.sub(" ", text)))
 
 
 def restricted_remote_scope(scope: str | None) -> bool:

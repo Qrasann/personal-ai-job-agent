@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass, field
 
 from app.database.models import Job
-from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
+from app.domain.remote_evidence import has_remote_work_evidence, remote_residence_requirement, restricted_remote_scope
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 
 
@@ -24,7 +24,7 @@ def analyze_job_signals(job: Job) -> JobSignals:
     country = (job.country or "").upper()
     tracks: set[str] = set()
 
-    remote = "remote" in text or "удален" in text or "удалён" in text
+    remote = has_remote_work_evidence(job.title, job.description, job.remote_scope, job.work_mode)
     if country in {"RU", "RUSSIA", "РОССИЯ"}:
         tracks.add("local_ru")
     if remote and country not in {"RU", "RUSSIA", "РОССИЯ"}:

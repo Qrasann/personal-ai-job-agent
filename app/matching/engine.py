@@ -9,6 +9,7 @@ from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS
 from app.domain.employer_policy import decision as employer_decision
 from app.domain.blacklist import matching_blacklist_rule
 from app.domain.role_text import role_tokens
+from app.domain.remote_evidence import has_remote_work_evidence
 from app.domain.resume_versions import version_metadata
 from app.geo.countries import normalize_country
 from app.matching.recommendation import build_recommendation_breakdown
@@ -16,7 +17,7 @@ from app.matching.technical_score import score_technical_v2
 from app.search.preferences import discovery_queries, search_strategy
 
 # Bump whenever score, fit-lane, cap, or exclusion semantics change.
-MATCH_ASSESSMENT_VERSION = 4
+MATCH_ASSESSMENT_VERSION = 5
 
 
 @dataclass(slots=True)
@@ -337,8 +338,7 @@ def _normalize_city(value: str | None) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 def _is_remote_job(job: Job) -> bool:
-    text = ((job.work_mode or "") + " " + (job.description or "")).casefold().replace("ё", "е")
-    return "remote" in text or "удален" in text
+    return has_remote_work_evidence(job.work_mode, job.description)
 
 def _local_ru_location(job: Job, settings: dict) -> tuple[int, str, str | None, bool]:
     if _is_remote_job(job):
