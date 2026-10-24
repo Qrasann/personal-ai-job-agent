@@ -1,5 +1,31 @@
 # Handoff
 
+## Current production — Telegram UX `8dc5a51` released (2026-10-24)
+
+Production runs exact Git SHA `8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4`,
+image `sha256:6c0284b69c56b938b1f8032f6aac4c42249da9434a867364e54b585512c5c227`.
+The app is healthy with zero restarts and polling as `@roma_job_agent_bot`. PostgreSQL
+remains schema 11; verified post-rollout counts are 1 user, 26 facts, 6 CVs, 2588 jobs,
+2752 matches and no Applications/events. Runtime profile/country hashes match their
+pre-rollout values and the existing storage volume remains mounted.
+
+Fresh private backup `pre-8dc5a51-20261024` is mode 0600 and was fully restored into a
+disposable tmpfs PostgreSQL with exact count parity. Immediate pre-rollout image
+`sha256:ad8e2230…` is retained as `job-agent-rollback:pre-8dc5a51`; private release and
+rollback overlays are mode 0600. Rollback is app-only with the same profile/country binds
+and storage volume; schema downgrade is neither needed nor permitted.
+
+Telegram API confirms 12 current commands and global native Menu=`commands`; the startup
+cleanup marker is true, proving successful `ReplyKeyboardRemove` delivery. A live inline
+main menu was delivered as message 1723. Runtime smoke verifies Details/Back/Next/Home
+callback payloads and no score/technical breakdown in quick cards; full isolated suite was
+1515 passed and exact-SHA CI run 40013885120 succeeded. Owner tapping the delivered buttons
+is the remaining visual acceptance, not a code/release blocker. No employer action occurred.
+
+Next P0: continue measured source usefulness from the latest completed production scan,
+then isolated Web owner acceptance/remaining channel-pilot work per ROADMAP. Do not modify
+the divergent runtime checkout or use the base Compose alone for future app recreation.
+
 ## Current checkpoint — Telegram reply keyboard removed (2026-10-23)
 
 Functional checkpoint `ee1c77c` removes the persistent Telegram ReplyKeyboard. `/start`

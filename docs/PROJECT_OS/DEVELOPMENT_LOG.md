@@ -1,3 +1,14 @@
+## 2026-10-24 — production Telegram UX rollout `8dc5a51`
+
+Found runtime had drifted back to the pre-release `repo-app` image after a base-Compose
+recreation. Preserved it as the immediate rollback target, created and fully restored a
+fresh private backup, then deployed only the app through a new private immutable-image
+overlay. Production is healthy at exact revision `8dc5a51`, schema 11 and unchanged owner,
+fact/CV/config counts. Telegram API confirms current commands and native Menu; one-time
+ReplyKeyboard removal was persisted and a live inline main menu was sent. Runtime
+Details/Back/Next/Home and compact-card smoke passed. No application or employer message
+was sent.
+
 ## 2026-10-23 — Telegram persistent-keyboard removal
 
 Replaced the obsolete persistent ReplyKeyboard with the native Telegram command menu and

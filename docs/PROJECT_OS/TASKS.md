@@ -1,5 +1,14 @@
 # Tasks
 
+## 2026-10-24 — production rollout Telegram UX `8dc5a51`
+
+- [x] Confirm exact-SHA CI run 40013885120: Python, secret scan and Docker build successful.
+- [x] Create a fresh private mode-0600 backup and fully restore it into tmpfs; verify schema 11 and exact representative counts.
+- [x] Preserve the actual pre-rollout image as `job-agent-rollback:pre-8dc5a51` with a private rollback overlay.
+- [x] Deploy only the app from immutable exact-SHA image; preserve runtime checkout, PostgreSQL container and named volumes.
+- [x] Verify health/restarts/revision, polling, Telegram commands/native Menu, keyboard-removal marker, inline navigation payload, compact cards and retained user/config data.
+- [ ] Owner visual/tap acceptance of the delivered production inline menu remains useful but is not an automated release gate.
+
 ## 2026-10-23 — P0 Telegram persistent-keyboard removal
 
 - [x] Remove all persistent ReplyKeyboard construction/restoration from handlers.
@@ -8,7 +17,7 @@
 - [x] Preserve edit-in-place Back/Home navigation, owner authorization, callback serialization and edit-failure recovery.
 - [x] Add regressions and pass the expanded Telegram/navigation gate: 238 passed, 1 skipped.
 - [x] Run full isolated PostgreSQL suite: 1515 passed.
-- [ ] Complete exact-SHA CI, fresh backup/restore and controlled production smoke before deployment.
+- [x] Complete exact-SHA CI, fresh backup/restore and controlled production smoke before deployment.
 
 ## 2026-10-23 — P0 worldwide physical location evidence
 

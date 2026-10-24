@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-24 production rollout — Telegram UX `8dc5a51`
+- Production now runs exact SHA `8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4` in immutable image `sha256:6c0284b6…`; app is healthy with zero restarts and PostgreSQL remains schema 11.
+- Fresh private backup was catalogued and fully restored to tmpfs with matching counts: 1 user, 26 facts, 6 CVs, 2588 jobs, 2752 matches and no Applications/events. Pre-rollout image `sha256:ad8e2230…` and a mode-0600 rollback overlay are retained.
+- Telegram API confirms the configured bot, 12 current commands and global native Menu=`commands`; startup successfully recorded legacy-keyboard removal and a live six-section inline menu was delivered. Runtime navigation/compact-card smoke passed. Profile/country hashes and named storage volume are unchanged.
+
 ## 2026-10-23 P0 Telegram persistent-keyboard removal
 - Removed every application use of persistent `ReplyKeyboardMarkup`; `/start` and new `/menu` open the six-section inline main menu plus separate Search/Status action.
 - Startup sends a one-time `ReplyKeyboardRemove` to each active user and records success; failed deliveries remain retryable. Native Telegram Menu commands are refreshed without removing fallback slash handlers.
