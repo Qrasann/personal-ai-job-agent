@@ -7,6 +7,7 @@ senior gate while preserving relocation desktop/support rows; assessment version
 Matching/review gate: 157 passed. Code checkpoint: `a0c5985`; production unchanged.
 The combined isolated PostgreSQL suite for all four post-release increments passed 1521
 tests with only the existing aiohttp AppKey warnings.
+Exact-candidate GitHub CI run `40089127207` passed all three jobs on `365f5b0`.
 
 ## 2026-10-24 — Employer Watch inventory refresh
 

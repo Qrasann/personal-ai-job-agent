@@ -10,7 +10,8 @@ Assessment version is 6. Matching/review gate: **157 passed**. This code is not 
 production remains healthy on `8dc5a51`. Next: batch post-release fixes through full
 isolated PostgreSQL + exact-SHA CI/release gates, or continue another independently
 confirmed source-quality issue. The combined isolated PostgreSQL suite now passes
-**1521 tests**. No employer action occurred.
+**1521 tests**; GitHub CI run `40089127207` is green on exact candidate `365f5b0`
+(Python, secret scan, Docker build). No employer action occurred.
 
 ## Current development checkpoint — Employer Watch inventory current (2026-10-24)
 
