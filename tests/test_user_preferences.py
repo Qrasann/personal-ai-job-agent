@@ -1,12 +1,18 @@
 import pytest
+from datetime import UTC, datetime
 
 from app.database.models import Job, SearchProfile
 from app.matching.engine import score_job
 from app.search.user_preferences import (
+    parse_blacklist_rule_command,
     parse_salary_command,
+    preview_blacklist,
+    preview_blacklist_rule,
     update_blacklist,
+    update_blacklist_rule,
     update_salary,
 )
+from app.domain.blacklist import matching_blacklist_rule
 
 
 def test_salary_command_validates_and_updates_scoring_minimum():
@@ -28,18 +34,120 @@ def test_current_and_desired_salary_values_are_kept_separately():
 
 
 def test_blacklist_is_case_insensitive_and_applies_to_job_scoring():
-    settings = update_blacklist({}, "add", "Crypto")
-    settings = update_blacklist(settings, "add", "crypto")
-    assert settings["exclude_terms"] == ["Crypto"]
+    settings = update_blacklist({}, "add", "Fraud")
+    settings = update_blacklist(settings, "add", "fraud")
+    assert settings["exclude_terms"] == ["Fraud"]
     search = SearchProfile(id=1, profile_id=1, settings=settings)
     job = Job(
         fingerprint="blacklist",
         title="DevOps Engineer",
         company="Example",
-        description="Infrastructure role at a crypto company",
+        description="Infrastructure role at a fraud company",
         country="US",
     )
     result = score_job(job, search, [], [])
     assert result.fit == "skip"
-    assert "crypto" in result.reason.casefold()
-    assert update_blacklist(settings, "remove", "CRYPTO")["exclude_terms"] == []
+    assert "fraud" in result.reason.casefold()
+    assert update_blacklist(settings, "remove", "FRAUD")["exclude_terms"] == []
+
+
+def test_sector_preferences_use_allow_warn_block_policy_instead_of_blacklist_terms():
+    with pytest.raises(ValueError, match="employerpolicy"):
+        update_blacklist({}, "add", "gambling")
+    from app.domain.employer_policy import decision, update_policy
+
+    settings = update_policy({}, "category", "block", "betting")
+    assert decision("Betsson", ["betting"], settings)[0] == "block"
+    settings = update_policy(settings, "category", "allow", "betting")
+    assert decision("Betsson", ["betting"], settings)[0] == "allow"
+    settings = update_policy(settings, "employer", "warn", "Betsson Group")
+    assert decision("Betsson Group", ["betting"], settings)[0] == "warn"
+
+
+def test_blacklist_preview_is_non_mutating_and_undo_restores_previous_terms():
+    settings = update_blacklist({}, "add", "Fraud")
+    preview = preview_blacklist(settings, "add", "Agency")
+
+    assert preview["before"] == ["Fraud"]
+    assert preview["after"] == ["Fraud", "Agency"]
+    assert settings["exclude_terms"] == ["Fraud"]
+    assert update_blacklist(settings, "add", "Agency")["exclude_terms"] == ["Fraud", "Agency"]
+    assert update_blacklist(update_blacklist(settings, "add", "Agency"), "undo")["exclude_terms"] == ["Fraud"]
+
+
+def test_blacklist_preview_and_undo_are_safe_when_no_previous_change_exists():
+    settings = {"exclude_terms": ["Fraud"]}
+    preview = preview_blacklist(settings, "undo")
+
+    assert preview["before"] == preview["after"] == ["Fraud"]
+    assert update_blacklist(settings, "undo")["exclude_terms"] == ["Fraud"]
+
+
+@pytest.mark.parametrize("kind,value", [
+    ("vacancy", "job-fingerprint"),
+    ("company", "Example Corp"),
+    ("company_role", "Example Corp|DevOps Engineer"),
+    ("role", "DevOps Engineer"),
+    ("phrase", "night shifts only"),
+])
+def test_structured_blacklist_five_levels_block_only_explicit_matches(kind, value):
+    job = Job(
+        id=42, fingerprint="job-fingerprint", title="DevOps Engineer",
+        company="Example Corp", description="Linux. Night shifts only.", country="US",
+    )
+    settings = {"blacklist_rules": [{"kind": kind, "value": value}]}
+    assert matching_blacklist_rule(job, settings)["kind"] == kind
+    assert score_job(job, SearchProfile(id=1, profile_id=1, settings=settings), [], []).fit == "skip"
+
+
+def test_structured_blacklist_exact_rules_do_not_use_accidental_substrings():
+    job = Job(
+        fingerprint="job-1234", title="Senior DevOps Engineer",
+        company="Example Corporation", description="Ordinary role", country="US",
+    )
+    settings = {"blacklist_rules": [
+        {"kind": "vacancy", "value": "job-12"},
+        {"kind": "company", "value": "Example"},
+        {"kind": "role", "value": "DevOps Engineer"},
+        {"kind": "company_role", "value": "Example|Senior DevOps Engineer"},
+    ]}
+    assert matching_blacklist_rule(job, settings) is None
+
+
+def test_structured_blacklist_ignores_disabled_expired_and_invalid_rules():
+    job = Job(fingerprint="job", title="DevOps Engineer", company="Example", description="blocked phrase")
+    settings = {"blacklist_rules": [
+        {"kind": "phrase", "value": "blocked phrase", "enabled": False},
+        {"kind": "phrase", "value": "blocked phrase", "expires_at": "2026-10-22T00:00:00Z"},
+        {"kind": "phrase", "value": "blocked phrase", "expires_at": "invalid"},
+    ]}
+    assert matching_blacklist_rule(job, settings, now=datetime(2026, 10, 23, tzinfo=UTC)) is None
+
+
+def test_structured_blacklist_command_parses_scope_expiry_and_quoted_value():
+    command = parse_blacklist_rule_command(
+        '/blacklist rule preview add company "Example Corp" --profile career --until 2026-12-01'
+    )
+    assert command == {
+        "preview": True, "action": "add", "kind": "company", "value": "Example Corp",
+        "profile_scope": "career", "expires_at": "2026-12-02T00:00:00Z",
+    }
+
+
+def test_structured_blacklist_update_is_reversible_and_preview_is_non_mutating():
+    settings = {"blacklist_rules": [{"kind": "company", "value": "Existing", "enabled": True}]}
+    preview = preview_blacklist_rule(settings, "add", "role", "DevOps Engineer")
+    assert settings == {"blacklist_rules": [{"kind": "company", "value": "Existing", "enabled": True}]}
+    assert [rule["kind"] for rule in preview["after"]] == ["company", "role"]
+
+    updated = update_blacklist_rule(settings, "add", "role", "DevOps Engineer")
+    disabled = update_blacklist_rule(updated, "disable", "role", "devops engineer")
+    assert disabled["blacklist_rules"][1]["enabled"] is False
+    assert update_blacklist_rule(disabled, "undo")["blacklist_rules"][1]["enabled"] is True
+
+
+def test_structured_blacklist_remove_and_malformed_company_role():
+    settings = update_blacklist_rule({}, "add", "company", "Example")
+    assert update_blacklist_rule(settings, "remove", "company", "example")["blacklist_rules"] == []
+    with pytest.raises(ValueError, match="Компания"):
+        parse_blacklist_rule_command("/blacklist rule add company_role MissingSeparator")

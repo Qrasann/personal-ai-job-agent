@@ -1,4 +1,12 @@
 from app.database import repository as repo
+from app.matching.engine import MATCH_ASSESSMENT_VERSION
+
+
+def _current_match(**kwargs):
+    from types import SimpleNamespace
+    return SimpleNamespace(**kwargs, recommendation_scores={
+        "_meta": {"match_assessment_version": MATCH_ASSESSMENT_VERSION}
+    })
 
 
 def test_review_decisions_suppress_reposts():
@@ -53,7 +61,7 @@ def test_review_command_shows_first_notified_match(monkeypatch):
         async def answer(self, text, **kwargs):
             self.answers.append((text, kwargs))
 
-    match = SimpleNamespace(id=301, total_score=78)
+    match = _current_match(id=301, total_score=78)
     job = SimpleNamespace(
         id=24,
         title="DevOps Engineer",
@@ -84,7 +92,7 @@ def test_review_command_shows_first_notified_match(monkeypatch):
     assert len(message.answers) == 1
     text, kwargs = message.answers[0]
     assert "DevOps Engineer" in text
-    assert "78/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
     assert kwargs["reply_markup"] is not None
 
@@ -259,8 +267,8 @@ def test_review_next_callback_edits_to_next_match(monkeypatch):
     from types import SimpleNamespace
     from unittest.mock import AsyncMock
     from app.telegram import handlers
-    cur = SimpleNamespace(id=301, user_id=7, total_score=90)
-    nxt = SimpleNamespace(id=302, user_id=7, total_score=82)
+    cur = _current_match(id=301, user_id=7, total_score=90)
+    nxt = _current_match(id=302, user_id=7, total_score=82)
     job1 = SimpleNamespace(id=24, title="DevOps Engineer", company="ACME")
     job2 = SimpleNamespace(id=25, title="Linux Engineer", company="Beta")
     message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
@@ -272,7 +280,7 @@ def test_review_next_callback_edits_to_next_match(monkeypatch):
     handlers.repo.review_matches.assert_awaited_once_with(7, None)
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "2 из 2" in text
 
 
@@ -289,7 +297,7 @@ def test_review_save_callback_shows_next_match(monkeypatch):
     from unittest.mock import AsyncMock
     from app.telegram import handlers
     cur = SimpleNamespace(id=301, user_id=7)
-    nxt = SimpleNamespace(id=302, user_id=7, total_score=82)
+    nxt = _current_match(id=302, user_id=7, total_score=82)
     job = SimpleNamespace(id=25, title="Linux Engineer", company="Beta")
     message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
     callback = SimpleNamespace(data="review_save:301", message=message, answer=AsyncMock())
@@ -300,7 +308,7 @@ def test_review_save_callback_shows_next_match(monkeypatch):
     asyncio.run(handlers.review_save_callback(callback))
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
 
 
@@ -312,7 +320,7 @@ def test_review_skip_callback_shows_next_match(monkeypatch):
     from unittest.mock import AsyncMock
     from app.telegram import handlers
     cur = SimpleNamespace(id=301, user_id=7)
-    nxt = SimpleNamespace(id=302, user_id=7, total_score=82)
+    nxt = _current_match(id=302, user_id=7, total_score=82)
     job = SimpleNamespace(id=25, title="Linux Engineer", company="Beta")
     message = SimpleNamespace(chat=SimpleNamespace(id=777), edit_text=AsyncMock())
     callback = SimpleNamespace(data="review_skip:301", message=message, answer=AsyncMock())
@@ -323,7 +331,7 @@ def test_review_skip_callback_shows_next_match(monkeypatch):
     asyncio.run(handlers.review_skip_callback(callback))
     text = message.edit_text.await_args.args[0]
     assert "Linux Engineer" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
 
 
@@ -416,7 +424,7 @@ def test_stretch_command_shows_first_stretch_match(monkeypatch):
     text, kwargs = message.answers[0]
     assert "Stretch-вакансии" in text
     assert "DevOps Engineer" in text
-    assert "70/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "1 из 1" in text
     assert kwargs["reply_markup"] is not None
 
@@ -439,7 +447,7 @@ def test_stretch_next_callback_edits_to_next_match(monkeypatch):
     text = message.edit_text.await_args.args[0]
     assert "Stretch-вакансии" in text
     assert "Linux Engineer" in text
-    assert "69/100" in text
+    assert "Подходит по текущему профилю" in text
     assert "2 из 2" in text
 
 def test_stretch_save_callback_stays_in_stretch_queue(monkeypatch):

@@ -37,6 +37,7 @@ services:
 
         asyncio.run(main())
     environment:
+      # checkov:skip=CKV_SECRET_4:Acceptance-only database credentials are isolated test data, not a secret.
       DATABASE_URL: postgresql+asyncpg://jobagent_web_acceptance:jobagent_web_acceptance@postgres:5432/jobagent_web_acceptance
       STORAGE_PATH: /app/storage
       TELEGRAM_ADMIN_CHAT_ID: ${WEB_GUI_ACCEPTANCE_OWNER:-web-acceptance-owner}

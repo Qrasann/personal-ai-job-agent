@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.database.db import SessionLocal
 from app.database.models import (
     Application,
+    ApplicationReminder,
     ApplicationStatusEvent,
     CandidateFact,
     CandidateProfile,
@@ -21,6 +22,7 @@ from app.database.models import (
     SeenMessage,
     User,
 )
+from app.domain.resume_versions import approved_version_rules, draft_version_rules
 from app.domain.jobs import NormalizedJob
 from app.domain.relocation_evidence import build_relocation_evidence
 from app.domain.source_posting import posting_snapshot_digest, snapshot_source_posting
@@ -29,8 +31,27 @@ from app.candidates.fact_types import normalize_experience_type
 REPOST_SUPPRESS_STATUSES = frozenset({"notified", "prepared", "applied", "saved", "skipped"})
 PREPARED_MATCH_SNAPSHOT_KEY = "_prepared_match_id"
 MANUAL_APPLICATION_STATUSES = frozenset({
-    "reviewed", "submitted", "interview", "offer", "rejected", "withdrawn",
+    "reviewed", "submitted", "response", "assessment", "interview", "offer",
+    "rejected", "withdrawn", "closed",
 })
+PROVIDER_APPLICATION_STATUSES = frozenset({
+    "received", "response", "assessment", "interview", "offer", "rejected", "closed",
+})
+APPLICATION_EVENT_PROVENANCE = frozenset({"legacy", "system", "manual_user", "provider"})
+
+
+def _application_event(
+    item: Application, status: str, *, provenance: str, evidence: dict | None = None,
+    event_key: str | None = None,
+) -> ApplicationStatusEvent:
+    if provenance not in APPLICATION_EVENT_PROVENANCE:
+        raise ValueError("Некорректный источник события отклика")
+    if event_key is not None and (not event_key.strip() or len(event_key) > 128):
+        raise ValueError("Некорректный ключ события отклика")
+    return ApplicationStatusEvent(
+        application_id=item.id, user_id=item.user_id, status=status,
+        provenance=provenance, evidence=dict(evidence or {}), event_key=event_key,
+    )
 
 
 class FactUpdateConflict(ValueError):
@@ -231,6 +252,85 @@ async def list_resumes(profile_id: int) -> list[ResumeProfile]:
     async with SessionLocal() as session:
         rows = await session.scalars(select(ResumeProfile).where(ResumeProfile.profile_id == profile_id, ResumeProfile.active.is_(True), ResumeProfile.deleted_at.is_(None)).order_by(ResumeProfile.id))
         return list(rows)
+
+
+async def duplicate_resume_version(profile_id: int, resume_id: int, name: str) -> ResumeProfile | None:
+    """Create an owner-scoped draft version while retaining the exact parent."""
+    if not name.strip() or len(name.strip()) > 128:
+        raise ValueError("Имя версии CV должно содержать от 1 до 128 символов.")
+    async with SessionLocal() as session:
+        source = await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ))
+        if source is None:
+            return None
+        item = ResumeProfile(
+            profile_id=profile_id,
+            name=name.strip(),
+            language=source.language,
+            role=source.role,
+            source="version",
+            content=source.content,
+            rules=draft_version_rules(source.rules, parent_id=source.id),
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
+async def create_resume_revision(
+    profile_id: int,
+    resume_id: int,
+    *,
+    expected_content_digest: str,
+    content: str,
+) -> ResumeProfile | None:
+    """Create a draft revision without mutating or rebinding the parent CV."""
+    from app.candidates.resume_edit import content_digest
+
+    async with SessionLocal() as session:
+        source = await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ).with_for_update())
+        if source is None:
+            return None
+        if content_digest(source.content or "") != expected_content_digest:
+            raise RuntimeError("CV изменился после предпросмотра. Создай diff заново.")
+        item = ResumeProfile(
+            profile_id=profile_id,
+            name=f"{source.name} (revision)",
+            language=source.language,
+            role=source.role,
+            source="version",
+            content=content,
+            rules=draft_version_rules(source.rules, parent_id=source.id),
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
+async def approve_resume_version(profile_id: int, resume_id: int) -> bool:
+    async with SessionLocal() as session:
+        item = await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ).with_for_update())
+        if item is None:
+            return False
+        item.rules = approved_version_rules(item.rules)
+        await session.commit()
+        return True
 
 
 async def list_search_profiles(profile_id: int) -> list[SearchProfile]:
@@ -711,10 +811,9 @@ async def save_application(**kwargs) -> Application:
         item = Application(**kwargs)
         session.add(item)
         await session.flush()
-        session.add(ApplicationStatusEvent(
-            application_id=item.id,
-            user_id=item.user_id,
-            status=item.status,
+        session.add(_application_event(
+            item, item.status, provenance="system",
+            evidence={"kind": "application_created"}, event_key="initial",
         ))
         await session.commit()
         await session.refresh(item)
@@ -763,8 +862,9 @@ async def save_prepared_application(
         item = Application(user_id=user_id, status="prepared", **kwargs)
         session.add(item)
         await session.flush()
-        session.add(ApplicationStatusEvent(
-            application_id=item.id, user_id=user_id, status="prepared",
+        session.add(_application_event(
+            item, "prepared", provenance="system",
+            evidence={"kind": "prepared_package", "match_id": match_id}, event_key="prepared",
         ))
         match.status = "prepared"
         await session.commit()
@@ -828,8 +928,9 @@ async def reserve_hh_application(
         )
         session.add(item)
         await session.flush()
-        session.add(ApplicationStatusEvent(
-            application_id=item.id, user_id=user_id, status="sending",
+        session.add(_application_event(
+            item, "sending", provenance="provider",
+            evidence={"provider": "hh", "kind": "attempt_reserved"}, event_key="hh:attempt",
         ))
         await session.commit()
         await session.refresh(item)
@@ -871,8 +972,9 @@ async def finish_hh_application(
         item.status = status
         item.source_application_id = source_application_id if status == "sent" else None
         item.external_url = external_url
-        session.add(ApplicationStatusEvent(
-            application_id=item.id, user_id=user_id, status=status,
+        session.add(_application_event(
+            item, status, provenance="provider",
+            evidence={"provider": "hh", "kind": "provider_outcome"}, event_key="hh:outcome",
         ))
         await session.commit()
 
@@ -898,7 +1000,11 @@ async def get_application(user_id: int, application_id: int) -> Application | No
         )
 
 
-async def set_application_status(user_id: int, application_id: int, status: str) -> bool:
+async def set_application_status(
+    user_id: int, application_id: int, status: str, *,
+    provenance: str = "manual_user", evidence: dict | None = None,
+    event_key: str | None = None,
+) -> bool:
     if status not in MANUAL_APPLICATION_STATUSES:
         return False
     async with SessionLocal() as session:
@@ -911,13 +1017,62 @@ async def set_application_status(user_id: int, application_id: int, status: str)
         )
         if not item:
             return False
+        if event_key is not None:
+            duplicate = await session.scalar(select(ApplicationStatusEvent.id).where(
+                ApplicationStatusEvent.application_id == item.id,
+                ApplicationStatusEvent.event_key == event_key,
+            ))
+            if duplicate is not None:
+                return True
         if item.status == status:
             return True
         item.status = status
-        session.add(ApplicationStatusEvent(
-            application_id=item.id,
-            user_id=item.user_id,
-            status=status,
+        session.add(_application_event(
+            item, status, provenance=provenance,
+            evidence=evidence or {"kind": "manual_status"}, event_key=event_key,
+        ))
+        await session.commit()
+        return True
+
+
+async def record_provider_application_status(
+    user_id: int,
+    application_id: int,
+    *,
+    provider: str,
+    status: str,
+    event_key: str,
+    evidence: dict | None = None,
+) -> bool:
+    """Append one authenticated provider event, safely acknowledging replays."""
+    provider = provider.strip().casefold()
+    scoped_key = f"provider:{provider}:{event_key.strip()}"
+    if (
+        status not in PROVIDER_APPLICATION_STATUSES
+        or not provider or len(provider) > 64
+        or not event_key.strip() or len(scoped_key) > 128
+    ):
+        return False
+    async with SessionLocal() as session:
+        item = await session.scalar(select(Application).where(
+            Application.id == application_id,
+            Application.user_id == user_id,
+            Application.source_id == provider,
+        ).with_for_update())
+        if item is None:
+            return False
+        duplicate = await session.scalar(select(ApplicationStatusEvent.id).where(
+            ApplicationStatusEvent.application_id == item.id,
+            ApplicationStatusEvent.event_key == scoped_key,
+        ))
+        if duplicate is not None:
+            return True
+        item.status = status
+        event_evidence = dict(evidence or {})
+        event_evidence.update({"provider": provider, "kind": "incoming_provider_event"})
+        session.add(_application_event(
+            item, status, provenance="provider",
+            evidence=event_evidence, event_key=scoped_key,
         ))
         await session.commit()
         return True
@@ -942,6 +1097,61 @@ async def application_status_history(user_id: int, application_id: int) -> list[
             .order_by(ApplicationStatusEvent.id)
         )
         return list(rows)
+
+
+async def add_application_reminder(
+    user_id: int, application_id: int, due_at: datetime, note: str,
+) -> ApplicationReminder | None:
+    note = " ".join(note.split())
+    if not note or len(note) > 500:
+        raise ValueError("Текст напоминания должен содержать от 1 до 500 символов.")
+    async with SessionLocal() as session:
+        application = await session.scalar(select(Application.id).where(
+            Application.id == application_id, Application.user_id == user_id,
+        ).with_for_update())
+        if application is None:
+            return None
+        existing = await session.scalar(select(ApplicationReminder).where(
+            ApplicationReminder.application_id == application_id,
+            ApplicationReminder.user_id == user_id,
+            ApplicationReminder.due_at == due_at,
+            ApplicationReminder.note == note,
+            ApplicationReminder.status == "pending",
+        ).limit(1))
+        if existing is not None:
+            return existing
+        item = ApplicationReminder(
+            application_id=application_id, user_id=user_id,
+            due_at=due_at, note=note, status="pending",
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+        return item
+
+
+async def list_application_reminders(user_id: int, limit: int = 20) -> list[ApplicationReminder]:
+    async with SessionLocal() as session:
+        rows = await session.scalars(select(ApplicationReminder).where(
+            ApplicationReminder.user_id == user_id,
+            ApplicationReminder.status == "pending",
+        ).order_by(ApplicationReminder.due_at, ApplicationReminder.id).limit(max(1, min(limit, 100))))
+        return list(rows)
+
+
+async def complete_application_reminder(user_id: int, reminder_id: int) -> bool:
+    async with SessionLocal() as session:
+        item = await session.scalar(select(ApplicationReminder).where(
+            ApplicationReminder.id == reminder_id,
+            ApplicationReminder.user_id == user_id,
+        ).with_for_update())
+        if item is None:
+            return False
+        if item.status == "done":
+            return True
+        item.status = "done"
+        await session.commit()
+        return True
 
 
 async def message_seen(user_id: int, message_id: str, source: str) -> bool:
@@ -1024,6 +1234,16 @@ async def get_match_for_user_job(
 async def get_resume(resume_id: int) -> ResumeProfile | None:
     async with SessionLocal() as session:
         return await session.get(ResumeProfile, resume_id)
+
+
+async def get_profile_resume(profile_id: int, resume_id: int) -> ResumeProfile | None:
+    async with SessionLocal() as session:
+        return await session.scalar(select(ResumeProfile).where(
+            ResumeProfile.id == resume_id,
+            ResumeProfile.profile_id == profile_id,
+            ResumeProfile.active.is_(True),
+            ResumeProfile.deleted_at.is_(None),
+        ))
 
 
 async def set_fact_experience_type(profile_id: int, fact_id: int, experience_type: str) -> bool:

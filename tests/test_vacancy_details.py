@@ -280,6 +280,19 @@ def test_jobs_list_includes_job_id_and_details_command():
     assert "/job 25" in text
 
 
+def test_jobs_list_shows_friendly_country_name_without_inventing_city():
+    job = SimpleNamespace(
+        id=27, title="DevOps Engineer", company="Example Corp",
+        salary_from=None, salary_to=None, salary_currency=None,
+        salary_period=None, description="", city=None, country="MT",
+        work_mode=None,
+    )
+
+    text = render_jobs_list([(SimpleNamespace(total_score=70), job)])
+
+    assert "📍 Malta" in text
+
+
 def test_himalayas_job_list_item_includes_visible_source_attribution_link():
     job = SimpleNamespace(
         id=26,

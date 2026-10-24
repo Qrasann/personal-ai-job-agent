@@ -117,13 +117,13 @@ async def _application_migration_flow(monkeypatch):
             await conn.execute(text("ALTER TABLE applications DROP COLUMN vacancy_snapshot"))
             applied = await apply_migrations(conn)
 
-        assert applied == [5, 6, 7, 8]
+        assert applied == [5, 6, 7, 8, 9, 10, 11]
         async with engine.begin() as conn:
             assert await apply_migrations(conn) == []
         events = await repo.application_status_history(user.id, application_id)
         assert events is not None
-        assert [(event.status, event.created_at) for event in events] == [
-            ("submitted", datetime(2025, 1, 2, 3, 4)),
+        assert [(event.status, event.created_at, event.provenance, event.evidence) for event in events] == [
+            ("submitted", datetime(2025, 1, 2, 3, 4), "legacy", {}),
         ]
         loaded = await repo.get_application(user.id, application_id)
         assert loaded.resume_snapshot == ""
@@ -137,6 +137,87 @@ async def _application_migration_flow(monkeypatch):
 def test_v7_to_v8_job_delete_protects_application_history(monkeypatch):
     _require_test_database()
     asyncio.run(_application_history_restrict_migration_flow(monkeypatch))
+
+
+@pytest.mark.integration
+def test_v8_to_v11_preserves_application_history_and_adds_guards(monkeypatch):
+    _require_test_database()
+    asyncio.run(_v8_to_v11_application_migration_flow(monkeypatch))
+
+
+async def _v8_to_v11_application_migration_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        owner = await repo.create_user("v8-upgrade-owner", "V8 Upgrade Owner")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="v8-upgrade-job", title="Platform Engineer",
+            company="Upgrade Example", description="Preserve this application",
+        ))
+        application = await repo.save_application(
+            user_id=owner.id, job_id=job.id, source_id="hh", status="prepared",
+            message="Exact approved letter", resume_snapshot="Exact CV snapshot",
+            resume_external_id="resume-v8",
+            vacancy_snapshot={"title": "Platform Engineer", "source_job_id": "v8-upgrade-job"},
+        )
+
+        async with engine.begin() as conn:
+            # Reconstruct the exact additive surface expected before migrations 9 and 10.
+            await conn.execute(text("DROP TABLE application_reminders"))
+            await conn.execute(text("DROP TRIGGER IF EXISTS application_status_events_immutable ON application_status_events"))
+            await conn.execute(text("DROP INDEX IF EXISTS uq_application_status_event_key"))
+            await conn.execute(text("ALTER TABLE application_status_events DROP COLUMN event_key"))
+            await conn.execute(text("ALTER TABLE application_status_events DROP COLUMN evidence"))
+            await conn.execute(text("ALTER TABLE application_status_events DROP COLUMN provenance"))
+            for version in range(1, 9):
+                await conn.execute(
+                    text("INSERT INTO schema_migrations(version,name,applied_at) "
+                         "VALUES (:version,:name,CURRENT_TIMESTAMP)"),
+                    {"version": version, "name": f"v{version}"},
+                )
+
+            assert await apply_migrations(conn) == [9, 10, 11]
+            assert await apply_migrations(conn) == []
+            assert await conn.scalar(text("SELECT max(version) FROM schema_migrations")) == 11
+            reminder_table = await conn.scalar(text("SELECT to_regclass('public.application_reminders')"))
+            assert reminder_table == "application_reminders"
+
+        loaded = await repo.get_application(owner.id, application.id)
+        assert loaded is not None
+        assert loaded.message == "Exact approved letter"
+        assert loaded.resume_snapshot == "Exact CV snapshot"
+        assert loaded.resume_external_id == "resume-v8"
+        assert loaded.vacancy_snapshot["source_job_id"] == "v8-upgrade-job"
+        history = await repo.application_status_history(owner.id, application.id)
+        assert [(item.status, item.provenance, item.evidence) for item in history] == [
+            ("prepared", "legacy", {}),
+        ]
+
+        async with engine.begin() as conn:
+            # Simulate the v8 ORM, which omits all v9 columns on INSERT.
+            await conn.execute(text(
+                "INSERT INTO application_status_events "
+                "(application_id,user_id,status,created_at) "
+                "VALUES (:application_id,:user_id,'reviewed',CURRENT_TIMESTAMP)"
+            ), {"application_id": application.id, "user_id": owner.id})
+            rollback_row = (await conn.execute(text(
+                "SELECT provenance,evidence FROM application_status_events "
+                "WHERE application_id=:id AND status='reviewed'"
+            ), {"id": application.id})).one()
+            assert tuple(rollback_row) == ("legacy", {})
+
+        with pytest.raises(DBAPIError, match="application status history is immutable"):
+            async with engine.begin() as conn:
+                await conn.execute(
+                    text("UPDATE application_status_events SET status='tampered' WHERE application_id=:id"),
+                    {"id": application.id},
+                )
+    finally:
+        await engine.dispose()
 
 
 async def _application_history_restrict_migration_flow(monkeypatch):
@@ -178,7 +259,7 @@ async def _application_history_restrict_migration_flow(monkeypatch):
                 "AND conrelid = 'applications'::regclass"
             ))
             assert "ON DELETE CASCADE" in before
-            assert await apply_migrations(conn) == [8]
+            assert await apply_migrations(conn) == [8, 9, 10, 11]
             after = await conn.scalar(text(
                 "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
                 "WHERE conname = 'applications_job_id_fkey' "
@@ -340,6 +421,157 @@ async def _application_status_rollback_flow(monkeypatch):
         history = await repo.application_status_history(user.id, application.id)
         assert saved.status == "prepared"
         assert [item.status for item in history] == ["prepared"]
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_application_event_provenance_idempotency_and_database_immutability(monkeypatch):
+    _require_test_database()
+    asyncio.run(_application_event_provenance_flow(monkeypatch))
+
+
+async def _application_event_provenance_flow(monkeypatch):
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+            await apply_migrations(conn)
+        user = await repo.create_user("event-provenance-user", "Event Provenance")
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="event-test", source_job_id="1", title="Linux role",
+        ))
+        application = await repo.save_application(
+            user_id=user.id, job_id=job.id, source_id="event-test", status="prepared",
+        )
+        assert await repo.set_application_status(
+            user.id, application.id, "reviewed", provenance="manual_user",
+            evidence={"kind": "telegram_callback"}, event_key="telegram:update:100",
+        )
+        assert await repo.set_application_status(user.id, application.id, "interview")
+        # A replay of the exact event is acknowledged without reverting state or appending history.
+        assert await repo.set_application_status(
+            user.id, application.id, "reviewed", provenance="manual_user",
+            evidence={"kind": "telegram_callback"}, event_key="telegram:update:100",
+        )
+        history = await repo.application_status_history(user.id, application.id)
+        assert [(event.status, event.provenance, event.event_key) for event in history] == [
+            ("prepared", "system", "initial"),
+            ("reviewed", "manual_user", "telegram:update:100"),
+            ("interview", "manual_user", None),
+        ]
+        assert (await repo.get_application(user.id, application.id)).status == "interview"
+
+        assert not await repo.record_provider_application_status(
+            user.id, application.id, provider="other", status="response", event_key="evt-1",
+        )
+        assert await repo.record_provider_application_status(
+            user.id, application.id, provider="event-test", status="response", event_key="evt-1",
+            evidence={"provider_event_type": "employer_reply"},
+        )
+        assert await repo.set_application_status(user.id, application.id, "assessment")
+        # Provider replay is idempotent even after the local CRM has advanced.
+        assert await repo.record_provider_application_status(
+            user.id, application.id, provider="event-test", status="response", event_key="evt-1",
+        )
+        history = await repo.application_status_history(user.id, application.id)
+        assert [(event.status, event.provenance, event.event_key) for event in history[-2:]] == [
+            ("response", "provider", "provider:event-test:evt-1"),
+            ("assessment", "manual_user", None),
+        ]
+        assert history[-2].evidence == {
+            "provider_event_type": "employer_reply",
+            "provider": "event-test",
+            "kind": "incoming_provider_event",
+        }
+        assert (await repo.get_application(user.id, application.id)).status == "assessment"
+
+        due_at = datetime(2026, 11, 1, 6, 0)
+        reminders = await asyncio.gather(
+            repo.add_application_reminder(user.id, application.id, due_at, "Check employer reply"),
+            repo.add_application_reminder(user.id, application.id, due_at, "Check employer reply"),
+        )
+        assert reminders[0].id == reminders[1].id
+        pending = await repo.list_application_reminders(user.id)
+        assert [(item.application_id, item.due_at, item.note) for item in pending] == [
+            (application.id, due_at, "Check employer reply"),
+        ]
+        assert not await repo.complete_application_reminder(user.id + 1, pending[0].id)
+        assert await repo.complete_application_reminder(user.id, pending[0].id)
+        assert await repo.list_application_reminders(user.id) == []
+
+        event_id = history[1].id
+        async with test_session() as session:
+            with pytest.raises(DBAPIError, match="immutable"):
+                await session.execute(text(
+                    "UPDATE application_status_events SET status = 'tampered' WHERE id = :id"
+                ), {"id": event_id})
+                await session.commit()
+            await session.rollback()
+        async with test_session() as session:
+            with pytest.raises(DBAPIError, match="immutable"):
+                await session.execute(text(
+                    "DELETE FROM application_status_events WHERE id = :id"
+                ), {"id": event_id})
+                await session.commit()
+            await session.rollback()
+        # Deliberate deletion of the whole parent ledger remains possible for a
+        # future owner-authorized privacy workflow; its FK cascade is not a
+        # mutation of one selectively chosen history event.
+        async with engine.begin() as conn:
+            await conn.execute(text("DELETE FROM applications WHERE id = :id"), {"id": application.id})
+            remaining = await conn.scalar(text(
+                "SELECT count(*) FROM application_status_events WHERE application_id = :id"
+            ), {"id": application.id})
+            assert remaining == 0
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.integration
+def test_resume_revision_preserves_parent_and_rejects_stale_preview(monkeypatch):
+    _require_test_database()
+    asyncio.run(_resume_revision_flow(monkeypatch))
+
+
+async def _resume_revision_flow(monkeypatch):
+    from app.candidates.resume_edit import content_digest
+    from app.domain.resume_versions import version_metadata
+
+    engine = create_async_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+    test_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", test_session)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        user = await repo.create_user("resume-revision-owner", "Resume Owner")
+        profile = await repo.ensure_default_profile(user.id)
+        parent = await repo.add_resume(
+            profile.id, "SRE EN", "en", "SRE", "Linux\nDocker",
+            source="hh", external_id="provider-resume-1",
+        )
+        revision = await repo.create_resume_revision(
+            profile.id, parent.id,
+            expected_content_digest=content_digest(parent.content),
+            content="Linux\nKubernetes",
+        )
+        assert revision.content == "Linux\nKubernetes"
+        assert revision.source == "version"
+        assert revision.external_id is None
+        assert version_metadata(revision.rules) == {"status": "draft", "parent_id": parent.id}
+        unchanged = await repo.get_profile_resume(profile.id, parent.id)
+        assert (unchanged.content, unchanged.source, unchanged.external_id) == (
+            "Linux\nDocker", "hh", "provider-resume-1",
+        )
+        with pytest.raises(RuntimeError, match="после предпросмотра"):
+            await repo.create_resume_revision(
+                profile.id, parent.id,
+                expected_content_digest=content_digest("stale"), content="Other",
+            )
     finally:
         await engine.dispose()
 
@@ -524,8 +756,10 @@ async def _repository_review_flow(monkeypatch):
             relocation_score=50,
             total_score=78,
             reason="integration test",
+            recommendation_scores={"_meta": {"match_assessment_version": 1}},
             status="notified",
         )
+        assert match.recommendation_scores["_meta"]["match_assessment_version"] == 1
 
         package = await repo.save_application(
             user_id=user.id,

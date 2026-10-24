@@ -42,10 +42,34 @@ def test_search_strips_session_and_preserves_explicit_salary():
     assert item.url == "https://www.jobbank.gc.ca/jobsearch/jobpostingtfw/123"
     assert item.source_job_id == "123"
     assert item.country == "CA"
-    assert item.city == "Toronto (ON)"
+    assert item.city == "Toronto"
+    assert item.raw["source_location"] == "Location Toronto (ON)"
+    assert item.raw["location_resolution"] == "jobbank_city_province_code"
     assert item.raw["source_salary_text"] == "Salary $20.50 hourly"
     assert "salary_text" not in item.raw
     assert item.salary_from is None
+
+
+@pytest.mark.parametrize("location", ["Remote", "Multiple locations (ON)", "Various locations", "Toronto and Montreal (ON)"])
+def test_search_keeps_ambiguous_or_remote_jobbank_location_city_unknown(location):
+    html = SEARCH.replace("Location Toronto (ON)", location)
+    item = JobBankSource.parse_search(html)[0]
+    assert item.country == "CA"
+    assert item.city is None
+    assert item.raw["location_resolution"] is None
+
+
+@pytest.mark.parametrize("location,expected,resolution", [
+    ("Ottawa, ON", "Ottawa", "jobbank_city_province_code"),
+    ("Vancouver (BC)", "Vancouver", "jobbank_city_province_code"),
+    ("St. John's (NL)", "St. John's", "jobbank_city_province_code"),
+    ("Toronto, Ontario", "Toronto", "jobbank_city_province_name"),
+    ("St. John's, Newfoundland and Labrador", "St. John's", "jobbank_city_province_name"),
+])
+def test_search_resolves_single_city_with_official_province_evidence(location, expected, resolution):
+    item = JobBankSource.parse_search(SEARCH.replace("Location Toronto (ON)", f"Location {location}"))[0]
+    assert item.city == expected
+    assert item.raw["location_resolution"] == resolution
 
 
 def test_lmia_request_is_not_sponsorship_or_work_permit_support():
@@ -55,11 +79,30 @@ def test_lmia_request_is_not_sponsorship_or_work_permit_support():
     assert not any(_signals(item).values())
 
 
-def test_explicit_eligibility_restriction_overrides_lmia_and_support():
+def test_explicit_eligibility_restriction_is_separate_from_explicit_sponsorship_offer():
     item = JobBankSource.enrich(job(), detail("We offer visa sponsorship.", "Do not apply if you are not authorized to work in Canada"))
     assert item.raw["international_candidates"] is False
-    assert item.visa_sponsorship is False
-    assert not any(_signals(item).values())
+    assert item.visa_sponsorship is True
+    assert item.raw["support_signals"]["visa_sponsorship"] is True
+
+
+@pytest.mark.parametrize("requirement", [
+    "Only candidates already authorized to work in Canada may apply.",
+    "Applicants must already have a valid Canadian work permit.",
+    "Must be legally eligible to work in Canada.",
+])
+def test_explicit_existing_authorization_prerequisite_is_not_international_candidate_support(requirement):
+    item = JobBankSource.enrich(job(), detail("LMIA requested.", requirement))
+    assert item.raw["international_candidates"] is False
+    assert item.visa_sponsorship is None
+    assert item.raw["eligibility_evidence"] == requirement
+
+
+def test_absent_or_uncertain_authorization_requirement_stays_unknown():
+    for statement in ("Work authorization may be required.", "Candidates are welcome to apply."):
+        item = JobBankSource.enrich(job(), detail("LMIA requested.", statement))
+        assert item.raw["international_candidates"] is None
+        assert item.visa_sponsorship is None
 
 
 def test_international_eligibility_does_not_imply_sponsorship():

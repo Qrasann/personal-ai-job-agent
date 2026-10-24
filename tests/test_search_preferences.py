@@ -199,9 +199,30 @@ def test_balanced_strategy_combines_career_and_relocation_queries():
 
 
 def test_each_strategy_keeps_its_query_track_independent():
-    cfg = {"queries": ["SRE"], "relocation_queries": ["factory worker"]}
-    assert discovery_queries({**cfg, "search_strategy": "career_first"}) == ["SRE"]
-    assert discovery_queries({**cfg, "search_strategy": "relocation_first"}) == ["factory worker"]
+    cfg = {
+        "queries": ["DevOps Engineer", "Infrastructure Engineer", "SRE"],
+        "relocation_queries": ["warehouse worker", "factory worker", "hotel staff"],
+    }
+    assert discovery_queries({**cfg, "search_strategy": "career_first"}) == [
+        "DevOps Engineer", "Infrastructure Engineer", "SRE",
+    ]
+    assert discovery_queries({**cfg, "search_strategy": "relocation_first"}) == [
+        "DevOps Engineer", "warehouse worker",
+        "Infrastructure Engineer", "factory worker",
+        "SRE", "hotel staff",
+    ]
+
+
+def test_relocation_strategy_deduplicates_shared_it_and_any_job_queries():
+    cfg = {
+        "search_strategy": "relocation_first",
+        "queries": ["DevOps Engineer", "SRE"],
+        "relocation_queries": ["devops engineer", "warehouse worker", "SRE"],
+    }
+
+    assert discovery_queries(cfg) == [
+        "DevOps Engineer", "warehouse worker", "SRE",
+    ]
 
 
 def test_relocation_strategy_falls_back_without_disabling_discovery():

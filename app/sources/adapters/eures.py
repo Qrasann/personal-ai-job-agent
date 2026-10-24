@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.job_text import clean_html_text
+from app.geo.countries import normalize_country
 from app.sources.diagnostics import classify_source_error, SourceInvalidResponse
 from app.sources.base import JobSource, SourceContext
 
@@ -129,6 +130,7 @@ class EuresSource(JobSource):
                     "international_candidates_evidence": "Employer-marked EURES vacancy for cross-border recruitment",
                     "evidence_url": f"https://europa.eu/eures/api/jv-searchengine/public/jv/id/{quote(str(row['id']), safe='')}?requestLang=en",
                     "location_map": location_map,
+                    "location_resolution": "eures_location_map_country" if country else None,
                     "source_summary": row,
                 },
             ))
@@ -177,21 +179,50 @@ class EuresSource(JobSource):
         job.title = str(profile.get("title") or job.title)
         job.description = clean_html_text(str(profile.get("description") or job.description))
         locations = profile.get("locations") or []
-        if locations and isinstance(locations[0], dict):
-            location = locations[0]
-            job.country = str(location.get("countryCode") or job.country or "").upper() or None
-            raw_city = str(location.get("cityName") or "")
-            normalized_city = re.sub(r"\s+", " ", raw_city).strip()
-            # EURES sometimes pads the location with long whitespace blocks.
-            # Normalize them before saving to the bounded city column. If the
-            # remaining value is still too long to be a useful city label, keep
-            # it as source evidence and leave city unknown.
-            if normalized_city and len(normalized_city) <= 256:
-                job.city = normalized_city
+        if isinstance(locations, list) and locations:
+            if all(isinstance(location, dict) for location in locations):
+                countries = [
+                    normalize_country(str(location.get("countryCode") or ""))
+                    for location in locations
+                ]
+                unique_countries = set(countries)
+                if all(countries) and len(unique_countries) == 1:
+                    job.country = countries[0]
+                    raw_cities = [str(location.get("cityName") or "") for location in locations]
+                    normalized_cities = [re.sub(r"\s+", " ", city).strip() for city in raw_cities]
+                    usable_cities = {
+                        city for city in normalized_cities if city and len(city) <= 256
+                    }
+                    if len(usable_cities) == 1 and all(
+                        city and len(city) <= 256 for city in normalized_cities
+                    ):
+                        job.city = next(iter(usable_cities))
+                        job.raw["location_resolution"] = (
+                            "eures_structured_city_country" if len(locations) == 1
+                            else "eures_multiple_locations_same_city_country"
+                        )
+                    else:
+                        job.city = None
+                        job.raw["location_resolution"] = (
+                            "eures_structured_country" if len(locations) == 1
+                            else "eures_multiple_locations_same_country"
+                        )
+                        if any(normalized_cities):
+                            if len(locations) == 1:
+                                job.raw["location_text"] = raw_cities[0]
+                            else:
+                                job.raw["location_texts"] = raw_cities[:10]
+                else:
+                    job.country = None
+                    job.city = None
+                    job.raw["location_resolution"] = (
+                        "eures_detail_location_ambiguous" if len(locations) == 1
+                        else "eures_multiple_locations_ambiguous"
+                    )
             else:
+                job.country = None
                 job.city = None
-                if raw_city:
-                    job.raw["location_text"] = raw_city
+                job.raw["location_resolution"] = "eures_multiple_locations_ambiguous"
         job.company = str((profile.get("employer") or {}).get("name") or job.company)
 
         # Preserve a verified, source-provided application destination when one

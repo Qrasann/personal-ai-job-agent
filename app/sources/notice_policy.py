@@ -3,12 +3,16 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 
-from app.sources.diagnostics import STAGES
-
 
 STATE_KEY = "source_notice_state.v1"
-REPEAT_SUMMARY_AFTER = timedelta(hours=6)
-_VALID_STATES = {"healthy", "degraded", "partial", "failed"}
+DAILY_SUMMARY_AFTER = timedelta(hours=24)
+_SEVERITY = {"healthy": 0, "limited": 1, "material_loss": 2, "unavailable": 3}
+_NETWORK_CODES = {
+    "DNS_RESOLUTION_FAILED", "NETWORK_CONNECT_TIMEOUT", "NETWORK_READ_TIMEOUT",
+    "NETWORK_POOL_TIMEOUT", "NETWORK_CONNECT_ERROR", "NETWORK_TRANSPORT_FAILED",
+    "NETWORK_PROXY_ERROR", "NETWORK_CONNECTION_RESET", "NETWORK_CONNECTION_REFUSED",
+    "NETWORK_UNREACHABLE", "TLS_CONNECTION_FAILED", "TLS_VALIDATION_FAILED",
+}
 
 
 def _utc(now: datetime | None = None) -> datetime:
@@ -33,44 +37,62 @@ def _load(raw: str) -> dict[str, dict]:
         payload = json.loads(raw)
     except (TypeError, ValueError):
         return {}
-    if not isinstance(payload, dict) or payload.get("version") != 1:
+    # Migrate v1 rows in place. The old signature included raw error codes.
+    if not isinstance(payload, dict) or payload.get("version") not in {1, 2}:
         return {}
     rows = payload.get("sources")
     return rows if isinstance(rows, dict) else {}
 
 
-def _current(source_id: str, info: dict) -> dict | None:
+def _current(info: dict) -> dict | None:
     status = str(info.get("status") or "failed")
     diagnostics = info.get("diagnostics") if isinstance(info.get("diagnostics"), list) else []
-    codes: set[str] = set()
-    saw_cooldown = False
-    for item in diagnostics:
-        if not isinstance(item, dict):
-            continue
-        action = item.get("action")
-        code = str(item.get("code") or "SOURCE_PROCESSING_FAILED")
-        if action == "cooldown" and code != "TLS_VALIDATION_FAILED":
-            saw_cooldown = True
-            continue
-        if source_id == "hh" and code == "HTTP_403_FORBIDDEN" and action == "fallback":
-            # Expected anonymous API refusal is retained in Diagnostics. The
-            # successful permitted web fallback is operational, not an alert.
-            continue
-        codes.add(code)
-
-    if not codes and saw_cooldown and status in {"failed", "skipped"}:
-        # A cooldown is the continuation of the preceding state, not a fresh
-        # source transition every scheduled pass.
+    codes = sorted({
+        str(item.get("code") or "SOURCE_PROCESSING_FAILED")
+        for item in diagnostics
+        if isinstance(item, dict)
+        and item.get("action") != "fallback"
+        and not (item.get("action") == "cooldown" and item.get("code") != "TLS_VALIDATION_FAILED")
+    })
+    saw_cooldown = any(
+        isinstance(item, dict) and item.get("action") == "cooldown"
+        for item in diagnostics
+    )
+    if status in {"failed", "skipped"} and saw_cooldown and not codes:
         return None
+
     if status == "failed":
-        state = "failed"
-    elif status == "partial":
-        state = "partial" if codes else "healthy"
-    elif codes:
-        state = "degraded"
+        state = "unavailable"
+        impact = "critical"
+    elif status in {"partial", "success"} and codes:
+        attempts = max(0, int(info.get("attempts") or 0))
+        failed = max(0, int(info.get("failed") or 0))
+        found = max(0, int(info.get("found") or 0))
+        processed = max(0, int(info.get("processed") or 0))
+        successful = max(0, int(info.get("successful_attempts") or 0))
+        processing_errors = max(0, int(info.get("processing_errors") or 0))
+        material_loss = info.get("material_loss") is True
+        majority_failed = attempts > 0 and failed / attempts >= 0.5
+        no_results = (found == 0 and (
+            failed > 0 or int(info.get("partial_failures") or 0) > 0
+        )) or (
+            processing_errors > 0 and processed == 0
+        )
+        state = "material_loss" if material_loss or majority_failed or no_results else "limited"
+        impact = "material" if state == "material_loss" else "limited"
+        if state == "material_loss" and successful == 0 and failed:
+            state = "unavailable"
+            impact = "critical"
     else:
         state = "healthy"
-    return {"state": state, "codes": sorted(codes)}
+        impact = "none"
+
+    # Exact codes stay in Diagnostics/state, but code churn does not change
+    # the state/impact signature sent to chat.
+    family = "network" if codes and set(codes) <= _NETWORK_CODES else (
+        "provider_or_processing" if codes else "none"
+    )
+    return {"state": state, "impact": impact, "codes": codes, "family": family}
 
 
 def plan_source_notices(
@@ -79,7 +101,7 @@ def plan_source_notices(
     *,
     now: datetime | None = None,
 ) -> tuple[list[dict], str]:
-    """Return state-change/repeat notices and the next bounded persisted state."""
+    """Plan notices from one already profile-aggregated row per provider."""
     timestamp = _utc(now)
     stamp = timestamp.isoformat(timespec="seconds")
     previous_rows = _load(raw_state)
@@ -89,7 +111,7 @@ def plan_source_notices(
     for source_id, info in list(sources.items())[:64]:
         if not isinstance(info, dict):
             continue
-        current = _current(str(source_id), info)
+        current = _current(info)
         previous = previous_rows.get(str(source_id))
         previous = previous if isinstance(previous, dict) else {}
         if current is None:
@@ -97,41 +119,48 @@ def plan_source_notices(
                 next_rows[str(source_id)] = previous
             continue
 
-        signature = current["state"] + "|" + ",".join(current["codes"])
-        same = previous.get("signature") == signature
+        signature = f"{current['state']}|{current['impact']}"
+        same = previous.get("signature") == signature or (
+            previous.get("state") == current["state"]
+            and previous.get("impact", current["impact"]) == current["impact"]
+        )
         occurrence = int(previous.get("occurrences") or 0) + 1 if same else 1
         row = {
             "signature": signature,
             "state": current["state"],
+            "impact": current["impact"],
+            "family": current["family"],
             "codes": current["codes"],
             "occurrences": occurrence,
             "first_seen_at": previous.get("first_seen_at") if same else stamp,
             "last_seen_at": stamp,
             "last_notified_at": previous.get("last_notified_at") if same else None,
         }
+        previous_state = str(previous.get("state") or "healthy")
         event: dict | None = None
-        if not same:
-            previous_state = previous.get("state")
-            if current["state"] == "healthy":
-                if previous_state in _VALID_STATES - {"healthy"}:
-                    event = {
-                        "kind": "recovered",
-                        "previous_state": previous_state,
-                        "previous_codes": list(previous.get("codes") or []),
-                        "previous_occurrences": int(previous.get("occurrences") or 1),
-                    }
-            else:
-                event = {"kind": "issue"}
-        elif current["state"] != "healthy":
+        if current["state"] == "healthy":
+            if previous_state in {"material_loss", "unavailable"}:
+                event = {
+                    "kind": "recovered",
+                    "previous_state": previous_state,
+                    "previous_codes": list(previous.get("codes") or []),
+                    "previous_occurrences": int(previous.get("occurrences") or 1),
+                }
+        elif _SEVERITY[current["state"]] > _SEVERITY.get(previous_state, 0):
+            if current["state"] in {"material_loss", "unavailable"}:
+                event = {"kind": "critical" if current["state"] == "unavailable" else "issue"}
+        elif same:
             last_notified = _parse_time(previous.get("last_notified_at"))
-            if last_notified is None or timestamp - last_notified >= REPEAT_SUMMARY_AFTER:
-                event = {"kind": "repeat"}
+            reference = last_notified or _parse_time(previous.get("first_seen_at"))
+            if reference is not None and timestamp - reference >= DAILY_SUMMARY_AFTER:
+                event = {"kind": "daily"}
 
         if event is not None:
             row["last_notified_at"] = stamp
             notices.append({
                 "source_id": str(source_id),
                 "state": current["state"],
+                "impact": current["impact"],
                 "codes": current["codes"],
                 "occurrences": occurrence,
                 **event,
@@ -139,7 +168,7 @@ def plan_source_notices(
         next_rows[str(source_id)] = row
 
     encoded = json.dumps(
-        {"version": 1, "updated_at": stamp, "sources": next_rows},
+        {"version": 2, "updated_at": stamp, "sources": next_rows},
         ensure_ascii=False,
         separators=(",", ":"),
     )
@@ -148,50 +177,29 @@ def plan_source_notices(
 
 def render_source_state_notice(event: dict, info: dict) -> str:
     source = str(info.get("name") or event.get("source_id") or "source")[:128]
-    found = int(info.get("found") or 0)
-    processed = int(info.get("processed") or 0)
-    codes = ", ".join(event.get("codes") or event.get("previous_codes") or ["UNKNOWN"])
-    relevant_codes = set(event.get("codes") or event.get("previous_codes") or [])
-    diagnostics = info.get("diagnostics") if isinstance(info.get("diagnostics"), list) else []
-    profiles: list[str] = []
-    stages: list[str] = []
-    for item in diagnostics:
-        if not isinstance(item, dict) or item.get("code") not in relevant_codes:
-            continue
-        profiles.extend(str(value)[:128] for value in item.get("profiles", []) if str(value).strip())
-        stage = STAGES.get(item.get("stage"))
-        if stage:
-            stages.append(stage)
-    context = ""
-    if profiles:
-        context += "\nПрофили: " + " / ".join(dict.fromkeys(profiles)) + "."
-    if stages:
-        context += "\nЭтапы: " + " / ".join(dict.fromkeys(stages)) + "."
-    cause = " Причина устанавливается." if relevant_codes & {
-        "NETWORK_CONNECT_ERROR", "NETWORK_CONNECT_TIMEOUT", "SOURCE_PROCESSING_FAILED"
-    } else ""
+    found = max(0, int(info.get("found") or 0))
     kind = event.get("kind")
     if kind == "recovered":
         count = int(event.get("previous_occurrences") or 1)
-        return (
-            f"✅ Источник {source} восстановлен после {count} наблюдений сбоя.\n"
-            f"Предыдущие коды: {codes}.{context} Сейчас найдено: {found}, обработано: {processed}.\n"
-            "Подробная история сохранена в /scanstatus и Diagnostics."
-        )
-    if kind == "repeat":
-        return (
-            f"⚠️ Источник {source}: проблема сохраняется; одинаковых наблюдений: "
-            f"{int(event.get('occurrences') or 1)}.\nКоды: {codes}. "
-            f"{cause}{context}\nСохранено результатов: {found}; обработано: {processed}.\n"
-            "Повторы сгруппированы; подробности сохранены в /scanstatus и Diagnostics."
-        )
-    label = {
-        "failed": "результаты текущей попытки недоступны",
-        "partial": "получены частичные результаты",
-        "degraded": "обнаружена техническая деградация",
-    }.get(event.get("state"), "изменилось техническое состояние")
+        return f"✅ Поиск по источнику {source} восстановился после {count} наблюдений."
+    if kind == "daily":
+        return f"ℹ️ Источник {source} всё ещё работает с ограничениями; подробности — /scanstatus."
+    if kind == "critical":
+        return f"🔴 Источник {source} недоступен; вакансии этого источника не получены. Проверь /scanstatus."
     return (
-        f"⚠️ Источник {source}: {label}.\nКоды: {codes}.{cause}{context}\n"
-        f"Сохранено результатов: {found}; обработано: {processed}.\n"
-        "Одинаковые повторы будут сгруппированы; подробности — /scanstatus и Diagnostics."
+        f"⚠️ Источник {source} потерял существенную часть результатов; сохранено вакансий: {found}. "
+        "Подробности — /scanstatus."
+    )
+
+
+def render_source_daily_digest(events: list[dict], sources: dict) -> str:
+    names = [
+        str((sources.get(event.get("source_id")) or {}).get("name") or event.get("source_id") or "источник")[:80]
+        for event in events[:12]
+    ]
+    extra = len(events) - len(names)
+    suffix = f" и ещё {extra}" if extra > 0 else ""
+    return (
+        "ℹ️ Ежедневная сводка: ограничения остаются у "
+        + ", ".join(names) + suffix + ". Подробности — /scanstatus."
     )

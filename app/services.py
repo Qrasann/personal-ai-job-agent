@@ -17,12 +17,14 @@ from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.database.db import user_scan_lease
 from app.domain.application_package import snapshot_vacancy
+from app.domain.application_approval import application_package_digest
 from app.domain.jobs import NormalizedJob
 from app.domain.job_text import clean_html_text, format_salary
+from app.domain.resume_versions import version_metadata
 from app.domain.source_posting import posting_snapshot_digest, source_posting_view
 from app.domain.vacancy_availability import publication_age_bucket
 from app.geo.countries import normalize_country
-from app.matching.engine import score_job
+from app.matching.engine import MATCH_ASSESSMENT_VERSION, score_job
 from app.matching.fact_comparison import compare_facts
 from app.matching.language_fit import compare_english_level
 from app.matching.resume_diff import compare_resume_coverage
@@ -38,20 +40,34 @@ from app.sources.adapters.greenhouse import GreenhouseSource
 from app.sources.adapters.lever import LeverSource
 from app.sources.adapters.smartrecruiters import SmartRecruitersSource
 from app.sources.adapters.georgia import JobsGESource, HRGESource
+from app.sources.adapters.employer_career_watch import EmployerCareerWatchSource
 from app.sources.registry import build_source_plan, source_capabilities
 from app.sources.base import SourceContext
-from app.sources.network_errors import TRANSPORT_ERROR_TYPES, transport_failure_category
+from app.sources.network_errors import transport_failure_category
 from app.search.source_summary import aggregate_source, normalize_attempt, scan_outcome
 from app.sources.diagnostics import classify_source_error, diagnostic
 from app.sources.notice_policy import (
     STATE_KEY as SOURCE_NOTICE_STATE_KEY,
     plan_source_notices,
+    render_source_daily_digest,
     render_source_state_notice,
 )
 from app.search.preferences import discovery_queries, job_priority, source_enabled, source_priority, vacancy_allowed, vacancy_exclusion_reason
 from app.telegram.ui import job_keyboard, recruiter_keyboard
 
 log = logging.getLogger(__name__)
+
+
+def _require_approved_resume(resume) -> None:
+    if resume is not None and version_metadata(getattr(resume, "rules", None))["status"] != "approved":
+        raise RuntimeError("Выбранная версия CV ещё не утверждена. Проверь /resumes и используй /resumeapprove.")
+
+
+def _versioned_assessment(result) -> dict:
+    scores = getattr(result, "recommendation_scores", {})
+    versioned = dict(scores) if isinstance(scores, dict) else {}
+    versioned["_meta"] = {"match_assessment_version": MATCH_ASSESSMENT_VERSION}
+    return versioned
 hh_client = HHClient()
 _DISCOVERY_CACHE: dict[
     tuple[str, tuple[str, ...], str | None, tuple[str, ...]],
@@ -360,7 +376,7 @@ async def ingest_and_match(
                 geography_score=result.geography_score,
                 salary_score=result.salary_score,
                 relocation_score=result.relocation_score,
-                recommendation_scores=getattr(result, "recommendation_scores", {}),
+                recommendation_scores=_versioned_assessment(result),
                 total_score=result.total_score,
                 reason=result.reason,
             )
@@ -523,6 +539,8 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
             adapters.append(JobsGESource())
         if "hr_ge" in source_ids:
             adapters.append(HRGESource())
+        if "employer_career_watch" in source_ids:
+            adapters.append(EmployerCareerWatchSource())
         adapters.sort(key=lambda item: source_priority(settings_map, item.source_id), reverse=True)
 
         semaphore = asyncio.Semaphore(DISCOVERY_CONCURRENCY)
@@ -730,7 +748,10 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
     except Exception as exc:
         source_notices = []
         log.error("source notification state persistence failed (%s)", type(exc).__name__)
+    daily_events = [event for event in source_notices if event.get("kind") == "daily"]
     for event in source_notices:
+        if event.get("kind") == "daily":
+            continue
         info = summary["sources"].get(event["source_id"], {})
         try:
             await notify_chat(
@@ -740,7 +761,29 @@ async def scan_for_user(bot: Bot, user_id: int, progress_callback=None, *, force
                 parse_mode=None,
             )
         except Exception as exc:
+            info.setdefault("diagnostics", []).append(diagnostic(
+                "SOURCE_NOTICE_DELIVERY_FAILED",
+                stage="notification",
+                action="inspect_dashboard",
+            ))
             log.error("source diagnostic notification failed (%s)", type(exc).__name__)
+    if daily_events:
+        try:
+            await notify_chat(
+                bot,
+                user.telegram_chat_id,
+                render_source_daily_digest(daily_events, summary["sources"]),
+                parse_mode=None,
+            )
+        except Exception as exc:
+            for event in daily_events:
+                info = summary["sources"].get(event["source_id"], {})
+                info.setdefault("diagnostics", []).append(diagnostic(
+                    "SOURCE_NOTICE_DELIVERY_FAILED",
+                    stage="notification",
+                    action="inspect_dashboard",
+                ))
+            log.error("source daily digest notification failed (%s)", type(exc).__name__)
     return summary
 
 
@@ -798,7 +841,7 @@ async def refresh_match_score(match, job, *, technical_text: str = ""):
         geography_score=result.geography_score,
         salary_score=result.salary_score,
         relocation_score=result.relocation_score,
-        recommendation_scores=getattr(result, "recommendation_scores", {}),
+        recommendation_scores=_versioned_assessment(result),
         total_score=result.total_score,
         reason=result.reason,
     )
@@ -1010,6 +1053,7 @@ async def prepare_match(match_id: int, user_id: int) -> dict:
     facts = await repo.list_facts(match.profile_id)
     resumes = await repo.list_resumes(match.profile_id)
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
+    _require_approved_resume(chosen)
     cover = await asyncio.to_thread(make_cover_letter, job, facts, chosen)
     comparison = compare_facts(job.description or "", facts)
     resume_diff = compare_resume_coverage(
@@ -1055,6 +1099,7 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
     facts = await repo.list_facts(match.profile_id)
     resumes = await repo.list_resumes(match.profile_id)
     chosen = next((r for r in resumes if r.id == match.resume_id), None)
+    _require_approved_resume(chosen)
     hh_resume_id = (chosen.external_id if chosen and chosen.source == "hh" else None) or settings.hh_resume_id
     if not hh_resume_id:
         raise RuntimeError("Для выбранного профиля нет HH resume ID")
@@ -1110,6 +1155,54 @@ async def apply_match(bot: Bot, match_id: int, user_id: int) -> dict:
             f"Статус HH попытки #{attempt.id} не удалось сохранить. "
             "Проверь /applications и кабинет HH; повторная отправка небезопасна."
         ) from None
+    return {**result, "application_id": attempt.id} if isinstance(result, dict) else {
+        "status": "unknown", "application_id": attempt.id,
+    }
+
+
+async def apply_frozen_application(
+    bot: Bot, *, match_id: int, application_id: int, user_id: int,
+    channel: str, expected_digest: str,
+) -> dict:
+    """Submit exactly one previously reviewed immutable package."""
+    if channel != "hh":
+        raise RuntimeError("Канал отправки не поддерживается")
+    package = await repo.get_application(user_id, application_id)
+    if not package or package.status not in {"prepared", "reviewed"}:
+        raise RuntimeError("Подтверждённый пакет не найден или уже обработан")
+    snapshot = package.vacancy_snapshot or {}
+    if str(snapshot.get(repo.PREPARED_MATCH_SNAPSHOT_KEY)) != str(match_id):
+        raise RuntimeError("Пакет не соответствует выбранной вакансии")
+    if application_package_digest(package, channel) != expected_digest:
+        raise RuntimeError("Пакет изменился после подтверждения")
+    owner_chat = settings.telegram_admin_chat_id.strip()
+    owner = await repo.get_user_by_chat(owner_chat) if owner_chat else None
+    if not owner or owner.id != user_id or not hh_client.private_api_available:
+        raise RuntimeError("HH private applicant API недоступен для подтверждённого owner-профиля")
+    source_job_id = str(snapshot.get("source_job_id") or "")
+    if snapshot.get("source_id") != "hh" or not source_job_id or not package.resume_external_id:
+        raise RuntimeError("В пакете нет подтверждённого HH канала или resume ID")
+    attempt = await repo.reserve_hh_application(
+        user_id=user_id, job_id=package.job_id, source_job_id=source_job_id,
+        resume_id=package.resume_id, resume_snapshot=package.resume_snapshot,
+        resume_external_id=package.resume_external_id,
+        vacancy_snapshot=dict(snapshot), message=package.message,
+    )
+    try:
+        result = await hh_client.apply(source_job_id, package.resume_external_id, package.message)
+    except Exception:
+        try:
+            await repo.finish_hh_application(
+                user_id=user_id, application_id=attempt.id, match_id=match_id, status="unknown",
+            )
+        finally:
+            raise RuntimeError(f"HH не подтвердил результат попытки #{attempt.id}.") from None
+    outcome = result.get("status") if isinstance(result, dict) else "unknown"
+    await repo.finish_hh_application(
+        user_id=user_id, application_id=attempt.id, match_id=match_id, status=outcome,
+        source_application_id=result.get("negotiation_id") if isinstance(result, dict) else None,
+        external_url=result.get("external_url") if isinstance(result, dict) else None,
+    )
     return {**result, "application_id": attempt.id} if isinstance(result, dict) else {
         "status": "unknown", "application_id": attempt.id,
     }

@@ -158,6 +158,30 @@ def test_prepare_match_returns_evidence_checklist_without_external_submission(mo
     save_application.assert_not_awaited()
 
 
+def test_prepare_match_rejects_unapproved_cv_version(monkeypatch):
+    from app.domain.resume_versions import draft_version_rules
+
+    resume = SimpleNamespace(
+        id=5, active=True, deleted_at=None, content="Linux", name="Draft",
+        rules=draft_version_rules({}, parent_id=4),
+    )
+    monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
+        user_id=8, job_id=25, profile_id=3, resume_id=5,
+    )))
+    monkeypatch.setattr(services.repo, "get_job", AsyncMock(return_value=SimpleNamespace(
+        id=25, title="Linux admin", company="Example", description="Linux",
+    )))
+    monkeypatch.setattr(services.repo, "source_ref", AsyncMock(return_value=None))
+    monkeypatch.setattr(services.repo, "list_facts", AsyncMock(return_value=[]))
+    monkeypatch.setattr(services.repo, "list_resumes", AsyncMock(return_value=[resume]))
+    cover = AsyncMock()
+    monkeypatch.setattr(services, "make_cover_letter", cover)
+
+    with pytest.raises(RuntimeError, match="не утверждена"):
+        asyncio.run(services.prepare_match(12, 8))
+    cover.assert_not_awaited()
+
+
 def test_prepare_match_uses_display_source_when_georgia_refs_share_a_job(monkeypatch):
     monkeypatch.setattr(services.repo, "get_match", AsyncMock(return_value=SimpleNamespace(
         user_id=8, job_id=25, profile_id=3, resume_id=None,

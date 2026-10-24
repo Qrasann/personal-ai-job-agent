@@ -68,11 +68,20 @@ def source_posting_view(job, source_ref):
     if cache_digest != posting_snapshot_digest(snapshot):
         valid_cache = False
     if not valid_snapshot and not valid_cache:
-        return job
+        industry_tags = raw.get("industry_tags") if isinstance(raw, dict) else None
+        if not isinstance(industry_tags, list) or not industry_tags:
+            return job
 
     view = SimpleNamespace(**{
         key: value for key, value in vars(job).items() if not key.startswith("_")
     })
+    industry_tags = raw.get("industry_tags") if isinstance(raw, dict) else None
+    if isinstance(industry_tags, list):
+        view.industry_tags = [
+            value.strip().casefold()
+            for value in industry_tags
+            if isinstance(value, str) and value.strip()
+        ]
     if valid_snapshot:
         for field in _STRING_LIMITS:
             value = snapshot.get(field)

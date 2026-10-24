@@ -41,6 +41,7 @@ class SmartRecruitersSource(JobSource):
     transport_retries = 1
     retry_delay_seconds = 0.25
     user_agent = "PersonalAIJobAgent/3.5.7 (public job discovery)"
+    _ROLE_QUERY_ALIASES = {frozenset({"site", "reliability", "engineer"}): {"sre"}}
 
     @classmethod
     def _selected(cls, context: SourceContext) -> bool:
@@ -65,7 +66,8 @@ class SmartRecruitersSource(JobSource):
         for query in queries:
             query_tokens = cls._tokens(query)
             meaningful = query_tokens - generic or query_tokens
-            if meaningful and title_tokens & meaningful:
+            aliases = cls._ROLE_QUERY_ALIASES.get(frozenset(query_tokens), set())
+            if meaningful and (title_tokens & meaningful or title_tokens & aliases):
                 return True
         return False
 

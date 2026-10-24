@@ -1,4 +1,5 @@
 from app.geo.countries import normalize_country, local_sources
+from app.geo.locations import parse_city_country
 from app.sources.registry import build_source_plan, source_capabilities
 from app.telegram.source_display import manual_source_line
 
@@ -7,6 +8,29 @@ def test_country_aliases():
     assert normalize_country("GE") == "GE"
     assert normalize_country("Грузия") == "GE"
     assert normalize_country("Moldova") == "MD"
+    assert normalize_country("UK") == "GB"
+    assert normalize_country("Singapore") == "SG"
+
+
+def test_conservative_city_country_resolution_uses_exact_supported_suffixes():
+    assert parse_city_country("Berlin, Germany") == ("Berlin", "DE")
+    assert parse_city_country("Tbilisi, Georgia") == ("Tbilisi", "GE")
+    assert parse_city_country("London, UK") == ("London", "GB")
+    for ambiguous in (
+        "Atlanta, Georgia", "Savannah, Georgia", "Atlanta, Georgia, USA",
+        "Berlin / Amsterdam, Germany", "Remote, Germany", "EMEA",
+        "Paris, France / Germany", "San Francisco, CA", "Wilmington, DE",
+    ):
+        assert parse_city_country(ambiguous) == (None, None)
+
+
+def test_exact_country_only_office_labels_resolve_country_without_inventing_city():
+    assert parse_city_country("Malta") == (None, "MT")
+    assert parse_city_country("Germany") == (None, "DE")
+    # Codes, broad regions and the country/state name collision are ambiguous.
+    assert parse_city_country("MT") == (None, None)
+    assert parse_city_country("DE") == (None, None)
+    assert parse_city_country("Georgia") == (None, None)
 
 
 def test_georgia_local_sources():

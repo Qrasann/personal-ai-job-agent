@@ -24,6 +24,7 @@ class GreenhouseSource(JobSource):
     supported_countries = frozenset({"AM", "GE"})
     request_timeout_seconds = 15.0
     user_agent = "PersonalAIJobAgent/3.5.7 (public job discovery)"
+    _ROLE_QUERY_ALIASES = {frozenset({"site", "reliability", "engineer"}): {"sre"}}
 
     @staticmethod
     def _role_tokens(text: str) -> set[str]:
@@ -41,7 +42,8 @@ class GreenhouseSource(JobSource):
         for query in queries:
             tokens = cls._role_tokens(query)
             meaningful = tokens - generic or tokens
-            if meaningful and title_tokens & meaningful:
+            aliases = cls._ROLE_QUERY_ALIASES.get(frozenset(tokens), set())
+            if meaningful and (title_tokens & meaningful or title_tokens & aliases):
                 return True
         return False
 

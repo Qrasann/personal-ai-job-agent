@@ -4,6 +4,15 @@ import yaml
 
 COUNTRIES_PATH = Path("data/countries.yaml")
 
+# Physical vacancy evidence is worldwide even when a country is not yet a
+# selectable search market. Keep this separate from the curated market list.
+_GLOBAL_LOCATION_ALIASES = {
+    "australia": "AU", "china": "CN", "india": "IN", "israel": "IL",
+    "singapore": "SG", "taiwan": "TW",
+    "united kingdom": "GB", "great britain": "GB", "uk": "GB",
+    "united states": "US", "united states of america": "US", "usa": "US",
+}
+
 
 @lru_cache(maxsize=1)
 def load_country_catalog(path: Path | None = None) -> dict:
@@ -24,7 +33,7 @@ def normalize_country(value: str) -> str | None:
         names = [cfg.get("name", ""), *(cfg.get("aliases") or [])]
         if any(str(name).casefold() == lowered for name in names):
             return code
-    return None
+    return _GLOBAL_LOCATION_ALIASES.get(lowered)
 
 
 def country_config(code: str) -> dict | None:

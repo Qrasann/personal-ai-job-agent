@@ -80,6 +80,18 @@ def test_smartrecruiters_does_not_broaden_role_preferences_or_other_country_data
     assert SmartRecruitersSource.parse_payload({"content": rows}, context(targets=["AM"])) == []
 
 
+def test_smartrecruiters_matches_sre_alias_without_related_reliability_role():
+    rows = [
+        posting("10", title="SRE"),
+        posting("11", title="Software Engineer"),
+    ]
+    rows[1]["jobAd"]["sections"]["jobDescription"]["text"] = "Reliability tooling"
+    jobs = SmartRecruitersSource.parse_payload(
+        {"content": rows}, context(["Site Reliability Engineer"], targets=["GE"])
+    )
+    assert [job.source_job_id for job in jobs] == ["Devexperts:10"]
+
+
 @pytest.mark.parametrize("location, expected, scope", [
     ({"country": "GE", "remote": True, "hybrid": False}, "remote", "Georgia"),
     ({"country": "GE", "remote": False, "hybrid": False}, "onsite", None),

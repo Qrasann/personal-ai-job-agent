@@ -249,14 +249,14 @@ def test_details_callback_forwards_the_profile_that_produced_the_score(monkeypat
     monkeypatch.setattr(handlers, "render_job_summary", lambda payload: "Scoped card")
     callback = SimpleNamespace(
         data="details:25:4", answer=AsyncMock(),
-        message=SimpleNamespace(chat=SimpleNamespace(id=10), answer=AsyncMock()),
+        message=SimpleNamespace(chat=SimpleNamespace(id=10), edit_text=AsyncMock()),
     )
 
     asyncio.run(handlers.details_callback(callback))
 
     details.assert_awaited_once_with(7, 25, search_profile_id=4)
-    assert callback.message.answer.await_args.args[0] == "Scoped card"
-    keyboard = callback.message.answer.await_args.kwargs["reply_markup"]
+    assert callback.message.edit_text.await_args.args[0] == "Scoped card"
+    keyboard = callback.message.edit_text.await_args.kwargs["reply_markup"]
     callbacks = {
         button.callback_data
         for row in keyboard.inline_keyboard
@@ -577,27 +577,53 @@ def test_application_export_command_sends_only_owner_scoped_text_snapshot(monkey
     assert "Пакет #42" in message.answer_document.await_args.kwargs["caption"]
 
 
-@pytest.mark.parametrize(("result", "expected_text"), [
-    ({"status": "sent"}, "подтвердил отправку"),
-    ({"status": "external"}, "ещё не подтверждён"),
-    ({"status": "unknown"}, "Статус отправки HH неизвестен"),
-])
-def test_apply_callback_distinguishes_external_redirect_from_submission(monkeypatch, result, expected_text):
+def test_apply_callback_only_prepares_exact_package_and_never_claims_submission(monkeypatch):
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    apply = AsyncMock(return_value=result)
-    monkeypatch.setattr(handlers, "apply_match", apply)
+    prepare = AsyncMock(return_value="EXACT PACKAGE PREVIEW")
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
+    package = SimpleNamespace(
+        id=91, job_id=42, resume_id=4, resume_snapshot="CV", resume_external_id="hh-resume",
+        vacancy_snapshot={"source_id": "hh", "source_job_id": "hh-42"},
+        message="Letter", source_id="hh",
+    )
+    monkeypatch.setattr(handlers.repo, "prepared_application_for_match", AsyncMock(return_value=package))
     msg = SimpleNamespace(
         chat=SimpleNamespace(id=777),
         answer=AsyncMock(),
-        edit_reply_markup=AsyncMock(),
     )
     callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
 
     asyncio.run(handlers.apply_callback(callback, object()))
 
-    assert expected_text in msg.answer.await_args.args[0]
-    apply.assert_awaited_once()
-    msg.edit_reply_markup.assert_awaited_once_with(reply_markup=None)
+    prepare.assert_awaited_once_with(25, 7)
+    assert msg.answer.await_args_list[0].args[0] == "EXACT PACKAGE PREVIEW"
+    notice = msg.answer.await_args_list[1].args[0]
+    assert "Внешняя отправка ещё не выполнялась" in notice
+    assert msg.answer.await_args_list[1].kwargs["reply_markup"]
+
+
+def test_apply_confirmation_is_one_time_and_bound_to_frozen_package(monkeypatch):
+    handlers._PENDING_APPLICATION_APPROVALS.clear()
+    handlers._PENDING_APPLICATION_APPROVALS["token"] = {
+        "user_id": 7, "match_id": 25, "application_id": 91, "channel": "hh",
+        "digest": "exact-digest", "created_at": handlers.time.time(),
+    }
+    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
+    send = AsyncMock(return_value={"status": "sent", "application_id": 92})
+    monkeypatch.setattr(handlers, "apply_frozen_application", send)
+    msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock(), edit_reply_markup=AsyncMock())
+    callback = SimpleNamespace(data="applyconfirm:token", message=msg, answer=AsyncMock())
+    bot = object()
+    asyncio.run(handlers.apply_confirm_callback(callback, bot))
+    send.assert_awaited_once_with(
+        bot, match_id=25, application_id=91,
+        user_id=7, channel="hh", expected_digest="exact-digest",
+    )
+    assert "token" not in handlers._PENDING_APPLICATION_APPROVALS
+
+    replay = SimpleNamespace(data="applyconfirm:token", message=msg, answer=AsyncMock())
+    asyncio.run(handlers.apply_confirm_callback(replay, object()))
+    replay.answer.assert_awaited_once_with("Подтверждение истекло или уже использовано.", show_alert=True)
 
 
 def test_external_application_and_history_do_not_claim_provider_receipt():
@@ -610,39 +636,28 @@ def test_external_application_and_history_do_not_claim_provider_receipt():
     rendered = render_applications([entry])
     assert "отправка не подтверждена" in rendered
 
-    event = SimpleNamespace(status="external", created_at=None)
-    assert "отправка не подтверждена" in render_application_history([event])
+    event = SimpleNamespace(
+        status="external", created_at=None, provenance="provider",
+        evidence={"provider": "hh"},
+    )
+    history = render_application_history([event])
+    assert "отправка не подтверждена" in history
+    assert "событие провайдера · hh" in history
 
 
 @pytest.mark.parametrize("bad_match_id", ["apply:abc", "apply:-2", "apply:0", "apply:" + "9" * 100])
 def test_hh_apply_callback_rejects_malformed_match_id(monkeypatch, bad_match_id):
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    attempt = AsyncMock()
-    monkeypatch.setattr(handlers, "apply_match", attempt)
+    prepare = AsyncMock()
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", prepare)
     msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
     callback = SimpleNamespace(data=bad_match_id, message=msg, answer=AsyncMock())
 
     asyncio.run(handlers.apply_callback(callback, object()))
 
     callback.answer.assert_awaited_once_with("Неверный идентификатор отклика.", show_alert=True)
-    attempt.assert_not_awaited()
+    prepare.assert_not_awaited()
     msg.answer.assert_not_awaited()
-
-
-@pytest.mark.parametrize(("error", "public_text"), [
-    (RuntimeError("Повторный HH-отклик заблокирован: запись #22"), "Повторный HH-отклик заблокирован"),
-    (RuntimeError("HH не подтвердил результат попытки #96"), "HH не подтвердил результат"),
-])
-def test_hh_apply_callback_displays_only_controlled_actionable_errors(monkeypatch, error, public_text):
-    monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers, "apply_match", AsyncMock(side_effect=error))
-    msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
-    callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
-
-    asyncio.run(handlers.apply_callback(callback, object()))
-
-    assert public_text in msg.answer.await_args.args[0]
-    assert msg.answer.await_args.kwargs["parse_mode"] == "HTML"
 
 
 @pytest.mark.parametrize("error", [
@@ -652,7 +667,7 @@ def test_hh_apply_callback_displays_only_controlled_actionable_errors(monkeypatc
 ])
 def test_hh_apply_callback_never_echoes_untrusted_error_payload(monkeypatch, error):
     monkeypatch.setattr(handlers.repo, "get_user_by_chat", AsyncMock(return_value=SimpleNamespace(id=7)))
-    monkeypatch.setattr(handlers, "apply_match", AsyncMock(side_effect=error))
+    monkeypatch.setattr(handlers, "_prepare_saved_preview", AsyncMock(side_effect=error))
     msg = SimpleNamespace(chat=SimpleNamespace(id=777), answer=AsyncMock())
     callback = SimpleNamespace(data="apply:25", message=msg, answer=AsyncMock())
 

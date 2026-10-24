@@ -1,6 +1,671 @@
 # Handoff
 
-Standing owner mode: **MAXIMUM TOKEN ECONOMY**. Continue with Main alone for ordinary work, read only the compact current handoff plus task-relevant files, run targeted tests before risk-driven expansion, and do not repeat the known unchanged full-pytest stall. Fast/Deep are exceptions justified by total cost/risk, not defaults. Do not claim visibility into Codex quotas unless the environment exposes it.
+## Current development checkpoint — engineering-manager false Good closed (2026-10-24)
+
+Code checkpoint `a0c5985` fixes a production-confirmed Relocation-first false Good:
+`Linux Enablement - Software Engineering Manager` was notified at 73/100 because the
+manager-title guard was Career-only. Explicit Software/Engineering Manager titles now use
+the existing global senior/lead gate; desktop support remains visible in Relocation-first.
+Assessment version is 6. Matching/review gate: **157 passed**. This code is not deployed;
+production remains healthy on `8dc5a51`. Next: batch post-release fixes through full
+isolated PostgreSQL + exact-SHA CI/release gates, or continue another independently
+confirmed source-quality issue. The combined isolated PostgreSQL suite now passes
+**1521 tests**; GitHub CI run `40089127207` is green on exact candidate `365f5b0`
+(Python, secret scan, Docker build). No employer action occurred.
+
+## Current development checkpoint — Employer Watch inventory current (2026-10-24)
+
+Code checkpoint `cc36e59` follows a read-only probe of all 13 approved official endpoints:
+all were reachable, so production's five TLS/timeouts per profile are currently transient.
+Betsson posting `8200701` was genuinely removed; its reviewed slot now uses official current
+Malta DevOps posting `8025783`. Work authorization, visa sponsorship and relocation remain
+unknown. Employer/source gate: **144 passed**. This code is not deployed; production stays
+healthy on `8dc5a51`. Next: continue measured source usefulness or batch the three small
+post-release fixes through exact-SHA CI/release gates. No employer action occurred.
+
+## Current development checkpoint — RemoteOK bounded transport retry (2026-10-24)
+
+Code checkpoint `7d83c75` addresses a production-observed `RemoteProtocolError` that lost
+one RemoteOK search profile while another profile retained three rows. The adapter now
+retries one transport failure after a bounded delay, records the retry in source telemetry
+and logs only the exception class. Persistent transport, HTTP and schema failures remain
+visible. Source/diagnostic gate: **116 passed**. This code is not deployed; production
+remains healthy on `8dc5a51`. Batch with the preceding Job Bank scoring fix through normal
+exact-SHA release gates. No external acceptance probe or employer action is authorized.
+
+## Current development checkpoint — Job Bank onsite is not remote (2026-10-24)
+
+Code checkpoint `20df7a6` fixes a production-reproduced Relocation-first evidence error:
+Job Bank's explicit “no option to work remotely” and physical “Remote location” no longer
+create a remote-work lane. Destination-country postings remain relocation candidates;
+work authorization, sponsorship and relocation support are not inferred. Assessment
+the post-release assessment-version change makes persisted prior scores stale until rescanned. Related gate: **324 passed**.
+
+This post-release code is not deployed. Production remains healthy on Telegram UX SHA
+`8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4`; its fresh backup and rollback artifacts
+remain valid. Next: continue measured Career/Relocation source usefulness, then batch this
+small scoring fix through normal exact-SHA CI and release gates before rescanning. No
+employer action is authorized.
+
+## Current production — Telegram UX `8dc5a51` released (2026-10-24)
+
+Production runs exact Git SHA `8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4`,
+image `sha256:6c0284b69c56b938b1f8032f6aac4c42249da9434a867364e54b585512c5c227`.
+The app is healthy with zero restarts and polling as `@roma_job_agent_bot`. PostgreSQL
+remains schema 11; verified post-rollout counts are 1 user, 26 facts, 6 CVs, 2588 jobs,
+2752 matches and no Applications/events. Runtime profile/country hashes match their
+pre-rollout values and the existing storage volume remains mounted.
+
+Fresh private backup `pre-8dc5a51-20261024` is mode 0600 and was fully restored into a
+disposable tmpfs PostgreSQL with exact count parity. Immediate pre-rollout image
+`sha256:ad8e2230…` is retained as `job-agent-rollback:pre-8dc5a51`; private release and
+rollback overlays are mode 0600. Rollback is app-only with the same profile/country binds
+and storage volume; schema downgrade is neither needed nor permitted.
+
+Telegram API confirms 12 current commands and global native Menu=`commands`; the startup
+cleanup marker is true, proving successful `ReplyKeyboardRemove` delivery. A live inline
+main menu was delivered as message 1723. Runtime smoke verifies Details/Back/Next/Home
+callback payloads and no score/technical breakdown in quick cards; full isolated suite was
+1515 passed and exact-SHA CI run 40013885120 succeeded. Owner tapping the delivered buttons
+is the remaining visual acceptance, not a code/release blocker. No employer action occurred.
+
+Next P0: continue measured source usefulness from the latest completed production scan,
+then isolated Web owner acceptance/remaining channel-pilot work per ROADMAP. Do not modify
+the divergent runtime checkout or use the base Compose alone for future app recreation.
+
+## Current checkpoint — Telegram reply keyboard removed (2026-10-23)
+
+Functional checkpoint `ee1c77c` removes the persistent Telegram ReplyKeyboard. `/start`
+and `/menu` now send a six-section inline menu plus Search/Status; the native Telegram
+command menu is registered at startup. Existing active users receive one successful,
+state-tracked `ReplyKeyboardRemove`; unreachable users remain retryable. Fallback commands,
+private-chat authorization and edit-in-place callback locking/recovery remain in place.
+
+Expanded Telegram/navigation gate: **238 passed, 1 skipped**; full isolated PostgreSQL
+suite: **1515 passed**; compile and diff checks pass. Production still runs `f786aa1` and
+has not received this fix. Next: push/CI on the exact documentation-inclusive SHA, then a fresh private production backup,
+restore verification, immutable release-image smoke and app-only rollout. Preserve the
+runtime checkout and volumes; no database migration is needed. After rollout verify the
+running image revision, schema 11, Telegram command menu, keyboard-removal state, polling,
+health and rollback image. No employer action is authorized.
+
+## Current checkpoint — P0 worldwide office location evidence (2026-10-23)
+
+The first production scan provided a reproducible loss: official Greenhouse location
+`Office Based - London, UK` was retained in source provenance but canonical country/city
+were unknown. Physical evidence normalization was incorrectly limited to selectable search
+markets. Global aliases now resolve observed GB/US/SG/CN/TW/IN/IL/AU labels, and only the
+exact `Office Based -` wrapper is removed. Home Based/Remote/APAC remain unknown and imply
+neither work authorization nor relocation. Geo/employer gate: **57 passed**.
+
+Production still runs healthy release `f786aa1`; this new code is not deployed. Next P0:
+continue measured source usefulness/location gaps using the completed scan, then run normal
+release gates before a later rollout. No employer action is authorized.
+
+## Current checkpoint — production f786aa1 running (2026-10-23)
+
+Production runs version **3.5.7**, release Git SHA **f786aa1a2eeeb4792fa30643a1d8d5e9005e5947**,
+image `sha256:2a724ce024d09b0219dc3e0c65f07438ec6534c402131de71466c1f3a5e4bd31`.
+The app container is healthy with zero restarts; Telegram `getMe` and polling passed for
+the configured bot. PostgreSQL is healthy at schema 11. Counts after migration: 1 user,
+26 facts, 6 CVs, 0 Applications and 0 status events. Auto-apply, auto-reply and private HH
+remain disabled. No employer action occurred.
+
+Deployment used a private Compose overlay selecting `job-agent-release:f786aa1`; only
+`repo-app-1` was recreated. Runtime checkout, its two ahead commits, three untracked files,
+PostgreSQL container and both named volumes were untouched. Rollback image
+`job-agent-rollback:pre-f786aa1` points to previous image `sha256:ad8e2230…`; the verified
+private mode-0600 backup remains available. To rollback, use the same private overlay
+pattern with that image, recreate only app with `--no-build`, and do not downgrade schema;
+v8-image writes on additive v11 were rehearsed successfully.
+
+Initial source smoke exposed that the legacy whole-directory `/app/data` bind hid the
+release employer watchlist. The overlay now retains runtime profile/countries as individual
+read-only binds and uses the versioned watchlist from the image; storage remains the same
+named volume. Matching hashes verify both personal files were preserved. No runtime file
+was rewritten.
+
+The corrected startup scan completed successfully with Employer Career Watch active and no
+repeat of the watchlist error. Do not use guarded `job-agent update` until runtime Git
+ownership/topology is deliberately resolved.
+
+## Current checkpoint — production backup verified; rollout safely blocked (2026-10-23)
+
+A fresh private schema-v8 custom dump exists outside both repositories with mode 0600.
+`pg_restore --list` passed; a full tmpfs restore exactly matched representative counts
+(1 user, 26 facts, 6 CVs, 2473 jobs, 2474 matches, 0 Applications/events). The restored
+copy migrated to v11, accepted a current-image synthetic event, accepted a previous-v8
+image event and current code read that event as `legacy`. Production DB was read-only.
+
+The running image is still the recorded pre-release image; no service was restarted.
+Runtime checkout `/mnt/Storage/AI-Job-Bot/repo` is on `work/telegram-georgia-location`,
+ahead 2, with three pre-existing untracked/backup files. The guarded updater therefore
+cannot run. Do not clean/stash/overwrite these files or bypass the safeguard. Resolve that
+checkout ownership/topology first, then use the recorded image as rollback target and run
+private Telegram smoke. Code gates are green; PR #56 remains Draft.
+
+## Current checkpoint — release-ready code gates (2026-10-23)
+
+Full isolated PostgreSQL suite: **1506 passed**. Compile, history secret scan and diff
+checks pass. Draft PR #56 CI run `40009706784` is green on exact code SHA `bc63a12`
+(Python checks, secret scan, Docker build). The exact labeled image initialized schema
+v11 in a separate tmpfs database and persisted/read a synthetic `prepared/system` event.
+No provider or production state was touched. Remaining deployment gate: create a fresh
+private production backup, restore-check it in isolation, record current image/config,
+then perform the documented controlled update and private smoke; do not release before it.
+
+## Current checkpoint — release-image PDF renderer (2026-10-23)
+
+The release image reproduced a missing-font failure despite ReportLab being installed.
+`fonts-dejavu-core` is now installed by the Dockerfile. Rebuilt image smoke generated a
+Modern PDF and extracted exact Russian and English text with pypdf; ReportLab 4.5.1,
+DejaVuSans.ttf, non-root UID 10001 and healthcheck were verified. Resume gate: **10 passed**.
+Next: full isolated suite and exact-commit CI/publication gate. Production remains untouched.
+
+## Current checkpoint — rollback-compatible schema v11 (2026-10-23)
+
+An isolated custom-format backup was listed, checksummed and restored with matching v10
+schema/data/trigger evidence. Testing previous commit `2c134d1` against that additive
+schema exposed missing database defaults for mandatory v9 event fields. Schema v11 now
+adds those defaults, and fresh models declare them too. The v8 code then read the restored
+package, inserted a new Application event, and current code read it as `legacy`. Focused
+gate: **36 passed**. Synthetic restore/worktree were removed. A fresh private production
+backup+restore check is still mandatory immediately before release; next local gates are
+release-image ReportLab/fonts and exact-SHA CI/smoke.
+
+## Current checkpoint — v8→v9→v10→v11 compatibility (2026-10-23)
+
+An exact isolated v8 PostgreSQL fixture upgrades through 9–11 while preserving the
+frozen vacancy, CV snapshot/provider ID, exact letter and status event. The legacy event
+is labeled `legacy`; reminders and immutable-history enforcement are installed; rerun is
+a no-op. Combined repository/application/schema gate: **36 passed**. Next release gate:
+release-image/CI checks. Production was not accessed.
+
+## Current checkpoint — async/web release gate (2026-10-23)
+
+The missing dependency was recovered from the local uv cache into the existing sibling
+test venv. All affected scan/dashboard/lease/web tests pass against isolated tmpfs
+PostgreSQL: **29 passed**. No production environment or data changed. The former
+19-test blocker is closed; next gate is isolated v8→v9→v10 compatibility, followed by
+actual backup/restore, previous-image rollback, release-image and exact-SHA CI checks.
+
+## Current checkpoint — P0 R01 isolated acceptance (2026-10-23)
+
+An isolated PostgreSQL test now covers frozen package → approval boundary → mocked HH
+provider → durable attempt. The fixture received the exact source posting ID, provider
+resume ID and letter once; history persisted `sending → sent`. A repeated attempt was
+rejected before a second provider call. Combined R01 package/navigation/provider gate:
+**62 passed**. No real provider, production DB or outbound action was used.
+
+Next unblocked P0 should be selected from the canonical roadmap after the release gates;
+do not repeat C01/R01/R02 audits. Open gates remain the 19 pytest-asyncio tests,
+backup+actual restore, schema v8→v9→v10 compatibility, previous-image rollback,
+exact-SHA CI and release-image ReportLab/fonts.
+
+## Current checkpoint — P0 R01 exact-package confirmation (2026-10-23)
+
+Prepared HH packages can now expose a one-time owner-bound confirmation valid for ten
+minutes. The SHA-256 digest binds application/job IDs, frozen vacancy, exact CV text
+and provider resume ID, exact letter and channel. Confirmation removes the token before
+I/O; stale/tampered packages and replay fail before provider access. Submission uses
+only frozen fields and the existing reservation/outcome ledger blocks duplicates and
+ambiguous retries. Gate: **59 passed, 2 skipped**.
+
+Implementation checkpoint: `9477b44` on `wip/telegram-pilot-20261019`; this HANDOFF is
+its immediate documentation successor. Next task is isolated R01 owner acceptance
+with a non-production provider fixture, then the next unblocked P0 roadmap item.
+Open release gates remain: 19 async/web tests, backup+restore, v8→v9→v10 compatibility,
+rollback, exact-SHA CI and release-image ReportLab/fonts. No real submission occurred.
+
+## Open release gates after C01/R01/R02 (2026-10-23)
+
+- Combined isolated PostgreSQL C01/R01/R02 gate passes **153 tests**; this verifies
+  additive schema v9/v10 migration behavior in the test DB, not production rollout.
+- The **19 async/web tests** requiring `pytest-asyncio` remain open in the primary
+  offline environment; do not reinterpret their environment failures as passes.
+- Before release: verify production-compatible backup and actual restore, schema
+  v8→v9→v10 compatibility, rollback to the previous application image while the
+  additive schema remains present, and ReportLab/Noto-or-DejaVu availability in the
+  built image. Then run exact-SHA CI and isolated smoke. No production migration yet.
+
+## Current checkpoint — P0 R01 fail-closed application entrypoint (2026-10-23)
+
+The Telegram `apply:` callback no longer calls `apply_match` or any provider API. Its
+first action now prepares/reuses the immutable application package, renders that exact
+saved preview and states that no external submission occurred. This aligns the button
+with the approved “first click prepares” UX and closes the previous direct-send gap.
+
+Navigation/HH/package gate: **57 passed, 2 skipped** (isolated PostgreSQL URL omitted
+for this focused run). R01 remains partial: no provider call should be exposed again
+until a one-time expiring confirmation binds exact vacancy, CV snapshot, letter and
+channel. No external action was performed.
+
+## Current checkpoint — P0 C01 Modern/PDF export (2026-10-23)
+
+`/resumeexport <id> txt|docx|pdf [ats|modern]` now supports simple ATS and styled
+Modern output. Both formats are deterministic renderers over the approved stored
+name/role/language/content and escape markup; they do not generate claims. PDF uses
+the new bounded ReportLab dependency and embeds local Noto Sans or DejaVu Sans.
+RU/EN PDF text extraction was verified with pypdf. Missing Unicode fonts fail closed.
+
+CV/import/navigation gate: **109 passed**. C01 code slices are complete enough for
+isolated owner acceptance; release image font/dependency compatibility remains a gate.
+Production/runtime and external transmission remain untouched.
+
+## Current checkpoint — P0 C01 grounded CV editing (2026-10-23)
+
+`/resumeedit <id> <full new text>` now renders an escaped bounded unified diff and
+stores only a short-lived owner-scoped preview. `/resumeeditconfirm` atomically creates
+a new draft row after verifying the exact parent-content digest. The approved parent,
+its content and provider binding are untouched; replay and stale previews are rejected.
+The new revision remains unusable until explicit `/resumeapprove`.
+
+CV/edit gate: **108 passed**; isolated PostgreSQL parent/lineage/stale-preview test:
+**1 passed**. Next C01 stage: Modern template and PDF export. Production/runtime and
+external providers were not touched.
+
+## Current checkpoint — P0 C01 approved CV export (2026-10-23)
+
+`/resumeexport <id> txt|docx` now resolves CVs through the active owner profile and
+exports approved, non-empty versions only. TXT is the exact stored UTF-8 text. DOCX
+uses a deliberately simple ATS-friendly heading/metadata/body structure and does not
+generate or infer claims. Filenames are sanitized. Draft and empty CVs are rejected.
+
+CV/import/diff/navigation gate: **106 passed**; compile and diff checks passed.
+PDF, Modern visual template and grounded edit/diff approval remain partial C01 work.
+No CV was transmitted externally and no production/runtime data was touched.
+
+## Current checkpoint — P0 R02 application deadlines/reminders (2026-10-23)
+
+Additive schema v10 adds owner-scoped `application_reminders`. Telegram creation
+requires an ISO datetime with explicit offset and stores naive UTC consistently with
+the current DB convention. `/reminders` lists pending items with escaped notes;
+`/reminddone` is owner-scoped and idempotent. Duplicate concurrent creation locks the
+parent Application and returns one existing pending row. No scheduler, Telegram push,
+provider integration or employer communication was enabled.
+
+Isolated migration/repository/application gate: **82 passed**. Next critical-path
+work can return to partial C01 grounded editing/export; real incoming HR integration
+remains externally gated. Production schema/runtime remains unchanged.
+
+## Current checkpoint — P0 R02 provider-event intake (2026-10-23)
+
+The CRM status vocabulary now includes provider receipt, employer response,
+assessment and closed stages. `record_provider_application_status` requires an
+owner-scoped Application whose exact source matches the provider, an allowed status,
+and a provider-namespaced idempotency key. A replay is acknowledged without adding
+history or reverting a later manual/provider state. Telegram manual status commands
+cannot claim provider provenance. Focused UI/repository/PostgreSQL gate: **54 passed**.
+
+No external webhook/account was enabled. Next R02 increment is local deadlines and
+reminders; actual incoming integration remains gated by a verified provider contract.
+
+## Current checkpoint — P0 R02 immutable Application CRM events (2026-10-23)
+
+Additive schema v9 extends `application_status_events` with provenance, JSON evidence
+and an optional idempotency key. Existing rows migrate as `legacy`; new preparation,
+manual and HH events are labeled `system`, `manual_user` or `provider`. Status writes
+remain row-locked, and replaying the same event key is acknowledged without appending
+or reverting state. A partial unique index closes concurrent duplicate insertion.
+
+A PostgreSQL trigger rejects direct event UPDATE/DELETE. It permits FK cascade only
+after the complete parent Application is deliberately deleted, preserving a future
+owner-authorized privacy deletion path. History/export disclose provenance but do not
+render arbitrary evidence JSON. Isolated application/PostgreSQL gate: **79 passed**.
+Full offline suite: **1453 passed, 24 skipped, 19 failed** only because the available
+environment still lacks `pytest-asyncio`; those async/web gates remain open.
+
+Next R02 increments: verified incoming HR/provider events and deadlines/reminders.
+Production migration, deploy, runtime DB and external actions were not performed.
+
+## Current checkpoint — P0 C01 CV version approval foundation (2026-10-23)
+
+CV versions now use migration-free `cv_version_v1` metadata inside the existing
+`ResumeProfile.rules` JSON. Existing rows are treated as approved for compatibility;
+new `/resumeduplicate` copies retain exact content and parent id but are drafts until
+owner-scoped `/resumeapprove`. Drafts are excluded from automatic resume selection
+and rejected again at both package-preparation and external-apply boundaries.
+The old version remains intact for comparison/rollback.
+
+Import/diff/matching/Telegram/HH safety gate: **178 passed**; compile and diff checks passed.
+This is partial C01: content editing with local diff, templates and PDF/DOCX/TXT
+exports remain open. PostgreSQL persistence is not claimed in this environment.
+Next independent critical-path check: one concrete R02 ledger/history gap.
+
+## Current checkpoint — P0 U03 structured blacklist controls (2026-10-23)
+
+Structured rules are now manageable through `/blacklist rule`: read-only preview,
+explicit apply, all profiles by default, optional id/kind/name scope, permanent or
+date-bounded expiry, disable/remove and per-profile undo. Preview checks at most the
+latest 50 unique matches per selected profile and labels that bound; it never writes.
+Blacklist actions do not change saved/skipped statuses or source enablement.
+
+Focused parser/handler and cumulative matching/policy gate: **99 passed**; compile
+and `git diff --check` passed. No runtime, database, source or outbound action used.
+Next critical-path stage is C01 + R02: inspect the existing CV Studio/version and
+immutable application-ledger gaps before a focused implementation slice.
+
+## Current checkpoint — P0 U03 structured blacklist core (2026-10-23)
+
+Starting from clean `badd8ef`, added a migration-free `blacklist_rules` domain
+contract in search-profile JSON settings. It supports the five approved levels:
+vacancy, company, company+role, role and phrase/condition. Identity levels use
+exact normalized matching; only phrase rules use text containment. Disabled,
+expired and malformed rules do not block. Existing `exclude_terms`, employer
+policy, saved/skipped statuses, CVs and applications remain unchanged.
+
+Focused matching/preferences/employer-policy gate: **94 passed**; compile and
+`git diff --check` passed. No database, runtime or external action was used.
+
+Next U03 slice: safe command parser and preview/confirm/undo persistence across
+all profiles by default, then expiry/profile-scope UX and affected-vacancy preview.
+
+## Current checkpoint — P0 SRE recall across source adapters (2026-10-23)
+
+The confirmed `Site Reliability Engineer` → `SRE` source-usefulness loss is now
+covered in RemoteOK, Greenhouse, SmartRecruiters, Lever, Employer Career Watch,
+Remotive and Himalayas. Each change is an exact query alias; unrelated title-only
+roles remain excluded. No salary, remote eligibility, geography, authorization,
+visa or relocation evidence semantics changed.
+
+Remotive/Himalayas targeted gate: **66 passed**; cumulative ATS gate remains
+**113 passed**; compile and `git diff --check` passed. No live source, runtime,
+database, Telegram or external message was used.
+
+Next independent P0: measure another concrete query/normalization loss or
+Candidate Fit false-negative across Career-first, Relocation-first IT and Any
+Job; async/web tests remain an open environment gate.
+
+## Current checkpoint — P0 remaining ATS SRE recall (2026-10-23)
+
+The source-usefulness slice now also covers Lever and Employer Career Watch.
+Both previously required literal query tokens and dropped standard `SRE`
+titles; both now use the same exact alias as Greenhouse/SmartRecruiters and
+RemoteOK. Related Software Engineer/reliability rows remain excluded.
+
+Extended ATS regression gate: **113 passed**; compile and `git diff --check`
+passed. The worktree is ready for a checkpoint commit. Async/web tests remain
+open because `pytest-asyncio` is unavailable in the usable local environment.
+
+Next: inspect Remotive/Himalayas query matching for a reproducible SRE or other
+role-normalization loss, then continue S01/G01/M01 source usefulness.
+
+## Current checkpoint — P0 ATS SRE recall (2026-10-23)
+
+At clean `70e1df2`, source-usefulness reproduction showed Greenhouse and
+SmartRecruiters dropped standard `SRE` titles when queried as `Site Reliability
+Engineer`. Both adapters now use a narrow exact alias for that three-token query
+only; unrelated `Software Engineer` rows with reliability wording remain out.
+No salary, geography, remote eligibility, authorization, visa or relocation
+evidence changed.
+
+Targeted Greenhouse/SmartRecruiters/RemoteOK/search-preference gate: **132
+passed**; compile and `git diff --check` passed. No live source, runtime,
+database, Telegram or external message was used.
+
+Next: inspect the next independent query/normalization loss in the remaining
+official ATS adapters; preserve the async/web pytest gate as open.
+
+## Current checkpoint — RemoteOK/source gate and offline regression cleanup (2026-10-23)
+
+RemoteOK SRE recall is committed at `8a4f1b0`; stale U01 score assertions in
+navigation/saved tests were aligned and committed at `0c3a651`. The current
+branch is clean at the start of this documentation checkpoint.
+
+Verification: RemoteOK **32 passed**; related source diagnostics/adapter/scan
+gate **198 passed**; offline non-async suite **1430 passed, 23 skipped, 19
+deselected**. The full run had no product failures after the assertion update;
+19 async/web tests remain unexecuted because the available sibling environment
+lacks `pytest-asyncio`, and network/DNS prevents rebuilding dependencies.
+`py_compile` and `git diff --check` passed. Job Bank B01 retry/partial/403/429
+coverage was reviewed and needs no code change.
+
+Next independent P0 remains PR02 source usefulness / S01+G01+M01 evidence
+improvement with a concrete reproducer; do not alter production, database,
+Telegram sessions or external messages.
+
+## Current checkpoint — P0 Remote OK SRE recall (2026-10-23)
+
+At clean HEAD `142cb27`, added a narrow Remote OK discovery alias so the
+Career-first `Site Reliability Engineer` query also matches standard `SRE`
+titles. The regression keeps `Software Engineer` with a merely related
+`reliability` tag excluded; no score, threshold, Relocation-first, geography or
+eligibility semantics changed.
+
+Focused pytest could not run: no repository/system pytest is available and
+`uv` cannot resolve PyPI because DNS/network access is unavailable. Run
+`tests/test_remoteok.py` and the related source gate in a usable environment.
+`py_compile` and `git diff --check` remain required before checkpointing. No
+production/runtime, database, Telegram or external-message action was used.
+
+Next: verify the focused Remote OK/source tests, then continue the next
+independent P0 source-usefulness slice; U02 live Telegram acceptance remains
+blocked here.
+
+## Current checkpoint — P0 U02 Telegram navigation (2026-10-23)
+
+Starting from clean commit `7bb2aca` on `wip/telegram-pilot-20261019`, U02 was
+implemented without repeating U01. Details now edits the existing Telegram
+working message and keeps it unchanged when detail loading fails; queue edit
+operations are serialized per message to reduce concurrent callback races and
+failed edits return a sanitized alert. Review, Stretch, Saved and profile-scoped
+Details/Requirements navigation remain covered.
+
+Verification: targeted navigation/compact/review tests — **88 passed**;
+`py_compile` and `git diff --check` passed. No runtime, database, Telegram
+session, notification, application or employer message was used.
+
+The working tree contains the U02 code/tests/docs and is ready for the owner’s
+manual commit if Git metadata is unavailable. Next: isolated visual/runtime
+acceptance of edit-in-place Back/Next/Details; do not deploy or send messages.
+
+## Current checkpoint — P0 U01 quick-review score disclosure (2026-10-23)
+
+Branch `wip/telegram-pilot-20261019`; the clean base was `3436399`. The review,
+Stretch and Saved queue cards now hide numeric Match scores and direct the owner
+to Details for assessment, while retaining concise fit, paid-status, geography
+and foreign-hire context. This implements the remaining small U01 disclosure
+slice without changing scoring, eligibility or stored matches.
+
+Verification: focused `tests/test_review_cards.py` and
+`tests/test_telegram_compact_vacancy.py` — **14 passed**; `py_compile` and
+`git diff --check` passed. The repository sibling Python environment was used
+because the local `.venv` is absent/stale and network dependency rebuilds are
+unavailable. No database, Docker, production runtime, Telegram session,
+notification, application or employer message was touched.
+
+Next: U02 isolated edit-in-place Back/Next/Details/cursor acceptance, or the
+remaining offline source-funnel false-negative slice if the runtime gate is
+blocked. Do not deploy or send external messages.
+
+## Current checkpoint — Arbeitnow WIP and DevHub stop-race guard (2026-10-23)
+
+The current dev branch is `wip/telegram-pilot-20261019` at `be60f70` (ahead of
+origin by five commits). The only AI Job Agent modifications are the preserved
+Arbeitnow adapter/test WIP: country-only provider labels no longer become an
+invented city, and `tests/test_arbeitnow.py` passes **23 tests**. Keep the WIP;
+do not reset, clean, stash, stage or commit it in this session.
+
+AI-DevHub is stopped and remains the sole orchestrator. Its task #12 is marked
+DONE by a prior interrupted worker run, but it has no verified checkpoint and
+left the WIP above; treat that status as historical/inconsistent, not as proof
+of delivery. A DevHub regression now prevents a SIGTERM-racing `DONE` result
+from entering checkpointing or DONE; the full DevHub suite is **51 passed, 2
+subtests**. The fix and test are unstaged in `/mnt/Storage/AI-DevHub`.
+
+Next handoff: after this interactive writer exits, run `devhub doctor`, verify
+the exact diff and `tests/test_arbeitnow.py`, then run
+`devhub checkpoint bootstrap ai-job-agent`. Only after that verified checkpoint
+should `devhub start` be considered. Do not run either command while this Main
+session still owns the worktree; no production/runtime, DB/volume, external
+message, push or merge is authorized.
+
+## Current checkpoint — 2026-10-23 Arbeitnow geography correction
+
+The first small non-duplicate P0 Search Reliability increment is implemented in the working tree. Offline code/test inspection confirmed that `ArbeitnowSource` assigned `country="DE"` to every non-remote city-only label, using the board origin rather than vacancy evidence. The fix keeps the city label for display and leaves country unknown unless the location explicitly parses as `City, Country`; explicit country labels and remote scope remain unchanged. Regression coverage updates the existing Berlin fixture and adds Paris city-only coverage.
+
+Verification status: code diff and test intent were inspected; targeted pytest could not execute because the available sibling `.venv` has a stale interpreter path, while `uv` cannot rebuild dependencies without network/DNS. Available `py_compile` and `git diff --check` passed. Run `tests/test_arbeitnow.py` with a usable repository environment. No production/runtime, PostgreSQL/volume, credentials, Telegram data, external source or message was touched. The next unfinished item is the remaining offline false-negative/source-usefulness review; preserve unknown geography and do not change score thresholds.
+
+## Current checkpoint — DevHub single-orchestrator handoff (2026-10-23)
+
+AI-DevHub is the only authorized orchestrator for this project. Its effective
+user config now registers `/mnt/Storage/AI-Job-Bot/dev` on branch
+`wip/telegram-pilot-20261019`, with `allow_worker=true`, `allow_dirty=false`,
+`publish=false`, and `production=false`. The project was already registered and
+the worker permission was re-asserted idempotently through `devhub projects`.
+The prior unsafe `publish=true` value was corrected; no delivery/push path was
+run. The separate `scripts/codex-main-runner` and its systemd template remain
+inactive alternatives and were not started.
+
+DevHub status/doctor/projects/tasks and `monitor` are healthy; runner is stopped,
+the nine historical tasks are `DONE`, and the new non-duplicate P0 task #10
+(`Search Reliability and source usefulness`) is `QUEUED`. The current interactive
+Codex process holds the worktree writer. The dev worktree remains dirty at HEAD `427d8b5`, so
+`allow_dirty=false` correctly blocks worker startup. Because the active DevHub
+checkpoint policy forbids staging/committing this WIP in the current session. The
+safe handoff is: finish this interactive session, verify the preserved WIP and its
+tests, then run `devhub checkpoint bootstrap ai-job-agent`; this uses the verified
+DevHub checkpoint pipeline without a Codex turn and leaves `.serena/**` untracked.
+Only after that succeeds should `devhub start` run task #10. `/mnt/Storage/AI-Job-Bot/repo`, production, databases, volumes and external
+messages were untouched.
+
+## Current checkpoint — safe Codex Main continuation controller (2026-10-23)
+
+Worktree remains `wip/telegram-pilot-20261019` at HEAD `427d8b5`, with all prior
+unstaged application/docs/tests and untracked `.serena/` preserved. Existing DevHub
+was inspected: its AI Job Agent worker is enabled (`allow_worker=true`) with
+`allow_dirty=false`, `publish=false`, and its normal runner does not resume this Main session. The
+legacy `jobcodex-smart` launcher targets `/home/roma/job-agent-release-v352`, so it
+was not reused.
+
+Added `scripts/codex_main_runner.py`, `scripts/codex-main-runner`, and the uninstalled
+template `scripts/systemd/codex-main-runner.service`. The controller requires an
+explicit session ID (never guesses `--last`), takes a per-user flock/PID lease,
+blocks when another Codex process references this worktree, runs exactly one
+`codex exec resume` subprocess at a time, records atomic state plus event/log files,
+and stops on rate-limit/auth/blocker/error/no-progress/turn limits. It never runs
+git add/commit/reset/checkout, push/merge/deploy, production/database/volume actions,
+or external messages. `start` only forks the bounded runner; no continuous loop was
+started in this session.
+
+Verification: `uv run --isolated --with pytest --with pytest-asyncio pytest -q
+tests/test_codex_main_runner.py` => **4 passed**; `python3 -m py_compile
+scripts/codex_main_runner.py`, `CODEX_MAIN_SESSION_ID=test-session
+scripts/codex-main-runner dry-run`, `scripts/codex-main-runner status`, and
+`git diff --check` passed. Doctor/status detected the currently active interactive
+Codex processes in this worktree, so an actual run would safely refuse to start.
+Systemd was not installed/enabled. Next safe step: owner reviews the exact session ID,
+then optionally installs the template with a non-empty environment override and runs
+one bounded turn; do not use `start` while interactive Main is active.
+
+## Current checkpoint — richer Requirements skill context (2026-10-22)
+
+Branch `wip/telegram-pilot-20261019`, HEAD `807d4de`. The Requirements tab now loads the
+existing profile-scoped `get_vacancy_comparison` path and renders a bounded summary of skills
+found/missing in Candidate Facts. It does not mutate facts, scoring, eligibility or vacancy
+data; the explicit disclaimer keeps unknown experience from becoming an automatic claim.
+Other `/job` tabs still use the lighter detail loader, and malformed callback/profile scoping
+behavior remains unchanged.
+
+Verification: `tests/test_telegram_compact_vacancy.py` plus `tests/test_fact_comparison.py` —
+76 passed; navigation plus the same comparison/compact tests — 124 passed; compileall,
+deterministic Ruff `E4,E7,E9,F`, gitleaks patch/commit scan and `git diff --check` passed.
+The disposable dependency environment was `/tmp/jobbot-dev-venv.BWfSQW`; no system packages,
+database, Docker, production runtime, Telegram or external source were touched. The local
+checkpoint backup is `/tmp/codex-universal-job-dev-req-summary-20261022.St1dP7` (mode 700).
+The existing `.serena/` files remain untracked and untouched. Next: isolated visual Telegram
+before/after acceptance only after normal release gates; do not claim it from renderer tests.
+
+## Current checkpoint — P0 Telegram persistent ReplyKeyboard (2026-10-20)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `0a2ea82`, clean starting worktree. The unstaged increment adds a compact 4×2 persistent/resizable reply keyboard to authorized `/start` and `/help` responses. Its buttons send the exact existing `/scan`, `/scanstatus`, `/review`, `/stretch`, `/saved`, `/jobs`, `/settings` and `/help` commands. Existing Command handlers, owner/private-chat boundary and inline edit-in-place navigation are unchanged; no parallel text router or Mini App work was added.
+
+Expanded Telegram handler/navigation tests pass **248 passed, 1 skipped**; compileall, repository secret scan and `git diff --check` pass. No database, Docker, production/runtime, credential, private Telegram artifact, notification or real message was accessed. Leave all code/docs unstaged for DevHub; do not run `git add`, commit or push. Next gated step is DevHub checkpoint/CI followed by isolated visual Telegram acceptance, not production deployment.
+
+## Current checkpoint — PR #56 Relocation-first discovery-cache CI correction (2026-10-20)
+
+At exact base HEAD `6bdf944`, the Job Bank independent-profile regression still
+expected Relocation-first to discard its configured IT query when an Any Job
+role was present. Current `discovery_queries` behavior, the adjacent profile
+regression, `ROADMAP.md`, `BRIEF.md`, and `TASKS.md` all require both tracks,
+interleaved without cross-profile cache mixing. Updated only the stale expected
+query list from `["warehouse worker"]` to `["SRE", "warehouse worker"]`; source
+disablement, profile identity, implementation, cache keys, and runtime behavior
+are unchanged. The checkout had no `.venv`, so tests used the existing read-only
+sibling repository virtualenv: the named regression passed (1), the full search
+preference suite plus that regression passed (41), and adjacent provider/cache
+tests passed (7). The repository secret scan and `git diff --check` passed. No
+Docker, database, service, network, private data, staging, or commit was used.
+
+## Current checkpoint — P0 release-readiness and employer-policy composition (2026-10-20)
+
+Branch `wip/telegram-pilot-20261019`, HEAD `9ae256d`; the starting worktree was clean. Local `origin/wip/telegram-pilot-20261019` remains at `ade5235`, so the latest checked-in Telegram pilot/query-lane commits are not represented by that tracking ref. A fresh `gh pr view 56` failed because `api.github.com` was unreachable. The last evidenced remote state in this repository is Draft PR #56 with exact-head CI passing on older checkpoint `a8103f5`; do not claim current remote mergeability or CI.
+
+Release-readiness review covered Telegram Pilot, Employer Career Watch, grouped source notifications, employer policy, relocation evidence and the independent Career-first / Relocation-first query lanes. A real safety defect was found and fixed in the working tree: a manual ALLOW on one category (for example betting) previously returned early and could suppress a separate default military BLOCK on the same employer. Category choices are now evaluated independently and combined with BLOCK > WARN > ALLOW. Exact-employer decisions still have highest priority, betting/casino remains owner-selectable, and civilian state ownership alone (including RZD) remains allowed.
+
+Verification: policy/scoring package **86 passed**; focused P0 integration package **430 passed, 1 skipped**; compileall, repository history/worktree secret scan and `git diff --check` passed. One initial test failure was environmental: this session has `umask 0077`, while a permission-negative fixture expects ordinary `0022`; rerunning with CI-compatible `0022` passed and product permission enforcement itself was unchanged. No private post body, network source, database, Docker volume, production bot, notification, application or employer message was used.
+
+Release state: code behavior is ready for exact-head CI, but deployment is **not ready**. DevHub must checkpoint the unstaged fix/docs (this task must not run `git add` or `git commit`) and publish the latest branch head, then PR #56 needs Python tests against isolated PostgreSQL, secret scan and Docker build on that exact head. `CURRENT_SCHEMA_VERSION` remains 8 and this increment adds no migration. Before any separately authorized production update, verify a production backup, schema/config compatibility, prior image/commit rollback target and smoke/rollback commands. Production Telegram pilot/runtime acceptance remains open; no deploy or merge is authorized in this task.
+
+Next priority: after DevHub checkpoint and exact-head CI, perform authorized isolated Telegram/runtime smoke acceptance for the three approved public channels and notification recovery behavior; if that cannot be authorized, continue offline false-negative/source usefulness review without weakening score or evidence rules.
+
+## Current checkpoint — Search Quality IT/Any Job query lanes (2026-10-20)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `95b4c9c`. A red regression showed that Relocation-first discarded the configured IT query list whenever broader `relocation_queries` existed. Working code leaves Career-first dedicated to DevOps/Infrastructure/Linux/SRE and alternates normalized IT + Any Job roles for Relocation-first, so bounded adapters receive both tracks; cross-list duplicates consume one slot. The checked-in defaults now explicitly include Site Reliability Engineer. Match Score, thresholds, geography and evidence semantics are unchanged, and absent visa/sponsorship/relocation evidence remains unknown.
+
+Focused query/default/pilot suites: 94 passed. Related Candidate Fit/settings/bootstrap suites: 53 passed. Compileall, secret scan and `git diff --check` passed. The unchanged private mode-0600 60-post sample was read only and still yields 18 non-vacancies, 42 vacancy candidates, 1 Good and 41 filtered; separate profile counts are Career-first 1 Good/41 filtered and Relocation-first 1 Good/41 filtered. No post body was printed and no private artifact, network, database, production runtime, notification, application or employer message was touched. One broader scan test entered its existing database-dependent path in the available borrowed environment and was stopped without claiming a result; no persistence code changed. Git metadata remains outside the writable sandbox, so no local checkpoint was attempted. Next: checkpoint from a session with writable Git metadata, then resume measured false-negative/source usefulness review without changing score thresholds.
+
+## Current checkpoint — Telegram pilot offline false-positive correction (2026-10-20)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `5ecd233`. Recovery-context was verified without printing private post bodies: private `pilot-sample.json` and `pilot-analysis.json` exist with mode 0600; the sample passes the approved-channel contract with 60 posts, exactly 20 per channel, and the stored analysis matches a fresh offline recomputation. Do not reauthorize Telegram or request credentials.
+
+Manual review exposed a concrete common-path false positive: 18 candidate resumes in `devops_jobs_feed` place explicit `#резюме` after publisher/discussion metadata, outside the old start-only header match. Those rows accounted for every one of the original 11 Good and 5 Stretch results. `explicit_non_vacancy` now searches only the first 500 characters for unambiguous candidate tags while retaining the existing start-only phrase rules, so narrative resume instructions later in a vacancy remain eligible. The unchanged 60-post sample now yields 18 non-vacancies, 42 vacancy candidates, 1 Good, 0 Stretch, 41 filtered and 0 duplicates. Expanded Telegram suite: 132 passed, 1 skipped; compileall, secret scan and `git diff --check` passed. No private artifact was rewritten or committed; no network, Telegram session, database, runtime, notification, application or external message was used.
+
+The local checkpoint attempt was blocked because this linked worktree's Git metadata is under `/mnt/Storage/AI-Job-Bot/repo/.git/worktrees/dev`, which is read-only in the current sandbox. The verified changes remain unstaged in the working tree; no workaround, push or external mutation was attempted. Next: create the local checkpoint from a session with writable Git metadata, then continue offline manual false-negative review and conservative exact-template metadata extraction for the two vacancy channels; do not infer country from a channel name. Runtime watch/restart acceptance remains separate.
+
+## Current checkpoint — employer policy documentation reconciliation (2026-10-19)
+
+The owner-approved employer policy was checked against shared matching, legacy scoring and focused tests. Code already has the intended semantics: legacy betting/gambling/casino blacklist terms are inert; betting and casino/iGaming default to ALLOW; crypto/Web3 defaults to WARN; user exact-employer choices take priority over category/default choices; exact Alabuga/Voentorg identities and structured Russian military/direct-war/direct-government categories remain BLOCK with the primary identity/evidence URLs preserved in `data/profile.yaml`. Current ROADMAP, BRIEF, TASKS and Employer Career Watch documentation no longer claim Betsson is hard-filtered or uses assessment version 2. Focused employer-policy/settings/scoring suite: 130 passed; compileall, secret scan and `git diff --check` passed. No policy code, settings, runtime, database or employer interaction changed.
+
+## Current checkpoint — source-notice delivery diagnostics (2026-10-19)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `8336e3b`. The grouped notification policy was verified as already implemented and was not duplicated or redesigned. The next confirmed reliability gap was delivery observability: a Telegram exception while sending an immediate source notice or grouped daily digest left only a log entry after suppression state was saved. Working code now appends sanitized `SOURCE_NOTICE_DELIVERY_FAILED` to every affected source in the returned scan summary, retains the original source diagnostic, excludes exception payloads and makes no fallback chat send. Targeted notice/diagnostic/source-isolation suite: 79 passed; compileall, diff check and secret scan passed. No runtime, production DB/volume, live Telegram notification, application or external message changed. Next: keep the Draft PR/runtime untouched and continue the next independently evidenced P0 source/eligibility reliability slice.
+
+## Current checkpoint — exact reviewed ATS opening yield (2026-10-19)
+
+Branch `wip/telegram-pilot-20261019`, starting HEAD `ade5235`. Offline inventory is valid at 13 employers / 15 openings. Employer Career Watch now admits an exact reviewed `provider_id` + normalized-title match even without literal query-token overlap, recovering Xsolla `Operations Engineer` for `DevOps Engineer`; an unreviewed Operations role remains excluded. The row carries inventory provenance/suitability, while work authorization, visa sponsorship and relocation remain unknown. Employer/source/matching tests: 86 passed; compileall passed. A fresh sequential official probe returned no output on this route and was stopped after three minutes, so the earlier completed 14/14 freshness observation remains the latest live evidence. No runtime, DB, volume, notification, application or message changed. Next: rerun the bounded probe from a working route, then measure this reviewed opening through the full common scan without changing thresholds.
+
+## Current checkpoint — source notification policy + employer preferences (2026-10-19)
+
+PR #54 is merged into `feature/v3.5.7-international-market-coverage` at `a1debc9`; it was not in the running checkout. Read-only runtime inspection: `/mnt/Storage/AI-Job-Bot/repo` is on `work/telegram-georgia-location` at `34bd4d6`, with local untracked files preserved and no `app/sources/notice_policy.py`. Runtime reports 3.5.7. This explains the owner's repeated legacy notifications; do not update runtime without separate authorization.
+
+Dev notification checkpoint `913f305` passed exact-head CI (`39301712347`). Runtime is still on `work/telegram-georgia-location` at `34bd4d6` and lacks `notice_policy.py`; this explains the legacy spam. Runtime was not modified.
+
+Branch `wip/telegram-pilot-20261019`, PR #56 remains Draft. Employer policy checkpoint `7124035` passed exact-head CI (`39302538089`); it replaces the old sector block, adds narrow exact/category rules and all-profile `/employerpolicy` settings. Betsson/casino and civilian state-owned employers remain eligible by default; crypto/Web3 warns to Stretch. Matching/review/notification suite: 227 passed, 3 skipped. Handler checkpoint `64dcb28` passed CI (`39302917770`); evidence and blacklist UI commits `cc52624`/`d4cd798` passed CI (`39303642351`/`39303714239`). The `/blacklist` view omits inert legacy terms. Policy/settings/direction regressions: 40 passed, including BLOCK rules in both directions and civilian state-owned ALLOW.
+
+Job Bank location checkpoint `0f90ea8` passed exact-head CI (`39302704633`): resolves only a single locality plus recognized Canadian province/territory; remote/multiple/ambiguous labels keep city unknown. IHE checkpoint `f1cfb0c` recognizes explicit existing permit/right-to-work prerequisites independently from sponsorship; absent/conditional evidence stays unknown. Cross-domain tests: 151 passed. Exact-head CI `39303180589` passed. IHE vocabulary checkpoint `aebf8e4` passed focused tests (143) and CI (`39304074461`); full province-label checkpoint `e81e4f6` passed its 42 tests and CI (`39304245905`).
+
+The original `/mnt/Storage/AI-Job-Bot/repo/.venv` is broken because its shebang points to missing `/home/roma/job-agent-release-v352/.venv`. Working isolated test environment: `/tmp/job-agent-verify-20261019`; no dependencies were installed. No private `pilot-sample.json` or Telegram API ID/hash is available; don't reauthorize or wait. The bounded local sample/analyze command remains `TELEGRAM_PILOT_POST_LIMIT=20 .venv/bin/python scripts/telegram-folder-watch sample && .venv/bin/python scripts/telegram-channel-pilot`.
+
+No runtime, production DB/settings, Docker volume, live Telegram notification or employer message was changed. Latest code checkpoint is `a8103f5`; documentation checkpoint is `8dfb55f`. Exact-head code CI `39304646201` passed Docker build, Python checks and secret scan. The relocation-evidence alignment retains exact excerpts for shared IHE hold/possess and British-spelling changes; explicit negative stays confirmed false, conditional stays unknown. Cross-source package: 180 passed. Telegram private sample/API credentials remain unavailable in this shell; continue the bounded local sample when owner-local credentials exist. Keep PR #56 Draft pending sample analysis.
+
+Standing owner mode: **MAXIMUM TOKEN ECONOMY**, one Main, continue through available independent work. Current branch `wip/telegram-pilot-20261019`; latest code checkpoint `3ee8d97` adds conservative EURES multi-location resolution: mixed/malformed country evidence stays unknown, same-country multi-city listings retain only country, and a city is resolved only when all listed locations agree. EURES/geo/IHE/employer-policy tests: **118 passed**. Exact-head CI `39295944110` for `3ee8d97` passed Python checks, secret scan and Docker build. Compact `/jobs` country-only rendering fix is in `ec9b8f3`, CI `39295243444` passed. The earlier `9619dea` change exposed an undefined `payload`; runs `39294814176` and `39295101994` had 11 failures there and were fixed in `ec9b8f3`. Existing test environment is `/mnt/Storage/AI-Job-Bot/repo/.venv`; invoke read-only from dev with bytecode/cache disabled and `/tmp` basetemp. No dependencies installed and runtime untouched.
+
+Draft PR #56 is open and points at docs checkpoint `764b50d`; its immediately preceding code head `3ee8d97` passed exact-head CI run `39295944110`. No `pilot-sample.json` found and Telegram API credentials are unavailable in this shell; don't reauthorize or wait. If owner runs locally, bounded command: `TELEGRAM_PILOT_POST_LIMIT=20 .venv/bin/python scripts/telegram-folder-watch sample && .venv/bin/python scripts/telegram-channel-pilot`. No MTProto secrets in Git.
+
+Betsson retains reviewed `betting`/`gambling` metadata, but the newer owner-approved policy supersedes this checkpoint's former hard-exclusion behavior: legacy sector terms are inert, while explicit category or exact-employer BLOCK overrides remain effective. Recent focused Employer/geo/IHE suites: 133 passed; review/scoring/notification suites: 87 passed, 3 skipped; Malta official-link suite: 59 passed; country display suite: 17 passed. Exact PR CI remains the publish gate. Production/runtime/DB/volumes, real applications/messages and frozen Web GUI untouched.
+
+Next: finish EURES checkpoint, push owned branch per standing authorization, inspect exact-head CI for new HEAD, then continue the next concrete P0 source-location / hiring-eligibility slice. Keep Applicant Count unknown absent permitted dated application-count evidence. Continue with same venv; never run a full suite just to repeat unchanged work.
+
+## Current checkpoint — Telegram pilot guard and Employer common search (2026-10-19)
+
+Branch `wip/telegram-pilot-20261019`, latest local checkpoint `a13a508` (after WIP `86536a7`). Added a fail-closed guard requiring an existing authorized MTProto session for probe/sample/watch; it disconnects and exits before Telethon can offer an interactive login. Private inventory and existing MTProto session are available, but this shell has no API ID/hash and no sample file. No channel read was made. When the owner runs locally with API credentials present, the single bounded read-only command is `TELEGRAM_PILOT_POST_LIMIT=20 .venv/bin/python scripts/telegram-folder-watch sample && .venv/bin/python scripts/telegram-channel-pilot`; it samples at most 20 posts for the selected three public channels and analyzes the private file, without notifications or database writes.
+
+Employer Career Watch reads reviewed Greenhouse, Lever and SmartRecruiters feeds into common search with bounded requests and allowlisted URLs; custom-page and overlapping direct-adapter behavior stays explicit. A local Job Location Intelligence slice now resolves only exact supported `City, Country` labels and structured non-remote SmartRecruiters locations; remote, regional, multi-location and ambiguous US-state values remain unknown. Source text and resolution provenance are retained. Focused geo/employer tests: 18 passed; compileall, diff check and secret scan passed. The earlier 2026-10-19 read-only probe found all 14 watched provider IDs current across 12 employers. `jobbot status` confirms the running app and healthy PostgreSQL; manual command remains intact. Autostart is still enabled: `ai-job-bot.service` enabled, Docker enabled, both `repo` containers `unless-stopped`, while system/user timers have no AI Job Agent task; earlier read-only inspection found no relevant cron/KDE autostart entry. Current owner instruction forbids system-service changes without separate authorization. No production DB settings or data changed.
+
+Latest pushed code checkpoint `8728897` is on the WIP branch; Draft PR [#56](https://github.com/Qrasann/personal-ai-job-agent/pull/56) targets `feature/v3.5.7-international-market-coverage`. CI for `8728897` is pending/queued; previous code heads `7b81356` and `588ecd2` passed CI. Bounded real ATS validation: 93 cards, 85 canonical unique, 8 duplicates and no source diagnostics. Before the fix Career-first had five Good; all five visible titles were desktop support/engineering management outside the DevOps/Infrastructure/SRE target. A Career-first-only title-scope regression now filters those categories while preserving them for Relocation-first; target suites: 54 passed. Same-query live rerun: Career-first 0 Good/Stretch (55 technical-gap, 28 fit-skip, 2 geography-gap), Relocation-first 0 Good/Stretch (62 technical-gap, 23 fit-skip); no source errors. This is limited yield evidence, not a claim of source failure or full profile acceptance.
+
+Other completed slices still in this branch: ATS/Arbeitnow exact location parsing (39 combined geo/source tests most recently); authorization evidence tests (98); versioned match writes and stale `/review` handling (94 review/scoring tests plus isolated PostgreSQL JSON round-trip). Legacy scores are suppressed until ordinary scans rediscover and refresh them; no bulk rescore. Telegram private sample and API credentials are still absent from this shell, and no channel was read. Manual-start/system service changes remain explicitly out of scope without separate authorization. No production DB/runtime changes, bulk rescore, real applications or employer messages. Next: continue with a genuinely new official source or source-specific location/evidence improvement that can increase verified usefulness; keep Applicant Count unknown until a permitted public application counter exists.
 
 ## Current restart point — compact Telegram vacancy workflow (2026-10-19)
 
@@ -1556,3 +2221,61 @@ checkpoint, then resume the authorized three-channel pilot and P0 employer pipel
 The broader non-integration runner was attempted and again hung after 5%; it was
 interrupted and is not a pass. Do not repeat it as part of this checkpoint unless
 actively diagnosing the separately queued hang.
+
+## 2026-10-23 — autonomous continuation checkpoint
+
+Working tree: `/mnt/Storage/AI-Job-Bot/dev`, branch
+`wip/telegram-pilot-20261019`, HEAD `427d8b5`, ahead of origin by three commits.
+The pre-existing untracked `.serena/` directory is preserved. PR-00 reconciliation
+found the local source-notice, notification-deduplication, employer-policy and
+Telegram keyboard work already present; do not duplicate it or copy files from
+`/repo`.
+
+Targeted exact-head gate: `140 passed, 3 skipped` for source diagnostics/isolation,
+notice policy, notification delivery, Telegram start/menu and job navigation. The
+repository `.venv` is unusable because its interpreter points to a removed legacy
+path; the gate used disposable `uv --isolated` dependencies. No production runtime,
+database, volumes, Telegram session or external message was touched.
+
+Next continuation point: add the smallest missing P0 regression contract around
+relocation/remote evidence and false-positive matching, then run targeted tests,
+compile/secret/diff gates, commit locally, and update this handoff again.
+
+The first matching slice is now complete in the working tree: Relocation-first
+recognizes configured destination-country vacancies as the relocation track even
+when support evidence is absent. It preserves unknown support (`relocation_score`
+42), confirmed support, and authorization restrictions. Added destination and
+non-destination regressions in `tests/test_technical_score_v2.py`. The focused
+matching/relocation gate passed 149 tests; import-order lint, compileall and diff
+check passed. Ruff's existing B023/FLY002 findings remain outside this change.
+Because DevHub policy forbids local staging/commits, the code and docs remain
+unstaged for automatic checkpointing. Next exact continuation is the false-positive
+matching corpus (salary, sponsorship, volunteer/EOI and unsuitable roles).
+
+The next safe U03 slice is also complete: `/blacklist preview add|remove|clear|undo`
+renders a before/after proposal without saving, and `/blacklist undo` restores the
+last word-list mutation across the existing all-profile scope. Existing add/remove/
+clear commands remain intact; no vacancy or application history is deleted. Added
+pure preference regressions and Telegram compatibility checks; targeted gate passed
+62 tests. The full offline suite had already passed 1437 tests with 23 skips and 7
+warnings before this slice. Ruff import-order output includes pre-existing style
+findings in the touched legacy modules; compileall and diff check remain clean.
+Continue with the false-positive matching corpus, then the six-section Telegram
+navigation design; do not expand blacklist to job/company identity until S01 storage
+semantics are specified.
+
+Added direct handler regressions for the new blacklist preview (no persistence before
+confirmation) and undo across all search profiles: 19 focused preference/Telegram
+tests passed. The full suite remains green at 1439 passed, 23 skipped, 7 warnings
+after the six-section keyboard change. `scripts/secret-scan.sh`, compileall and
+`git diff --check` passed. Current working tree is intentionally unstaged because
+the DevHub checkpoint policy forbids local commits; preserve `.serena/` and all
+current edits at the next checkpoint.
+
+The persistent keyboard was then aligned with the approved top-level UX: six
+existing safe sections (`/jobs`, `/jobs relocation`, `/applications`, `/resumes`,
+`/facts`, `/settings`) plus a separate `/scanstatus` row. It does not add handlers,
+duplicate inline vacancy/status controls, or expand Mini App scope. Typed slash
+commands remain unchanged. Telegram/navigation regressions passed 84 tests;
+compileall and diff check passed. Run the full suite once after this keyboard-only
+change, then continue with the false-positive matching corpus.

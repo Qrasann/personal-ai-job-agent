@@ -2,6 +2,13 @@
 
 ## Optional Telegram folder user client (offline-tested; live acceptance pending)
 
+Current bounded pilot selection: `@devops_jobs_feed`, `@itjobsgeorgia` and
+`@vgrecruitingit` are owner-checked and enabled in the private inventory. The
+sample is limited to 20 recent posts per selected channel. The runner requires
+an existing authorized session and exits before any login prompt if it is
+missing or unauthorized. API ID/hash must be supplied locally when absent from
+the shell; never place them in command history, tracked files or logs.
+
 The private folder intake uses Telegram's official `chatlists.checkChatlistInvite`
 preview through optional Telethon 1.x. It does not import the folder, join chats,
 send user-account messages, or read private conversations. Install locally with
@@ -19,7 +26,23 @@ Review the inventory locally, select only accessible broadcast channels by
 setting `enabled: true` and a `career`, `relocation` or `both` scope. Supergroups
 and peers no longer joined are excluded. Run `.venv/bin/python
 scripts/telegram-folder-watch probe` to check read access to enabled IDs without
-printing post text. Then run `watch` only after configuring the existing bot
+printing post text. For an owner-approved bounded pilot, run `.venv/bin/python
+scripts/telegram-folder-watch sample`: it reads at most 20 latest posts per enabled
+broadcast channel (configurable from 1 to 50 with `TELEGRAM_PILOT_POST_LIMIT`),
+writes only the required post fields to private `pilot-sample.json` with mode 0600,
+and does not change cursors, join chats, send messages or connect to the bot database.
+Analyze that private file with `.venv/bin/python scripts/telegram-channel-pilot`.
+The analyzer uses the shared Telegram normalizer, canonical fingerprint and matching
+engine with the tracked `data/profile.yaml`; it performs no network, database or bot
+operation. Treat its Good/Stretch counts as a reproducible pilot-profile measurement,
+not as evidence of work authorization or a read of the production candidate database.
+The current private pilot artifact contains 60 posts (20 per approved channel). Offline
+manual review found and corrected 18 explicit candidate resumes hidden behind channel
+publisher metadata; the corrected measurement is 42 vacancy candidates, 1 Good,
+0 Stretch and 41 filtered. This does not establish runtime watch/restart acceptance.
+Do not repeat authorization or sampling merely to reproduce this completed artifact;
+continue analysis from the private files already present.
+Then run `watch` only after configuring the existing bot
 database and owner ID. The runner rechecks the folder preview and current IDs,
 disables account-wide updates, and polls **only** selected broadcast peers every
 five minutes (two seconds between requests, up to 20 newer posts per channel

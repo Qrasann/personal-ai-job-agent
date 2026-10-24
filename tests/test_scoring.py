@@ -13,7 +13,7 @@ def test_good_devops():
     assert score >= 80
 
 
-def test_gambling_excluded():
+def test_betting_sector_is_not_a_default_exclusion():
     v = {"name": "DevOps Engineer", "description": "betting platform", "experience": {"id": "between1And3"}}
     score, _ = score_vacancy(v)
-    assert score == 0
+    assert score > 0

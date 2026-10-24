@@ -9,6 +9,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.domain.jobs import NormalizedJob, SourceCapabilities
+from app.domain.support_evidence import existing_work_authorization_required
 from app.sources.diagnostics import SourceInvalidResponse, classify_source_error
 from app.sources.base import JobSource, SourceContext
 
@@ -17,6 +18,40 @@ _REQUEST_LOCK = asyncio.Lock()
 _LAST_REQUEST_STARTED: float | None = None
 _DETAIL_CACHE: dict[str, tuple[float, str]] = {}
 logger = logging.getLogger(__name__)
+_CA_PROVINCE_LABELS = {
+    "ab": "Alberta", "alberta": "Alberta",
+    "bc": "British Columbia", "british columbia": "British Columbia",
+    "mb": "Manitoba", "manitoba": "Manitoba",
+    "nb": "New Brunswick", "new brunswick": "New Brunswick",
+    "nl": "Newfoundland and Labrador", "newfoundland and labrador": "Newfoundland and Labrador",
+    "ns": "Nova Scotia", "nova scotia": "Nova Scotia",
+    "nt": "Northwest Territories", "northwest territories": "Northwest Territories",
+    "nu": "Nunavut", "nunavut": "Nunavut",
+    "on": "Ontario", "ontario": "Ontario",
+    "pe": "Prince Edward Island", "prince edward island": "Prince Edward Island",
+    "qc": "Quebec", "quebec": "Quebec",
+    "sk": "Saskatchewan", "saskatchewan": "Saskatchewan",
+    "yt": "Yukon", "yukon": "Yukon",
+}
+
+
+def _jobbank_city(value: str) -> tuple[str | None, str | None]:
+    """Resolve only a single Canadian locality followed by a known province code."""
+    location = re.sub(r"^Location\s+", "", value.strip(), flags=re.I)
+    if not location or re.search(r"\b(?:remote|multiple locations|various locations|across canada|canada wide)\b", location, re.I):
+        return None, None
+    match = re.fullmatch(r"(.+?)\s*(?:\(([^()]+)\)|,\s*([^,]+))", location, re.I)
+    if not match:
+        return None, None
+    province_label = (match.group(2) or match.group(3)).strip().casefold()
+    province = _CA_PROVINCE_LABELS.get(province_label)
+    if not province:
+        return None, None
+    city = match.group(1).strip(" ,")
+    if not city or re.search(r"[/|;&]", city) or re.search(r"\b(?:and|or|plus)\b", city, re.I):
+        return None, None
+    suffix_kind = "code" if len(province_label) == 2 else "name"
+    return city, f"jobbank_city_province_{suffix_kind}"
 
 
 def _monotonic() -> float:
@@ -80,15 +115,18 @@ class JobBankSource(JobSource):
             def value(selector):
                 node = card.select_one(selector)
                 return node.get_text(" ", strip=True) if node else ""
+            source_location = value(".location").strip()
+            city, location_resolution = _jobbank_city(source_location)
             jobs.append(NormalizedJob(
                 source=cls.source_id, source_job_id=match[1],
                 title=title.get_text(" ", strip=True), company=value(".business"),
-                country="CA", city=value(".location").removeprefix("Location ") or None,
+                country="CA", city=city,
                 url=f"{cls.origin}/jobsearch/jobpostingtfw/{match[1]}",
                 published_at=value(".date") or None,
                 # Preserve decimal CAD/hour rates without feeding the legacy
                 # integer/USD salary fallback or inventing monthly amounts.
-                raw={"lmia_status": value(".jobLMIAflag"), "source_salary_text": value(".salary")},
+                raw={"lmia_status": value(".jobLMIAflag"), "source_salary_text": value(".salary"),
+                     "source_location": source_location, "location_resolution": location_resolution},
             ))
         return jobs
 
@@ -102,7 +140,10 @@ class JobBankSource(JobSource):
         job.description = body.get_text(" ", strip=True)
         eligibility = body.select_one(".job-posting-detail-apply")
         eligibility_text = eligibility.get_text(" ", strip=True) if eligibility else ""
-        restricted = "do not apply if you are not authorized to work in canada" in eligibility_text.casefold()
+        restricted = (
+            "do not apply if you are not authorized to work in canada" in eligibility_text.casefold()
+            or existing_work_authorization_required(eligibility_text)
+        )
         job.raw["international_candidates"] = False if restricted else (
             True if "with or without a valid canadian work permit" in eligibility_text.casefold() else None
         )
@@ -123,12 +164,12 @@ class JobBankSource(JobSource):
             }[key]
             refusal = re.search(negative, job.description, re.I)
             refusals[key] = bool(refusal)
-            signals[key] = bool(found) and not restricted and not refusal
+            signals[key] = bool(found) and not refusal
             if signals[key]:
                 evidence[key] = found[0]
         signals["relocation_package"] = signals["relocation"]
         signals["immigration_support"] = signals["visa_sponsorship"]
-        job.visa_sponsorship = True if signals["visa_sponsorship"] else (False if restricted or refusals["visa_sponsorship"] else None)
+        job.visa_sponsorship = True if signals["visa_sponsorship"] else (False if refusals["visa_sponsorship"] else None)
         job.relocation = True if signals["relocation"] else (False if refusals["relocation"] else None)
         job.raw["support_signals"] = signals
         job.raw["support_evidence"] = evidence

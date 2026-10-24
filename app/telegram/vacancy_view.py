@@ -5,10 +5,13 @@ import json
 from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
+from app.geo.countries import country_config
 from app.domain.job_text import clean_html_text, extract_experience, format_salary, repair_mojibake
+from app.domain.eligibility_references import official_eligibility_references
 from app.domain.remote_evidence import remote_residence_requirement, restricted_remote_scope
 from app.domain.support_evidence import existing_work_authorization_required, support_evidence
 from app.domain.vacancy_availability import vacancy_availability_lines
+from app.matching.engine import MATCH_ASSESSMENT_VERSION, non_actionable_role_reason
 
 
 def _clip(value: str, limit: int) -> str:
@@ -78,7 +81,12 @@ def _escape_with_utf16_limit(value: str, units: int) -> str:
 
 
 def _location(job, details: dict) -> str:
-    return str(details.get("city") or job.city or job.country or "не указана")
+    city = details.get("city") or job.city
+    if city:
+        return str(city)
+    country = details.get("country") or job.country
+    config = country_config(str(country or "")) if country else None
+    return str((config or {}).get("name") or country or "не указана")
 
 
 def _experience(job, details: dict) -> str:
@@ -369,6 +377,15 @@ def render_queue_card(
     position: int,
     total: int,
 ) -> str:
+    is_good_lane = "good" in lane.casefold()
+    assessment_meta = (getattr(match, "recommendation_scores", None) or {}).get("_meta")
+    score_version = assessment_meta.get("match_assessment_version") if isinstance(assessment_meta, dict) else None
+    stale_good_reason = non_actionable_role_reason(job) if is_good_lane else None
+    stale_good = is_good_lane and (stale_good_reason is not None or score_version != MATCH_ASSESSMENT_VERSION)
+    if stale_good_reason:
+        lane = "⚠️ Требует повторной проверки"
+    elif stale_good:
+        lane = "⚠️ Требует обновления оценки"
     title = _clip(repair_mojibake(str(getattr(job, "title", "") or "")), 120)
     company = _clip(repair_mojibake(str(getattr(job, "company", "") or "")), 100)
     salary = format_salary(
@@ -409,12 +426,20 @@ def render_queue_card(
         f"💰 {html.escape(salary)} · Оплачиваемость: {html.escape(paid)}",
         f"🕒 Опыт: {html.escape(experience)} · 📅 {html.escape(published)}",
         f"👥 Отклики: {html.escape(applicant_text)}",
-        f"🎯 Match: <b>{getattr(match, 'total_score', 0)}/100</b>",
+        (
+            (
+                "🎯 Сохранённая оценка может быть устаревшей; актуальные правила исключают эту роль."
+                if stale_good_reason else "🎯 Сохранённая оценка устарела. Запусти /scan, чтобы обновить её."
+            )
+            if stale_good else "🎯 Подходит по текущему профилю — открой «Подробнее» для оценки"
+        ),
     ]
 
     reason = _concise_match_reason(match)
     if reason:
         lines.append(f"💡 {html.escape(reason)}")
+    if stale_good_reason:
+        lines.append(f"🔎 Причина проверки: {html.escape(stale_good_reason)}")
     lines.append("🛂 Иностранный найм: только по подтверждённым условиям работодателя; неизвестное не является разрешением.")
     return "\n".join(lines)
 
@@ -465,6 +490,56 @@ def _concise_match_reason(match) -> str:
     return _clip("; ".join(useful[:2]), 240)
 
 
+def _skill_summary_lines(comparison) -> list[str]:
+    """Render a bounded, evidence-only skill summary for the requirements tab."""
+    if comparison is None:
+        return []
+    total = int(getattr(comparison, "total", 0) or 0)
+    lines = ["", "🧩 <b>Навыки и Candidate Facts</b>"]
+    if not total:
+        lines.append("Поддерживаемый словарь не распознал технические требования.")
+        return lines
+
+    present = int(getattr(comparison, "present", 0) or 0)
+    lines.append(f"Найдено в Candidate Facts: <b>{present}/{total}</b>")
+    matched = [
+        str(item.skill)
+        for item in getattr(comparison, "requirements", ())
+        if getattr(item, "status", "") != "missing"
+    ]
+    missing = [
+        str(item.skill)
+        for item in getattr(comparison, "requirements", ())
+        if getattr(item, "status", "") == "missing"
+    ]
+
+    def names(values: list[str]) -> str:
+        limit = 6
+        visible = ", ".join(html.escape(value) for value in values[:limit])
+        remainder = len(values) - limit
+        return visible + (f"; ещё {remainder}" if remainder > 0 else "")
+
+    if matched:
+        lines.append("✅ Есть в Candidate Facts: " + names(matched))
+    if missing:
+        lines.append("❌ Не найдено в Candidate Facts: " + names(missing))
+    alternatives = (
+        getattr(comparison, "alternative_groups", ())
+        + getattr(comparison, "preferred_alternative_groups", ())
+    )
+    if alternatives:
+        compact = "; ".join(
+            " или ".join(html.escape(str(skill)) for skill in group)
+            for group in alternatives[:3]
+        )
+        lines.append("🔀 Альтернативы: " + _clip(compact, 300))
+    lines.append(
+        "Список основан только на распознанных терминах и Candidate Facts; "
+        "опыт не добавляется автоматически."
+    )
+    return lines
+
+
 def render_job_summary(payload: dict) -> str:
     value = _job_card_values(payload)
     match = value["match"]
@@ -494,7 +569,8 @@ def render_job_section(payload: dict, section: str) -> str:
         lines = [heading, "📌 <b>Требования</b>", f"Опыт: {html.escape(value['experience'])}"]
         applicant_location = clean_html_text(str(details.get("applicant_location") or ""))
         lines.append("География кандидата: " + html.escape(applicant_location or value["remote_scope"] or "не указана"))
-        lines.append("Совпадающие и недостающие навыки: кнопка «Сравнить с профилем» на краткой карточке.")
+        lines.extend(_skill_summary_lines(payload.get("comparison")))
+        lines.append("Полное сравнение и тип опыта: кнопка «Сравнить с профилем» на краткой карточке.")
         return "\n".join(lines)
     if section == "desc":
         description = _escape_with_utf16_limit(value["description"], 3200)
@@ -508,6 +584,16 @@ def render_job_section(payload: dict, section: str) -> str:
         ]
         lines.extend(_mobility_evidence_lines(job, value["description"]))
         lines.extend(_relocation_evidence_lines(payload.get("relocation_evidence") or {}))
+        references = official_eligibility_references(getattr(job, "country", None))
+        for reference in references:
+            url = _safe_http_url(reference.url)
+            if url:
+                lines.append(
+                    f'<a href="{html.escape(url, quote=True)}">Официально: '
+                    f'{html.escape(reference.label)}</a> · проверено {_published(reference.checked_at)}'
+                )
+        if references:
+            lines.append("Проверь актуальные условия по своей ситуации; эта ссылка не определяет право кандидата на работу.")
         lines.append("Remote worldwide сам по себе не подтверждает право работать из любой страны.")
         return "\n".join(lines)
     if section == "competition":
@@ -566,8 +652,9 @@ def render_jobs_list(
         )
         experience = extract_experience(job.description)
         meta = [f"💰 {salary}"]
-        if job.city or job.country:
-            meta.append(f"📍 {repair_mojibake(job.city or job.country or '')}")
+        location = _location(job, {})
+        if location != "не указана":
+            meta.append(f"📍 {repair_mojibake(location)}")
         if job.work_mode:
             meta.append(f"🏠 {repair_mojibake(job.work_mode)}")
         if experience:
@@ -1000,10 +1087,14 @@ def render_applications(applications: list) -> str:
         "prepared": "черновик",
         "reviewed": "проверен",
         "submitted": "отправлен вручную",
+        "received": "получение подтверждено провайдером",
+        "response": "ответ работодателя",
+        "assessment": "тестовое задание",
         "interview": "интервью",
         "offer": "оффер",
         "rejected": "отказ",
         "withdrawn": "снят",
+        "closed": "закрыт",
         "sent": "отправлен",
         "sending": "попытка начата — результат не подтверждён",
         "external": "внешняя форма — отправка не подтверждена",
@@ -1025,7 +1116,7 @@ def render_applications(applications: list) -> str:
         if snippet:
             lines.append(html.escape(snippet))
         lines.append("")
-    lines.append("Статус: /application <id> reviewed|submitted|interview|offer|rejected|withdrawn · История: /application <id> history")
+    lines.append("Статус: /application <id> reviewed|submitted|response|assessment|interview|offer|rejected|withdrawn|closed · История: /application <id> history")
     return "\n".join(lines)
 
 
@@ -1034,10 +1125,14 @@ def render_application_history(events: list) -> str:
         "prepared": "черновик создан",
         "reviewed": "отмечен как проверенный",
         "submitted": "отмечен отправленным вручную",
+        "received": "провайдер подтвердил получение",
+        "response": "зафиксирован ответ работодателя",
+        "assessment": "зафиксировано тестовое задание",
         "interview": "отмечено интервью",
         "offer": "отмечен оффер",
         "rejected": "отмечен отказ",
         "withdrawn": "отмечен снятым",
+        "closed": "отмечен закрытым",
         "sent": "отправлен",
         "sending": "HH-попытка зарезервирована; результат не подтверждён",
         "external": "переход на внешнюю форму, отправка не подтверждена",
@@ -1046,11 +1141,23 @@ def render_application_history(events: list) -> str:
     if not events:
         return "История статусов пуста."
     lines = ["🕓 <b>История статусов</b>", ""]
+    provenance_labels = {
+        "manual_user": "ручная отметка владельца",
+        "provider": "событие провайдера",
+        "system": "системное событие",
+        "legacy": "источник старой записи неизвестен",
+    }
     for event in events:
         timestamp = getattr(event, "created_at", None)
         timestamp_text = timestamp.strftime("%Y-%m-%d %H:%M UTC") if timestamp else "время неизвестно"
         label = labels.get(event.status, event.status)
-        lines.append(f"{html.escape(timestamp_text)} — {html.escape(label)}")
+        provenance = provenance_labels.get(getattr(event, "provenance", "legacy"), "источник неизвестен")
+        evidence = getattr(event, "evidence", None) or {}
+        provider = f" · {evidence['provider']}" if isinstance(evidence, dict) and evidence.get("provider") else ""
+        lines.append(
+            f"{html.escape(timestamp_text)} — {html.escape(label)} "
+            f"[{html.escape(provenance + provider)}]"
+        )
     return "\n".join(lines)
 
 
@@ -1109,7 +1216,8 @@ def render_application_export(application, events: list | None = None) -> str:
         for event in events:
             timestamp = getattr(event, "created_at", None)
             timestamp_text = timestamp.strftime("%Y-%m-%d %H:%M UTC") if timestamp else "time unknown"
-            lines.append(f"{timestamp_text} — {event.status}")
+            provenance = getattr(event, "provenance", "legacy")
+            lines.append(f"{timestamp_text} — {event.status} — provenance: {provenance}")
     return "\n".join(lines)
 
 

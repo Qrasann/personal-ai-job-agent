@@ -5,6 +5,7 @@ from app.telegram.handlers import (
     _render_saved_card,
     _render_stretch_card,
 )
+from app.matching.engine import MATCH_ASSESSMENT_VERSION
 
 
 def _match():
@@ -15,6 +16,7 @@ def _match():
         salary_score=72,
         relocation_score=50,
         reason="роль: devops engineer; совпадения: linux, docker, nginx",
+        recommendation_scores={"_meta": {"match_assessment_version": MATCH_ASSESSMENT_VERSION}},
     )
 
 
@@ -40,7 +42,8 @@ def test_review_card_shows_rich_match_context():
     assert "120 000–160 000 ₽" in text
     assert "Тверь" in text
     assert "Гибрид" in text
-    assert "82/100" in text
+    assert "Подходит по текущему профилю" in text
+    assert "82/100" not in text
     assert "Отклики: Нет открытых данных" in text
     assert "Иностранный найм" in text
     assert "Tech 86" not in text
@@ -56,6 +59,33 @@ def test_review_card_flags_explicit_volunteer_work_as_unpaid():
     text = _render_review_card(_match(), job, 1, 1)
 
     assert "Оплачиваемость: нет — явно волонтёрская/неоплачиваемая" in text
+
+
+def test_stale_good_assessment_is_not_presented_as_current_good():
+    job = _job()
+    job.title = "DevOps Volunteer"
+    match = _match()
+
+    text = _render_review_card(match, job, 1, 1)
+
+    assert "🟢 Good" not in text
+    assert "Требует повторной проверки" in text
+    assert "сохранённая оценка может быть устаревшей" in text.casefold()
+    assert "88/100" not in text
+    assert "волонтёрская/неоплачиваемая роль" in text
+
+
+def test_legacy_good_without_assessment_version_hides_old_score_and_requests_scan():
+    match = _match()
+    match.recommendation_scores = {}
+
+    text = _render_review_card(match, _job(), 1, 1)
+
+    assert "Good" not in text
+    assert "Требует обновления оценки" in text
+    assert "устарела" in text
+    assert "/scan" in text
+    assert "82/100" not in text
 
 
 def test_queue_cards_use_truthful_lane_labels():

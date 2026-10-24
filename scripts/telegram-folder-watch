@@ -15,8 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.sources.telegram_folder_user import (
-    folder_inventory, folder_slug, load_cursors, load_local_config,
-    poll_channel, save_cursors, selected_channels,
+    connect_authorized_client, folder_inventory, folder_slug, load_cursors, load_local_config,
+    poll_channel, sampled_posts, save_cursors, save_private_json, selected_channels,
 )
 
 log = logging.getLogger("telegram_folder_watch")
@@ -47,6 +47,8 @@ async def _run(command: str) -> None:
     session_file = session_path.with_suffix(".session")
     if session_file.exists() and (session_file.is_symlink() or stat.S_IMODE(session_file.stat().st_mode) & 0o077):
         raise RuntimeError("Telegram session file must be private (mode 0600)")
+    if command != "inspect" and not session_file.is_file():
+        raise RuntimeError("Existing Telegram session is required; no login was attempted")
     # SQLite session files can authorize the account; every created file must
     # be private. No string sessions, codes, hashes or invite slugs are logged.
     prior_umask = os.umask(0o077)
@@ -56,6 +58,8 @@ async def _run(command: str) -> None:
         # Telethon otherwise persists metadata for unrelated dialogs seen in
         # updates. Folder intake needs only the peers in the current preview.
         client.session.save_entities = False
+        if command != "inspect":
+            await connect_authorized_client(client)
         async with client:
             if command == "inspect":
                 if config_path.exists():
@@ -99,6 +103,26 @@ async def _run(command: str) -> None:
                     except Exception as exc:
                         print(f"{chat_id}: unavailable ({type(exc).__name__})")
                     await asyncio.sleep(2)
+                return
+            if command == "sample":
+                raw_limit = os.getenv("TELEGRAM_PILOT_POST_LIMIT", "20")
+                if not raw_limit.isdecimal() or not 1 <= int(raw_limit) <= 50:
+                    raise RuntimeError("TELEGRAM_PILOT_POST_LIMIT must be 1..50")
+                rows = []
+                for chat_id, peer in peers.items():
+                    messages = await client.get_messages(peer, limit=int(raw_limit))
+                    rows.extend(sampled_posts(
+                        messages,
+                        chat_id=chat_id,
+                        username=selected[chat_id].get("username"),
+                    ))
+                    await asyncio.sleep(2)
+                sample_path = directory / "pilot-sample.json"
+                save_private_json(sample_path, {"schema": 1, "posts": rows})
+                print(
+                    f"Saved {len(rows)} posts from {len(peers)} enabled broadcast channels "
+                    f"to private file {sample_path}; cursors unchanged"
+                )
                 return
 
             from aiogram import Bot
@@ -150,7 +174,7 @@ async def _run(command: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("inspect", "probe", "watch"))
+    parser.add_argument("command", choices=("inspect", "probe", "sample", "watch"))
     args = parser.parse_args()
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
     asyncio.run(_run(args.command))

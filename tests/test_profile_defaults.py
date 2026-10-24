@@ -12,6 +12,12 @@ def test_ai_job_bot_defaults_keep_georgia_and_armenia_parallel():
     assert geography["relocation_countries"] == ["GE", "AM"]
     assert config["candidate"]["english"] == "B1"
     assert config["candidate"]["technical_reading_english"] == "B2"
+    assert config["search"]["queries"] == [
+        "DevOps Engineer",
+        "Infrastructure Engineer",
+        "Linux Administrator",
+        "Site Reliability Engineer",
+    ]
     assert config["search"]["relocation_queries"] == [
         "warehouse worker",
         "production worker",

@@ -5,10 +5,19 @@ from dataclasses import dataclass, field
 
 from app.agents.job_signals import analyze_job_signals
 from app.database.models import CandidateFact, Job, ResumeProfile, SearchProfile
+from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS
+from app.domain.employer_policy import decision as employer_decision
+from app.domain.blacklist import matching_blacklist_rule
 from app.domain.role_text import role_tokens
-from app.matching.technical_score import score_technical_v2
+from app.domain.remote_evidence import has_remote_work_evidence
+from app.domain.resume_versions import version_metadata
+from app.geo.countries import normalize_country
 from app.matching.recommendation import build_recommendation_breakdown
-from app.search.preferences import discovery_queries
+from app.matching.technical_score import score_technical_v2
+from app.search.preferences import discovery_queries, search_strategy
+
+# Bump whenever score, fit-lane, cap, or exclusion semantics change.
+MATCH_ASSESSMENT_VERSION = 6
 
 
 @dataclass(slots=True)
@@ -54,6 +63,7 @@ def choose_resume(job: Job, resumes: list[ResumeProfile]) -> int | None:
         resume
         for resume in resumes
         if resume.active is not False and getattr(resume, "deleted_at", None) is None
+        and version_metadata(getattr(resume, "rules", None))["status"] == "approved"
     ]
     if not available:
         return None
@@ -89,6 +99,27 @@ def _enabled_tracks(settings: dict) -> set[str]:
     if modes.get("relocation", True):
         enabled.add("relocation")
     return enabled
+
+
+def _relocation_country_match(job: Job, settings: dict) -> bool:
+    """Treat a configured destination as a relocation lane, not as support proof.
+
+    Relocation-first searches must still score ordinary destination-country
+    postings when the employer says nothing about visa or moving assistance.
+    The evidence remains unknown and keeps its existing conservative score; this
+    helper only prevents those postings from falling into the unscoped lane.
+    """
+    if search_strategy(settings) != "relocation_first":
+        return False
+    country = normalize_country(str(job.country or ""))
+    if not country:
+        return False
+    configured = {
+        normalized
+        for value in (settings.get("target_countries") or [])
+        if (normalized := normalize_country(str(value)))
+    }
+    return country in configured
 
 
 _YEAR_WORDS = {
@@ -214,6 +245,7 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
         r"\b(?:engineer|developer|scientist|researcher|programmer|devops|sre)[\s,(/:\-–—]+staff\b",
         r"\bhead\b",
         r"\barchitect\b",
+        r"\b(?:software\s+)?engineering manager\b",
         r"\bстарш(?:ий|ая|ее)\b",
         r"\bведущ(?:ий|ая|ее)\b",
         r"\bруководител[ья]\b",
@@ -243,7 +275,7 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
     return None, None
 
 
-def _non_actionable_role_reason(job: Job) -> str | None:
+def non_actionable_role_reason(job: Job) -> str | None:
     """Keep explicit non-openings and unpaid roles out of automatic Good results."""
     title = (job.title or "").casefold()
     unpaid_patterns = (
@@ -257,6 +289,27 @@ def _non_actionable_role_reason(job: Job) -> str | None:
         return "волонтёрская/неоплачиваемая роль"
     if re.search(r"\bexpression of interest(?: form)?\b", title):
         return "форма предварительного интереса, не подтверждённая открытая вакансия"
+    return None
+
+
+def _career_role_scope_reason(job: Job, settings: dict) -> str | None:
+    """Exclude measured end-user support/management false Goods on Career-first."""
+    if search_strategy(settings) != "career_first":
+        return None
+    title = (job.title or "").casefold()
+    target_engineering = re.search(
+        r"\b(?:devops|sre|site reliability|infrastructure|platform engineer)\b", title
+    )
+    outside_roles = (
+        (r"\b(?:desktop|workstation)\b.*\bsupport\b|\b(?:help|service)\s*desk\b",
+         "роль пользовательской поддержки вне Career-first"),
+        (r"\bengineering manager\b", "управленческая инженерная роль вне Career-first"),
+    )
+    if target_engineering:
+        return None
+    for pattern, reason in outside_roles:
+        if re.search(pattern, title):
+            return reason
     return None
 
 
@@ -286,8 +339,7 @@ def _normalize_city(value: str | None) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 def _is_remote_job(job: Job) -> bool:
-    text = ((job.work_mode or "") + " " + (job.description or "")).casefold().replace("ё", "е")
-    return "remote" in text or "удален" in text
+    return has_remote_work_evidence(job.work_mode, job.description)
 
 def _local_ru_location(job: Job, settings: dict) -> tuple[int, str, str | None, bool]:
     if _is_remote_job(job):
@@ -390,16 +442,39 @@ def _risk_penalty(job: Job, settings: dict) -> tuple[int, str | None]:
 def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resumes: list[ResumeProfile], *, technical_text: str | None = None) -> MatchResult:
     settings = search.settings or {}
     hay = " ".join([job.title, job.company, job.description]).casefold()
+    industry_tags = getattr(job, "industry_tags", None)
+    if not isinstance(industry_tags, (list, tuple)):
+        industry_tags = []
+    industry_hay = " ".join(
+        str(value).casefold() for value in industry_tags if isinstance(value, str)
+    )
     chosen_resume = choose_resume(job, resumes)
 
-    exclude = _terms(settings, "exclude_terms")
-    hit_exclude = [x for x in exclude if x and x in hay]
+    employer_action, employer_reason = employer_decision(job.company, industry_tags, settings)
+    if employer_action == "block":
+        return MatchResult(0, 0, 0, 0, 0, "Исключено по политике работодателя: " + str(employer_reason), chosen_resume, "unknown", "skip")
+
+    structured_blacklist = matching_blacklist_rule(job, settings)
+    if structured_blacklist:
+        return MatchResult(
+            0, 0, 0, 0, 0,
+            "Исключено по blacklist: " + str(structured_blacklist["kind"]),
+            chosen_resume, "excluded", "skip",
+        )
+
+    # Existing saved profiles may still carry the old sector terms. Sector
+    # preferences now belong to the explicit ALLOW/WARN/BLOCK policy.
+    exclude = [term for term in _terms(settings, "exclude_terms") if term not in LEGACY_INDUSTRY_EXCLUSIONS]
+    exclusion_hay = f"{hay} {industry_hay}"
+    hit_exclude = [x for x in exclude if x and x in exclusion_hay]
     if hit_exclude:
         return MatchResult(0, 0, 0, 0, 0, "Исключено по фильтру: " + ", ".join(hit_exclude), chosen_resume, "excluded", "skip")
 
     signals = analyze_job_signals(job)
     enabled = _enabled_tracks(settings)
     viable = signals.tracks & enabled
+    if "relocation" in enabled and _relocation_country_match(job, settings):
+        viable.add("relocation")
     if signals.tracks and not viable:
         return MatchResult(0, 0, 0, 0, 0, "Режим этой вакансии выключен", chosen_resume, "disabled", "skip")
 
@@ -437,8 +512,11 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         fit = "stretch"
     elif seniority in {"senior", "high_experience"}:
         fit = "skip"
-    non_actionable_role_reason = _non_actionable_role_reason(job)
-    if non_actionable_role_reason:
+    non_actionable_reason = non_actionable_role_reason(job)
+    if non_actionable_reason:
+        fit = "skip"
+    career_scope_reason = _career_role_scope_reason(job, settings)
+    if career_scope_reason:
         fit = "skip"
     experience_fit, experience_reason = _experience_fit(job, facts)
     if experience_fit == "stretch" and fit == "good":
@@ -527,6 +605,14 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     total = round(technical * 0.48 + geography * 0.27 + salary * 0.12 + relocation * 0.13)
 
     risk_penalty, risk_reason = _risk_penalty(job, settings)
+    user_allow = employer_action == "allow" and bool(employer_reason and employer_reason.startswith("решение пользователя"))
+    if user_allow:
+        risk_penalty, risk_reason = 0, None
+    if employer_action == "warn":
+        risk_penalty = max(risk_penalty, 14)
+        risk_reason = employer_reason or risk_reason
+    if risk_reason and fit == "good":
+        fit = "stretch"
     total -= risk_penalty
 
     if signals.remote_eligibility == "no" and track == "remote":
@@ -539,7 +625,9 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
     elif experience_fit == "stretch" and seniority is None:
         total = min(total, 72)
 
-    if non_actionable_role_reason:
+    if non_actionable_reason:
+        total = min(total, 58)
+    if career_scope_reason:
         total = min(total, 58)
 
 
@@ -565,8 +653,10 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append("совпадения: " + ", ".join(preferred_hits[:8]))
     if seniority_reason:
         bits.append(seniority_reason)
-    if non_actionable_role_reason:
-        bits.append(non_actionable_role_reason)
+    if non_actionable_reason:
+        bits.append(non_actionable_reason)
+    if career_scope_reason:
+        bits.append(career_scope_reason)
     if experience_reason:
         bits.append(experience_reason)
     if management_gap:
@@ -580,6 +670,8 @@ def score_job(job: Job, search: SearchProfile, facts: list[CandidateFact], resum
         bits.append(geography_reason)
     if risk_reason:
         bits.append(risk_reason)
+    if employer_reason and employer_action == "warn" and risk_reason != employer_reason:
+        bits.append(employer_reason)
     if signals.remote_reason:
         bits.append(signals.remote_reason)
     if signals.relocation_reason:

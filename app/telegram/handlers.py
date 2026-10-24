@@ -10,7 +10,7 @@ from datetime import datetime
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, ReplyKeyboardRemove
 from aiogram.types import BufferedInputFile
 
 from app.search.source_summary import render_filter_reason_counts, render_source_dashboard, scan_outcome, select_scan_dashboard
@@ -18,6 +18,8 @@ from app.sources.diagnostics import classify_source_error, legacy_diagnostic
 
 from app.candidates.bootstrap import bootstrap_user
 from app.candidates.import_review import plan_fact_import
+from app.candidates.resume_export import export_resume
+from app.candidates.resume_edit import content_digest, render_resume_text_diff, validate_resume_edit
 from app.candidates.importer import (
     MAX_DOCUMENT_BYTES, ResumeImportError, extract_resume_text,
     guess_language, propose_facts, resume_fingerprint, review_proposals,
@@ -26,22 +28,36 @@ from app.config import settings
 from app.database import repository as repo
 from app.database import notification_delivery as delivery_repo
 from app.domain.application_package import snapshot_vacancy
+from app.domain.application_approval import application_package_digest
+from app.domain.application_reminders import parse_reminder_due
+from app.domain.blacklist import matching_blacklist_rule
+from app.domain.resume_versions import version_metadata
 from app.domain.text_limits import utf16_length
+from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS, update_policy as update_employer_policy
 from app.candidates.fact_types import ALLOWED_EXPERIENCE_TYPES, experience_type_label, normalize_experience_type
 from app.database.db import current_schema_version, expected_schema_version
 from app.geo.countries import all_supported_countries, country_config, normalize_country
+from app.knowledge.profile import load_profile
 from app.matching.language_fit import normalize_cefr
 from app.agents.interview import build_interview_plan
-from app.services import ScanAlreadyRunning, apply_match, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, ingest_and_match, coordinated_scan_for_user, scan_hh_chats, hh_client
-from app.sources.adapters.telegram_ingest import parse_forwarded_job, parse_telegram_job
+from app.services import ScanAlreadyRunning, apply_frozen_application, get_resume_diff, get_vacancy_comparison, get_vacancy_details, prepare_match, coordinated_scan_for_user, scan_hh_chats, hh_client
+from app.sources.adapters.telegram_ingest import parse_forwarded_job
 from app.sources.telegram_watch import change_subscription, consume_channel_post, consume_forwarded_job, render_subscriptions, retry_pending, watch_state
-from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_details, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
+from app.telegram.vacancy_view import render_application_export, render_application_history, render_application_package, render_applications, render_fact_comparison, render_interview_plan, render_job_section, render_job_summary, render_jobs_list, render_queue_card, render_resume_diff
 from app.telegram.resume_import_view import render_import_preview, render_import_conflict
 from app.telegram.source_display import manual_source_line
-from app.telegram.ui import jobs_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
+from app.telegram.ui import LEGACY_REPLY_KEYBOARD_REMOVED_STATE, jobs_keyboard, main_menu_keyboard, menu_section_keyboard, review_keyboard, saved_keyboard, scan_status_details_keyboard, scan_status_keyboard, stretch_keyboard, vacancy_details_keyboard, vacancy_section_keyboard
 from app.sources.registry import build_source_plan
 from app.search.preferences import relocation_first_allows, source_enabled
-from app.search.user_preferences import parse_salary_command, update_blacklist, update_salary
+from app.search.user_preferences import (
+    parse_blacklist_rule_command,
+    parse_salary_command,
+    preview_blacklist,
+    preview_blacklist_rule,
+    update_blacklist,
+    update_blacklist_rule,
+    update_salary,
+)
 from app.version import current_version
 from app.telegram.multicommand import (
     MultiCommandError,
@@ -56,10 +72,29 @@ router = Router()
 router.message.filter(F.chat.type == "private")
 router.callback_query.filter(F.message.chat.type == "private")
 _ACTIVE_SCAN_TASKS: dict[int, asyncio.Task] = {}
+_NAVIGATION_LOCKS: dict[tuple[int, int], asyncio.Lock] = {}
+
+
+def _navigation_lock(callback) -> asyncio.Lock:
+    message = callback.message
+    key = (int(message.chat.id), int(getattr(message, "message_id", 0) or 0))
+    return _NAVIGATION_LOCKS.setdefault(key, asyncio.Lock())
+
+
+async def _edit_navigation_card(callback, text: str, keyboard) -> bool:
+    async with _navigation_lock(callback):
+        try:
+            await callback.message.edit_text(text, parse_mode="HTML", reply_markup=keyboard)
+        except Exception:
+            await callback.answer("Не удалось обновить карточку. Попробуй ещё раз.", show_alert=True)
+            return False
+    return True
 _PENDING_RESUME_IMPORTS: dict[str, dict] = {}
 _RESUME_IMPORT_TTL_SECONDS = 15 * 60
 _MAX_PENDING_RESUME_IMPORTS = 64
 _MAX_PENDING_RESUME_IMPORTS_PER_USER = 8
+_PENDING_RESUME_EDITS: dict[str, dict] = {}
+_PENDING_APPLICATION_APPROVALS: dict[str, dict] = {}
 
 
 def _store_pending_resume_import(token: str, pending: dict) -> None:
@@ -82,6 +117,21 @@ def _store_pending_resume_import(token: str, pending: dict) -> None:
         oldest = min(candidates, key=lambda item: item[1].get("created_at", 0))[0]
         _PENDING_RESUME_IMPORTS.pop(oldest, None)
     _PENDING_RESUME_IMPORTS[token] = pending
+
+
+def _store_pending_resume_edit(token: str, pending: dict) -> None:
+    now = time.time()
+    for key, value in list(_PENDING_RESUME_EDITS.items()):
+        if now - float(value.get("created_at", 0)) > _RESUME_IMPORT_TTL_SECONDS:
+            _PENDING_RESUME_EDITS.pop(key, None)
+    while True:
+        owned = [(key, value) for key, value in _PENDING_RESUME_EDITS.items() if value.get("user_id") == pending["user_id"]]
+        if len(owned) < 3 and len(_PENDING_RESUME_EDITS) < _MAX_PENDING_RESUME_IMPORTS:
+            break
+        candidates = owned if len(owned) >= 3 else list(_PENDING_RESUME_EDITS.items())
+        oldest = min(candidates, key=lambda item: item[1].get("created_at", 0))[0]
+        _PENDING_RESUME_EDITS.pop(oldest, None)
+    _PENDING_RESUME_EDITS[token] = pending
 
 
 def _render_search_profiles(searches: dict, *, limit: int = 900) -> str:
@@ -212,6 +262,7 @@ def _main_menu_text() -> str:
         "/settings — текущие настройки\n\n"
         "/salary — зарплатные ориентиры\n"
         "/blacklist — исключаемые слова\n\n"
+        "/employerpolicy — ALLOW/WARN/BLOCK для категории или точного работодателя\n\n"
         "🧠 <b>Профиль и вакансии</b>\n"
         "/job 25 — подробности вакансии\n"
         "/compare 25 — сравнить вакансию с профилем\n"
@@ -235,6 +286,42 @@ def _main_menu_text() -> str:
         "Перешли сюда пост с вакансией из Telegram — он попадёт в тот же pipeline."
     )
 
+
+def _main_menu_summary() -> str:
+    return (
+        "🤖 <b>Personal AI Job Agent</b>\n\n"
+        "Выбери раздел. Кнопки меняют это рабочее сообщение; "
+        "все slash-команды по-прежнему доступны."
+    )
+
+
+_MENU_SECTIONS = {
+    "vacancies": "💼 <b>Вакансии</b>\n/review — Good · /stretch — Stretch · /saved — сохранённые\n/jobs career — Career-first",
+    "relocation": "✈️ <b>Релокация</b>\n/jobs relocation — подходящие\n/jobs relocation below — ручной просмотр ниже порога",
+    "applications": "📨 <b>Отклики</b>\n/applications — пакеты и история\n/reminders — активные напоминания",
+    "cv": "📄 <b>CV Studio</b>\n/resumes — версии CV\n/import — импорт PDF/DOCX/TXT",
+    "profile": "🧠 <b>Профиль</b>\n/facts — подтверждённые факты\n/english — уровень английского",
+    "settings": "⚙️ <b>Настройки</b>\n/settings — поиск\n/sources — источники\n/blacklist — исключения",
+    "search": "🔎 <b>Поиск / Статус</b>\n/scan — запустить поиск\n/scanstatus — состояние и диагностика",
+}
+
+
+async def _remove_legacy_reply_keyboard(message: Message, user_id: int) -> None:
+    if await repo.get_state(user_id, LEGACY_REPLY_KEYBOARD_REMOVED_STATE, "false") == "true":
+        return
+    await message.answer(
+        "✅ Старая нижняя панель скрыта. Используй кнопку Menu или /menu.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    await repo.set_state(user_id, LEGACY_REPLY_KEYBOARD_REMOVED_STATE, "true")
+
+
+async def _send_main_menu(message: Message, user_id: int) -> None:
+    await _remove_legacy_reply_keyboard(message, user_id)
+    await message.answer(
+        _main_menu_summary(), parse_mode="HTML", reply_markup=main_menu_keyboard(),
+    )
+
 @router.message(CommandStart())
 async def start(message: Message) -> None:
     existing = await _user(message)
@@ -248,7 +335,14 @@ async def start(message: Message) -> None:
         )
         return
     await bootstrap_user(existing.telegram_chat_id, existing.display_name)
-    await message.answer(_main_menu_text(), parse_mode="HTML")
+    await _send_main_menu(message, existing.id)
+
+
+@router.message(Command("menu"))
+async def menu_command(message: Message) -> None:
+    user = await _require_user(message)
+    if user:
+        await _send_main_menu(message, user.id)
 
 
 @router.message(Command("help"))
@@ -256,6 +350,7 @@ async def help_command(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
+    await _remove_legacy_reply_keyboard(message, user.id)
     await message.answer(_main_menu_text(), parse_mode="HTML")
 
 
@@ -435,20 +530,142 @@ async def blacklist_command(message: Message) -> None:
     if not searches:
         await message.answer("❌ Профиль поиска не найден.")
         return
-    parts = (message.text or "").split(maxsplit=2)
+    text = message.text or ""
+    if len(text.split()) > 1 and text.split()[1].casefold() == "rule":
+        try:
+            command = parse_blacklist_rule_command(text)
+        except ValueError as exc:
+            await message.answer("❌ " + str(exc))
+            return
+        scope = command["profile_scope"].casefold()
+        selected = searches if scope == "all" else [
+            search for search in searches
+            if scope in {str(search.id), str(search.kind).casefold(), str(search.name).casefold()}
+        ]
+        if not selected:
+            await message.answer("❌ Профиль не найден. Используй all, id, kind или точное имя профиля.")
+            return
+        if command["preview"]:
+            affected: list[str] = []
+            for search in selected:
+                before_settings = search.settings or {}
+                after_settings = preview_blacklist_rule(
+                    before_settings,
+                    command["action"], command["kind"], command["value"],
+                    expires_at=command["expires_at"],
+                )["settings"]
+                rows = await repo.latest_matches(user.id, limit=50, include_filtered=True, search_profile_id=search.id)
+                for _, job in rows:
+                    before = matching_blacklist_rule(job, before_settings)
+                    after = matching_blacklist_rule(job, after_settings)
+                    if bool(before) != bool(after):
+                        label = f"{job.title} — {job.company}".strip(" —")
+                        if label not in affected:
+                            affected.append(label)
+            base = f"/blacklist rule {command['action']}"
+            if command["action"] != "undo":
+                base += f" {command['kind']} {command['value']}"
+            if command["profile_scope"] != "all":
+                base += f" --profile {command['profile_scope']}"
+            if command["expires_at"]:
+                base += f" --until {command['expires_at']}"
+            sample = "\n".join(f"• {item}" for item in affected[:5]) or "нет среди последних вакансий"
+            await message.answer(
+                "Предпросмотр structured blacklist (без сохранения)\n"
+                f"Профили: {len(selected)} · затронуто среди последних 50/профиль: {len(affected)}\n{sample}\n"
+                f"Подтвердить: {base}"
+            )
+            return
+        for search in selected:
+            updated = update_blacklist_rule(
+                search.settings or {}, command["action"], command["kind"], command["value"],
+                expires_at=command["expires_at"],
+            )
+            await repo.update_search_settings(search.id, updated)
+        await message.answer(
+            "↩️ Последнее structured blacklist изменение отменено."
+            if command["action"] == "undo"
+            else f"✅ Structured blacklist обновлён для профилей: {len(selected)}."
+        )
+        return
+    parts = text.split(maxsplit=2)
     cfg = searches[0].settings or {}
     if len(parts) == 1:
-        terms = cfg.get("exclude_terms") or []
-        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет") + "\nДобавить: /blacklist add <слово>\nУдалить: /blacklist remove <слово>\nОчистить: /blacklist clear")
+        terms = [str(term) for term in (cfg.get("exclude_terms") or []) if str(term).casefold() not in LEGACY_INDUSTRY_EXCLUSIONS]
+        rules = [rule for rule in (cfg.get("blacklist_rules") or []) if isinstance(rule, dict)]
+        await message.answer("🚫 Исключаемые слова: " + (", ".join(terms) or "нет")
+            + f"\nStructured rules: {len(rules)}"
+            + "\nОтраслевые решения: /employerpolicy"
+            + "\nНовое правило: /blacklist rule preview add company <название>"
+            + "\nТипы: vacancy, company, company_role, role, phrase; scope: --profile all|id|kind; срок: --until YYYY-MM-DD"
+            + "\nОтключить/удалить: /blacklist rule preview disable|remove <тип> <значение>"
+            + "\nОтменить: /blacklist rule preview undo"
+            + "\nLegacy: /blacklist add|remove <слово> · preview · clear · undo")
         return
     action = parts[1].casefold()
     term = parts[2].strip() if len(parts) == 3 else ""
-    if action not in {"add", "remove", "clear"} or (action != "clear" and not term):
-        await message.answer("Формат: /blacklist add|remove <слово> или /blacklist clear")
+    if action == "preview":
+        preview_parts = term.split(maxsplit=1)
+        preview_action = preview_parts[0].casefold() if preview_parts else ""
+        preview_term = preview_parts[1].strip() if len(preview_parts) == 2 else ""
+        if preview_action not in {"add", "remove", "clear", "undo"} or (preview_action not in {"clear", "undo"} and not preview_term):
+            await message.answer("Формат: /blacklist preview add|remove <слово>, preview clear или preview undo")
+            return
+        preview = preview_blacklist(cfg, preview_action, preview_term)
+        before = ", ".join(preview["before"]) or "нет"
+        after = ", ".join(preview["after"]) or "нет"
+        await message.answer(f"Предпросмотр blacklist (без сохранения):\nБыло: {before}\nСтанет: {after}\nПодтвердить: /blacklist {preview_action}" + (f" {preview_term}" if preview_term else ""))
+        return
+    if action not in {"add", "remove", "clear", "undo"} or (action not in {"clear", "undo"} and not term):
+        await message.answer("Формат: /blacklist add|remove <слово>, /blacklist clear или /blacklist undo")
         return
     for search in searches:
         await repo.update_search_settings(search.id, update_blacklist(search.settings or {}, action, term))
-    await message.answer("✅ Blacklist обновлён.")
+    await message.answer("✅ Blacklist обновлён." if action != "undo" else "↩️ Последнее изменение blacklist отменено.")
+
+
+@router.message(Command("employerpolicy"))
+async def employer_policy_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    profile = await repo.active_profile(user.id)
+    searches = await repo.list_search_profiles(profile.id) if profile else []
+    if not searches:
+        await message.answer("❌ Профиль поиска не найден.")
+        return
+    parts = (message.text or "").split(maxsplit=3)
+    settings = searches[0].settings or {}
+    defaults = (load_profile().get("search") or {}).get("employer_policy") or {}
+    if len(parts) == 1:
+        overrides = settings.get("employer_policy_overrides") or {}
+        await message.answer(
+            "Политика работодателей (ALLOW/WARN/BLOCK). Категории: "
+            + ", ".join(f"{key}={value}" for key, value in (defaults.get("categories") or {}).items())
+            + "\nРучные решения: " + html.escape(str(overrides))
+            + "\n/employerpolicy category <категория> <allow|warn|block|inherit>"
+            + "\n/employerpolicy employer <allow|warn|block|inherit> <точное имя работодателя>"
+        )
+        return
+    if len(parts) < 4:
+        await message.answer("Формат: /employerpolicy category <категория> <решение> или /employerpolicy employer <решение> <точное имя>")
+        return
+    kind = parts[1].casefold()
+    if kind == "category":
+        key, value = parts[2], parts[3].strip()
+    elif kind == "employer":
+        value, key = parts[2].casefold(), parts[3].strip()
+    else:
+        await message.answer("Тип правила: category или employer.")
+        return
+    try:
+        update_employer_policy(settings, kind, value, key)
+        for search in searches:
+            await repo.update_search_settings(search.id, update_employer_policy(search.settings or {}, kind, value, key))
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    await message.answer("✅ Решение сохранено для всех поисковых профилей.")
 
 
 @router.message(Command("roles"))
@@ -1067,8 +1284,136 @@ async def resumes(message: Message) -> None:
         return
     profile = await repo.active_profile(user.id)
     rows = await repo.list_resumes(profile.id) if profile else []
-    text = "📄 <b>Резюме</b>\n\n" + "\n".join(f"{r.id}. {html.escape(r.name)} — {html.escape(r.role)} — {r.language} — {r.source}" for r in rows)
+    text = "📄 <b>Резюме</b>\n\n" + "\n".join(
+        f"{r.id}. {html.escape(r.name)} — {html.escape(r.role)} — {r.language} — "
+        f"{r.source} — {'✅ approved' if version_metadata(r.rules)['status'] == 'approved' else '📝 draft'}"
+        for r in rows
+    )
+    text += "\n\n/resumeedit &lt;id&gt; &lt;новый текст&gt; · /resumeduplicate &lt;id&gt; &lt;новое имя&gt; · /resumeapprove &lt;id&gt; · /resumeexport &lt;id&gt; txt|docx|pdf [ats|modern]"
     await message.answer(text, parse_mode="HTML")
+
+
+@router.message(Command("resumeduplicate"))
+async def resume_duplicate_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) != 3 or not parts[1].isdigit() or not parts[2].strip() or len(parts[2].strip()) > 128:
+        await message.answer("Использование: /resumeduplicate <resume_id> <новое имя>")
+        return
+    profile = await repo.active_profile(user.id)
+    item = await repo.duplicate_resume_version(profile.id, int(parts[1]), parts[2]) if profile else None
+    await message.answer(
+        f"📝 Создан draft CV #{item.id}. Проверь содержимое и утверди: /resumeapprove {item.id}"
+        if item else "❌ Резюме не найдено в твоём профиле."
+    )
+
+
+@router.message(Command("resumeapprove"))
+async def resume_approve_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if len(parts) != 2 or not parts[1].isdigit():
+        await message.answer("Использование: /resumeapprove <resume_id>")
+        return
+    profile = await repo.active_profile(user.id)
+    approved = await repo.approve_resume_version(profile.id, int(parts[1])) if profile else False
+    await message.answer("✅ Версия CV утверждена." if approved else "❌ Резюме не найдено в твоём профиле.")
+
+
+@router.message(Command("resumeexport"))
+async def resume_export_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if (
+        len(parts) not in {3, 4} or not parts[1].isdigit()
+        or parts[2].casefold() not in {"txt", "docx", "pdf"}
+        or (len(parts) == 4 and parts[3].casefold() not in {"ats", "modern"})
+    ):
+        await message.answer("Использование: /resumeexport <resume_id> txt|docx|pdf [ats|modern]")
+        return
+    profile = await repo.active_profile(user.id)
+    resume = await repo.get_profile_resume(profile.id, int(parts[1])) if profile else None
+    if resume is None:
+        await message.answer("❌ Резюме не найдено в твоём профиле.")
+        return
+    try:
+        style = parts[3] if len(parts) == 4 else "ats"
+        filename, content = export_resume(resume, parts[2], style)
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    await message.answer_document(
+        BufferedInputFile(content, filename=filename),
+        caption=f"Approved CV #{resume.id} · {parts[2].upper()} · {style.upper()}",
+    )
+
+
+@router.message(Command("resumeedit"))
+async def resume_edit_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) != 3 or not parts[1].isdigit():
+        await message.answer("Использование: /resumeedit <resume_id> <полный новый текст CV>")
+        return
+    profile = await repo.active_profile(user.id)
+    resume = await repo.get_profile_resume(profile.id, int(parts[1])) if profile else None
+    if resume is None:
+        await message.answer("❌ Резюме не найдено в твоём профиле.")
+        return
+    try:
+        proposed = validate_resume_edit(resume.content or "", parts[2])
+    except ValueError as exc:
+        await message.answer("❌ " + str(exc))
+        return
+    token = uuid.uuid4().hex[:12]
+    _store_pending_resume_edit(token, {
+        "user_id": user.id, "profile_id": profile.id, "resume_id": resume.id,
+        "expected_digest": content_digest(resume.content or ""),
+        "content": proposed, "created_at": time.time(),
+    })
+    diff = html.escape(render_resume_text_diff(resume.content or "", proposed))
+    await message.answer(
+        f"📝 <b>Предпросмотр изменений CV #{resume.id}</b>\n<pre>{diff}</pre>\n"
+        f"Создать новую draft-версию: /resumeeditconfirm {token}",
+        parse_mode="HTML",
+    )
+
+
+@router.message(Command("resumeeditconfirm"))
+async def resume_edit_confirm_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    pending = _PENDING_RESUME_EDITS.get(parts[1]) if len(parts) == 2 else None
+    if not pending or pending.get("user_id") != user.id or time.time() - pending.get("created_at", 0) > _RESUME_IMPORT_TTL_SECONDS:
+        await message.answer("❌ Предпросмотр правки не найден или истёк.")
+        return
+    token = parts[1]
+    if _PENDING_RESUME_EDITS.pop(token, None) is None:
+        await message.answer("❌ Правка уже обрабатывается.")
+        return
+    try:
+        item = await repo.create_resume_revision(
+            pending["profile_id"], pending["resume_id"],
+            expected_content_digest=pending["expected_digest"], content=pending["content"],
+        )
+    except Exception:
+        _PENDING_RESUME_EDITS.setdefault(token, pending)
+        await message.answer("❌ Не удалось сохранить draft. Повтори подтверждение.")
+        return
+    await message.answer(
+        f"📝 Draft CV #{item.id} создан. Исходная версия не изменена. После проверки: /resumeapprove {item.id}"
+        if item else "❌ Исходное резюме больше недоступно."
+    )
 
 
 @router.message(Command("scan"))
@@ -1711,15 +2056,68 @@ async def applications_command(message: Message) -> None:
     await message.answer(render_applications(applications), parse_mode="HTML")
 
 
+@router.message(Command("reminders"))
+async def application_reminders_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    rows = await repo.list_application_reminders(user.id)
+    if not rows:
+        await message.answer("⏰ Активных напоминаний по откликам нет.")
+        return
+    lines = ["⏰ <b>Напоминания по откликам</b>", ""]
+    for item in rows:
+        lines.append(
+            f"#{item.id} · отклик #{item.application_id} · {item.due_at:%Y-%m-%d %H:%M} UTC\n"
+            f"{html.escape(item.note)}"
+        )
+    lines.extend(["", "Завершить: /reminddone &lt;id&gt;"])
+    await message.answer("\n".join(lines), parse_mode="HTML")
+
+
+@router.message(Command("reminddone"))
+async def application_reminder_done_command(message: Message) -> None:
+    user = await _require_user(message)
+    if not user:
+        return
+    parts = (message.text or "").split()
+    if len(parts) != 2 or not parts[1].isdigit():
+        await message.answer("Использование: /reminddone <reminder_id>")
+        return
+    completed = await repo.complete_application_reminder(user.id, int(parts[1]))
+    await message.answer("✅ Напоминание завершено." if completed else "❌ Напоминание не найдено.")
+
+
 @router.message(Command("application"))
 async def application_status_command(message: Message) -> None:
     user = await _require_user(message)
     if not user:
         return
-    parts = (message.text or "").split()
+    raw = message.text or ""
+    reminder_parts = raw.split(maxsplit=4)
+    if len(reminder_parts) >= 3 and reminder_parts[2].casefold() == "remind":
+        if len(reminder_parts) != 5 or not reminder_parts[1].isdigit():
+            await message.answer(
+                "Использование: /application <id> remind 2026-11-01T09:00+03:00 <что проверить>"
+            )
+            return
+        try:
+            due_at = parse_reminder_due(reminder_parts[3])
+            reminder = await repo.add_application_reminder(
+                user.id, int(reminder_parts[1]), due_at, reminder_parts[4],
+            )
+        except ValueError as exc:
+            await message.answer("❌ " + str(exc))
+            return
+        await message.answer(
+            f"⏰ Напоминание #{reminder.id} сохранено на {reminder.due_at:%Y-%m-%d %H:%M} UTC."
+            if reminder else "❌ Отклик не найден в твоём профиле."
+        )
+        return
+    parts = raw.split()
     if len(parts) != 3 or not parts[1].isdigit():
         await message.answer(
-            "Использование: /application <id> history|export|reviewed|submitted|interview|offer|rejected|withdrawn"
+            "Использование: /application <id> history|export|reviewed|submitted|response|assessment|interview|offer|rejected|withdrawn|closed"
         )
         return
     status = parts[2].casefold()
@@ -1749,7 +2147,7 @@ async def application_status_command(message: Message) -> None:
         return
     if status not in repo.MANUAL_APPLICATION_STATUSES:
         await message.answer(
-            "Допустимые статусы: reviewed, submitted, interview, offer, rejected, withdrawn"
+            "Допустимые статусы: reviewed, submitted, response, assessment, interview, offer, rejected, withdrawn, closed"
         )
         return
     updated = await repo.set_application_status(user.id, int(parts[1]), status)
@@ -1782,29 +2180,34 @@ async def chats(message: Message, bot: Bot) -> None:
 async def _navigate_previous_queue(
     callback, queue_loader, renderer, keyboard_factory, first_message: str
 ) -> None:
-    user = await repo.get_user_by_chat(callback.message.chat.id)
-    if not user:
-        return
-    raw_id = callback.data.split(":", 1)[1]
-    if not raw_id.isdigit():
-        await callback.answer("Некорректный ID", show_alert=True)
-        return
-    match = await repo.get_match(int(raw_id))
-    if not match or match.user_id != user.id:
-        await callback.answer("Вакансия не найдена", show_alert=True)
-        return
-    rows = await queue_loader(user.id, None)
-    picked = _pick_previous_review(rows, match.id)
-    if not picked:
-        await callback.answer(first_message, show_alert=True)
-        return
-    index, (previous_match, job) = picked
-    await callback.message.edit_text(
-        renderer(previous_match, job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=keyboard_factory(previous_match.id, job.id),
-    )
-    await callback.answer()
+    async with _navigation_lock(callback):
+        user = await repo.get_user_by_chat(callback.message.chat.id)
+        if not user:
+            return
+        raw_id = callback.data.split(":", 1)[1]
+        if not raw_id.isdigit():
+            await callback.answer("Некорректный ID", show_alert=True)
+            return
+        match = await repo.get_match(int(raw_id))
+        if not match or match.user_id != user.id:
+            await callback.answer("Вакансия не найдена", show_alert=True)
+            return
+        rows = await queue_loader(user.id, None)
+        picked = _pick_previous_review(rows, match.id)
+        if not picked:
+            await callback.answer(first_message, show_alert=True)
+            return
+        index, (previous_match, job) = picked
+        try:
+            await callback.message.edit_text(
+                renderer(previous_match, job, index + 1, len(rows)),
+                parse_mode="HTML",
+                reply_markup=keyboard_factory(previous_match.id, job.id),
+            )
+        except Exception:
+            await callback.answer("Не удалось обновить карточку. Попробуй ещё раз.", show_alert=True)
+            return
+        await callback.answer()
 
 
 @router.callback_query(F.data.startswith("review_prev:"))
@@ -1847,11 +2250,12 @@ async def stretch_next_callback(callback: CallbackQuery) -> None:
         await callback.answer("Больше Stretch-вакансий нет", show_alert=True)
         return
     index, (next_match, next_job) = picked
-    await callback.message.edit_text(
+    if not await _edit_navigation_card(
+        callback,
         _render_stretch_card(next_match, next_job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=stretch_keyboard(next_match.id, next_job.id),
-    )
+        stretch_keyboard(next_match.id, next_job.id),
+    ):
+        return
     await callback.answer()
 
 
@@ -1910,11 +2314,12 @@ async def saved_next_callback(callback: CallbackQuery) -> None:
         await callback.answer("Больше сохранённых вакансий нет", show_alert=True)
         return
     index, (next_match, job) = picked
-    await callback.message.edit_text(
+    if not await _edit_navigation_card(
+        callback,
         _render_saved_card(next_match, job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=saved_keyboard(next_match.id, job.id),
-    )
+        saved_keyboard(next_match.id, job.id),
+    ):
+        return
     await callback.answer()
 
 
@@ -1937,11 +2342,12 @@ async def review_next_callback(callback: CallbackQuery) -> None:
         await callback.answer("Больше вакансий нет", show_alert=True)
         return
     index, (next_match, next_job) = picked
-    await callback.message.edit_text(
+    if not await _edit_navigation_card(
+        callback,
         _render_review_card(next_match, next_job, index + 1, len(rows)),
-        parse_mode="HTML",
-        reply_markup=review_keyboard(next_match.id, next_job.id),
-    )
+        review_keyboard(next_match.id, next_job.id),
+    ):
+        return
     await callback.answer()
 
 
@@ -1997,7 +2403,7 @@ async def details_callback(callback: CallbackQuery) -> None:
         selected_id = getattr(payload.get("match"), "search_profile_id", None)
         if selected_id is not None:
             search_filter = {"search_profile_id": selected_id}
-        await callback.message.answer(
+        await callback.message.edit_text(
             render_job_summary(payload),
             parse_mode="HTML",
             disable_web_page_preview=True,
@@ -2005,9 +2411,7 @@ async def details_callback(callback: CallbackQuery) -> None:
         )
     except Exception as exc:
         issue = classify_source_error(exc, stage="detail_request")
-        await callback.message.answer(
-            f"⚠ {html.escape(issue['message'])} Код: {issue['code']}", parse_mode="HTML"
-        )
+        await callback.answer(f"{issue['message']} ({issue['code']})", show_alert=True)
 
 
 def _jobtab_identifiers(data: str) -> tuple[str, int, int | None] | None:
@@ -2034,7 +2438,8 @@ async def jobtab_callback(callback: CallbackQuery) -> None:
     section, job_id, search_profile_id = identifiers
     try:
         search_filter = {"search_profile_id": search_profile_id} if search_profile_id is not None else {}
-        payload = await get_vacancy_details(user.id, job_id, **search_filter)
+        loader = get_vacancy_comparison if section == "req" else get_vacancy_details
+        payload = await loader(user.id, job_id, **search_filter)
         selected_id = getattr(payload.get("match"), "search_profile_id", None)
         if selected_id is not None:
             search_profile_id = selected_id
@@ -2074,20 +2479,22 @@ async def scan_status_callback(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
-@router.callback_query(F.data == "menu:main")
+@router.callback_query(F.data.startswith("menu:"))
 async def main_menu_callback(callback: CallbackQuery) -> None:
     user = await repo.get_user_by_chat(callback.message.chat.id)
     if not user:
+        await callback.answer("Нет доступа", show_alert=True)
         return
-    await callback.message.edit_text(
-        "🤖 <b>Главное меню</b>\n"
-        "/scan — новый поиск · /scanstatus — состояние\n"
-        "/review — Good · /stretch — Stretch · /saved — сохранённые\n"
-        "/jobs career — Career-first · /jobs relocation — Relocation-first\n"
-        "/help — все команды",
-        parse_mode="HTML",
-    )
-    await callback.answer()
+    section = callback.data.split(":", 1)[1]
+    if section == "main":
+        text, keyboard = _main_menu_summary(), main_menu_keyboard()
+    elif section in _MENU_SECTIONS:
+        text, keyboard = _MENU_SECTIONS[section], menu_section_keyboard()
+    else:
+        await callback.answer("Некорректный раздел", show_alert=True)
+        return
+    if await _edit_navigation_card(callback, text, keyboard):
+        await callback.answer()
 
 
 @router.callback_query(F.data.startswith("compare:"))
@@ -2183,53 +2590,63 @@ async def apply_callback(callback: CallbackQuery, bot: Bot) -> None:
         await callback.answer("Неверный идентификатор отклика.", show_alert=True)
         return
     match_id = int(raw_match_id)
-    await callback.answer("Отправляю…")
+    await callback.answer("Готовлю пакет для проверки…")
     try:
-        result = await apply_match(bot, match_id, user.id)
-        status = result.get("status")
-        if status == "sent":
-            text = f"✅ HH подтвердил отправку отклика. Запись #{result.get('application_id', '?')} в /applications."
-        elif status == "external":
-            text = (
-                "↗ HH направил на внешнюю форму работодателя. "
-                "Отклик ещё не подтверждён как отправленный: заверши его вручную. "
-                f"Запись #{result.get('application_id', '?')} сохранена в /applications; "
-                "адрес перехода доступен в экспорте через /application <id> export."
+        preview = await _prepare_saved_preview(match_id, user.id)
+        await callback.message.answer(preview, parse_mode="HTML", disable_web_page_preview=True)
+        package = await repo.prepared_application_for_match(match_id, user.id)
+        snapshot = package.vacancy_snapshot or {} if package else {}
+        if package and package.source_id == "hh" and package.resume_external_id and snapshot.get("source_job_id"):
+            now = time.time()
+            for old_token, old in list(_PENDING_APPLICATION_APPROVALS.items()):
+                if now - old.get("created_at", 0) > 600 or old.get("user_id") == user.id:
+                    _PENDING_APPLICATION_APPROVALS.pop(old_token, None)
+            token = uuid.uuid4().hex[:12]
+            _PENDING_APPLICATION_APPROVALS[token] = {
+                "user_id": user.id, "match_id": match_id, "application_id": package.id,
+                "channel": "hh", "digest": application_package_digest(package, "hh"),
+                "created_at": now,
+            }
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[[
+                InlineKeyboardButton(text="✅ Подтвердить точную отправку", callback_data=f"applyconfirm:{token}"),
+            ]])
+            await callback.message.answer(
+                "🔒 Внешняя отправка ещё не выполнялась. Подтверждение ниже одноразовое и действует 10 минут.",
+                reply_markup=keyboard,
             )
         else:
-            text = (
-                "⚠️ Статус отправки HH неизвестен. Перед повтором проверь кабинет HH "
-                "и /applications, чтобы не отправить повторный отклик."
-            )
-        await callback.message.answer(text, parse_mode=None)
-        await callback.message.edit_reply_markup(reply_markup=None)
+            await callback.message.answer("🔒 Внешняя отправка не выполнялась. Используй сохранённый пакет и официальный канал вручную.")
     except Exception as exc:
-        # Only our own predictable user-facing RuntimeErrors may be shown.
-        # Provider, database and parser exceptions may carry sensitive details.
-        safe_prefixes = (
-            "Match не найден",
-            "HH private applicant API доступен только owner-профилю",
-            "Вакансия не найдена",
-            "Для этой вакансии нет HH-источника",
-            "HH private applicant API отключён",
-            "Для выбранного профиля нет HH resume ID",
-            "HH owner не найден или отключён",
-            "Повторный HH-отклик заблокирован:",
-            "HH не подтвердил результат попытки #",
-            "Статус HH попытки #",
-        )
-        detail = str(exc)
-        if isinstance(exc, RuntimeError) and detail.startswith(safe_prefixes):
-            message = detail
-        else:
-            issue = classify_source_error(exc, stage="processing")
-            message = (
-                "Не удалось завершить HH-отклик. Проверь /applications "
-                f"и кабинет HH перед повтором. Код: {issue['code']}."
-            )
         await callback.message.answer(
-            "⚠️ " + html.escape(message), parse_mode="HTML",
+            _prepare_error_text(exc, package_saved=False), parse_mode="HTML",
         )
+
+
+@router.callback_query(F.data.startswith("applyconfirm:"))
+async def apply_confirm_callback(callback: CallbackQuery, bot: Bot) -> None:
+    user = await repo.get_user_by_chat(callback.message.chat.id)
+    token = (callback.data or "").partition(":")[2]
+    pending = _PENDING_APPLICATION_APPROVALS.get(token)
+    if not user or not pending or pending["user_id"] != user.id or time.time() - pending["created_at"] > 600:
+        _PENDING_APPLICATION_APPROVALS.pop(token, None)
+        await callback.answer("Подтверждение истекло или уже использовано.", show_alert=True)
+        return
+    if _PENDING_APPLICATION_APPROVALS.pop(token, None) is None:
+        await callback.answer("Подтверждение уже используется.", show_alert=True)
+        return
+    await callback.answer("Отправляю подтверждённый пакет…")
+    try:
+        result = await apply_frozen_application(bot, **{
+            key: pending[key] for key in ("match_id", "application_id", "user_id", "channel")
+        }, expected_digest=pending["digest"])
+    except Exception:
+        await callback.message.answer("⚠️ Отправка не подтверждена. Проверь /applications и кабинет провайдера перед повтором.")
+        return
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer(
+        "✅ Провайдер подтвердил отправку." if result.get("status") == "sent"
+        else "⚠️ Провайдер не подтвердил отправку; проверь /applications."
+    )
 
 
 @router.callback_query(F.data.startswith("sendreply:"))

@@ -30,6 +30,7 @@ class RemotiveSource(JobSource):
     request_timeout_seconds = 20.0
     max_remote_scope_length = 160
     user_agent = "PersonalAIJobAgent/3.5.7 (public job discovery; https://github.com/Qrasann/personal-ai-job-agent)"
+    _ROLE_QUERY_ALIASES = {frozenset({"site", "reliability", "engineer"}): {"sre"}}
     # Common location labels not present in this app's selectable-country catalog.
     _external_country_aliases = {
         "US": ("United States", "United States of America", "USA", "U.S.A.", "U.S.", "US"),
@@ -62,7 +63,8 @@ class RemotiveSource(JobSource):
         for query in queries:
             query_tokens = cls._tokens(query)
             meaningful = query_tokens - generic or query_tokens
-            if meaningful and title_tokens & meaningful:
+            aliases = cls._ROLE_QUERY_ALIASES.get(frozenset(query_tokens), set())
+            if meaningful and (title_tokens & meaningful or title_tokens & aliases):
                 return True
         return False
 

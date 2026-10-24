@@ -9,6 +9,7 @@ import json
 import re
 import os
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -76,6 +77,14 @@ def selected_channels(config: dict, inventory: list[dict]) -> dict[int, dict]:
     return selected
 
 
+async def connect_authorized_client(client) -> None:
+    """Connect an existing Telethon session without starting an auth flow."""
+    await client.connect()
+    if not await client.is_user_authorized():
+        await client.disconnect()
+        raise RuntimeError("Existing Telegram session is not authorized; no login was attempted")
+
+
 def load_local_config(path: Path) -> dict:
     if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
         raise ValueError("Folder configuration must be a private regular file (mode 0600)")
@@ -108,6 +117,53 @@ def save_cursors(path: Path, cursors: dict[str, int]) -> None:
             json.dump(cursors, handle)
             handle.flush()
             os.fsync(handle.fileno())
+        os.replace(temp, path)
+    finally:
+        if temp.exists():
+            temp.unlink()
+
+
+def sampled_posts(messages, *, chat_id: int, username: str | None) -> list[dict]:
+    """Serialize only public-channel post fields needed by the offline pilot."""
+    if not isinstance(chat_id, int) or isinstance(chat_id, bool) or chat_id >= 0:
+        raise ValueError("Invalid Telegram channel ID")
+    public_name = str(username or "").strip().lstrip("@")
+    if public_name and not re.fullmatch(r"[A-Za-z0-9_]{5,32}", public_name):
+        raise ValueError("Invalid public Telegram username")
+    rows = []
+    for message in messages:
+        message_id = getattr(message, "id", None)
+        text = getattr(message, "raw_text", None)
+        published_at = getattr(message, "date", None)
+        if (
+            not isinstance(message_id, int) or isinstance(message_id, bool) or message_id <= 0
+            or not isinstance(text, str) or not text.strip()
+            or not isinstance(published_at, datetime)
+        ):
+            continue
+        if published_at.tzinfo is None:
+            published_at = published_at.replace(tzinfo=UTC)
+        rows.append({
+            "channel_id": chat_id,
+            "username": public_name or None,
+            "message_id": message_id,
+            "text": text[:100000],
+            "published_at": published_at.astimezone(UTC).isoformat(),
+            "url": f"https://t.me/{public_name}/{message_id}" if public_name else None,
+        })
+    return sorted(rows, key=lambda item: item["message_id"])
+
+
+def save_private_json(path: Path, payload: object) -> None:
+    """Atomically write pilot material outside Git with mode 0600."""
+    descriptor, name = tempfile.mkstemp(prefix="sample-", dir=path.parent)
+    temp = Path(name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(temp, 0o600)
         os.replace(temp, path)
     finally:
         if temp.exists():

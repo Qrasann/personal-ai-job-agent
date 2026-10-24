@@ -101,17 +101,21 @@ _START_NOTICE = re.compile(r"\bnotice period\b|\bсрок уведомления
 _START_DATE = re.compile(r"\b(?:start(?:ing)? date|commencement date)\s*[:\-]?\s*\S+|\bдата выхода\s*[:\-]?\s*\S+", re.I)
 _AUTH_NOT_REQUIRED = re.compile(
     r"\b(?:no|not required|not necessary|not needed|unnecessary) "
-    r"(?:(?:existing|valid|eu|european union) )?(?:right to work|work permit|work authorization)"
+    r"(?:(?:existing|valid|eu|european union) )?(?:right to work|work permit|work authori[sz]ation)"
     r"(?: (?:is )?(?:required|necessary|needed))?\b|"
-    r"\b(?:right to work|work permit|work authorization) (?:is )?(?:not required|not necessary|not needed)\b|"
+    r"\b(?:right to work|work permit|work authori[sz]ation) (?:is )?(?:not required|not necessary|not needed)\b|"
     r"\b(?:arbeitserlaubnis|arbeitsberechtigung) (?:ist )?nicht (?:erforderlich|notwendig|vorausgesetzt)\b|"
     r"\bkeine (?:gültige |bestehende )?(?:arbeitserlaubnis|arbeitsberechtigung) (?:ist )?(?:erforderlich|notwendig)\b|"
     r"\b(?:разрешение на работу|право на работу) не (?:требуется|нужно|обязательно)\b",
     re.I,
 )
 _AUTH_REQUIREMENT_TEXT = re.compile(
-    r"[^.!?;\n]{0,100}(?:must (?:already )?(?:have (?:the )?right to work|be authorized to work)|"
-        r"(?:work permit|work authorization) (?:is )?required|gültige arbeitserlaubnis (?:ist )?(?:erforderlich|vorausgesetzt)|"
+    r"[^.!?;\n]{0,100}(?:must (?:already )?(?:have (?:the )?right to work|be (?:legally )?(?:authorized to work|eligible to work))|"
+        r"(?:candidates|applicants) must (?:already )?(?:hold|possess|have) (?:a |an )?(?:valid |existing )?(?:work permit|work authori[sz]ation)|"
+        r"(?:only )?(?:candidates|applicants) (?:who are )?(?:already )?(?:legally )?(?:authorized|authorised|eligible) to work|"
+        r"(?:only )?(?:candidates|applicants) (?:with|holding) (?:a |an )?(?:valid |existing )?"
+        r"(?:right to work|work authorization|work authorisation|work permit)|"
+        r"(?:work permit|work authori[sz]ation) (?:is )?required|gültige arbeitserlaubnis (?:ist )?(?:erforderlich|vorausgesetzt)|"
         r"должны? иметь право на работу)"
     r"[^.!?;\n]{0,100}", re.I,
 )

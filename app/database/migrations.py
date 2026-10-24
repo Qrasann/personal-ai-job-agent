@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 
-CURRENT_SCHEMA_VERSION = 8
+CURRENT_SCHEMA_VERSION = 11
 
 
 @dataclass(frozen=True)
@@ -107,6 +107,49 @@ MIGRATIONS: tuple[Migration, ...] = (
             "ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_job_id_fkey",
             "ALTER TABLE applications ADD CONSTRAINT applications_job_id_fkey "
             "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE RESTRICT",
+        ),
+    ),
+    Migration(
+        version=9,
+        name="application_event_provenance_immutability",
+        statements=(
+            "ALTER TABLE application_status_events ADD COLUMN IF NOT EXISTS provenance VARCHAR(32) NOT NULL DEFAULT 'legacy'",
+            "ALTER TABLE application_status_events ADD COLUMN IF NOT EXISTS evidence JSONB NOT NULL DEFAULT '{}'::jsonb",
+            "ALTER TABLE application_status_events ADD COLUMN IF NOT EXISTS event_key VARCHAR(128) NULL",
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_application_status_event_key "
+            "ON application_status_events(application_id, event_key) WHERE event_key IS NOT NULL",
+            "CREATE OR REPLACE FUNCTION reject_application_status_event_mutation() RETURNS trigger "
+            "LANGUAGE plpgsql AS $$ BEGIN "
+            "IF TG_OP = 'DELETE' AND NOT EXISTS (SELECT 1 FROM applications WHERE id = OLD.application_id) "
+            "THEN RETURN OLD; END IF; "
+            "RAISE EXCEPTION 'application status history is immutable'; END; $$",
+            "DROP TRIGGER IF EXISTS application_status_events_immutable ON application_status_events",
+            "CREATE TRIGGER application_status_events_immutable BEFORE UPDATE OR DELETE ON application_status_events "
+            "FOR EACH ROW EXECUTE FUNCTION reject_application_status_event_mutation()",
+        ),
+    ),
+    Migration(
+        version=10,
+        name="application_reminders",
+        statements=(
+            "CREATE TABLE IF NOT EXISTS application_reminders ("
+            "id SERIAL PRIMARY KEY, application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE, "
+            "user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, "
+            "due_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, note TEXT NOT NULL DEFAULT '', "
+            "status VARCHAR(32) NOT NULL DEFAULT 'pending', "
+            "created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP)",
+            "CREATE INDEX IF NOT EXISTS ix_application_reminders_user_due "
+            "ON application_reminders(user_id, status, due_at)",
+        ),
+    ),
+    Migration(
+        version=11,
+        name="application_event_rollback_defaults",
+        statements=(
+            # Previous application images do not know these v9 columns and omit
+            # them on INSERT. Database defaults keep that rollback path writable.
+            "ALTER TABLE application_status_events ALTER COLUMN provenance SET DEFAULT 'legacy'",
+            "ALTER TABLE application_status_events ALTER COLUMN evidence SET DEFAULT '{}'::jsonb",
         ),
     ),
 )

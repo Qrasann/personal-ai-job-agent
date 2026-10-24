@@ -1,6 +1,7 @@
 import re
 from bs4 import BeautifulSoup
 from app.knowledge.profile import load_profile
+from app.domain.employer_policy import LEGACY_INDUSTRY_EXCLUSIONS, decision as employer_decision
 
 
 def clean_html(text: str | None) -> str:
@@ -18,13 +19,21 @@ def score_vacancy(vacancy: dict) -> tuple[int, str]:
     profile = load_profile()
     search = profile["search"]
     title = vacancy.get("name", "")
+    company_data = vacancy.get("employer")
+    company = company_data.get("name", "") if isinstance(company_data, dict) else vacancy.get("company", "")
     description = clean_html(vacancy.get("description"))
     text = f"{title} {description}".lower()
+
+    policy, policy_reason = employer_decision(company, vacancy.get("industry_tags"), {})
+    if policy == "block":
+        return 0, "Исключено по политике работодателя: " + str(policy_reason)
 
     reasons: list[str] = []
     score = 45
 
     for term in search.get("exclude_terms", []):
+        if str(term).casefold() in LEGACY_INDUSTRY_EXCLUSIONS:
+            continue
         if term.lower() in text:
             return 0, f"Исключено правилом: {term}"
 

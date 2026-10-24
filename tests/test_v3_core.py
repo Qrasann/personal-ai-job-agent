@@ -20,7 +20,7 @@ def test_resume_selector_prefers_linux_resume_for_linux_job():
     assert choose_resume(job, resumes) == 2
 
 
-def test_matching_uses_candidate_facts_and_excludes_gambling():
+def test_matching_uses_candidate_facts_and_does_not_exclude_casino_by_default():
     search = SearchProfile(id=1, profile_id=1, settings={
         "preferred_terms": ["linux", "docker", "nginx"],
         "strong_terms": ["linux", "docker"],
@@ -36,7 +36,7 @@ def test_matching_uses_candidate_facts_and_excludes_gambling():
     good = Job(fingerprint="g", title="DevOps Engineer", company="ACME", description="Linux Docker Nginx", work_mode="remote", salary_from=2000, salary_currency="USD", salary_period="monthly")
     bad = Job(fingerprint="b", title="DevOps Engineer", company="Casino", description="gambling platform Linux Docker")
     assert score_job(good, search, facts, []).total_score >= 70
-    assert score_job(bad, search, facts, []).total_score == 0
+    assert score_job(bad, search, facts, []).fit != "skip"
 
 
 def test_relocation_first_scores_its_own_role_queries():

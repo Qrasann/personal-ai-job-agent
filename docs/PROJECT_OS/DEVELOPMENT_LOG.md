@@ -1,3 +1,336 @@
+## 2026-10-24 — Relocation-first engineering-manager false Good
+
+Sampled the three newest production notifications and reproduced an explicit Software
+Engineering Manager title classified Good at 73/100 in Relocation-first. The known manager
+filter was Career-only. Added that exact technical manager title class to the global
+senior gate while preserving relocation desktop/support rows; assessment version is 6.
+Matching/review gate: 157 passed. Code checkpoint: `a0c5985`; production unchanged.
+The combined isolated PostgreSQL suite for all four post-release increments passed 1521
+tests with only the existing aiohttp AppKey warnings.
+Exact-candidate GitHub CI run `40089127207` passed all three jobs on `365f5b0`.
+
+## 2026-10-24 — Employer Watch inventory refresh
+
+The production scan preserved 34 Employer Watch results but recorded five TLS/timeouts per
+profile. A separate sequential read-only probe found every approved endpoint reachable;
+no retry change was justified. It did confirm Betsson's reviewed provider ID was removed.
+Replaced that one slot with current official Malta DevOps posting `8025783`, retaining
+unknown eligibility/support evidence. Gate: 144 passed. Code checkpoint: `cc36e59`.
+
+## 2026-10-24 — RemoteOK bounded transport retry
+
+The completed production scan was partial because a one-off RemoteOK
+`RemoteProtocolError` discarded discovery for one profile; the adapter had no retry.
+Added one transport-only retry with bounded delay, safe class-only logging and existing
+source telemetry integration. Persistent transport/HTTP/schema errors remain visible.
+Gate: 116 passed. Code checkpoint: `7d83c75`; production unchanged.
+
+## 2026-10-24 — Job Bank onsite/remote evidence
+
+Production Relocation-first data showed that Job Bank's standard onsite refusal “There is
+no option to work remotely” and its physical “Remote location” label both triggered the
+generic remote lane. Added a shared narrow remote-work detector that removes only explicit
+refusals/physical wording before matching; destination-country Any Job rows now retain
+relocation geography. Assessment version advanced for stale-score invalidation (and was
+subsequently advanced again by the manager-title fix). Related gate: 324 passed; no
+production change or external action occurred. Code checkpoint: `20df7a6`.
+
+## 2026-10-24 — production Telegram UX rollout `8dc5a51`
+
+Found runtime had drifted back to the pre-release `repo-app` image after a base-Compose
+recreation. Preserved it as the immediate rollback target, created and fully restored a
+fresh private backup, then deployed only the app through a new private immutable-image
+overlay. Production is healthy at exact revision `8dc5a51`, schema 11 and unchanged owner,
+fact/CV/config counts. Telegram API confirms current commands and native Menu; one-time
+ReplyKeyboard removal was persisted and a live inline main menu was sent. Runtime
+Details/Back/Next/Home and compact-card smoke passed. No application or employer message
+was sent.
+
+## 2026-10-23 — Telegram persistent-keyboard removal
+
+Replaced the obsolete persistent ReplyKeyboard with the native Telegram command menu and
+an inline six-section `/menu`/`/start` workspace. Added one-time startup cleanup for active
+users using `ReplyKeyboardRemove`; the completion marker is written only after successful
+delivery. Main-section callbacks retain private owner authorization and serialized
+edit-in-place behavior. Expanded Telegram/navigation gate: 238 passed, 1 skipped. Code
+checkpoint: `ee1c77c`; full isolated PostgreSQL suite passed 1515 tests. Production remains
+unchanged pending exact-SHA CI and rollout gates.
+
+## 2026-10-23 — worldwide physical location evidence
+
+Live Employer Watch provenance exposed unknown `Office Based - London, UK`. Added a small
+global physical-country alias layer independent of search markets and stripped only the
+exact provider office wrapper. Home/remote regional labels remain unknown. Focused gate:
+57 passed. This post-release code is not yet deployed.
+
+## 2026-10-23 — production rollout f786aa1
+
+Preserved the divergent runtime checkout and deployed the verified release through a
+private immutable-image Compose overlay. Only the app container was recreated; DB/storage
+volumes and PostgreSQL stayed in place. Health, Telegram identity/polling, schema 11,
+owner data, disabled outbound automation and rollback tag passed smoke. Runtime version is
+3.5.7 at release SHA f786aa1; no application or employer message was sent.
+The first scan exposed a missing watchlist because the legacy data-directory bind masked
+image assets; the overlay now preserves personal profile/countries as file binds and uses
+the release watchlist from the image.
+The corrected startup scan completed successfully without repeating that source error.
+
+## 2026-10-23 — fresh production backup and restored-copy migration rehearsal
+
+Created a mode-0600 private runtime dump outside Git, verified its catalog and restored it
+fully to tmpfs. Counts matched schema-v8 production exactly. The copy upgraded to v11 and
+passed current and previous-image read/write smoke. Runtime remained read-only. Rollout
+stopped because the runtime checkout is ahead 2 with three pre-existing untracked files;
+the standard updater's dirty-tree refusal was not bypassed.
+
+## 2026-10-23 — full suite, exact-SHA CI and image/PostgreSQL smoke
+
+Full isolated suite passed 1506 tests. Compile, secret scan and diff checks passed. Draft
+PR #56 run 40009706784 completed green on code SHA `bc63a12` across Python, secret and
+Docker jobs. Its labeled image initialized schema v11 and persisted/read one synthetic
+Application event in a separate tmpfs database, which was then dropped.
+
+## 2026-10-23 — release-image PDF renderer
+
+The first rebuilt image reproduced C01's fail-closed missing-Unicode-font path. Added
+Debian's minimal DejaVu core fonts, rebuilt, and generated/extracted exact RU/EN text from
+a Modern PDF inside the non-root image. ReportLab 4.5.1 and the healthcheck were present;
+resume tests passed 10/10.
+
+## 2026-10-23 — rollback compatibility and schema v11
+
+Rehearsed a PostgreSQL custom dump/list/checksum/restore using synthetic data. A detached
+v8 writer could read v10 but failed to insert events because fresh-schema v9 columns had
+no server defaults. Added schema v11 and matching model defaults; the v8 writer then
+created an event and current code read it with `legacy` provenance. Focused gate: 36 passed.
+
+## 2026-10-23 — schema v8→v9→v10→v11 acceptance
+
+Added an isolated PostgreSQL regression that reconstructs the v8 application surface,
+upgrades through migrations 9–11, verifies exact package/history preservation, migration
+idempotency, reminder creation and immutable event enforcement. Combined gate: 36 passed.
+
+## 2026-10-23 — async/web release gate closed
+
+Recovered `pytest-asyncio 1.4.0` from the local uv cache into the non-production sibling
+venv and ran the previously blocked scan dashboard, scan lease and web workspace files
+against isolated tmpfs PostgreSQL: 29 passed. Production/runtime remained untouched.
+
+## 2026-10-23 — Remote OK SRE title recall
+
+Remote OK discovery required all literal query tokens and therefore missed the
+standard `SRE` abbreviation for the configured `Site Reliability Engineer`
+Career-first query. Added only that explicit alias alternative and a regression
+that keeps an unrelated software/reliability role out. Match Score, thresholds,
+Relocation-first behavior and eligibility evidence are unchanged. The focused
+pytest gate is pending because local pytest is unavailable and isolated uv
+dependency resolution is blocked by DNS.
+
+## 2026-10-23 — official ATS SRE title recall
+
+Greenhouse and SmartRecruiters had independent literal-token role matchers and
+lost `SRE` postings for the configured `Site Reliability Engineer` query. Added
+the exact three-token alias and regressions for a matching SRE plus an unrelated
+Software Engineer/reliability row. Targeted ATS/query tests: 132 passed; no
+score, geography, salary or eligibility semantics changed.
+
+Lever and Employer Career Watch shared the same confirmed recall loss. The
+exact `Site Reliability Engineer` → `SRE` alias was added with unrelated-role
+coverage. Extended ATS gate: 113 passed.
+
+Remotive and Himalayas were checked next and had the same literal-token gap.
+The narrow alias was added with title-only unrelated-role regressions; their
+remote scope and market identity semantics were preserved. Gate: 66 passed.
+
+## 2026-10-23 — U03 structured blacklist core
+
+Added five structured rule kinds to profile JSON settings: vacancy, company,
+company+role, role and phrase. Identity rules are exact; phrase is the only
+free-text containment rule. Disabled, expired and malformed rules remain inert.
+The matcher applies active rules before legacy word exclusions without schema
+migration or mutation of vacancy/application history. Focused gate: 94 passed.
+
+## 2026-10-23 — U03 structured blacklist controls
+
+Added a side-effect-free structured command parser and reversible JSON-settings
+updates. Telegram supports bounded affected-vacancy preview, explicit application,
+all-profile default or selected-profile scope, UTC date expiry, disable/remove and
+undo. A date-only expiry remains active through that date. Cumulative gate: 99 passed.
+
+## 2026-10-23 — C01 CV version approval foundation
+
+Used the existing CV `rules` JSON to add parent lineage and explicit draft/approved
+state without a migration. New copies preserve parent content, do not inherit an
+external provider binding, and require owner approval. Legacy CVs remain approved
+for compatibility; draft copies are excluded from automatic matching selection and
+rejected at both prepare and external-apply boundaries. Focused gate: 178 passed.
+
+## 2026-10-23 — R02 immutable Application CRM events
+
+Added additive schema v9 event provenance, structured evidence and replay keys.
+Repository writes label system/manual/provider origins; migrated rows are explicitly
+legacy. Row locking plus a partial unique index provides repeat-event protection.
+PostgreSQL blocks selective mutation/deletion of history while allowing deletion of
+the complete parent ledger for a future authorized privacy workflow. PostgreSQL and
+application gate: 79 passed; full offline: 1453 passed, 24 skipped, with 19 known
+pytest-asyncio-dependent tests not runnable in the available environment.
+
+## 2026-10-23 — R02 provider-event intake
+
+Expanded CRM stages for receipt, employer response, assessment and closure. Added a
+provider-only event boundary that validates owner, Application source and status,
+namespaces replay keys and preserves newer state on duplicate delivery. Manual
+Telegram updates remain explicitly `manual_user`. Focused gate: 54 passed.
+
+## 2026-10-23 — R02 application deadlines/reminders
+
+Added schema v10 local reminders linked to owner and Application. The parser refuses
+timezone-free or past deadlines, normalizes explicit offsets to UTC, and bounds note
+length. Parent-row locking deduplicates concurrent identical pending reminders;
+completion and listing are owner-scoped. PostgreSQL/application gate: 82 passed.
+
+## 2026-10-23 — C01 approved CV export
+
+Added owner-scoped explicit TXT/DOCX export for approved CV versions. TXT preserves
+stored text byte-for-byte after UTF-8 encoding; DOCX uses a minimal ATS-friendly
+layout and introduces no model-generated content. Draft/empty CVs are refused and
+filenames sanitized. Focused CV/import/navigation gate: 106 passed.
+
+## 2026-10-23 — C01 grounded CV editing
+
+Added an owner-scoped edit preview with bounded unified diff and one-time confirmation.
+Confirmation creates a new draft after checking the exact parent digest; it never
+mutates the approved parent or copies an external provider binding. Draft approval
+remains a separate explicit action. Gate: 108 behavioral + 1 isolated PostgreSQL test.
+
+## 2026-10-23 — C01 Modern/PDF export
+
+Added ATS/Modern switches for DOCX and PDF. Renderers consume only approved stored
+fields, escape markup and add no inferred facts. ReportLab embeds a locally available
+Noto Sans/DejaVu Sans font; missing fonts fail closed. RU/EN PDF extraction and Modern
+DOCX styling are regression-tested. Focused gate: 109 passed.
+
+## 2026-10-23 — R01 fail-closed application entrypoint
+
+Removed provider submission from the initial Telegram `apply:` callback. It now only
+creates/reuses and displays the immutable package, followed by an explicit no-send
+notice. The underlying provider service is no longer reachable from Telegram pending
+an exact-package one-time confirmation design. Gate: 57 passed, 2 DB tests skipped.
+
+## 2026-10-23 — R01 exact-package confirmation
+
+Added a ten-minute one-time owner token whose digest binds the frozen vacancy, CV,
+provider resume ID, letter and HH channel. Confirmation consumes before I/O and sends
+only frozen fields; stale digest and replay never reach the provider. Existing DB
+reservation/outcome handling remains the durable duplicate boundary. Gate: 59 passed,
+2 isolated-DB tests skipped in this focused run; no real submission was made.
+
+## 2026-10-23 — R01 isolated acceptance
+
+Added an isolated PostgreSQL end-to-end fixture using a mocked HH provider. It proves
+the exact frozen source posting ID, provider resume ID and letter are sent once, the
+attempt records `sending → sent`, and replay does not call the provider again. Combined
+R01 gate: 62 passed. No live credentials, provider or production state was involved.
+
+## 2026-10-23 — DevHub stop-race guard and Arbeitnow country-only evidence
+
+The interactive continuation found task #12 recorded `DONE` after its runner was
+stopped while leaving an uncheckpointed Arbeitnow WIP. DevHub now treats a stop
+request as authoritative even if Codex races to return `DONE`, entering
+`PAUSED_CONTEXT` before checkpointing; an isolated regression prevents a false
+completion. AI-DevHub suite: 51 passed, 2 subtests.
+
+The preserved Arbeitnow WIP removes the board-origin `DE` fallback for
+country-only labels while retaining explicit city/country parsing. Targeted
+source/geo/diagnostic tests: 113 passed; full offline suite: 1447 passed, 23
+skipped. No score, threshold, legal eligibility, runtime, database, Telegram
+or external-message behavior changed.
+
+## 2026-10-23 — remove Arbeitnow board-origin geography inference
+
+Offline inspection confirmed a source-specific geography defect: every non-remote Arbeitnow posting with a city-only label received `country=DE` through a board-origin fallback, although the posting did not provide country evidence. That could incorrectly satisfy country filters or bias Relocation-first prioritization. The adapter now retains the city for display and leaves country unknown until an explicit parseable country is present; remote handling and explicit `City, Country` parsing are unchanged. Added regressions for city-only Berlin/Paris labels. Match Score, thresholds and relocation/visa/work-authorization semantics were not changed. The targeted pytest gate could not run in this shell: the local sibling interpreter has a stale shebang, and rebuilding an isolated environment requires unavailable network access.
+
+## 2026-10-20 — preserve IT and Any Job discovery in Relocation-first
+
+Reproduced a query-planning coverage defect: once `relocation_queries` contained broader roles, Relocation-first selected only that list and could not discover the configured DevOps/Infrastructure/SRE roles. The planner now keeps Career-first unchanged and alternates the normalized IT and Any Job lists for Relocation-first, preserving early slots for both in bounded adapters and removing cross-list duplicates. Site Reliability Engineer is explicit in the checked-in search/candidate defaults. No score, threshold, geography or relocation-evidence interpretation changed; unknown visa/sponsorship/relocation remains unknown. Focused query/profile/pilot suites passed 94 tests and related matching/settings/bootstrap suites passed 53. An unchanged, private offline sample still measures 18 non-vacancies, 42 candidates, 1 Good and 41 filtered; each profile independently produced 1 Good and 41 filtered. No sample write, network, database, production runtime, notification or application action occurred.
+
+## 2026-10-19 — reconcile employer policy documentation
+
+Compared the current owner-approved employer policy with `app/domain/employer_policy.py`, both matching paths and focused regressions. The implementation already keeps legacy betting/gambling/casino terms inert, defaults betting and casino/iGaming to ALLOW, routes crypto/Web3 to WARN, gives an exact-employer override priority over category/default choices, and blocks only the configured exact Alabuga/Voentorg identities or structured BLOCK categories. Corrected current roadmap/developer/PROJECT_OS text that still described the superseded Betsson hard exclusion and assessment version 2. The original dated implementation entry remains historical evidence; no matching behavior, production settings or runtime data changed. Focused employer-policy/settings/scoring suite: 130 passed; compileall, secret scan and `git diff --check` passed.
+
+## 2026-10-19 — preserve failed source-notice delivery diagnostics
+
+Confirmed the grouped notification policy was already implemented and left its grouping/rate limits unchanged. Reproduced the next reliability gap: Telegram failure while sending an immediate source notice or daily digest was only logged after suppression state had been persisted, leaving `/scanstatus`/Diagnostics unable to explain the missing notice. The scan summary now receives one sanitized `SOURCE_NOTICE_DELIVERY_FAILED` diagnostic per affected source, retains the original source cause, stores no exception payload, and does not attempt a second chat message. Notice/diagnostic/source-isolation tests: 79 passed; compileall, diff check and secret scan passed. No live notification or runtime/DB change.
+
+## 2026-10-19 — exact reviewed ATS opening yield
+
+The official inventory validates offline at 13 employers and 15 openings. Common
+ATS discovery previously dropped Xsolla's reviewed `Operations Engineer` for a
+`DevOps Engineer` query because the title lacked a literal query token. Exact
+provider-ID plus normalized-title inventory matches now bypass only that lexical
+filter and carry their reviewed suitability/provenance; an unreviewed Business
+Operations role remains excluded. Authorization, sponsorship and relocation stay
+unknown. Employer/source/matching regressions passed 86 tests and compileall
+passed. A new sequential official probe returned no output on the current route
+and was stopped after three minutes; no status was inferred or catalog date
+changed.
+
+# 2026-10-19 — PR #56 exact-head gate and handoff refresh
+
+Confirmed CI run `39304646201` for checkpoint `a8103f5`: Docker build, Python checks and secret scan all passed. Updated current brief, task status and handoff; the private Telegram sample remains blocked on owner-local credentials. No runtime, production data, services or volumes were changed.
+
+## 2026-10-19 — Job Bank location intelligence
+
+Job Bank's source itself verifies Canada, but its search cards combine locality and province code (for example `Toronto (ON)`). Normalize only single-locality labels paired with a recognized Canadian province/territory; preserve the exact source string and provenance. Remote, multiple/various location and ambiguous multi-city labels keep city unknown. Targeted Job Bank suite: 36 passed. No network/live source request or data write.
+
+## 2026-10-19 — Job Bank work authorization prerequisite
+
+Use the shared bounded eligibility parser to recognize explicit existing Canadian work-permit/right-to-work requirements. These set the source's international-candidate lane false but do not imply sponsorship. Keep positive/negative sponsorship evidence independent from authorization restrictions; absent and conditional evidence remains unknown. Job Bank, support, relocation evidence, direct visa support and employer-policy suites: 151 passed.
+
+## 2026-10-19 — employer policy settings handler coverage
+
+Added handler-level regressions proving exact-employer choices update every search profile and unknown categories are rejected before any repository write. `/employerpolicy`/matching preferences: 30 passed. No live DB or user settings were touched.
+
+## 2026-10-19 — exact employer identity evidence
+
+Added only official exact transliteration aliases for the two owner-named entities and documented primary identity/evidence URLs beside defaults. This does not broaden matching to subsidiaries or other state-owned firms. Employer policy/settings regressions: 32 passed.
+
+## 2026-10-19 — blacklist settings display alignment
+
+The legacy `/blacklist` display no longer presents inert sector terms as active exclusions and links users to `/employerpolicy`; category view includes the effective default actions. Handler/policy suite: 29 passed.
+
+## 2026-10-19 — employer category direction coverage
+
+Added regressions that structured Russian military, direct-war and direct-government BLOCK categories apply through common scoring in both Career-first and Relocation-first, while civilian state-owned employers remain allowed. Policy/settings/direction suite: 40 passed.
+
+## 2026-10-19 — international hiring evidence vocabulary
+
+Expanded the shared existing-work-authorization prerequisite matcher for British/American spelling and explicit candidate requirements to hold/possess a permit/authorization. Conditional, negated and employer-support statements remain non-prerequisites. Support, Job Bank, relocation evidence, direct visa support and notification regression suite: 143 passed.
+
+## 2026-10-19 — Job Bank full province labels
+
+Job Bank city resolution now accepts either a recognized province/territory code or its official full name, preserving which evidence form was used. The source tests, including remote/multiple/ambiguous labels, pass 42/42.
+
+## 2026-10-19 — relocation evidence excerpt alignment
+
+Updated detailed evidence to retain exact excerpts for shared must-hold/possess authorization requirements, recognize British spelling in explicit negatives and keep conditional statements unknown. Job Bank, support, relocation evidence, direct visa and vacancy details tests: 180 passed.
+
+## 2026-10-19 — owner employer preference policy
+
+Replaced the previous industry-wide betting/gambling ban with central exact-employer and structured-category ALLOW/WARN/BLOCK decisions, wired into shared matching and the legacy scoring adapter. Added exact Alabuga/Voentorg identities, defaults for Russian military/defense, verified direct-war and direct-government tags, and all-profile `/employerpolicy` overrides. Betting/casino and civilian state-owned companies remain eligible; crypto/Web3 warns into Stretch unless the user explicitly allows the employer/category. Legacy stored sector blacklist terms no longer suppress jobs. Expanded matching/review/notification suites: 227 passed, 3 skipped; exact-head CI pending. Runtime and production settings untouched.
+
+## 2026-10-19 — bounded live Employer Career Watch feeds
+
+Expanded common discovery from the 14 watched sample entries to current public Greenhouse, Lever and SmartRecruiters postings across reviewed employers. Fetch fanout is capped at four with one page per board, per-board timeout, official-host validation, title-query filtering and partial-source diagnostics. Custom pages retain only reviewed openings; Collectly/Devexperts stay on their existing adapters to avoid duplicate providers. Feed observation time and raw location are retained; normalized country/city and hiring eligibility remain unknown. Targeted employer/source-plan tests: 16 passed; `py_compile` and `git diff --check` passed. No production/runtime changes.
+
+## 2026-10-19 — Employer Career Watch official freshness recheck
+
+Ran the bounded read-only probe against all 12 reviewed employers. All 14 tracked provider IDs were present; no missing openings or unavailable employers. Catalog `verified_at` remains 2026-10-18 because this run is a separate freshness observation. `jobbot status` still reports both app and healthy PostgreSQL. No database/runtime settings were changed.
+
+## 2026-10-19 — Telegram pilot no-reauth guard and Employer Career Watch source
+
+The Telegram user runner now checks the existing MTProto session authorization before probe/sample/watch and exits without triggering sign-in if it is unavailable. Added `EmployerCareerWatchSource` to common discovery for the 14 owner-reviewed catalog rows; exact provider IDs, official URLs and the 2026-10-18 catalog date survive normalization, while location and hiring eligibility remain unknown. Registry and adapter regressions plus Telegram pilot tests: 28 passed. No production DB/runtime or notification action. Live Telegram sample is pending local API ID/hash; startup-policy changes remain pending owner confirmation.
+
 ## 2026-10-18 — isolated Web route/security smoke
 
 Using `job-agent-web-mvp-validation:local` with the development `app/` mounted read-only and only the isolated tmpfs PostgreSQL service, exercised the actual aiohttp process over localhost. Invalid login did not authenticate; anonymous Dashboard redirected (303); owner login redirected (303); all ten workspace pages returned 200; mutation without CSRF was rejected (403). Test DB stopped without removing volumes. This is HTTP route evidence, not visual browser acceptance or fresh real-vacancy evidence. Local pytest is unavailable (`.venv` and pytest module absent); GitHub CI on pushed docs checkpoint `d654584` completed successfully on run #399: Python checks, secret scan, and Docker build all passed. Follow-up handoff/documentation commits are local pending network recovery; PR #52 still points to `d654584`. No runtime/production/Telegram/volumes were changed.
@@ -2954,3 +3287,163 @@ Applicant counts are accepted only from persisted `applicant_count_v1` evidence 
 A read-only query of the isolated Web acceptance database found two historical `DevOps Volunteer` matches at 69 and 60, both status `new`; they predate the fit-skip/cap correction and were not silently rewritten. The running Compose service reports v3.5.7, but this does not identify its exact scoring commit. The owner's screenshot remains the evidence for production Makerble 88/100; production PostgreSQL was not queried or changed.
 
 The owner made MAXIMUM TOKEN ECONOMY the standing engineering mode: Main handles ordinary work; Fast/Deep require a clear total-cost or risk advantage; context reads and tests start narrowly and expand by risk; the unchanged known full-pytest stall is not rerun mechanically. Safety, critical tests, migration and release gates are not reduced, and no unexposed account-quota visibility is claimed. The durable protocol is recorded in `AI_INSTRUCTIONS.md` and the compact handoff.
+## 2026-10-19 — conservative ATS Job Location Intelligence
+
+## 2026-10-19 — conservative ATS Job Location Intelligence
+
+Official ATS location fields now populate city/country only for a simple exact `City, Country` pair with a supported country label. Remote and broad-region labels, multi-location strings and ambiguous US state codes remain unknown; structured SmartRecruiters city/country is accepted only when not marked remote. Source location text and resolution provenance are preserved. Targeted regressions cover Georgia, ordinary countries, ambiguous state codes and remote fields. Test results are recorded in the current handoff. No eligibility/legal inference, schema change, production write or runtime change.
+## 2026-10-19 — recognize explicit generic work authorization requirement
+
+`Work authorization required` and `Work permit required` were left unknown even though qualified variants and explicit negation were recognized. The bounded requirement rule now accepts these exact generic clauses; “No work authorization required” remains explicitly false, and no sponsorship/eligibility/legal conclusion is inferred. Relocation-evidence, remote-evidence and RemoteOK suites: 98 passed; compileall and diff check passed. No database or runtime changes.
+
+## 2026-10-19 — stale Good warning in Telegram review
+
+Persisted `/review` rows can predate current rules, as confirmed for explicit non-actionable roles. Review cards now detect current volunteer/unpaid and expression-of-interest title rules, replace the Good lane with a repeat-review warning, and hide the historical score. Stored rows are neither rescored nor mutated. Targeted review/navigation/status/experience/scoring tests: 81 passed. No database or runtime changes.
+
+## 2026-10-19 — version saved match assessments for safe refresh
+
+Normal scan and detail-refresh writes now persist `match_assessment_version=1` inside recommendation metadata. Legacy Good rows without the marker suppress the historical score and prompt `/scan`; the regular profile-scoped matcher updates only rows whose source posting is rediscovered. No bulk rescore, automatic status mutation or migration. Current-rule non-actionable titles retain a stronger warning. Review, navigation, status, score and refresh tests: 94 passed; compileall and diff check passed.
+
+## 2026-10-19 — persist assessment version through PostgreSQL repository
+
+The isolated PostgreSQL review-flow test now confirms the version marker round-trips through `JobMatch.recommendation_scores`. Initial connection raced the test service startup and reset; after the healthcheck reported ready, one retry passed. This used only `docker-compose.test.yml` tmpfs PostgreSQL, not the running `repo` database or volumes.
+
+## 2026-10-19 — preserve explicit legal work-authorization clauses
+
+The eligibility evidence parser previously left `must be legally authorized to work` and `must be eligible to work` as unknown. These explicit source clauses now populate the existing authorization-requirement evidence with the original excerpt; no sponsorship or candidate-specific legal conclusion follows. Relocation-evidence, remote-evidence and RemoteOK tests: 98 passed; compileall, diff check and secret scan passed.
+
+## 2026-10-19 — normalize explicit Arbeitnow city/country labels
+
+The official source adapter now splits a simple supported `City, Country` label on non-remote posts into normalized city/country fields and preserves the original label plus resolution provenance. Existing plain city values are unchanged; remote location stays unknown. Arbeitnow, geo and employer ATS tests: 39 passed; compileall, diff check and secret scan passed.
+
+## 2026-10-19 — filter measured Career-first role mismatch false Goods
+
+A bounded, read-only run across nine official employer boards returned 93 cards (85 canonical jobs, 8 duplicates, no source errors). Five Career-first Good cards in the visible sample were Linux desktop-support or engineering-manager roles, outside the owner-defined DevOps/Infrastructure/SRE lane. Added a narrow Career-first-only exclusion with explicit scoring reason; Relocation-first support results remain unaffected. A same-query rerun kept the 93/85/8 source counts and removed the five Career-first Good false positives; both tracks produced zero Good/Stretch, so more useful yield remains open. Targeted scoring/review tests: 54 passed. No database or runtime operation.
+
+## 2026-10-19 — record public Employer Career Watch exclusion reasons
+
+A final bounded read-only rerun scored 85 canonical jobs from 93 public ATS cards (8 duplicates, no source errors). Career-first produced 55 technical-gap, 28 fit-skip and 2 geography-gap exclusions; Relocation-first produced 62 technical-gap and 23 fit-skip exclusions. Neither lane had Good/Stretch in the sample. Candidate facts/preferences were used only in memory and not written to disk or included in logs. The run made no database or notification calls.
+## 2026-10-19 — official mobility starting links in Telegram
+
+Added a country allowlist of dated official starting links for Armenia, Germany and Georgia to the `/job` hiring-terms view. The links appear only when a vacancy already has the matching normalized country; output states that they do not establish the candidate's right to work. Expanded compact-vacancy regressions for supported/unsupported countries and multi-link output. No profile or vacancy eligibility inference, database mutation, production/runtime change or external action.
+
+## 2026-10-19 — candidate-scoped existing work authorization
+
+International Hiring Eligibility now recognizes explicit requirements that applicants already hold authorization, including “only candidates … authorized to work” and “applicants with an existing work permit”. Evidence keeps the matching posting excerpt. Negated “not only” wording and explicit “no work permit required” remain non-restrictions; no sponsorship or legal conclusion is inferred. Pytest is unavailable in this shell; six direct parser assertions and two relocation-evidence excerpt assertions passed, along with compileall, secret scan and diff check. Regression cases were added for CI.
+
+## 2026-10-19 — add Betsson's official DevOps opening
+
+Read-only Greenhouse board/detail GETs confirmed current provider ID `8200701`, “Platform Core DevOps Engineer - Infra”, Malta, under Betsson's official career page. Added it to the reviewed employer catalog and updated the opening count from 14 to 15; work authorization, sponsorship and relocation remain unknown. The host lacks `httpx` and pytest, so the repository's catalog validation and test suite could not run here; PyYAML confirmed the catalog has 13 employers/15 openings, and the official endpoint directly returned the exact ID/title/location. Regression assertion added for CI. No DB, notification, application or runtime action.
+
+## 2026-10-19 — resolve exact country-only ATS locations
+
+Location intelligence now accepts exact country-name office labels such as `Malta` as country evidence while leaving city empty. ISO-like two/three-letter values and bare `Georgia` remain unknown; no city is fabricated. Added parser regressions and a common Employer Watch adapter regression for Betsson. Eight direct location assertions, compileall, secret scan and diff check passed; pytest remains unavailable in this shell. No schema, DB or runtime change.
+
+Country-only ATS location evidence now also carries distinct `provider_location_country` provenance, while city-plus-country retains its prior provenance label. The Employer Watch adapter regression asserts `Malta` resolves to `MT` with no city and the country-only provenance. This was added after the standalone geo slice was committed; pytest remains unavailable locally, so CI is required.
+
+## 2026-10-19 — enforce Betsson industry exclusions in common matching
+
+The public Betsson ATS posting itself omits `betting`, `gambling` and `casino`, so text-only exclusions did not catch it. Added reviewed `betting`/`gambling` industry tags to the employer catalog, preserved them in source-ref raw data, projected them to the selected source posting, and included them only in hard exclusion matching. With an active `betting` or `gambling` term, the result is `fit=skip` and `_match_lane=filtered`, before Good/Stretch counters or notification eligibility. Bumped match assessment version to 2. Targeted employer, source-posting, geography, eligibility and matcher tests: 133 passed. No production/runtime/DB changes.
+
+The existing review/status/scoring/notification regressions also pass after the required assessment-version bump: 87 passed, 3 skipped. One test had a literal old version expectation and now reads `services.MATCH_ASSESSMENT_VERSION`. Together with the 133 focused Employer/geo/IHE/matcher tests, this validates the new exclusion and the refresh/review lane.
+
+## 2026-10-19 — add official Malta eligibility starting link
+
+Verified Identità's current Single Permit guidance and added it to the Telegram hiring-terms allowlist for normalized MT vacancies. The link is a dated informational starting point, not a candidate eligibility decision. Compact vacancy, relocation-evidence and Arbeitnow regressions: 59 passed. No personal data, database or runtime change.
+
+## 2026-10-19 — display country-only vacancy location clearly
+
+Telegram compact summaries and detail cards now map country-only vacancy values to the configured country name instead of showing the ISO code. City-bearing values keep their current display. Compact vacancy and review/navigation tests: 17 passed.
+
+## 2026-10-19 — EURES location provenance
+
+EURES now annotates country evidence from search `locationMap` and structured country/city evidence from detail `countryCode`/`cityName`; a country-only record never gains a city. Added regressions for structured city-country, country-only and overlong city. Targeted EURES/geo/Betsson-exclusion tests: 39 passed using the existing project test venv at `/mnt/Storage/AI-Job-Bot/repo/.venv` (read-only interpreter use; no installs). No production/runtime/DB/volume changes.
+
+## 2026-10-19 — compact job-list country rendering
+
+Fixed `render_jobs_list` reading an undefined details payload after the country-name display update; job-list rows use the available normalized job location. Added country-only Malta regression. Telegram navigation/vacancy, Remotive, EURES and geo suites: 157 passed. Draft PR #56 exact-head CI `39295243444` passed all required checks.
+
+## 2026-10-19 — conservative EURES multi-location resolution
+
+EURES detail data no longer selects the first location from a multi-location vacancy. A single country is retained only when every structured location confirms it; a city is retained only when every location agrees on one usable city. Mixed/malformed evidence stays unknown. Added three focused regressions; EURES/geo/IHE/industry exclusion tests: 118 passed. Exact branch CI for preceding docs checkpoint `0fea880` remains in progress; no runtime/data changes.
+## 2026-10-19 — source error alert noise and runtime diagnosis
+
+Read-only inspection found PR #54 merged into `feature/v3.5.7` at `a1debc9`, while the live checkout remains on `work/telegram-georgia-location` at `34bd4d6` and has no `app/sources/notice_policy.py`. This is the direct reason production did not adopt the fix. Dev notification state now compares source/state/impact rather than changing raw network codes, omits successful fallback noise, leaves limited impact quiet until a grouped daily summary, and retains critical/material-loss/recovery messages. Persistent v1 state transitions to v2. Regression suites: 82 passed, 3 skipped. Runtime and production state remain unchanged.
+
+## 2026-10-20 — Telegram pilot offline yield correction
+
+- Verified the existing private sample/report in place: mode 0600, 60 posts across only the three approved channels, 20 each, and reproducible stored analysis. No Telegram connection or credential access was attempted.
+- Reviewed the real posts locally. Eighteen candidate resumes used a channel metadata preamble before an explicit `#резюме` tag; the old start-only classifier scored them and created all 11 Good plus 5 Stretch rows.
+- Added bounded-header recognition for explicit candidate tags and regressions through both watcher and pilot analysis. The unchanged sample now reports 18 non-vacancies, 42 vacancy candidates, 1 Good, 0 Stretch, 41 filtered and no canonical duplicates.
+- Expanded Telegram tests passed 132 with 1 skipped; compileall, secret scan and diff check passed. No private artifact, runtime, database, notification or external message changed.
+
+## 2026-10-20 — P0 release-readiness and employer-policy composition
+
+- Audited the current WIP against the release base across Telegram Pilot, Employer Career Watch, source notices, employer policy, relocation evidence and dual query lanes. GitHub API was unavailable, so remote PR #56 state was not inferred from stale evidence.
+- Fixed mixed employer-category precedence: a category ALLOW no longer bypasses a different category BLOCK. Added a regression for betting + Russian military/defense tags.
+- Verified 86 policy/scoring tests and 430 focused integration tests (1 skipped), compileall, secret scan and diff check. No schema, database, runtime, volume or external-message change.
+- Left the verified changes unstaged for DevHub checkpointing as required. Exact-head PostgreSQL CI, secret scan and Docker build remain the publication gate; backup and rollback verification remain deployment gates.
+
+## 2026-10-20 — first persistent Telegram command keyboard
+
+- Added a compact persistent/resizable `ReplyKeyboardMarkup` to authorized `/start` and `/help` replies. The eight buttons contain exact existing slash commands for search, status, Good/Stretch review, saved/jobs lists, settings and help, so ordinary typed commands and the existing handlers remain the single execution path.
+- Left the established inline `/scanstatus`, `/review` and `/job` edit-in-place controls unchanged. No Mini App, Web, matching, schema, runtime, private Telegram data or external-message behavior changed.
+- Added regressions for keyboard layout/persistence, start/help attachment and correspondence between every button and a registered Command handler. Expanded Telegram handler/navigation tests: 248 passed, 1 skipped; compileall, repository secret scan and `git diff --check` passed.
+
+## 2026-10-23 — PR-00 candidate reconciliation
+
+Re-checked the safe dev copy at `427d8b5` and confirmed it is three commits ahead
+of the remote PR #56 line. Existing source-notice grouping, canonical cross-profile
+notification handling, employer policy and persistent keyboard changes were already
+present, so no duplicate implementation was made. The focused baseline gate passed
+140 tests with 3 skips in a disposable isolated uv environment because the stored
+repository venv has a stale interpreter path. No runtime, database, volume,
+Telegram or external-message action occurred. Next is the missing relocation/remote
+and false-positive matching regression slice.
+
+## 2026-10-23 — Relocation-first destination lane
+
+Relocation-first scoring previously promoted a posting to the relocation lane only
+when its text contained positive support evidence. A configured destination-country
+posting with unknown visa/relocation facts therefore fell into the unscoped lane
+and could disappear from useful relocation results. The matcher now adds the
+relocation lane for an explicitly configured destination country only; it does not
+change weights, infer eligibility, or turn unknown evidence into a benefit. Added
+destination/non-destination regressions. Matching and relocation tests: 149 passed;
+import lint, compileall and diff check passed. Local commit remains prohibited by
+the DevHub checkpoint policy.
+
+## 2026-10-23 — reversible word blacklist preview
+
+Added a bounded U03 slice to the existing all-profile word blacklist. Owners can
+preview add/remove/clear/undo without a database write, then confirm through the
+ordinary slash command; the last mutation can be undone by restoring a preference
+snapshot. No job, saved item, application or history row is deleted. Existing
+commands remain compatible. Targeted preference/Telegram tests: 62 passed. The
+previous full offline gate passed 1437 tests, 23 skipped, 7 warnings. Legacy import
+ordering warnings remain documented rather than mass-formatting unrelated modules.
+
+Added direct Telegram handler regressions for blacklist preview (no write before
+confirmation) and undo across every search profile: 19 focused tests passed. The
+full suite remains green at 1439 passed, 23 skipped, 7 warnings after the keyboard
+change; secret scan, compileall and diff check passed.
+
+## 2026-10-23 — six-section persistent navigation
+
+Updated the existing persistent ReplyKeyboardMarkup to the approved compact top
+level: Vacancies, Relocation, Applications, CV Studio, Profile and Settings, plus a
+separate Search/Status action. Every button sends an already registered safe slash
+command, including `/jobs relocation`; inline vacancy/status navigation and typed
+commands remain untouched. Telegram/navigation regressions: 84 passed; compileall
+and diff check passed. No Mini App, runtime, database or outbound message change.
+## 2026-10-23 — bounded Codex Main continuation controller
+
+Inspected the existing DevHub runner, local launchers and Codex CLI. DevHub already has locks, leases, bounded batches and recovery, but its AI Job Agent project is disabled for workers and its normal path starts fresh `codex exec` tasks; the legacy launcher points at another repository. Added a narrow dev-only controller around explicit `codex exec resume`, with a single-process flock/PID guard, active-worktree Codex detection, bounded turns, no-progress and blocker/rate-limit/auth stops, atomic recovery state, event/log files and a non-installed user-systemd template. The controller never stages, commits, resets, publishes, deploys or touches runtime data. Four controller regressions passed, plus compile check, safe doctor/status and diff check. No Codex turn was started.
+## 2026-10-23 — prepare DevHub as the sole AI Job Agent orchestrator
+
+Inspected the actual AI-DevHub CLI/docs/state and the AI Job Agent worktree. The project was already registered and `allow_worker=true`; corrected the effective project policy from `publish=true` to the required safe `publish=false`, preserving `allow_dirty=false` and `production=false`. Re-asserted worker permission idempotently through the existing CLI. Added a minimal DevHub pre-spawn guard so a busy writer or disallowed dirty worktree is refused before `_run` is created, plus a bounded `checkpoint bootstrap` handoff that excludes `.serena/**`; regressions are covered. `devhub doctor` passed, AI-DevHub tests passed 50 plus 2 subtests, and monitor/status showed no worker while the interactive Codex writer is active. The dev targeted gate passed 18 tests with project requirements, compileall, secret scan and diff check. The five historical P0 fingerprints were verified as existing, then one genuinely open Search Reliability/source-usefulness task #10 was queued without duplication. Dirty WIP checkpointing remains blocked by the active writer; no production/runtime, delivery, push or external message was touched.
+# 2026-10-23 — P0 U01 quick-review score disclosure
+
+- Changed `render_queue_card` so Good/Stretch/Saved quick-review cards show a short fit label instead of the numeric Match score; Details remains the numeric score view.
+- Added regression coverage in `tests/test_review_cards.py`.
+- Verification: 14 focused Telegram tests passed via the repository sibling Python environment; `py_compile` and `git diff --check` passed. No runtime, database, Telegram or external message was used.

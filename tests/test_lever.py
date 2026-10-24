@@ -66,6 +66,20 @@ def test_lever_collectly_keeps_remote_timezone_scope_and_hiring_country_unknown(
     assert job.raw["source_country"] == "RS"
 
 
+def test_lever_matches_sre_alias_without_related_reliability_role():
+    payload = [
+        {"id": "sre", "text": "SRE", "workplaceType": "remote",
+         "categories": {"location": "Remote"}, "hostedUrl": "https://jobs.lever.co/CollectlyInc/sre",
+         "descriptionPlain": "GMT-4 to GMT+4"},
+        {"id": "software", "text": "Software Engineer", "workplaceType": "remote",
+         "categories": {"location": "Remote"}, "hostedUrl": "https://jobs.lever.co/CollectlyInc/software",
+         "descriptionPlain": "Reliability tooling GMT-4 to GMT+4"},
+    ]
+    jobs = LeverSource.parse_payload(
+        payload,
+        SourceContext(user_id=1, target_countries=["GE"], queries=["Site Reliability Engineer"]),
+    )
+    assert [job.source_job_id for job in jobs] == ["CollectlyInc:sre"]
 def test_lever_only_keeps_role_relevant_remote_jobs_with_plus_four_scope():
     rows = [
         posting(),

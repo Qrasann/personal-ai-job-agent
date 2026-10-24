@@ -1,8 +1,6 @@
 import asyncio
 import logging
 import httpx
-from urllib.parse import urlparse
-
 from app.config import settings
 
 log = logging.getLogger(__name__)

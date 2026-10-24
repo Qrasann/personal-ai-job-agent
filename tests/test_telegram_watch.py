@@ -126,6 +126,7 @@ def test_explicit_candidate_and_ad_posts_are_counted_without_ingestion(memory):
     "#ищуработу\nАдминистратор Linux",
     "Резюме: DevOps инженер, открыт к предложениям",
     "Resume: SRE engineer available for work",
+    "Публикатор: Иван\nОбсуждение: @devops_jobs\n#резюме #devops #remote\nDevOps Engineer",
 ])
 def test_explicit_candidate_headers_never_become_vacancies(text, memory):
     async def run():

@@ -126,6 +126,21 @@ def test_remoteok_matches_all_specific_query_tokens_across_title_and_tags(monkey
     assert [job.source_job_id for job in jobs] == ["1", "3"]
 
 
+def test_remoteok_matches_standard_sre_abbreviation_for_site_reliability_query(monkeypatch):
+    async def get(self, url, **kwargs):
+        return httpx.Response(200, json=[
+            {"id": 1, "position": "SRE", "tags": []},
+            {"id": 2, "position": "Site Reliability Engineer", "tags": []},
+            {"id": 3, "position": "Software Engineer", "tags": ["reliability"]},
+        ], request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    jobs = asyncio.run(RemoteOKSource().discover(SourceContext(
+        user_id=1, queries=["Site Reliability Engineer"]
+    )))
+    assert [job.source_job_id for job in jobs] == ["1", "2"]
+
+
 def test_remoteok_does_not_turn_unspecified_country_eligibility_into_worldwide(monkeypatch):
     async def get(self, url, **kwargs):
         return httpx.Response(
@@ -192,3 +207,51 @@ def test_remoteok_connect_timeout_preserves_type_and_phase_budget(monkeypatch):
     monkeypatch.setattr(httpx.AsyncClient,'get',get)
     with pytest.raises(httpx.ConnectTimeout):
         asyncio.run(RemoteOKSource().discover(SourceContext(user_id=1)))
+
+
+def test_remoteok_retries_one_transient_protocol_failure(monkeypatch):
+    calls = 0
+
+    async def get(self, url, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise httpx.RemoteProtocolError("peer disconnected")
+        return httpx.Response(200, json=[
+            {"id": 1, "position": "DevOps Engineer", "tags": ["Linux"]},
+        ], request=httpx.Request("GET", url))
+
+    async def sleep(_delay):
+        return None
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    monkeypatch.setattr(asyncio, "sleep", sleep)
+    source = RemoteOKSource()
+
+    jobs = asyncio.run(source.discover(SourceContext(user_id=1, queries=["DevOps Engineer"])))
+
+    assert [job.source_job_id for job in jobs] == ["1"]
+    assert calls == 2
+    assert source.retry_count == 1
+
+
+def test_remoteok_stops_after_bounded_transport_retry(monkeypatch):
+    calls = 0
+
+    async def get(self, url, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise httpx.RemoteProtocolError("peer disconnected")
+
+    async def sleep(_delay):
+        return None
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    monkeypatch.setattr(asyncio, "sleep", sleep)
+    source = RemoteOKSource()
+
+    with pytest.raises(httpx.RemoteProtocolError):
+        asyncio.run(source.discover(SourceContext(user_id=1)))
+
+    assert calls == 2
+    assert source.retry_count == 1

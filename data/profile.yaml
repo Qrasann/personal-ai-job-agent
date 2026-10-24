@@ -11,6 +11,7 @@ search:
     - DevOps Engineer
     - Infrastructure Engineer
     - Linux Administrator
+    - Site Reliability Engineer
   relocation_queries:
     - warehouse worker
     - production worker
@@ -26,13 +27,32 @@ search:
     relocation: true
   minimum_salary_net_rub: 100000
   exclude_terms:
-    - betting
-    - gambling
-    - букмекер
-    - казино
-    - crypto casino
     - senior devops
     - lead devops
+  employer_policy:
+    categories:
+      betting: allow
+      casino_igaming: allow
+      crypto_web3: warn
+      civilian_state_owned: allow
+      russian_military_defense: block
+      verified_direct_war_tie: block
+      russian_government_body: block
+    # Exact employer identity only; ordinary state-owned civilian companies are not included.
+    # Alabuga legal name/aliases: OFAC 2024-02-23, https://ofac.treasury.gov/recent-actions/20240223
+    # Voentorg identity: OFAC 2025-01-15, https://ofac.treasury.gov/recent-actions/20250115
+    # Voentorg armed-forces provision evidence: EU Decision 2022/883, https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32022D0883
+    employers:
+      "АО ОЭЗ ППТ АЛАБУГА": block
+      "JOINT STOCK COMPANY SPECIAL ECONOMIC ZONE OF INDUSTRIAL PRODUCTION ALABUGA": block
+      "AO OEZ PPT ALABUGA": block
+      "Алабуга": block
+      "Alabuga": block
+      "АО ВОЕНТОРГ": block
+      "JOINT STOCK COMPANY VOENTORG": block
+      "AKTSIONERNOE OBSHCHESTVO VOENTORG": block
+      "Военторг": block
+      "Voentorg": block
   review_terms:
     - blockchain
     - crypto
@@ -65,6 +85,7 @@ candidate:
     - DevOps Engineer
     - Infrastructure Engineer
     - Linux Administrator
+    - Site Reliability Engineer
   english: B1 # Current self-assessed general working English level.
   technical_reading_english: B2 # Historical technical-reading estimate only; not a speaking/interview score.
   hh_resume_id: null

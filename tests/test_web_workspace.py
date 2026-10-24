@@ -30,6 +30,19 @@ def test_web_escapes_vacancy_text_and_rejects_unsafe_links():
     assert gui.safe_link("https://example.org/job") == "https://example.org/job"
 
 
+def test_web_sanitizes_telegram_markup_at_html_boundary():
+    rendered = gui.safe_telegram_markup(
+        '<b>&lt;script&gt;</b><script>alert(1)</script>'
+        '<a href="javascript:alert(1)">bad</a>'
+        '<a href="https://example.org/job?q=1&amp;page=2">good</a>'
+    )
+    assert "<script>" not in rendered
+    assert "alert(1)" in rendered
+    assert "javascript:" not in rendered
+    assert '<strong>&lt;script&gt;</strong>' in rendered
+    assert '<a href="https://example.org/job?q=1&amp;page=2"' in rendered
+
+
 def test_scan_state_parser_rejects_malformed_or_non_object_values():
     assert gui.parse_scan_state("not-json") == {}
     assert gui.parse_scan_state("[]") == {}
@@ -241,6 +254,30 @@ async def test_job_detail_uses_owner_scoped_source_view(monkeypatch):
     response = await gui.job_detail(request)
     assert calls == [(8, 17, 4)]
     assert b"Source posting &amp; evidence" in response.body
+
+
+@pytest.mark.asyncio
+async def test_job_detail_sanitizes_renderer_fragment(monkeypatch):
+    async def fake_owner(_request):
+        return SimpleNamespace(id=8)
+
+    async def fake_details(_user_id, _job_id, *, search_profile_id):
+        return {"match": SimpleNamespace(id=9, status="notified")}
+
+    monkeypatch.setattr(gui, "owner", fake_owner)
+    monkeypatch.setattr(gui, "get_vacancy_details", fake_details)
+    monkeypatch.setattr(
+        gui,
+        "render_job_details",
+        lambda _payload: '<b>safe</b><script>alert(1)</script><a href="javascript:alert(1)">bad</a>',
+    )
+    request = SimpleNamespace(
+        match_info={"id": "17"}, query={"search": "4"}, app={"csrf": "csrf"}
+    )
+    response = await gui.job_detail(request)
+    assert b"<strong>safe</strong>" in response.body
+    assert b"<script>" not in response.body
+    assert b"javascript:" not in response.body
 
 
 @pytest.mark.asyncio

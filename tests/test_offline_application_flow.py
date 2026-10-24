@@ -17,6 +17,8 @@ from app.domain.source_posting import source_posting_view
 from app.matching.technical_score import score_technical_v2
 from app.telegram.vacancy_view import render_application_export
 from app.telegram import handlers
+from app import services
+from app.domain.application_approval import application_package_digest
 
 
 @pytest.mark.integration
@@ -37,6 +39,67 @@ def test_prepare_telegram_delivery_failure_then_retry_reuses_postgres_package(mo
             pytest.fail("CI requires JOB_AGENT_TEST_DATABASE_URL")
         pytest.skip("JOB_AGENT_TEST_DATABASE_URL is not configured")
     asyncio.run(_prepare_delivery_retry_flow(database_url, monkeypatch))
+
+
+@pytest.mark.integration
+def test_exact_package_confirmation_submits_once_with_safe_provider_fixture(monkeypatch):
+    database_url = os.getenv("JOB_AGENT_TEST_DATABASE_URL")
+    if not database_url:
+        pytest.skip("JOB_AGENT_TEST_DATABASE_URL is not configured")
+    asyncio.run(_exact_confirmation_flow(database_url, monkeypatch))
+
+
+async def _exact_confirmation_flow(database_url, monkeypatch):
+    engine = create_async_engine(database_url, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(repo, "SessionLocal", session_factory)
+    try:
+        async with engine.begin() as connection:
+            await connection.run_sync(Base.metadata.drop_all)
+            await connection.run_sync(Base.metadata.create_all)
+        owner = await repo.create_user("r01-owner", "R01 Owner")
+        profile = await repo.ensure_default_profile(owner.id)
+        search = (await repo.list_search_profiles(profile.id))[0]
+        job, _ = await repo.upsert_job(NormalizedJob(
+            source="hh", source_job_id="hh-r01", title="SRE", company="Example",
+        ))
+        match = await repo.save_match(
+            job_id=job.id, user_id=owner.id, profile_id=profile.id,
+            search_profile_id=search.id, status="saved",
+        )
+        package, _ = await repo.save_prepared_application(
+            match.id, owner.id, job_id=job.id, source_id="hh",
+            resume_snapshot="Exact CV", resume_external_id="hh-resume",
+            message="Exact letter", vacancy_snapshot=snapshot_vacancy(
+                job, source_id="hh", source_job_id="hh-r01",
+            ),
+        )
+        monkeypatch.setattr(services.settings, "telegram_admin_chat_id", "r01-owner")
+        provider = AsyncMock(return_value={"status": "sent", "negotiation_id": "receipt-1"})
+        monkeypatch.setattr(services, "hh_client", SimpleNamespace(private_api_available=True, apply=provider))
+        result = await services.apply_frozen_application(
+            object(), match_id=match.id, application_id=package.id, user_id=owner.id,
+            channel="hh", expected_digest=application_package_digest(package, "hh"),
+        )
+        assert result["status"] == "sent"
+        provider.assert_awaited_once_with("hh-r01", "hh-resume", "Exact letter")
+        applications = await repo.list_applications(owner.id)
+        assert len(applications) == 2
+        attempt = next(item for item in applications if item.id != package.id)
+        assert attempt.status == "sent"
+        assert [event.status for event in await repo.application_status_history(owner.id, attempt.id)] == [
+            "sending", "sent",
+        ]
+        with pytest.raises(RuntimeError, match="уже обработан"):
+            await services.apply_frozen_application(
+                object(), match_id=match.id, application_id=attempt.id, user_id=owner.id,
+                channel="hh", expected_digest=application_package_digest(attempt, "hh"),
+            )
+        assert provider.await_count == 1
+    finally:
+        async with engine.begin() as connection:
+            await connection.run_sync(Base.metadata.drop_all)
+        await engine.dispose()
 
 
 async def _prepare_delivery_retry_flow(database_url, monkeypatch):

@@ -13,7 +13,7 @@ from app.domain.jobs import NormalizedJob, SourceCapabilities
 from app.domain.job_text import clean_html_text, parse_salary_text, salary_fragment
 from app.domain.role_text import role_tokens
 from app.sources.diagnostics import classify_source_error
-from app.providers.hh import HHAPIForbidden, HHCaptchaRequired, HHClient
+from app.providers.hh import HHAPIForbidden, HHClient
 from app.sources.base import JobSource, SourceContext
 
 

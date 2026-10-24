@@ -35,6 +35,51 @@ def test_remote_worldwide_is_good_from_russia():
     assert result.geography_score == 100
 
 
+@pytest.mark.parametrize("description", [
+    "On site. Work must be completed at the physical location. There is no option to work remotely.",
+    "Work setting: Remote location. Willing to relocate.",
+])
+def test_onsite_job_bank_language_is_not_remote_work(description):
+    job = Job(
+        fingerprint="jobbank-onsite",
+        title="light duty cleaner",
+        company="ACME",
+        description=description,
+        country="CA",
+    )
+
+    signals = analyze_job_signals(job)
+
+    assert "remote_international" not in signals.tracks
+    assert signals.remote_eligibility == "unknown"
+
+
+def test_job_bank_onsite_destination_stays_in_relocation_lane():
+    search = SearchProfile(id=2, profile_id=1, settings={
+        "search_strategy": "relocation_first",
+        "queries": ["DevOps Engineer"],
+        "relocation_queries": ["cleaner"],
+        "target_countries": ["CA"],
+        "modes": {"local_ru": False, "remote_international": True, "relocation": True},
+    })
+    job = Job(
+        fingerprint="jobbank-onsite-relocation",
+        title="light duty cleaner",
+        company="ACME",
+        description=(
+            "On site. Work must be completed at the physical location. "
+            "There is no option to work remotely."
+        ),
+        country="CA",
+    )
+
+    result = score_job(job, search, [], [])
+
+    assert result.track == "relocation"
+    assert result.geography_score == 85
+    assert "remote" not in result.reason
+
+
 def test_us_only_remote_is_capped():
     job = Job(fingerprint="us", title="DevOps Engineer", company="ACME", description="Linux Docker. Remote US only. Must be authorized to work in the US.", country="US", work_mode="remote")
     result = score_job(job, _search(), _facts(), [])

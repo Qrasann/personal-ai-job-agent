@@ -43,6 +43,7 @@ class WatchedEmployer:
     allowed_hosts: frozenset[str]
     markets: tuple[str, ...]
     tracks: tuple[str, ...]
+    industry_tags: tuple[str, ...]
     openings: tuple[WatchedOpening, ...]
 
 
@@ -151,6 +152,15 @@ def _employer(row: object) -> WatchedEmployer:
     if not isinstance(openings_raw, list) or not openings_raw:
         raise ValueError("each employer needs at least one verified opening")
     openings = tuple(_opening(item, hosts) for item in openings_raw)
+    industry_tags_raw = row.get("industry_tags", [])
+    if not isinstance(industry_tags_raw, list):
+        raise ValueError("industry_tags must be a list")
+    industry_tags = tuple(str(value).strip().casefold() for value in industry_tags_raw)
+    if (
+        any(not value or len(value) > 64 for value in industry_tags)
+        or len(set(industry_tags)) != len(industry_tags)
+    ):
+        raise ValueError("industry_tags contains invalid or duplicate values")
     provider_ids = [item.provider_id for item in openings]
     if len(provider_ids) != len(set(provider_ids)):
         raise ValueError("opening provider IDs must be unique per employer")
@@ -166,6 +176,7 @@ def _employer(row: object) -> WatchedEmployer:
         allowed_hosts=hosts,
         markets=_strings(row.get("markets"), "markets"),
         tracks=_strings(row.get("tracks"), "tracks"),
+        industry_tags=industry_tags,
         openings=openings,
     )
 
