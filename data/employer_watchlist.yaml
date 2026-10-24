@@ -1,5 +1,5 @@
 schema_version: 1
-verified_at: "2026-10-18"
+verified_at: "2026-10-24"
 evidence_policy: >-
   An opening is listed only after its provider ID and public URL were observed on
   the employer's official career page or public ATS API. Remote scope never
@@ -89,10 +89,10 @@ employers:
     tracks: [devops, infrastructure, platform-engineering, relocation-it]
     industry_tags: [betting, gambling]
     openings:
-      - provider_id: "8200701"
-        title: Platform Core DevOps Engineer - Infra
+      - provider_id: "8025783"
+        title: DevOps Engineer - Zecure Gaming
         location: Malta
-        url: https://job-boards.greenhouse.io/betsson/jobs/8200701
+        url: https://job-boards.greenhouse.io/betsson/jobs/8025783
         suitability: medium
         work_authorization: unknown
         visa_sponsorship: unknown

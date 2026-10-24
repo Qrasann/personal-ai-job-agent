@@ -38,8 +38,9 @@ def test_priority_openings_and_unknown_eligibility_are_explicit() -> None:
     assert rows[("emerging-travel-group", "167")].title == "Technical Support Specialist"
     assert rows[("canonical", "6448444")].title == "Associate Linux Support Engineer"
     assert rows[("nebius", "4967085101")].title == "Site Reliability Engineer - Early Talent"
-    assert rows[("betsson-group", "8200701")].location == "Malta"
-    assert rows[("betsson-group", "8200701")].suitability == "medium"
+    assert rows[("betsson-group", "8025783")].title == "DevOps Engineer - Zecure Gaming"
+    assert rows[("betsson-group", "8025783")].location == "Malta"
+    assert rows[("betsson-group", "8025783")].suitability == "medium"
     assert next(item for item in watchlist.employers if item.id == "betsson-group").industry_tags == (
         "betting", "gambling"
     )
@@ -99,9 +100,9 @@ def test_employer_watch_resolves_exact_country_only_office_without_city_guess():
     context = SourceContext(user_id=1, current_country="RU", target_countries=["MT"], queries=["DevOps"])
     jobs = EmployerCareerWatchSource.parse_board_payload(employer, {
         "jobs": [{
-            "id": 8200701,
-            "title": "Platform Core DevOps Engineer - Infra",
-            "absolute_url": "https://job-boards.greenhouse.io/betsson/jobs/8200701",
+            "id": 8025783,
+            "title": "DevOps Engineer - Zecure Gaming",
+            "absolute_url": "https://job-boards.greenhouse.io/betsson/jobs/8025783",
             "location": {"name": "Malta"},
             "content": "Kubernetes and platform infrastructure",
         }]
