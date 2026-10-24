@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-24 — P0 Employer Watch inventory refresh
+
+- [x] Probe all 13 approved official endpoints read-only; all are currently reachable.
+- [x] Confirm removed Betsson provider ID and replace only that reviewed slot with current official Malta DevOps ID `8025783`.
+- [x] Keep work authorization, visa sponsorship and relocation unknown; employer/source gate: 144 passed.
+- [ ] Observe transient ATS TLS/timeouts on later normal scans; do not add retries without repeated impact evidence.
+
 ## 2026-10-24 — P0 RemoteOK transport recovery
 
 - [x] Confirm production impact: one profile failed discovery on `RemoteProtocolError` while another retained three rows.

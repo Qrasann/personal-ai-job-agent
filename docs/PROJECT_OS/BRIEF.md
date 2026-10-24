@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-24 P0 Employer Watch inventory refresh
+- Read-only probe confirmed all 13 official watchlist endpoints available; production's five per-profile TLS/timeouts were transient and partial results were preserved.
+- Betsson provider ID `8200701` is removed upstream. The reviewed slot now points to current official Malta DevOps ID `8025783`; work authorization, sponsorship and relocation remain unknown. Employer/source gate: **144 passed**. Code checkpoint: `cc36e59`; production unchanged.
+
 ## 2026-10-24 P0 RemoteOK transport recovery
 - Production scan proved one `RemoteProtocolError` discarded an entire RemoteOK profile discovery; the adapter had no transport retry.
 - RemoteOK now performs one bounded transport-only retry, records `retry_count`, logs only the exception class and still surfaces persistent/HTTP/schema failures. Source/diagnostic gate: **116 passed**. Code checkpoint: `7d83c75`; production remains on `8dc5a51`.

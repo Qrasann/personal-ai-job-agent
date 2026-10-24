@@ -1,3 +1,11 @@
+## 2026-10-24 — Employer Watch inventory refresh
+
+The production scan preserved 34 Employer Watch results but recorded five TLS/timeouts per
+profile. A separate sequential read-only probe found every approved endpoint reachable;
+no retry change was justified. It did confirm Betsson's reviewed provider ID was removed.
+Replaced that one slot with current official Malta DevOps posting `8025783`, retaining
+unknown eligibility/support evidence. Gate: 144 passed. Code checkpoint: `cc36e59`.
+
 ## 2026-10-24 — RemoteOK bounded transport retry
 
 The completed production scan was partial because a one-off RemoteOK

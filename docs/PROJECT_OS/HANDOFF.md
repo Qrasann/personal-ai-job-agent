@@ -1,5 +1,15 @@
 # Handoff
 
+## Current development checkpoint — Employer Watch inventory current (2026-10-24)
+
+Code checkpoint `cc36e59` follows a read-only probe of all 13 approved official endpoints:
+all were reachable, so production's five TLS/timeouts per profile are currently transient.
+Betsson posting `8200701` was genuinely removed; its reviewed slot now uses official current
+Malta DevOps posting `8025783`. Work authorization, visa sponsorship and relocation remain
+unknown. Employer/source gate: **144 passed**. This code is not deployed; production stays
+healthy on `8dc5a51`. Next: continue measured source usefulness or batch the three small
+post-release fixes through exact-SHA CI/release gates. No employer action occurred.
+
 ## Current development checkpoint — RemoteOK bounded transport retry (2026-10-24)
 
 Code checkpoint `7d83c75` addresses a production-observed `RemoteProtocolError` that lost
