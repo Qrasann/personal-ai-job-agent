@@ -17,7 +17,7 @@ from app.matching.technical_score import score_technical_v2
 from app.search.preferences import discovery_queries, search_strategy
 
 # Bump whenever score, fit-lane, cap, or exclusion semantics change.
-MATCH_ASSESSMENT_VERSION = 5
+MATCH_ASSESSMENT_VERSION = 6
 
 
 @dataclass(slots=True)
@@ -245,6 +245,7 @@ def _seniority_flags(job: Job) -> tuple[str | None, str | None]:
         r"\b(?:engineer|developer|scientist|researcher|programmer|devops|sre)[\s,(/:\-–—]+staff\b",
         r"\bhead\b",
         r"\barchitect\b",
+        r"\b(?:software\s+)?engineering manager\b",
         r"\bстарш(?:ий|ая|ее)\b",
         r"\bведущ(?:ий|ая|ее)\b",
         r"\bруководител[ья]\b",

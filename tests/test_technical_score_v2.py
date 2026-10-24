@@ -471,6 +471,25 @@ def test_career_role_scope_filter_does_not_remove_relocation_first_support_jobs(
     assert "вне Career-first" not in result.reason
 
 
+def test_relocation_first_does_not_promote_engineering_manager_title():
+    search = _search()
+    search.settings["search_strategy"] = "relocation_first"
+    search.settings["queries"] = ["Linux"]
+    job = Job(
+        fingerprint="relocation-engineering-manager",
+        title="Linux Enablement - Software Engineering Manager",
+        company="ACME",
+        description="Linux Docker Kubernetes",
+        country="DE",
+    )
+
+    result = score_job(job, search, [_fact("Linux", "commercial", fact_id=106)], [])
+
+    assert result.fit == "skip"
+    assert result.total_score <= 54
+    assert "senior/lead" in result.reason
+
+
 def test_relocation_first_destination_country_is_scored_without_inventing_support():
     search = _search()
     search.settings.update({

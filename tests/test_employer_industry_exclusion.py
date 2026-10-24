@@ -35,7 +35,7 @@ def test_betsson_is_not_blocked_by_old_sector_blacklist_or_industry_tag(strategy
 
     result = score_job(job, search, [], [])
 
-    assert MATCH_ASSESSMENT_VERSION == 5
+    assert MATCH_ASSESSMENT_VERSION == 6
     assert result.fit != "skip"
     assert _match_lane(result, 0) in {"qualified", "stretch"}
 
