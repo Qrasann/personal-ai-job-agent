@@ -1,5 +1,15 @@
 # Handoff
 
+## Current development checkpoint — RemoteOK bounded transport retry (2026-10-24)
+
+Code checkpoint `7d83c75` addresses a production-observed `RemoteProtocolError` that lost
+one RemoteOK search profile while another profile retained three rows. The adapter now
+retries one transport failure after a bounded delay, records the retry in source telemetry
+and logs only the exception class. Persistent transport, HTTP and schema failures remain
+visible. Source/diagnostic gate: **116 passed**. This code is not deployed; production
+remains healthy on `8dc5a51`. Batch with the preceding Job Bank scoring fix through normal
+exact-SHA release gates. No external acceptance probe or employer action is authorized.
+
 ## Current development checkpoint — Job Bank onsite is not remote (2026-10-24)
 
 Code checkpoint `20df7a6` fixes a production-reproduced Relocation-first evidence error:

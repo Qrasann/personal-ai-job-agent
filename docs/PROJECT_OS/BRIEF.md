@@ -1,5 +1,9 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-24 P0 RemoteOK transport recovery
+- Production scan proved one `RemoteProtocolError` discarded an entire RemoteOK profile discovery; the adapter had no transport retry.
+- RemoteOK now performs one bounded transport-only retry, records `retry_count`, logs only the exception class and still surfaces persistent/HTTP/schema failures. Source/diagnostic gate: **116 passed**. Code checkpoint: `7d83c75`; production remains on `8dc5a51`.
+
 ## 2026-10-24 P0 Job Bank onsite/remote evidence
 - Production data reproduced Job Bank onsite postings being classified as remote solely from “no option to work remotely” or physical “Remote location”. This overwrote the Relocation-first destination lane and lowered geography scores.
 - Exact non-remote forms no longer create remote-work evidence; destination-country postings stay relocation candidates. Match assessment version is 5 so old scores are visibly stale. Sponsorship/work authorization/relocation evidence is unchanged.

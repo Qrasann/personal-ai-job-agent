@@ -1,5 +1,12 @@
 # Tasks
 
+## 2026-10-24 — P0 RemoteOK transport recovery
+
+- [x] Confirm production impact: one profile failed discovery on `RemoteProtocolError` while another retained three rows.
+- [x] Add one bounded retry only for transport failures and expose retry telemetry without exception text.
+- [x] Preserve visible persistent transport, HTTP and schema failures; source/diagnostic gate: 116 passed.
+- [ ] Verify recovery/telemetry in a later gated production scan; do not probe the source solely for acceptance.
+
 ## 2026-10-24 — P0 Job Bank onsite/remote evidence
 
 - [x] Reproduce the false remote lane from current production Job Bank onsite text.

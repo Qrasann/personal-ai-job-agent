@@ -1,3 +1,11 @@
+## 2026-10-24 — RemoteOK bounded transport retry
+
+The completed production scan was partial because a one-off RemoteOK
+`RemoteProtocolError` discarded discovery for one profile; the adapter had no retry.
+Added one transport-only retry with bounded delay, safe class-only logging and existing
+source telemetry integration. Persistent transport/HTTP/schema errors remain visible.
+Gate: 116 passed. Code checkpoint: `7d83c75`; production unchanged.
+
 ## 2026-10-24 — Job Bank onsite/remote evidence
 
 Production Relocation-first data showed that Job Bank's standard onsite refusal “There is

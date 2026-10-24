@@ -6,6 +6,8 @@ Confirmed and corrected one source-specific geography false positive: Arbeitnow'
 
 Production yield review on 2026-10-24 confirmed a second evidence bug: Job Bank onsite text such as “There is no option to work remotely” and physical “Remote location” was interpreted as remote work. Those exact non-remote forms are now excluded from remote-work detection, so destination-country Any Job postings remain in the relocation lane. Assessment version 5 prevents stale scores from being presented as current. Sponsorship, authorization and relocation evidence remain independent and unknown unless explicitly stated.
 
+The same production scan confirmed a single RemoteOK `RemoteProtocolError` discarded one profile's discovery while another profile retained three rows. RemoteOK now retries one transport failure with a bounded delay and reports the retry in source telemetry. HTTP status/schema errors still fail visibly; no unbounded retry or fallback was added.
+
 ## Search Quality query-lane increment — 2026-10-20
 
 Career-first remains a dedicated DevOps/Infrastructure/Linux/SRE lane. Relocation-first now keeps both configured IT queries and broader Any Job queries by alternating the two lists before bounded source adapters consume them; case-insensitive duplicates do not spend another request slot. The checked-in defaults now name Site Reliability Engineer explicitly. This changes discovery coverage, not Match Score, thresholds or evidence semantics: absent visa, sponsorship and relocation evidence remains unknown. On the unchanged private offline Telegram sample, both profiles were measured separately and the aggregate stayed 18 non-vacancies / 42 vacancy candidates / 1 Good / 41 filtered.
