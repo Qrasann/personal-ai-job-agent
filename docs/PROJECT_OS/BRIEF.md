@@ -3,6 +3,7 @@
 ## 2026-10-24 P0 Relocation-first engineering-manager false Good
 - Production sent `Linux Enablement - Software Engineering Manager` as Relocation-first Good (73/100): the measured manager guard was Career-only despite global senior/lead fail-closed policy.
 - Explicit Software/Engineering Manager titles now use the shared senior gate in both strategies; desktop/support jobs remain available to Relocation-first. Assessment version is now 6. Matching/review gate: **157 passed**. Code checkpoint: `a0c5985`; production unchanged.
+- Combined post-release isolated PostgreSQL gate (Job Bank lane, RemoteOK retry, watchlist refresh and manager guard): **1521 passed**.
 
 ## 2026-10-24 P0 Employer Watch inventory refresh
 - Read-only probe confirmed all 13 official watchlist endpoints available; production's five per-profile TLS/timeouts were transient and partial results were preserved.

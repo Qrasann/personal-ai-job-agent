@@ -5,6 +5,8 @@ Engineering Manager title classified Good at 73/100 in Relocation-first. The kno
 filter was Career-only. Added that exact technical manager title class to the global
 senior gate while preserving relocation desktop/support rows; assessment version is 6.
 Matching/review gate: 157 passed. Code checkpoint: `a0c5985`; production unchanged.
+The combined isolated PostgreSQL suite for all four post-release increments passed 1521
+tests with only the existing aiohttp AppKey warnings.
 
 ## 2026-10-24 — Employer Watch inventory refresh
 
