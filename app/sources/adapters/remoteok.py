@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import math
 
 import httpx
@@ -12,6 +14,8 @@ from app.sources.base import JobSource, SourceContext
 from app.sources.diagnostics import SourceInvalidResponse
 
 
+log = logging.getLogger(__name__)
+
 _ROLE_QUERY_ALIASES = {
     frozenset({"site", "reliability", "engineer"}): frozenset({"sre"}),
 }
@@ -22,6 +26,7 @@ class RemoteOKSource(JobSource):
     name = "Remote OK"
     capabilities = SourceCapabilities(discovery=True, details=True, apply=False, messages=False)
     endpoint = "https://remoteok.com/api"
+    request_retries = 1
 
     @staticmethod
     def _amount(value: object) -> int | None:
@@ -41,11 +46,24 @@ class RemoteOKSource(JobSource):
         return [item.strip() for item in value if isinstance(item, str) and item.strip()]
 
     async def discover(self, context: SourceContext) -> list[NormalizedJob]:
+        self.retry_count = 0
         headers = {"User-Agent": "JobAgentV3/0.1 (job discovery client)"}
         async with httpx.AsyncClient(timeout=httpx.Timeout(connect=30, read=30, write=30, pool=30)) as client:
-            response = await client.get(self.endpoint, headers=headers)
-            response.raise_for_status()
-            payload = response.json()
+            for attempt in range(self.request_retries + 1):
+                try:
+                    response = await client.get(self.endpoint, headers=headers)
+                    response.raise_for_status()
+                    payload = response.json()
+                    break
+                except httpx.TransportError as exc:
+                    if attempt >= self.request_retries:
+                        raise
+                    self.retry_count += 1
+                    log.warning(
+                        "RemoteOK transport failure (%s); retry %s/%s",
+                        type(exc).__name__, attempt + 1, self.request_retries,
+                    )
+                    await asyncio.sleep(0.5 * (2 ** attempt))
 
         if not isinstance(payload, list):
             raise SourceInvalidResponse("RemoteOK expected a list")
