@@ -1,5 +1,13 @@
 # Tasks
 
+## 2026-10-24 — P0 Job Bank onsite/remote evidence
+
+- [x] Reproduce the false remote lane from current production Job Bank onsite text.
+- [x] Exclude exact remote-work refusals and physical `Remote location` from remote evidence while preserving explicit remote work.
+- [x] Keep destination-country Any Job postings in Relocation-first and bump assessment version to invalidate stale scores.
+- [x] Pass related Job Bank/remote/matching/discovery gate: 324 passed.
+- [ ] Re-measure Career-first and Relocation-first IT/Any Job yield after the next gated release/rescan.
+
 ## 2026-10-24 — production rollout Telegram UX `8dc5a51`
 
 - [x] Confirm exact-SHA CI run 40013885120: Python, secret scan and Docker build successful.

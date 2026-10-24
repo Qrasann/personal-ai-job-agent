@@ -1,5 +1,10 @@
 # Personal AI Job Agent — active brief (2026-10-17)
 
+## 2026-10-24 P0 Job Bank onsite/remote evidence
+- Production data reproduced Job Bank onsite postings being classified as remote solely from “no option to work remotely” or physical “Remote location”. This overwrote the Relocation-first destination lane and lowered geography scores.
+- Exact non-remote forms no longer create remote-work evidence; destination-country postings stay relocation candidates. Match assessment version is 5 so old scores are visibly stale. Sponsorship/work authorization/relocation evidence is unchanged.
+- Related Job Bank/remote/matching/discovery gate: **324 passed**. Code checkpoint: `20df7a6`; production remains on `8dc5a51`.
+
 ## 2026-10-24 production rollout — Telegram UX `8dc5a51`
 - Production now runs exact SHA `8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4` in immutable image `sha256:6c0284b6…`; app is healthy with zero restarts and PostgreSQL remains schema 11.
 - Fresh private backup was catalogued and fully restored to tmpfs with matching counts: 1 user, 26 facts, 6 CVs, 2588 jobs, 2752 matches and no Applications/events. Pre-rollout image `sha256:ad8e2230…` and a mode-0600 rollback overlay are retained.

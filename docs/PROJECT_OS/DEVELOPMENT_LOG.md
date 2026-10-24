@@ -1,3 +1,12 @@
+## 2026-10-24 — Job Bank onsite/remote evidence
+
+Production Relocation-first data showed that Job Bank's standard onsite refusal “There is
+no option to work remotely” and its physical “Remote location” label both triggered the
+generic remote lane. Added a shared narrow remote-work detector that removes only explicit
+refusals/physical wording before matching; destination-country Any Job rows now retain
+relocation geography. Assessment version advanced to 5. Related gate: 324 passed; no
+production change or external action occurred. Code checkpoint: `20df7a6`.
+
 ## 2026-10-24 — production Telegram UX rollout `8dc5a51`
 
 Found runtime had drifted back to the pre-release `repo-app` image after a base-Compose

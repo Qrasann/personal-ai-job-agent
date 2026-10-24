@@ -1,5 +1,19 @@
 # Handoff
 
+## Current development checkpoint — Job Bank onsite is not remote (2026-10-24)
+
+Code checkpoint `20df7a6` fixes a production-reproduced Relocation-first evidence error:
+Job Bank's explicit “no option to work remotely” and physical “Remote location” no longer
+create a remote-work lane. Destination-country postings remain relocation candidates;
+work authorization, sponsorship and relocation support are not inferred. Assessment
+version 5 makes persisted prior scores stale until rescanned. Related gate: **324 passed**.
+
+This post-release code is not deployed. Production remains healthy on Telegram UX SHA
+`8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4`; its fresh backup and rollback artifacts
+remain valid. Next: continue measured Career/Relocation source usefulness, then batch this
+small scoring fix through normal exact-SHA CI and release gates before rescanning. No
+employer action is authorized.
+
 ## Current production — Telegram UX `8dc5a51` released (2026-10-24)
 
 Production runs exact Git SHA `8dc5a51ef2d3fe49bf37030318c3e8bbaf2577c4`,
